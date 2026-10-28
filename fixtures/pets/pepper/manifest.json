@@ -1,5 +1,5 @@
 {
- "manifest_version": "1.0",
+ "manifest_version": "1.1",
  "job_id": "fx_pepper",
  "species": "dog",
  "pet_name": "Pepper",
@@ -7,14 +7,30 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T12:16:57.458Z",
- "finished_at": "2026-10-28T12:18:12.658Z",
+ "created_at": "2026-10-28T14:38:18.888Z",
+ "finished_at": "2026-10-28T14:39:17.001Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
   "vocab": "1.0",
   "base_mesh": "proxy-1.0",
   "workflows": {}
+ },
+ "genai": {
+  "profile": "mock",
+  "profile_version": 1,
+  "profile_sha": "33b5fbe5b044",
+  "host": "cpu",
+  "accelerator": "none",
+  "adapters": {
+   "parser": "rules",
+   "image": "mock",
+   "shape": "mock",
+   "texture": "projection"
+  },
+  "models": {},
+  "model_pins": {},
+  "quality": "fixture"
  },
  "seeds": {
   "job": 1004
@@ -23,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 1001,
+   "ms": 11,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T12:16:57.458Z",
-   "ended_at": "2026-10-28T12:16:58.459Z"
+   "started_at": "2026-10-28T14:38:18.888Z",
+   "ended_at": "2026-10-28T14:38:18.899Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 5283,
+   "ms": 6371,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T12:16:58.460Z",
-   "ended_at": "2026-10-28T12:17:03.743Z"
+   "started_at": "2026-10-28T14:38:18.899Z",
+   "ended_at": "2026-10-28T14:38:25.271Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 6003,
+   "ms": 1797,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:17:03.744Z",
-   "ended_at": "2026-10-28T12:17:09.747Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:38:25.272Z",
+   "ended_at": "2026-10-28T14:38:27.070Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 9003,
+   "ms": 2632,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:17:09.749Z",
-   "ended_at": "2026-10-28T12:17:18.753Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:38:27.072Z",
+   "ended_at": "2026-10-28T14:38:29.704Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 19469,
+   "ms": 5015,
    "attempts": 1,
-   "backend": "mock-shape",
-   "started_at": "2026-10-28T12:17:18.754Z",
-   "ended_at": "2026-10-28T12:17:38.223Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:38:29.706Z",
+   "ended_at": "2026-10-28T14:38:34.721Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 9133,
+   "ms": 1652,
    "attempts": 1,
    "backend": "blender",
    "notes": "inverted 0, laplacian x0.90, self-intersections 0",
-   "started_at": "2026-10-28T12:17:38.225Z",
-   "ended_at": "2026-10-28T12:17:47.358Z"
+   "started_at": "2026-10-28T14:38:34.723Z",
+   "ended_at": "2026-10-28T14:38:36.375Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 25294,
+   "ms": 40619,
    "attempts": 1,
-   "backend": "mock-texture",
-   "started_at": "2026-10-28T12:17:47.359Z",
-   "ended_at": "2026-10-28T12:18:12.653Z"
+   "backend": "projection",
+   "started_at": "2026-10-28T14:38:36.377Z",
+   "ended_at": "2026-10-28T14:39:16.997Z"
   }
  ],
  "files": [
@@ -155,8 +171,8 @@
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_pepper/albedo.png",
-   "bytes": 94144,
-   "sha256": "2a274fbae6fc24def59e5713e6b8f851d77ae54e571b6a7b445ca2fb17717c5c"
+   "bytes": 580805,
+   "sha256": "dfa23aa654dd806fcc9fcccd6fdd3a9b6fc3cd306180e434c83bc893b88e434b"
   },
   {
    "name": "figure_uv.obj",
@@ -179,8 +195,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure.3mf",
-   "bytes": 610329,
-   "sha256": "54b393de1e8eb8096c813e3f5951542c944bb391c1c0680630e62c95f178dd16"
+   "bytes": 610315,
+   "sha256": "30c52159b1a04acc56d7137180de0dbf78aa2b479936fb3d03780f1cc429ad3a"
   },
   {
    "name": "paint_mask.png",
@@ -195,24 +211,24 @@
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_pepper/thumbnail.png",
-   "bytes": 55429,
-   "sha256": "19f7f598f92504d1d04e341f3fe1828b6a74299c29ca71f5a36682e58ae33b75"
+   "bytes": 52817,
+   "sha256": "ab0c899fbec9c0b2e31cc63ba2f6085f0b7191b404b3911903490a44c12943f9"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_pepper/turntable.mp4",
-   "bytes": 88368,
-   "sha256": "ccf722519155edcf6983821b4faea9620b26ea399a8f4f74560e189fbad85ef9"
+   "bytes": 86646,
+   "sha256": "b8cbd0b823c70f1d02d113c1d4d5545ebe78bc771833e105eabc99a699db5572"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure.glb",
-   "bytes": 280612,
-   "sha256": "984390377cd6a1f9d448af20a8cf6be5e97e1e96548045996424a8d419f15b65"
+   "bytes": 767280,
+   "sha256": "bb8b141aa9d44b333de106c466b0bd683bb3ee578e198e6b4f7177cb4715ed2d"
   }
  ],
  "metrics": {
@@ -233,6 +249,6 @@
   "paint_mask_pct": 4.55,
   "uv_layout_hash": "a925f74e10d7acea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 75186
+  "total_ms": 58097
  }
 }

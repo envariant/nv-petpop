@@ -35,3 +35,24 @@ def depth_to_alpha(depth_png: bytes) -> bytes:
     buf = io.BytesIO()
     Image.fromarray(a, "L").save(buf, format="PNG", optimize=True)
     return buf.getvalue()
+
+
+def matte(png: bytes, cfg: dict, size: int) -> bytes:
+    """Matte a generated view per the profile: 'alpha' keeps the image's own alpha; 'white_key' keys the plain
+    white background (largest connected subject, holes filled), then re-centres like matte_square."""
+    if cfg.get("method", "alpha") == "white_key":
+        from scipy import ndimage
+
+        img = Image.open(io.BytesIO(png)).convert("RGB")
+        rgb = np.asarray(img)
+        fg = rgb.min(axis=2) < int(cfg.get("threshold", 236))
+        lab, n = ndimage.label(fg)
+        if n:
+            sizes = ndimage.sum(fg, lab, range(1, n + 1))
+            fg = lab == (1 + int(np.argmax(sizes)))
+        fg = ndimage.binary_fill_holes(fg)
+        alpha = (ndimage.gaussian_filter(fg.astype(np.float32), 0.7) * 255).astype(np.uint8)
+        buf = io.BytesIO()
+        Image.fromarray(np.dstack([rgb, alpha]), "RGBA").save(buf, format="PNG")
+        png = buf.getvalue()
+    return matte_square(png, size)

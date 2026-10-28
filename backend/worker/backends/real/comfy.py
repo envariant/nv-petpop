@@ -1,16 +1,17 @@
-"""ComfyUI adapters for the GPU host (BRIEF Section 8). Not exercised in the cloud session (S3 work).
+"""ComfyUI adapters (BRIEF Section 8), host-agnostic: the GenAI profile supplies the URL, workflow files,
+model names, parameters and residency rules; the workflow JSON's `meta.inputs` / `meta.outputs` say which
+node input or output each named value maps to, so node ids never appear in code.
 
-Each stage is one API-format workflow under pipelines/comfy/; editable inputs are PrimitiveNodes found by
-title and filled before POST /prompt. Progress comes from /ws, outputs from /history + /view. Between the
-image stages and Stage D the worker calls /free with unload_models so SDXL and Hunyuan3D never co-reside.
+Not yet run against a live ComfyUI (see each workflow's meta.validated).
 """
 from __future__ import annotations
 
+import copy
 import io
 import json
+import logging
 import time
 import uuid
-
 from typing import Any
 
 import httpx
@@ -20,6 +21,7 @@ from backend.core.paths import PIPELINES
 from ..base import ShapeResult
 
 WORKFLOWS = PIPELINES / "comfy"
+log = logging.getLogger("petpop.worker")
 
 
 class ComfyError(RuntimeError):
@@ -27,10 +29,11 @@ class ComfyError(RuntimeError):
 
 
 class ComfyClient:
-    def __init__(self, url: str) -> None:
-        self.url = url.rstrip("/")
+    def __init__(self, profile) -> None:
+        self.profile = profile
+        self.url = profile.url("comfy")
         self.client_id = uuid.uuid4().hex
-        self.http = httpx.Client(timeout=30)
+        self.http = httpx.Client(timeout=60, headers=profile.auth_headers())
 
     def healthy(self) -> bool:
         try:
@@ -39,141 +42,199 @@ class ComfyClient:
             return False
 
     def free(self) -> None:
-        self.http.post(f"{self.url}/free", json={"unload_models": True, "free_memory": True})
+        try:
+            self.http.post(f"{self.url}/free", json={"unload_models": True, "free_memory": True})
+        except httpx.HTTPError as exc:
+            log.warning("ComfyUI /free failed: %s", exc)
 
-    def upload(self, name: str, data: bytes) -> str:
-        r = self.http.post(f"{self.url}/upload/image", files={"image": (name, data, "image/png")},
-                           data={"overwrite": "true"})
+    def upload(self, name: str, data: bytes, mime: str = "image/png") -> str:
+        r = self.http.post(f"{self.url}/upload/image", files={"image": (name, data, mime)}, data={"overwrite": "true"})
         r.raise_for_status()
-        return r.json()["name"]
-
-    def load(self, workflow: str) -> tuple[dict[str, Any], str]:
-        doc = json.loads((WORKFLOWS / workflow).read_text())
-        version = str(doc.get("meta", {}).get("version", "0"))
-        graph = {k: v for k, v in doc.items() if k != "meta"}
-        return graph, version
+        body = r.json()
+        return f"{body['subfolder']}/{body['name']}" if body.get("subfolder") else body["name"]
 
     @staticmethod
-    def fill(graph: dict[str, Any], inputs: dict[str, Any]) -> dict[str, Any]:
-        """Set PrimitiveNode values by node title (never by node id)."""
-        found = set()
-        for node in graph.values():
-            title = node.get("_meta", {}).get("title")
-            if title in inputs:
-                key = "value" if "value" in node.get("inputs", {}) else next(iter(node.get("inputs", {})), "value")
-                node["inputs"][key] = inputs[title]
-                found.add(title)
-        missing = set(inputs) - found
-        if missing:
-            raise ComfyError(f"workflow has no PrimitiveNode titled {sorted(missing)}")
-        return graph
+    def load(workflow: str) -> tuple[dict[str, Any], dict[str, Any]]:
+        doc = json.loads((WORKFLOWS / workflow).read_text())
+        meta = doc.get("meta", {})
+        graph = {k: v for k, v in doc.items() if k != "meta"}
+        return graph, meta
 
-    def run(self, workflow: str, inputs: dict[str, Any], timeout: float, progress=None) -> tuple[dict[str, list[bytes]], str]:
-        graph, version = self.load(workflow)
-        graph = self.fill(graph, inputs)
-        r = self.http.post(f"{self.url}/prompt", json={"prompt": graph, "client_id": self.client_id})
+    @staticmethod
+    def fill(graph: dict[str, Any], meta: dict[str, Any], values: dict[str, Any]) -> dict[str, Any]:
+        """Set each named value on the node input that meta.inputs binds it to; bypass optional nodes whose
+        value is None (e.g. no LoRA yet)."""
+        g = copy.deepcopy(graph)
+        bindings = meta.get("inputs", {})
+        for name, value in values.items():
+            targets = bindings.get(name)
+            if not targets or value is None:
+                continue  # not used by this workflow (e.g. num_chunks on the single-view graph), or optional
+            for node_id, field in (targets if isinstance(targets[0], list) else [targets]):
+                g[node_id]["inputs"][field] = value
+        for name, spec in meta.get("optional_nodes", {}).items():
+            if values.get(name, "present") is None:
+                node_id = spec["node"]
+                rewire = spec["bypass"]  # {output_index: [source_node, source_output]}
+                del g[node_id]
+                for node in g.values():
+                    for k, v in node["inputs"].items():
+                        if isinstance(v, list) and len(v) == 2 and v[0] == node_id:
+                            node["inputs"][k] = rewire[str(v[1])]
+        missing = [n for n in meta.get("required", []) if values.get(n) is None]
+        if missing:
+            raise ComfyError(f"missing required workflow inputs {missing}")
+        return g
+
+    def run(self, workflow: str, values: dict[str, Any], timeout: float) -> tuple[dict[str, list[bytes]], dict[str, Any]]:
+        graph, meta = self.load(workflow)
+        if not meta.get("validated", False):
+            log.warning("workflow %s is unvalidated (meta.validated=false)", workflow)
+        g = self.fill(graph, meta, values)
+        r = self.http.post(f"{self.url}/prompt", json={"prompt": g, "client_id": self.client_id})
         if r.status_code != 200:
-            raise ComfyError(f"/prompt rejected: {r.text[:500]}")
+            raise ComfyError(f"/prompt rejected {workflow}: {r.text[:500]}")
         prompt_id = r.json()["prompt_id"]
         t0 = time.monotonic()
-        while time.monotonic() - t0 < timeout:
-            h = self.http.get(f"{self.url}/history/{prompt_id}").json()
-            if prompt_id in h:
-                entry = h[prompt_id]
-                if entry.get("status", {}).get("status_str") == "error":
-                    raise ComfyError(f"{workflow} failed: {entry['status']}")
-                outputs: dict[str, list[bytes]] = {}
-                for node_id, out in entry.get("outputs", {}).items():
-                    title = graph.get(node_id, {}).get("_meta", {}).get("title", node_id)
-                    for item in out.get("images", []) + out.get("gltf", []) + out.get("3d", []):
-                        v = self.http.get(f"{self.url}/view", params={"filename": item["filename"],
-                                                                      "subfolder": item.get("subfolder", ""),
-                                                                      "type": item.get("type", "output")})
-                        outputs.setdefault(title, []).append(v.content)
-                return outputs, version
-            if progress:
-                progress()
-            time.sleep(0.5)
-        raise ComfyError(f"{workflow} timed out after {timeout:.0f} s")
+        try:
+            while time.monotonic() - t0 < timeout:
+                h = self.http.get(f"{self.url}/history/{prompt_id}").json()
+                if prompt_id in h:
+                    entry = h[prompt_id]
+                    if entry.get("status", {}).get("status_str") == "error":
+                        raise ComfyError(f"{workflow} failed: {json.dumps(entry['status'])[:500]}")
+                    return self._outputs(meta, entry), meta
+                time.sleep(1.0)
+            raise ComfyError(f"{workflow} timed out after {timeout:.0f} s")
+        finally:
+            if self.profile["residency"].get("free_comfy_after_call"):
+                self.free()
+
+    def _outputs(self, meta: dict[str, Any], entry: dict[str, Any]) -> dict[str, list[bytes]]:
+        if not meta.get("outputs"):
+            raise ComfyError("workflow meta declares no outputs")
+        out: dict[str, list[bytes]] = {}
+        by_node = {v: k for k, v in meta["outputs"].items()}
+        for node_id, result in entry.get("outputs", {}).items():
+            name = by_node.get(node_id)
+            if not name:
+                continue
+            for key in ("images", "3d", "gltf", "meshes"):
+                for item in result.get(key, []) or []:
+                    if not isinstance(item, dict) or "filename" not in item:
+                        continue
+                    v = self.http.get(f"{self.url}/view", params={"filename": item["filename"], "subfolder": item.get("subfolder", ""),
+                                                                  "type": item.get("type", "output")})
+                    v.raise_for_status()
+                    out.setdefault(name, []).append(v.content)
+        missing = set(meta.get("outputs", {})) - set(out)
+        if missing:
+            raise ComfyError(f"workflow produced no {sorted(missing)}")
+        return out
+
+
+def _version(ctx, workflow: str, meta: dict[str, Any]) -> None:
+    v = str(meta.get("version", "0")) + ("" if meta.get("validated") else "-unvalidated")
+    ctx.state.setdefault("workflows", {})[workflow.removesuffix(".json")] = v
 
 
 class ComfyImageBackend:
-    name = "comfy-sdxl"
+    name = "comfy"
 
-    def __init__(self, client: ComfyClient) -> None:
+    def __init__(self, client: ComfyClient, profile) -> None:
         self.c = client
+        self.cfg = profile["image"]
+
+    def _common(self, spec, prompts) -> dict[str, Any]:
+        m, p = self.cfg["models"], self.cfg["params"]
+        return {"negative": prompts["negative"], "seed": int(spec["seed"]), "cfg": p["cfg"], "sampler": p["sampler"],
+                "scheduler": p["scheduler"], "checkpoint": m["checkpoint"], "vae": m["vae"], "controlnet": m["controlnet_depth"],
+                "controlnet_strength": p["controlnet_strength"], "lora": m.get("lora"),
+                "lora_strength": p.get("lora_strength", 0.8) if m.get("lora") else None}
 
     def concept(self, ctx, spec, prompts, control):
-        depth = self.c.upload(f"{ctx.job_id}_concept_depth.png", control["concept_front_depth"])
-        init = self.c.upload(f"{ctx.job_id}_flat.png", control["flat_front"])
-        out, version = self.c.run("01_concept_front.json", {
-            "positive": prompts["positive"], "negative": prompts["negative"], "seed": int(spec["seed"]),
-            "depth_image": depth, "init_image": init,
-        }, timeout=ctx.remaining())
-        ctx.state.setdefault("workflows", {})["01_concept_front"] = version
-        return out["concept"][0]
+        from backend.worker.imaging import matte
+
+        wf = self.cfg["workflows"]["concept"]
+        size = int(ctx.quality["concept_px"])
+        values = {**self._common(spec, prompts), "positive": prompts["positive"], "steps": self.cfg["params"]["concept_steps"],
+                  "denoise": self.cfg["params"]["init_denoise"], "width": size, "height": size,
+                  "depth_image": self.c.upload(f"{ctx.job_id}_concept_depth.png", control["concept_front_depth"]),
+                  "init_image": self.c.upload(f"{ctx.job_id}_flat_front.png", control["flat_front"])}
+        out, meta = self.c.run(wf, values, timeout=ctx.remaining())
+        _version(ctx, wf, meta)
+        return matte(out["concept"][0], self.cfg["matting"], size)
 
     def views(self, ctx, spec, prompts, control, concept):
-        names = {v: self.c.upload(f"{ctx.job_id}_{v}_depth.png", control[f"{v}_depth"]) for v in ("front", "left", "back", "right")}
-        ref = self.c.upload(f"{ctx.job_id}_concept.png", concept)
-        inputs = {"concept_image": ref, "seed": int(spec["seed"]), "negative": prompts["negative"]}
-        for v in names:
-            inputs[f"depth_{v}"] = names[v]
-            inputs[f"positive_{v}"] = prompts["views"][v]
-        out, version = self.c.run("02_views_ipadapter.json", inputs, timeout=ctx.remaining())
-        ctx.state.setdefault("workflows", {})["02_views_ipadapter"] = version
-        return {v: out[f"view_{v}"][0] for v in names}
+        from backend.worker.imaging import matte
+
+        wf = self.cfg["workflows"]["views"]
+        size = int(ctx.quality["view_px"])
+        m, p = self.cfg["models"], self.cfg["params"]
+        values = {**self._common(spec, prompts), "steps": p["view_steps"], "width": size, "height": size,
+                  "ipadapter": m["ipadapter"], "clip_vision": m["clip_vision"], "ipadapter_weight": p["ipadapter_weight"],
+                  "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", concept)}
+        for v in ("front", "left", "back", "right"):
+            values[f"depth_{v}"] = self.c.upload(f"{ctx.job_id}_{v}_depth.png", control[f"{v}_depth"])
+            values[f"positive_{v}"] = prompts["views"][v]
+        out, meta = self.c.run(wf, values, timeout=ctx.remaining())
+        _version(ctx, wf, meta)
+        return {v: matte(out[f"view_{v}"][0], self.cfg["matting"], size) for v in ("front", "left", "back", "right")}
 
 
 class ComfyShapeBackend:
-    name = "comfy-hunyuan3d"
+    name = "comfy"
 
-    def __init__(self, client: ComfyClient) -> None:
+    def __init__(self, client: ComfyClient, profile) -> None:
         self.c = client
+        self.profile = profile
+        self.cfg = profile["shape"]
+
+    def _before(self) -> None:
+        if "D" in (self.profile["residency"].get("free_comfy_before") or []):
+            self.c.free()  # the image stack never co-resides with the shape model
+
+    def _run(self, ctx, spec, kind: str, images: dict[str, bytes], params: dict[str, Any], seed: int) -> ShapeResult:
+        wf = self.cfg["workflows"][kind]
+        values = {"model": self.cfg["models"][kind], "seed": seed, "steps": params["steps"], "guidance": params["guidance"],
+                  "octree_resolution": params["octree_resolution"]}
+        for k in ("num_chunks", "latent_resolution", "threshold"):
+            if k in self.cfg["params"]:
+                values[k] = self.cfg["params"][k]
+        for v, data in images.items():
+            values[f"view_{v}"] = self.c.upload(f"{ctx.job_id}_shape_{v}.png", data)
+        out, meta = self.c.run(wf, values, timeout=ctx.remaining())
+        _version(ctx, wf, meta)
+        return ShapeResult(glb=normalise_glb(out["shape"][0], self.cfg), co=None, tris=None, backend=f"comfy:{kind}")
 
     def multiview(self, ctx, spec, views):
-        self.c.free()  # SDXL + ControlNet + IP-Adapter out before Hunyuan3D-2mv comes in
-        inputs = {f"view_{v}": self.c.upload(f"{ctx.job_id}_view_{v}.png", b) for v, b in views.items()}
-        inputs["seed"] = int(spec["seed"])
-        out, version = self.c.run("03_shape_hy2mv.json", inputs, timeout=ctx.remaining())
-        ctx.state.setdefault("workflows", {})["03_shape_hy2mv"] = version
-        return ShapeResult(glb=normalise_glb(out["shape"][0]), co=None, tris=None, backend=self.name)
+        self._before()
+        imgs = {v: views[v] for v in self.cfg["views"]}
+        kind = "multiview" if len(imgs) > 1 else "single_view"
+        return self._run(ctx, spec, kind, imgs, self.cfg["params"], int(spec["seed"]))
 
     def single_view(self, ctx, spec, front):
-        inputs = {"view_front": self.c.upload(f"{ctx.job_id}_front.png", front), "seed": int(spec["seed"])}
-        out, version = self.c.run("03b_shape_hy21_single.json", inputs, timeout=ctx.remaining())
-        ctx.state.setdefault("workflows", {})["03b_shape_hy21_single"] = version
-        return ShapeResult(glb=normalise_glb(out["shape"][0]), co=None, tris=None, backend="comfy-hunyuan3d-2.1")
+        self._before()
+        fb = self.cfg.get("fallback", {})
+        return self._run(ctx, spec, "single_view", {"front": front}, {**self.cfg["params"], **fb.get("params", {})},
+                         int(spec["seed"]) + int(fb.get("seed_offset", 1)))
 
 
-class ComfyTextureBackend:
-    name = "comfy-hy-paint"
-
-    def __init__(self, client: ComfyClient) -> None:
-        self.c = client
-
-    def paint(self, ctx, spec, wrapped_obj, coords, views):
-        inputs = {f"view_{v}": self.c.upload(f"{ctx.job_id}_tex_{v}.png", b) for v, b in views.items()}
-        inputs["mesh_obj"] = self.c.upload(f"{ctx.job_id}_wrapped.obj", wrapped_obj)
-        inputs["resolution"] = int(ctx.quality["albedo_px"])
-        out, version = self.c.run("04_texture_hy_paint.json", inputs, timeout=ctx.remaining())
-        ctx.state.setdefault("workflows", {})["04_texture_hy_paint"] = version
-        return out["albedo"][0]
-
-
-def normalise_glb(data: bytes) -> bytes:
-    """Centre, scale to 90 mm height, front = -Y / up = +Z (exported Y-up), decimate to ~300 k tris."""
+def normalise_glb(data: bytes, cfg: dict[str, Any]) -> bytes:
+    """Centre, rotate by the profile's yaw, scale to the profile height, decimate to the profile's max tris.
+    Output stays glTF Y-up with the front facing +Z (the base-mesh convention after export)."""
     import numpy as np
     import trimesh
 
-    scene = trimesh.load(io.BytesIO(data), file_type="glb", force="mesh")
-    m = scene if isinstance(scene, trimesh.Trimesh) else scene.dump(concatenate=True)
-    v = m.vertices.copy()  # glTF Y-up
+    m = trimesh.load(io.BytesIO(data), file_type="glb", force="mesh")
+    v = np.asarray(m.vertices, dtype=np.float64)
+    yaw = np.radians(float(cfg.get("orientation", {}).get("yaw_deg", 0)))
+    if yaw:
+        c, s = np.cos(yaw), np.sin(yaw)
+        v = v @ np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]]).T
     v -= [(v[:, 0].max() + v[:, 0].min()) / 2, v[:, 1].min(), (v[:, 2].max() + v[:, 2].min()) / 2]
-    v *= 90.0 / max(np.ptp(v[:, 1]), 1e-6)
-    m.vertices = v
-    if len(m.faces) > 300_000:
-        m = m.simplify_quadric_decimation(face_count=300_000)
+    v *= float(cfg["height_mm"]) / max(float(np.ptp(v[:, 1])), 1e-6)
+    m = trimesh.Trimesh(v, m.faces, process=True)
+    if len(m.faces) > int(cfg.get("max_tris", 300000)):
+        m = m.simplify_quadric_decimation(face_count=int(cfg["max_tris"]))
     return m.export(file_type="glb")
-
-

@@ -2,7 +2,7 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
-export PETPOP_MODE="${PETPOP_MODE:-mock}"
+export GENAI_PROFILE="${GENAI_PROFILE:-mock}"
 export PYTHONPATH="$ROOT:$ROOT/mock-server"
 PY="${PY:-$ROOT/.venv/bin/python}"
 LOG_DIR="$ROOT/var/gates"
@@ -22,9 +22,9 @@ step() {
   fi
 }
 
-skip_without_gpu() {
-  if [ "$PETPOP_MODE" = "mock" ]; then
-    echo "gate-$1: SKIPPED (needs GPU)"
+skip_without_genai_host() {
+  if [ "$GENAI_PROFILE" = "mock" ]; then
+    echo "gate-$1: SKIPPED (needs a GenAI host)"
     exit 0
   fi
 }

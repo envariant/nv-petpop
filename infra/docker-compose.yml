@@ -1,57 +1,50 @@
-# GPU host (make up). Weights live in ${PETPOP_MODELS:-/srv/models}, mounted read-only.
-# The worker image bundles bpy, so the Blender stages run as subprocesses of the worker with CUDA.
+# PetPop stack (make up). Host-agnostic: the GenAI services are wherever GENAI_PROFILE says
+# (config/genai/<profile>.yaml); this file runs the API, the worker (arq) and their state stores.
+#   GENAI_PROFILE=mock          everything here, GenAI stand-ins on CPU (smoke-tested in the cloud VM)
+#   GENAI_PROFILE=mac-m4pro     GenAI on the Mac, reached through COMFY_URL / SHAPE_URL / OLLAMA_URL
+#   GENAI_PROFILE=nvidia-24gb   add infra/docker-compose.nvidia.yml (ComfyUI + Ollama on the local GPU)
 name: petpop
 x-app: &app
-  build: { context: .., dockerfile: infra/Dockerfile.app }
-  env_file: ../.env
+  build: { context: .., dockerfile: infra/Dockerfile.app, secrets: [build_ca] }
+  image: petpop-app:local
+  env_file: ${PETPOP_ENV_FILE:-../.env}
   environment:
-    PETPOP_MODE: real
+    GENAI_PROFILE: ${GENAI_PROFILE:-mock}
+    # GenAI host endpoints (mac-m4pro: the tunnel URLs; nvidia-24gb: the override's services). Empty = profile default.
+    COMFY_URL: ${COMFY_URL:-}
+    SHAPE_URL: ${SHAPE_URL:-}
+    OLLAMA_URL: ${OLLAMA_URL:-}
+    GENAI_TOKEN: ${GENAI_TOKEN:-}
+    TEXTURE_BACKEND: ${TEXTURE_BACKEND:-}
+    PETPOP_VAR: /var/petpop
+    PETPOP_BPY_PYTHON: /usr/local/bin/python
+    PETPOP_FULFIL_DIR: /var/petpop/fulfilment
     DATABASE_URL: postgresql+psycopg://petpop:${POSTGRES_PASSWORD}@postgres:5432/petpop
     REDIS_URL: redis://redis:6379/0
     S3_ENDPOINT: http://minio:9000
-    COMFY_URL: http://comfyui:8188
-    OLLAMA_URL: http://ollama:11434
+    S3_BUCKET: ${S3_BUCKET:-petpop}
+    AWS_DEFAULT_REGION: us-east-1
   volumes:
     - fulfilment:/var/petpop/fulfilment
-  depends_on: [postgres, redis, minio]
+  depends_on:
+    postgres: { condition: service_healthy }
+    redis: { condition: service_healthy }
+    minio: { condition: service_healthy }
 
 services:
   api:
     <<: *app
     ports: ["${API_PORT:-8000}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 5s
+      retries: 30
     restart: unless-stopped
 
   worker:
     <<: *app
     command: ["arq", "backend.worker.arq_worker.WorkerSettings"]
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
-
-  comfyui:
-    build: { context: .., dockerfile: infra/Dockerfile.comfyui }
-    expose: ["8188"]          # reachable by the worker only
-    volumes:
-      - ${PETPOP_MODELS:-/srv/models}:/opt/ComfyUI/models:ro
-      - ../pipelines/comfy/extra_model_paths.yaml:/opt/ComfyUI/extra_model_paths.yaml:ro
-    restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
-
-  ollama:
-    image: ollama/ollama:0.4.7
-    expose: ["11434"]
-    volumes:
-      - ${PETPOP_MODELS:-/srv/models}/ollama:/root/.ollama
-    restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
 
   postgres:
     image: postgres:16
@@ -60,20 +53,38 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: petpop
     volumes: [pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petpop -d petpop"]
+      interval: 3s
+      retries: 30
     restart: unless-stopped
 
   redis:
     image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 30
     restart: unless-stopped
 
   minio:
-    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    # MinIO stopped publishing community images in October 2025; Chainguard's free MinIO build is pinned by
+    # digest (minio RELEASE.2026-10-23T20-06-51Z). Bump deliberately: docker pull, then update the digest.
+    image: cgr.dev/chainguard/minio@sha256:e70b2b1e74d79457f808710483bd726ff364529ca30736eaa15a6ab547d3a5a7
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
     volumes: [minio:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      retries: 30
     restart: unless-stopped
+
+secrets:
+  build_ca:
+    file: ${PETPOP_BUILD_CA:-./no-extra-ca.pem}   # optional extra CA for builds behind a TLS-inspecting proxy
 
 volumes:
   pg: {}

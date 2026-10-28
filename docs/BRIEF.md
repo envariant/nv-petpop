@@ -376,21 +376,22 @@ tests/regression/      30-pet PetSpec set + expected metrics
 
 **Definition of done for the PoC**: all seven gates pass on a clean host from `git clone`, `make up` and `make models`; a 10-minute demo script in `docs/demo.md` runs end to end on the kiosk screen; and the print bundle for three demo pets has been printed and painted on the Escher machine.
 
-## 13. Development without a GPU: mock mode and staging
+## 13. Development without a GPU: GenAI profiles, mock mode and staging
 
-Everything except the three GPU services runs CPU-only, and those three sit behind adapter interfaces with a mock implementation chosen by one environment variable (`PETPOP_MODE=mock`), so the whole app, including the kiosk front end and the Blender stages, is built and demoed in a Claude Code cloud session before any GPU exists. The GPU box later swaps the adapters in one at a time with no change to the API, the worker or the SPA.
+Everything except the three GenAI services runs CPU-only, and those three sit behind adapter interfaces whose implementation, endpoints and models are chosen by one environment variable (`GENAI_PROFILE`, default `mock`; see "GenAI profiles" below), so the whole app, including the kiosk front end and the Blender stages, is built and demoed in a Claude Code cloud session before any GPU exists. The GPU box later swaps the adapters in one at a time with no change to the API, the worker or the SPA.
 
 **Two run modes**
 
-| Concern | `make dev` (cloud sandbox, laptop) | `make up` (GPU host) |
+| Concern | `make dev` (cloud sandbox, laptop) | `make up` (any host; GenAI wherever the profile says) |
 | --- | --- | --- |
-| Processes | API and worker as two Python processes, SPA via Vite, no Docker | Docker Compose, 8 containers |
+| Processes | API and worker as two Python processes, SPA via Vite, no Docker | Docker Compose: api, worker, postgres, redis, minio (+ comfyui, ollama on an NVIDIA GenAI host) |
 | Database | SQLite through SQLAlchemy | Postgres |
-| Queue and events | In-process asyncio queue + `fakeredis` pub/sub | Redis + arq |
+| Queue and events | SQLite-backed local queue and event table (fakeredis cannot span the two processes) | Redis + arq |
 | Artefact store | Local folder `var/artefacts/` behind the `ArtefactStore` interface | MinIO (S3) |
-| Stage A parser | Rule-based parser over `vocab.json`, optional Qwen2.5-0.5B on CPU | Ollama GPU, 7B |
-| Stages B, C, texture | `MockImageBackend`: Blender Workbench renders of the morphed, flat-coloured base mesh | ComfyUI SDXL graphs |
-| Stage D shape | `MockShapeBackend`: the morphed base mesh with low-frequency noise and small random ear and tail perturbation, triangulated | ComfyUI Hunyuan3D-2mv |
+| Stage A parser | Rule-based parser over `vocab.json` (profile `mock`) | Ollama 7B on the GenAI host |
+| Stages B, C | `MockImageBackend`: Blender (Cycles CPU) renders of the morphed, flat-coloured base mesh | ComfyUI SDXL graphs on the GenAI host |
+| Texture | Projection of the four views in Blender (the default on every profile) | Projection; Hunyuan3D-Paint optional on NVIDIA only |
+| Stage D shape | `MockShapeBackend`: the morphed base mesh with low-frequency noise and small random ear and tail perturbation, triangulated | Hunyuan3D-2mv in ComfyUI (NVIDIA) or Hunyuan3D-2.1 on the Mac shape server |
 | Stages E, F, control renders | Real: Blender CPU via the `bpy` pip package (Python 3.11); if `bpy` cannot install, a `trimesh` stand-in (linear morph, nearest-point wrap, flat albedo, 3MF via trimesh) marked `fidelity: low` in the manifest | Real: Blender container, Cycles on CUDA |
 
 **Mock server, built first**: `mock-server/` is a standalone FastAPI process with no database, queue or Blender (about 300 lines) that implements the committed OpenAPI exactly: breed search over the real preset files, `/spec/parse` with the rule-based parser, and jobs that follow a script (`mock-server/scripts/*.json`: stage, delay, preview artefact) drawn from the fixture pack, including a slow-queue script, a failed-stage script and a fallback-figurine script so the front end meets every state it will ever see. It is the only backend the front end talks to during S1, it is frozen once S1 starts, and the real backend in `make dev` mode replaces it in S2 by passing the identical contract test.
@@ -403,6 +404,16 @@ Everything except the three GPU services runs CPU-only, and those three sit behi
 - Front-end standalone mode: `VITE_MOCK=1` turns on MSW handlers generated from the OpenAPI spec with a timer-driven fake job, so the SPA builds and runs with no backend at all; every screen is also a Storybook story with fixture data.
 - Contract: FastAPI's OpenAPI JSON is committed and the TypeScript client is generated from it; `manifest.json` and `PetSpec` are shared JSON Schemas; one contract test runs the full mock pipeline and validates every artefact against the schemas. The real backends must pass the same test, which is part of the M3 to M5 gates.
 
+**GenAI profiles (M2.5)**: the GenAI stages are hosted remotely and the backend is host-agnostic. `config/genai/<profile>.yaml`, selected by `GENAI_PROFILE`, is the only place that names a model, an endpoint, a quality preset, a residency rule (how many models may be resident, what is freed when), a stage timeout or an expected timing; the worker reads the profile and never names a model or host itself, and every `manifest.json` records the profile, adapters and model ids with their pins. Three profiles ship:
+
+| Profile | GenAI host | Image | Shape | Texture | Residency | Time per pet |
+| --- | --- | --- | --- | --- | --- | --- |
+| `mock` (default) | none: CPU stand-ins in the VM | Blender renders | morphed base + noise | projection | n/a | under 1 min (CPU) |
+| `mac-m4pro` | Apple Silicon M4 Pro, 24 GB unified, MPS (prototype) | ComfyUI: SDXL fp16 + depth ControlNet + IP-Adapter Plus | Hunyuan3D-2.1 via the MPS fork, octree 256 / 30 steps | projection | one model at a time | 8-12 min, latency gate waived |
+| `nvidia-24gb` | one 24 GB NVIDIA card, CUDA (production) | as above, fp8 UNet allowed | Hunyuan3D-2mv, octree 384 / 50 steps | projection, Hunyuan3D-Paint optional | SDXL stack freed before Stage D | 4-min target enforced |
+
+`TEXTURE_BACKEND` overrides the texture source where the profile allows it. The Mac host runs ComfyUI, a small shape server and Ollama under launchd (`mac/`), behind a bearer-token proxy and a Cloudflare tunnel; the VM reaches them through `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL` and `GENAI_TOKEN` (`docs/HANDOFF.md`). The six ComfyUI workflows are generated by `scripts/make_comfy_workflows.py` with model names bound from the profile and stay `meta.validated: false` until they have run on a live host.
+
 **Staging**
 
 | Stage | Where | Who | What is real | Exit check |
@@ -410,13 +421,14 @@ Everything except the three GPU services runs CPU-only, and those three sit behi
 | S0 Contract and mock server | Claude Code cloud | Claude Code alone | OpenAPI, JSON Schemas, fixture pack, `mock-server/` with scripted jobs, MSW handlers, contract test | `make gate-0` |
 | S1 Front end in full | Claude Code cloud, reviewed on the kiosk screen | Claude Code, Nishant reviewing | Every screen against the mock server; three visual directions as Storybook themes; touch walkthroughs; the chosen direction becomes the Section 4 spec | `make gate-1` (automated Playwright walkthrough); 5-person touch review by Nishant |
 | S2 Real backend, parametric path | Claude Code cloud | Claude Code alone | API, worker, SQLite and local store, mock adapters, proxy base meshes, Blender CPU wrap, bake, export, paint check, QR page, staff panel | `make gate-2`; demo on a laptop |
-| S3 GPU host bring-up | GPU box: Claude Code over SSH, or the cloud session with `COMFY_URL`, `OLLAMA_URL` pointed at the box through a tunnel | Nishant + Claude Code | Compose, pinned weights, Ollama, ComfyUI graphs swapped in one at a time: B, then C, D, texture | `make gate-3`, `gate-4`, `gate-5` |
+| M2.5 Host-agnostic GenAI | Claude Code cloud | Claude Code alone | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`), projection texture, the six workflows, `mac/` host kit, Compose stack proven on the mock profile | `make gate-0..2`, `scripts/smoke_stack.sh` |
+| S3 GenAI host bring-up | The Mac first (`GENAI_PROFILE=mac-m4pro`), later the NVIDIA box; the cloud session reaches the host through the tunnel URLs | Nishant + Claude Code | `make -C mac setup`, `make -C mac models` (writes the SHA256 pins), adapters swapped in one at a time with `PETPOP_ADAPTERS`: A, B, C, D | `make gate-3`, `gate-4`, `gate-5` on the profile |
 | S4 Real assets | Blender by hand, LoRA on the GPU box | Nishant | Hand-built base meshes, `petpop_style` LoRA | `check_base_mesh.py`; LoRA side-by-side |
 | S5 Kiosk hardening | Kiosk screen + GPU box | Both | Attract loop, idle wipe, regression set, print and paint of three demo pets | `make gate-6` |
 
-Milestones M0 to M2 and most of M6 are S0 to S2 and need no GPU; M3 to M5 are S3 and S4. Gates 3 to 5 print `SKIPPED (needs GPU)` in mock mode rather than passing, so a cloud session can never report a GPU milestone as done.
+Milestones M0 to M2.5 and most of M6 need no GenAI host; M3 to M5 are S3 and S4. Gates 3 to 6 print `SKIPPED (needs a GenAI host)` on the mock profile rather than passing, so a cloud session can never report a GenAI milestone as done; on a real profile they probe the profile's services and apply its thresholds (latency only where the profile enforces it).
 
-**What the Claude Code session needs to run unattended**: a `CLAUDE.md` at the repo root stating the default mode (`PETPOP_MODE=mock`), the commands (`make dev`, `make mock` for the standalone mock server, `make test`, `make gate-N`), the ownership rule (never hand-edit `assets/base/` or workflow JSONs), and the order of work: S0, then S1, then S2, with the mock server frozen from S1 on. The session starts with `data/schema/openapi.json`, the fixture pack and `mock-server/`; the front end follows from the contract, and the real backend follows from the same contract.
+**What the Claude Code session needs to run unattended**: a `CLAUDE.md` at the repo root stating the default GenAI profile (`GENAI_PROFILE=mock`), the commands (`make dev`, `make mock` for the standalone mock server, `make test`, `make gate-N`), the ownership rule (never hand-edit `assets/base/` or workflow JSONs), and the order of work: S0, then S1, then S2, with the mock server frozen from S1 on. The session starts with `data/schema/openapi.json`, the fixture pack and `mock-server/`; the front end follows from the contract, and the real backend follows from the same contract.
 
 ## 14. Risks and open questions
 

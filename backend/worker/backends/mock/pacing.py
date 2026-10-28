@@ -1,10 +1,10 @@
-"""Mock pacing (BRIEF Section 13): each mock stage takes PETPOP_MOCK_SPEED x its real timeout, so the
-Generating screen sees realistic timing; PETPOP_MOCK_SPEED=0 makes tests instant."""
+"""Mock pacing (BRIEF Section 13): on profiles with `pacing_reference_s` (the mock profile) each mock stage
+takes PETPOP_MOCK_SPEED x its reference seconds, so the Generating screen sees realistic timing.
+PETPOP_MOCK_SPEED=0 makes tests instant; real profiles never pace."""
 import time
 
+from backend.core.genai import Profile
 from backend.core.paths import mock_speed
-
-TIMEOUTS = {"A": 10, "control": 10, "B": 60, "C": 90, "D": 150, "E": 90, "F": 120}
 
 
 class Pace:
@@ -16,7 +16,8 @@ class Pace:
         return self
 
     def __exit__(self, *exc) -> None:
-        if exc[0] is None:
-            left = mock_speed() * TIMEOUTS[self.stage] - (time.monotonic() - self.t0)
+        ref = Profile().get("pacing_reference_s") or {}
+        if exc[0] is None and self.stage in ref:
+            left = mock_speed() * float(ref[self.stage]) - (time.monotonic() - self.t0)
             if left > 0:
                 time.sleep(left)

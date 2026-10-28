@@ -143,8 +143,8 @@ def build_real(pet: tuple) -> None:
 
     from backend.worker.local_run import run_pipeline_to_dir  # noqa: PLC0415
 
-    os.environ.setdefault("PETPOP_PROFILE", "fixture")
-    os.environ.setdefault("PETPOP_MOCK_SPEED", "0")
+    os.environ.setdefault("PETPOP_QUALITY", "fixture")
+    os.environ["PETPOP_MOCK_SPEED"] = "0"  # fixtures never pace
     pid = pet[0]
     spec = fixture_spec(pet)
     out = FIXTURES / pid

@@ -1,0 +1,93 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "D (fallback)",
+  "node_packs": [
+   "ComfyUI-Hunyuan3DWrapper"
+  ],
+  "inputs": {
+   "view_front": [
+    "1",
+    "image"
+   ],
+   "model": [
+    "2",
+    "model"
+   ],
+   "steps": [
+    "2",
+    "steps"
+   ],
+   "guidance": [
+    "2",
+    "guidance_scale"
+   ],
+   "octree_resolution": [
+    "2",
+    "octree_resolution"
+   ],
+   "seed": []
+  },
+  "outputs": {
+   "shape": "4"
+  },
+  "optional_nodes": {},
+  "required": [
+   "model",
+   "view_front"
+  ],
+  "notes": "Hunyuan3D-2.1 single-view fallback through kijai's wrapper (Hy3D_2_1SimpleMeshGen); the model file goes in models/diffusion_models."
+ },
+ "1": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "view front"
+  }
+ },
+ "2": {
+  "class_type": "Hy3D_2_1SimpleMeshGen",
+  "inputs": {
+   "image": [
+    "1",
+    0
+   ],
+   "model": "",
+   "steps": 50,
+   "guidance_scale": 5.0,
+   "octree_resolution": 384
+  },
+  "_meta": {
+   "title": "hunyuan3d-2.1 single view"
+  }
+ },
+ "3": {
+  "class_type": "TrimeshToMESH",
+  "inputs": {
+   "trimesh": [
+    "2",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "to MESH"
+  }
+ },
+ "4": {
+  "class_type": "SaveGLB",
+  "inputs": {
+   "mesh": [
+    "3",
+    0
+   ],
+   "filename_prefix": "petpop/shape_single"
+  },
+  "_meta": {
+   "title": "shape"
+  }
+ }
+}

@@ -1,0 +1,823 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "C",
+  "node_packs": [
+   "core",
+   "ComfyUI_IPAdapter_plus"
+  ],
+  "inputs": {
+   "checkpoint": [
+    "1",
+    "ckpt_name"
+   ],
+   "lora": [
+    "2",
+    "lora_name"
+   ],
+   "lora_strength": [
+    [
+     "2",
+     "strength_model"
+    ],
+    [
+     "2",
+     "strength_clip"
+    ]
+   ],
+   "vae": [
+    "3",
+    "vae_name"
+   ],
+   "negative": [
+    "4",
+    "text"
+   ],
+   "controlnet": [
+    "5",
+    "control_net_name"
+   ],
+   "ipadapter": [
+    "6",
+    "ipadapter_file"
+   ],
+   "clip_vision": [
+    "7",
+    "clip_name"
+   ],
+   "concept_image": [
+    "8",
+    "image"
+   ],
+   "ipadapter_weight": [
+    "9",
+    "weight"
+   ],
+   "width": [
+    "10",
+    "width"
+   ],
+   "height": [
+    "10",
+    "height"
+   ],
+   "positive_front": [
+    "11",
+    "text"
+   ],
+   "depth_front": [
+    "12",
+    "image"
+   ],
+   "controlnet_strength": [
+    [
+     "13",
+     "strength"
+    ],
+    [
+     "19",
+     "strength"
+    ],
+    [
+     "25",
+     "strength"
+    ],
+    [
+     "31",
+     "strength"
+    ]
+   ],
+   "seed": [
+    [
+     "14",
+     "seed"
+    ],
+    [
+     "20",
+     "seed"
+    ],
+    [
+     "26",
+     "seed"
+    ],
+    [
+     "32",
+     "seed"
+    ]
+   ],
+   "steps": [
+    [
+     "14",
+     "steps"
+    ],
+    [
+     "20",
+     "steps"
+    ],
+    [
+     "26",
+     "steps"
+    ],
+    [
+     "32",
+     "steps"
+    ]
+   ],
+   "cfg": [
+    [
+     "14",
+     "cfg"
+    ],
+    [
+     "20",
+     "cfg"
+    ],
+    [
+     "26",
+     "cfg"
+    ],
+    [
+     "32",
+     "cfg"
+    ]
+   ],
+   "sampler": [
+    [
+     "14",
+     "sampler_name"
+    ],
+    [
+     "20",
+     "sampler_name"
+    ],
+    [
+     "26",
+     "sampler_name"
+    ],
+    [
+     "32",
+     "sampler_name"
+    ]
+   ],
+   "scheduler": [
+    [
+     "14",
+     "scheduler"
+    ],
+    [
+     "20",
+     "scheduler"
+    ],
+    [
+     "26",
+     "scheduler"
+    ],
+    [
+     "32",
+     "scheduler"
+    ]
+   ],
+   "positive_left": [
+    "17",
+    "text"
+   ],
+   "depth_left": [
+    "18",
+    "image"
+   ],
+   "positive_back": [
+    "23",
+    "text"
+   ],
+   "depth_back": [
+    "24",
+    "image"
+   ],
+   "positive_right": [
+    "29",
+    "text"
+   ],
+   "depth_right": [
+    "30",
+    "image"
+   ]
+  },
+  "outputs": {
+   "view_front": "16",
+   "view_left": "22",
+   "view_back": "28",
+   "view_right": "34"
+  },
+  "optional_nodes": {
+   "lora": {
+    "node": "2",
+    "bypass": {
+     "0": [
+      "1",
+      0
+     ],
+     "1": [
+      "1",
+      1
+     ]
+    }
+   }
+  },
+  "required": [
+   "checkpoint",
+   "vae",
+   "controlnet",
+   "ipadapter",
+   "clip_vision",
+   "concept_image",
+   "negative",
+   "seed",
+   "depth_front",
+   "depth_left",
+   "depth_back",
+   "depth_right",
+   "positive_front",
+   "positive_left",
+   "positive_back",
+   "positive_right"
+  ],
+  "notes": "Four views in one graph: per-view depth ControlNet, IP-Adapter Plus SDXL on the concept, shared seed and latent size. Background keyed by the worker."
+ },
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": ""
+  },
+  "_meta": {
+   "title": "checkpoint"
+  }
+ },
+ "2": {
+  "class_type": "LoraLoader",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "clip": [
+    "1",
+    1
+   ],
+   "lora_name": "",
+   "strength_model": 0.8,
+   "strength_clip": 0.8
+  },
+  "_meta": {
+   "title": "style lora"
+  }
+ },
+ "3": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": ""
+  },
+  "_meta": {
+   "title": "vae"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "negative"
+  }
+ },
+ "5": {
+  "class_type": "ControlNetLoader",
+  "inputs": {
+   "control_net_name": ""
+  },
+  "_meta": {
+   "title": "controlnet depth"
+  }
+ },
+ "6": {
+  "class_type": "IPAdapterModelLoader",
+  "inputs": {
+   "ipadapter_file": ""
+  },
+  "_meta": {
+   "title": "ip-adapter model"
+  }
+ },
+ "7": {
+  "class_type": "CLIPVisionLoader",
+  "inputs": {
+   "clip_name": ""
+  },
+  "_meta": {
+   "title": "clip vision"
+  }
+ },
+ "8": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "concept reference"
+  }
+ },
+ "9": {
+  "class_type": "IPAdapterAdvanced",
+  "inputs": {
+   "model": [
+    "2",
+    0
+   ],
+   "ipadapter": [
+    "6",
+    0
+   ],
+   "image": [
+    "8",
+    0
+   ],
+   "weight_type": "linear",
+   "combine_embeds": "concat",
+   "start_at": 0.0,
+   "end_at": 1.0,
+   "embeds_scaling": "V only",
+   "clip_vision": [
+    "7",
+    0
+   ],
+   "weight": 0.7
+  },
+  "_meta": {
+   "title": "ip-adapter plus"
+  }
+ },
+ "10": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "batch_size": 1,
+   "width": 768,
+   "height": 768
+  },
+  "_meta": {
+   "title": "latent"
+  }
+ },
+ "11": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive front"
+  }
+ },
+ "12": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "depth front"
+  }
+ },
+ "13": {
+  "class_type": "ControlNetApplyAdvanced",
+  "inputs": {
+   "positive": [
+    "11",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "control_net": [
+    "5",
+    0
+   ],
+   "image": [
+    "12",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 1.0,
+   "vae": [
+    "3",
+    0
+   ],
+   "strength": 0.7
+  },
+  "_meta": {
+   "title": "apply depth front"
+  }
+ },
+ "14": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "9",
+    0
+   ],
+   "positive": [
+    "13",
+    0
+   ],
+   "negative": [
+    "13",
+    1
+   ],
+   "latent_image": [
+    "10",
+    0
+   ],
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler front"
+  }
+ },
+ "15": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "14",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode front"
+  }
+ },
+ "16": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "15",
+    0
+   ],
+   "filename_prefix": "petpop/view_front"
+  },
+  "_meta": {
+   "title": "view_front"
+  }
+ },
+ "17": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive left"
+  }
+ },
+ "18": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "depth left"
+  }
+ },
+ "19": {
+  "class_type": "ControlNetApplyAdvanced",
+  "inputs": {
+   "positive": [
+    "17",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "control_net": [
+    "5",
+    0
+   ],
+   "image": [
+    "18",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 1.0,
+   "vae": [
+    "3",
+    0
+   ],
+   "strength": 0.7
+  },
+  "_meta": {
+   "title": "apply depth left"
+  }
+ },
+ "20": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "9",
+    0
+   ],
+   "positive": [
+    "19",
+    0
+   ],
+   "negative": [
+    "19",
+    1
+   ],
+   "latent_image": [
+    "10",
+    0
+   ],
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler left"
+  }
+ },
+ "21": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "20",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode left"
+  }
+ },
+ "22": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "21",
+    0
+   ],
+   "filename_prefix": "petpop/view_left"
+  },
+  "_meta": {
+   "title": "view_left"
+  }
+ },
+ "23": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive back"
+  }
+ },
+ "24": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "depth back"
+  }
+ },
+ "25": {
+  "class_type": "ControlNetApplyAdvanced",
+  "inputs": {
+   "positive": [
+    "23",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "control_net": [
+    "5",
+    0
+   ],
+   "image": [
+    "24",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 1.0,
+   "vae": [
+    "3",
+    0
+   ],
+   "strength": 0.7
+  },
+  "_meta": {
+   "title": "apply depth back"
+  }
+ },
+ "26": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "9",
+    0
+   ],
+   "positive": [
+    "25",
+    0
+   ],
+   "negative": [
+    "25",
+    1
+   ],
+   "latent_image": [
+    "10",
+    0
+   ],
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler back"
+  }
+ },
+ "27": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "26",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode back"
+  }
+ },
+ "28": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "27",
+    0
+   ],
+   "filename_prefix": "petpop/view_back"
+  },
+  "_meta": {
+   "title": "view_back"
+  }
+ },
+ "29": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive right"
+  }
+ },
+ "30": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "depth right"
+  }
+ },
+ "31": {
+  "class_type": "ControlNetApplyAdvanced",
+  "inputs": {
+   "positive": [
+    "29",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "control_net": [
+    "5",
+    0
+   ],
+   "image": [
+    "30",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 1.0,
+   "vae": [
+    "3",
+    0
+   ],
+   "strength": 0.7
+  },
+  "_meta": {
+   "title": "apply depth right"
+  }
+ },
+ "32": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "9",
+    0
+   ],
+   "positive": [
+    "31",
+    0
+   ],
+   "negative": [
+    "31",
+    1
+   ],
+   "latent_image": [
+    "10",
+    0
+   ],
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler right"
+  }
+ },
+ "33": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "32",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode right"
+  }
+ },
+ "34": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "33",
+    0
+   ],
+   "filename_prefix": "petpop/view_right"
+  },
+  "_meta": {
+   "title": "view_right"
+  }
+ }
+}

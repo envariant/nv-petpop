@@ -14,7 +14,6 @@ from backend.core.meshkit import VIEWS, render
 from .context import StageFailed
 from .imaging import alpha_of, matte_square
 
-IOU_MIN = 0.85
 
 
 def silhouettes_iou(spec, shape_co, tris, views: dict[str, bytes], size: int) -> list[float]:
@@ -54,8 +53,9 @@ def run(job_id, spec, manifest, *, ctx, single_view: bool = False) -> list[str]:
     co, tris = shape_geometry(result)
     ious = silhouettes_iou(spec, co, tris, views, int(ctx.quality["view_px"]))
     ctx.state["iou"] = ious
-    if float(np.mean(ious)) < IOU_MIN:
-        raise StageFailed("D", f"low confidence: mean IoU {np.mean(ious):.3f} < {IOU_MIN}")
+    iou_min = float(ctx.settings.genai["shape"]["iou_min"])
+    if float(np.mean(ious)) < iou_min:
+        raise StageFailed("D", f"low confidence: mean IoU {np.mean(ious):.3f} < {iou_min}")
     key = ctx.put(manifest, "shape.glb", "shape", "D", result.glb)
     ctx.progress("D", 70, "Raw shape ready", preview=("shape", key))
     return [key]

@@ -7,7 +7,6 @@ import io
 import json
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -15,13 +14,10 @@ from PIL import Image
 
 from backend.core import lowfi
 from backend.core.meshkit import dilate, load_base, raster_uv, to_trimesh, write_obj
-from backend.core.paths import PIPELINES
 
 from . import blender
 from .backends.mock.pacing import Pace
 
-sys.path.insert(0, str(PIPELINES / "blender"))
-import bake  # noqa: E402
 
 
 def encode_mp4(frames_dir: Path, fps: int, out: Path) -> bool:
@@ -60,8 +56,6 @@ def run(job_id, spec, manifest, *, ctx) -> list[str]:
     with Pace("F"):
         views = {v: ctx.get(f"views/{v}.png") for v in ("front", "left", "back", "right")}
         albedo_png = ctx.backends.texture.paint(ctx, spec, ctx.get("figure_wrapped.obj"), coords, views)
-        if ctx.settings.mode == "real":
-            albedo_png = lowfi.png_bytes(bake.colour_correct(base, spec, Image.open(io.BytesIO(albedo_png))))
         keys.append(ctx.put(manifest, "albedo.png", "albedo", "F", albedo_png))
         work = ctx.workdir("export")
         write_obj(work / "figure_uv.obj", base, coords)

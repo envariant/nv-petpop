@@ -18,7 +18,7 @@ from backend.worker.runner import JobFailed
 @pytest.fixture(autouse=True)
 def env(monkeypatch, tmp_path):
     monkeypatch.setenv("PETPOP_MOCK_SPEED", "0")
-    monkeypatch.setenv("PETPOP_PROFILE", "test")
+    monkeypatch.setenv("PETPOP_QUALITY", "test")
     monkeypatch.setenv("PETPOP_VAR", str(tmp_path / "var"))
     monkeypatch.delenv("PETPOP_FAIL_STAGE", raising=False)
 

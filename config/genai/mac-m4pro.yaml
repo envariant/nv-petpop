@@ -1,0 +1,82 @@
+# GenAI profile: mac-m4pro. Prototype GenAI host: Apple Silicon M4 Pro, 24 GB unified memory, PyTorch MPS.
+# ComfyUI (SDXL fp16 + ControlNet depth + IP-Adapter Plus), a Hunyuan3D-2.1 shape server on the MPS fork,
+# and Ollama run natively on the Mac (see mac/). The VM reaches them through mac/tunnel.sh.
+# Only one model is resident at a time: every call unloads after itself. Latency target waived (8-12 min).
+profile: mac-m4pro
+version: 1
+description: Apple Silicon prototype host. All GenAI on MPS, one resident model at a time, 8-12 min per pet.
+host: {kind: apple-silicon, accelerator: mps, memory_gb: 24}
+mode: real
+
+quality:
+  default: mac
+  presets:
+    mac: {concept_px: 1024, view_px: 768, control_px: 512, samples: 16, albedo_px: 2048, voxel_mm: 0.25, print_tris: 250000, turntable_frames: 36, turntable_px: 512, mask_px: 2048}
+    test: {concept_px: 768, view_px: 512, control_px: 512, samples: 4, albedo_px: 1024, voxel_mm: 0.5, print_tris: 60000, turntable_frames: 8, turntable_px: 128, mask_px: 1024}
+
+timeouts_s: {A: 15, control: 120, B: 300, C: 600, D: 900, E: 240, F: 480}
+expected_s: {A: 4, control: 10, B: 90, C: 240, D: 240, E: 30, F: 90, total: [480, 720]}
+latency: {target_s: null, enforce: false}   # waived on the prototype host
+
+residency:
+  max_resident_models: 1
+  free_comfy_after_call: true       # POST /free {unload_models} after every ComfyUI prompt
+  ollama_keep_alive_s: 0             # Ollama unloads the LLM right after each parse
+  shape_unload_after_call: true      # the shape server drops Hunyuan3D after each mesh
+
+services:
+  comfy:  {env: COMFY_URL,  default: "http://127.0.0.1:8188"}
+  shape:  {env: SHAPE_URL,  default: "http://127.0.0.1:8190"}
+  ollama: {env: OLLAMA_URL, default: "http://127.0.0.1:11434"}
+  auth_token_env: GENAI_TOKEN        # bearer token checked by the Mac's tunnel proxy
+
+parser:
+  backend: ollama
+  service: ollama
+  model: qwen2.5:7b-instruct-q4_K_M
+  timeout_s: 3                       # Section 6.1; first call after unload may miss it and fall back to rules
+  temperature: 0
+
+image:
+  backend: comfy
+  service: comfy
+  workflows: {concept: 01_concept_front.json, views: 02_views_ipadapter.json}
+  models:
+    checkpoint: sd_xl_base_1.0.safetensors
+    vae: sdxl_vae_fp16_fix.safetensors          # fp16-safe VAE (the SDXL VAE produces NaNs in fp16 on MPS)
+    controlnet_depth: controlnet-depth-sdxl-1.0.fp16.safetensors
+    ipadapter: ip-adapter-plus_sdxl_vit-h.safetensors
+    clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
+    lora: null                                   # petpop_style_v1.safetensors once trained (S4)
+  params: {concept_steps: 25, view_steps: 25, cfg: 6.0, sampler: dpmpp_2m, scheduler: karras, controlnet_strength: 0.7, init_denoise: 0.7, ipadapter_weight: 0.7, lora_strength: 0.8}
+  precision: {unet: fp16, vae: fp16}
+  matting: {method: white_key, threshold: 236}
+
+shape:
+  backend: http
+  service: shape
+  views: [front]                     # Hunyuan3D-2.1 is a single-image model
+  model: tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1
+  params: {octree_resolution: 256, steps: 30, guidance: 5.0, num_chunks: 8000}
+  fallback: {seed_offset: 1, params: {octree_resolution: 256, steps: 30, guidance: 7.5}}
+  orientation: {yaw_deg: 0}
+  height_mm: 90
+  max_tris: 300000
+  iou_min: 0.85
+  server:                            # read by mac/shape_server on the Mac, not by the VM
+    engine: hunyuan3d-2.1-mps
+    code_dir_env: HY3D_DIR           # checkout of VladimirTalyzin/hunyuan3d-2.1-mac
+    module: hy3dshape.pipelines
+    class: Hunyuan3DDiTFlowMatchingPipeline
+    repo: tencent/Hunyuan3D-2.1
+    subfolder: hunyuan3d-dit-v2-1
+    device: mps
+    dtype: float16
+    env: {PYTORCH_MPS_HIGH_WATERMARK_RATIO: "0.0", PYTORCH_ENABLE_MPS_FALLBACK: "1"}
+
+texture:
+  backend: projection                # Blender camera projection of the four views; Hunyuan3D-Paint is NVIDIA-only
+  allowed: [projection, flat]
+  projection: {view_weight_power: 2.0, seam_pad_px: 2, colour_correct: true}
+
+gates: {iou_min: 0.85, p50_s: null, max_s: null}

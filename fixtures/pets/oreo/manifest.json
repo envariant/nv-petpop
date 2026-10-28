@@ -1,5 +1,5 @@
 {
- "manifest_version": "1.0",
+ "manifest_version": "1.1",
  "job_id": "fx_oreo",
  "species": "cat",
  "pet_name": "Oreo",
@@ -7,14 +7,30 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T12:19:28.381Z",
- "finished_at": "2026-10-28T12:20:42.247Z",
+ "created_at": "2026-10-28T14:40:16.463Z",
+ "finished_at": "2026-10-28T14:41:13.365Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
   "vocab": "1.0",
   "base_mesh": "proxy-1.0",
   "workflows": {}
+ },
+ "genai": {
+  "profile": "mock",
+  "profile_version": 1,
+  "profile_sha": "33b5fbe5b044",
+  "host": "cpu",
+  "accelerator": "none",
+  "adapters": {
+   "parser": "rules",
+   "image": "mock",
+   "shape": "mock",
+   "texture": "projection"
+  },
+  "models": {},
+  "model_pins": {},
+  "quality": "fixture"
  },
  "seeds": {
   "job": 2001
@@ -23,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 1000,
+   "ms": 12,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T12:19:28.381Z",
-   "ended_at": "2026-10-28T12:19:29.382Z"
+   "started_at": "2026-10-28T14:40:16.463Z",
+   "ended_at": "2026-10-28T14:40:16.476Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 5144,
+   "ms": 6186,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T12:19:29.383Z",
-   "ended_at": "2026-10-28T12:19:34.527Z"
+   "started_at": "2026-10-28T14:40:16.476Z",
+   "ended_at": "2026-10-28T14:40:22.662Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 6002,
+   "ms": 2109,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:19:34.528Z",
-   "ended_at": "2026-10-28T12:19:40.531Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:40:22.663Z",
+   "ended_at": "2026-10-28T14:40:24.772Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 9005,
+   "ms": 2574,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:19:40.532Z",
-   "ended_at": "2026-10-28T12:19:49.537Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:40:24.773Z",
+   "ended_at": "2026-10-28T14:40:27.347Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 19513,
+   "ms": 5767,
    "attempts": 1,
-   "backend": "mock-shape",
-   "started_at": "2026-10-28T12:19:49.538Z",
-   "ended_at": "2026-10-28T12:20:09.051Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:40:27.349Z",
+   "ended_at": "2026-10-28T14:40:33.116Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 9135,
+   "ms": 1876,
    "attempts": 1,
    "backend": "blender",
    "notes": "inverted 0, laplacian x0.90, self-intersections 0",
-   "started_at": "2026-10-28T12:20:09.053Z",
-   "ended_at": "2026-10-28T12:20:18.188Z"
+   "started_at": "2026-10-28T14:40:33.118Z",
+   "ended_at": "2026-10-28T14:40:34.994Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 24053,
+   "ms": 38366,
    "attempts": 1,
-   "backend": "mock-texture",
-   "started_at": "2026-10-28T12:20:18.190Z",
-   "ended_at": "2026-10-28T12:20:42.244Z"
+   "backend": "projection",
+   "started_at": "2026-10-28T14:40:34.996Z",
+   "ended_at": "2026-10-28T14:41:13.362Z"
   }
  ],
  "files": [
@@ -155,8 +171,8 @@
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_oreo/albedo.png",
-   "bytes": 133704,
-   "sha256": "071d4e89add5b715a67c5f54426652d9a5507141a4d5e37c4f0af7914b11fec9"
+   "bytes": 624797,
+   "sha256": "269e0b12161221ad13d2ef58f7979326510eff064d18b93e221f947d8b1023bd"
   },
   {
    "name": "figure_uv.obj",
@@ -179,8 +195,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_oreo/figure.3mf",
-   "bytes": 621105,
-   "sha256": "983779c23a6b448144f3a3b4deeca30baa80e8c0ce72f23078fc1a8831fb8316"
+   "bytes": 621103,
+   "sha256": "05b9039daedfd8471aad71fd76d3e00ca701abfd454f640358731be407990c8b"
   },
   {
    "name": "paint_mask.png",
@@ -195,24 +211,24 @@
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_oreo/thumbnail.png",
-   "bytes": 58814,
-   "sha256": "d00d30d72a7d107506d332f60a60af9abe1acaf99b236d7bb87da735b37bac0d"
+   "bytes": 57400,
+   "sha256": "bf63b85b3ac946019342d5c75c0fe37adc3ba0c8459398f680878ca44e2d7cb6"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_oreo/turntable.mp4",
-   "bytes": 85675,
-   "sha256": "24d995142d00a9320fc78fbcdca473ef843bba1f747e3fb30f5efeb69c2bb85d"
+   "bytes": 89711,
+   "sha256": "4b4e9d92315f92831c82d1f806c00262b2d752b6278157a19c1b2f4546781e64"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_oreo/figure.glb",
-   "bytes": 324408,
-   "sha256": "677ae93f60766e9efa1c8bbd717281364db8c5c0fe83d4c7799ed8591d2f4e4c"
+   "bytes": 815504,
+   "sha256": "2efcfb2ebc7fd7b6ef8ad1c65118d25cfa8878506e593637b3c96c92968af8d6"
   }
  ],
  "metrics": {
@@ -233,6 +249,6 @@
   "paint_mask_pct": 3.46,
   "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 73852
+  "total_ms": 56890
  }
 }

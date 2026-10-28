@@ -13,7 +13,7 @@ from .pacing import Pace
 
 
 class MockImageBackend:
-    name = "mock-image"
+    name = "mock"
 
     def _render(self, ctx, spec, which: list[str]) -> dict[str, bytes]:
         q = ctx.quality

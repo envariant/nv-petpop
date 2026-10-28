@@ -1,5 +1,5 @@
 {
- "manifest_version": "1.0",
+ "manifest_version": "1.1",
  "job_id": "fx_nova",
  "species": "dog",
  "pet_name": "Nova",
@@ -7,14 +7,30 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T12:14:25.536Z",
- "finished_at": "2026-10-28T12:15:40.293Z",
+ "created_at": "2026-10-28T14:36:16.471Z",
+ "finished_at": "2026-10-28T14:37:17.232Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
   "vocab": "1.0",
   "base_mesh": "proxy-1.0",
   "workflows": {}
+ },
+ "genai": {
+  "profile": "mock",
+  "profile_version": 1,
+  "profile_sha": "33b5fbe5b044",
+  "host": "cpu",
+  "accelerator": "none",
+  "adapters": {
+   "parser": "rules",
+   "image": "mock",
+   "shape": "mock",
+   "texture": "projection"
+  },
+  "models": {},
+  "model_pins": {},
+  "quality": "fixture"
  },
  "seeds": {
   "job": 1002
@@ -23,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 1001,
+   "ms": 11,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T12:14:25.537Z",
-   "ended_at": "2026-10-28T12:14:26.538Z"
+   "started_at": "2026-10-28T14:36:16.471Z",
+   "ended_at": "2026-10-28T14:36:16.482Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 4941,
+   "ms": 6283,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T12:14:26.538Z",
-   "ended_at": "2026-10-28T12:14:31.480Z"
+   "started_at": "2026-10-28T14:36:16.483Z",
+   "ended_at": "2026-10-28T14:36:22.766Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 6002,
+   "ms": 1983,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:14:31.481Z",
-   "ended_at": "2026-10-28T12:14:37.484Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:36:22.767Z",
+   "ended_at": "2026-10-28T14:36:24.751Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 9004,
+   "ms": 3038,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:14:37.485Z",
-   "ended_at": "2026-10-28T12:14:46.489Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:36:24.752Z",
+   "ended_at": "2026-10-28T14:36:27.791Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 19747,
+   "ms": 5427,
    "attempts": 1,
-   "backend": "mock-shape",
-   "started_at": "2026-10-28T12:14:46.491Z",
-   "ended_at": "2026-10-28T12:15:06.238Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:36:27.793Z",
+   "ended_at": "2026-10-28T14:36:33.220Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 9086,
+   "ms": 1696,
    "attempts": 1,
    "backend": "blender",
    "notes": "inverted 6, laplacian x0.91, self-intersections 0",
-   "started_at": "2026-10-28T12:15:06.240Z",
-   "ended_at": "2026-10-28T12:15:15.326Z"
+   "started_at": "2026-10-28T14:36:33.222Z",
+   "ended_at": "2026-10-28T14:36:34.919Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 24961,
+   "ms": 42308,
    "attempts": 1,
-   "backend": "mock-texture",
-   "started_at": "2026-10-28T12:15:15.328Z",
-   "ended_at": "2026-10-28T12:15:40.289Z"
+   "backend": "projection",
+   "started_at": "2026-10-28T14:36:34.920Z",
+   "ended_at": "2026-10-28T14:37:17.228Z"
   }
  ],
  "files": [
@@ -155,8 +171,8 @@
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_nova/albedo.png",
-   "bytes": 112318,
-   "sha256": "b184f415b9b879f4c5112b365b1286fa893d17e1c5d50700e67583be9b04c5c0"
+   "bytes": 491293,
+   "sha256": "262dd9de18ba2ab396142a23f6e0db4fe7d5a230ac2eee56f6c6fd2d449e2580"
   },
   {
    "name": "figure_uv.obj",
@@ -179,8 +195,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_nova/figure.3mf",
-   "bytes": 607690,
-   "sha256": "5a2031c87f8ae8200c5c1defd4d39c3e9548a0bb69270965026abe72d5a74875"
+   "bytes": 607692,
+   "sha256": "a08552355e50407e64d8da9bbbad168cba61178fb502b14ed54cf47e297ab645"
   },
   {
    "name": "paint_mask.png",
@@ -195,24 +211,24 @@
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_nova/thumbnail.png",
-   "bytes": 52907,
-   "sha256": "7151357d654f4ab7bdb9d70848345a7ee667abdece4fe3bb7864fd685f153e5f"
+   "bytes": 54722,
+   "sha256": "2e3890dd3df9949b650baed0a10b68786166300f5506a971b5eda2a5a08cc0e1"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_nova/turntable.mp4",
-   "bytes": 77394,
-   "sha256": "077f34a5335e15c878eae60656a0390895cf1ebcedb9fdc59681b75bbb3cb18e"
+   "bytes": 81732,
+   "sha256": "8e5931c0e4ffd95f662b15abd37038dee9e5b8d0ca767e56298692110b70c972"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_nova/figure.glb",
-   "bytes": 298152,
-   "sha256": "00ccbc32eeca08f00e5b68c9788ab95ea60fc7e9acece770bae049115d1cc5d1"
+   "bytes": 677128,
+   "sha256": "503007331bf80a518c70f8d8181e895bed437d1964bb08ec98d822ce7ca2aca7"
   }
  ],
  "metrics": {
@@ -233,6 +249,6 @@
   "paint_mask_pct": 3.99,
   "uv_layout_hash": "a925f74e10d7acea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 74742
+  "total_ms": 60746
  }
 }

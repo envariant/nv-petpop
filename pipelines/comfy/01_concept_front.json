@@ -1,0 +1,332 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "B",
+  "node_packs": [
+   "core"
+  ],
+  "inputs": {
+   "checkpoint": [
+    "1",
+    "ckpt_name"
+   ],
+   "lora": [
+    "2",
+    "lora_name"
+   ],
+   "lora_strength": [
+    [
+     "2",
+     "strength_model"
+    ],
+    [
+     "2",
+     "strength_clip"
+    ]
+   ],
+   "vae": [
+    "3",
+    "vae_name"
+   ],
+   "negative": [
+    "4",
+    "text"
+   ],
+   "controlnet": [
+    "5",
+    "control_net_name"
+   ],
+   "positive": [
+    "6",
+    "text"
+   ],
+   "depth_image": [
+    "7",
+    "image"
+   ],
+   "controlnet_strength": [
+    "8",
+    "strength"
+   ],
+   "init_image": [
+    "9",
+    "image"
+   ],
+   "width": [
+    "10",
+    "width"
+   ],
+   "height": [
+    "10",
+    "height"
+   ],
+   "seed": [
+    "12",
+    "seed"
+   ],
+   "steps": [
+    "12",
+    "steps"
+   ],
+   "cfg": [
+    "12",
+    "cfg"
+   ],
+   "sampler": [
+    "12",
+    "sampler_name"
+   ],
+   "scheduler": [
+    "12",
+    "scheduler"
+   ],
+   "denoise": [
+    "12",
+    "denoise"
+   ]
+  },
+  "outputs": {
+   "concept": "14"
+  },
+  "optional_nodes": {
+   "lora": {
+    "node": "2",
+    "bypass": {
+     "0": [
+      "1",
+      0
+     ],
+     "1": [
+      "1",
+      1
+     ]
+    }
+   }
+  },
+  "required": [
+   "checkpoint",
+   "vae",
+   "controlnet",
+   "positive",
+   "negative",
+   "depth_image",
+   "init_image",
+   "seed"
+  ],
+  "notes": "SDXL + optional style LoRA + depth ControlNet + img2img init from the flat-colour base-mesh render (init weight 0.3 => denoise 0.7). Background is keyed by the worker."
+ },
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": ""
+  },
+  "_meta": {
+   "title": "checkpoint"
+  }
+ },
+ "2": {
+  "class_type": "LoraLoader",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "clip": [
+    "1",
+    1
+   ],
+   "lora_name": "",
+   "strength_model": 0.8,
+   "strength_clip": 0.8
+  },
+  "_meta": {
+   "title": "style lora"
+  }
+ },
+ "3": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": ""
+  },
+  "_meta": {
+   "title": "vae"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "negative"
+  }
+ },
+ "5": {
+  "class_type": "ControlNetLoader",
+  "inputs": {
+   "control_net_name": ""
+  },
+  "_meta": {
+   "title": "controlnet depth"
+  }
+ },
+ "6": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive"
+  }
+ },
+ "7": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "depth image"
+  }
+ },
+ "8": {
+  "class_type": "ControlNetApplyAdvanced",
+  "inputs": {
+   "positive": [
+    "6",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "control_net": [
+    "5",
+    0
+   ],
+   "image": [
+    "7",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 1.0,
+   "vae": [
+    "3",
+    0
+   ],
+   "strength": 0.7
+  },
+  "_meta": {
+   "title": "apply depth"
+  }
+ },
+ "9": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "init image (flat-colour base mesh render)"
+  }
+ },
+ "10": {
+  "class_type": "ImageScale",
+  "inputs": {
+   "image": [
+    "9",
+    0
+   ],
+   "upscale_method": "lanczos",
+   "crop": "center",
+   "width": 1024,
+   "height": 1024
+  },
+  "_meta": {
+   "title": "init to size"
+  }
+ },
+ "11": {
+  "class_type": "VAEEncode",
+  "inputs": {
+   "pixels": [
+    "10",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "init latent"
+  }
+ },
+ "12": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "2",
+    0
+   ],
+   "positive": [
+    "8",
+    0
+   ],
+   "negative": [
+    "8",
+    1
+   ],
+   "latent_image": [
+    "11",
+    0
+   ],
+   "denoise": 0.7,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler"
+  }
+ },
+ "13": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "12",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode"
+  }
+ },
+ "14": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "13",
+    0
+   ],
+   "filename_prefix": "petpop/concept"
+  },
+  "_meta": {
+   "title": "concept"
+  }
+ }
+}

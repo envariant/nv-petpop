@@ -1,0 +1,299 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "C (alt)",
+  "node_packs": [
+   "ComfyUI-MVAdapter"
+  ],
+  "inputs": {
+   "mv_base": [
+    "1",
+    "ckpt_name"
+   ],
+   "mv_vae": [
+    "2",
+    "vae_name"
+   ],
+   "mv_adapter_repo": [
+    "4",
+    "adapter_path"
+   ],
+   "mvadapter": [
+    "4",
+    "adapter_name"
+   ],
+   "concept_image": [
+    "5",
+    "image"
+   ],
+   "positive": [
+    "7",
+    "prompt"
+   ],
+   "negative": [
+    "7",
+    "negative_prompt"
+   ],
+   "width": [
+    "7",
+    "width"
+   ],
+   "height": [
+    "7",
+    "height"
+   ],
+   "steps": [
+    "7",
+    "steps"
+   ],
+   "cfg": [
+    "7",
+    "cfg"
+   ],
+   "seed": [
+    "7",
+    "seed"
+   ]
+  },
+  "outputs": {
+   "view_front": "9",
+   "view_right": "11",
+   "view_back": "13",
+   "view_left": "15"
+  },
+  "optional_nodes": {},
+  "required": [
+   "mv_base",
+   "mv_vae",
+   "mv_adapter_repo",
+   "mvadapter",
+   "concept_image",
+   "positive",
+   "negative",
+   "seed"
+  ],
+  "notes": "MV-Adapter image-to-multiview SDXL conditioned on the concept; check the azimuth-to-view mapping and the left/right convention on first run."
+ },
+ "1": {
+  "class_type": "DiffusersMVPipelineLoader",
+  "inputs": {
+   "pipeline_name": "MVAdapterI2MVSDXLPipeline",
+   "ckpt_name": ""
+  },
+  "_meta": {
+   "title": "mv base pipeline"
+  }
+ },
+ "2": {
+  "class_type": "DiffusersMVVaeLoader",
+  "inputs": {
+   "vae_name": ""
+  },
+  "_meta": {
+   "title": "mv vae"
+  }
+ },
+ "3": {
+  "class_type": "DiffusersMVSchedulerLoader",
+  "inputs": {
+   "pipeline": [
+    "1",
+    0
+   ],
+   "scheduler_name": "DPMSolverMultistep",
+   "shift_snr": true,
+   "shift_mode": "interpolated",
+   "shift_scale": 8.0
+  },
+  "_meta": {
+   "title": "mv scheduler"
+  }
+ },
+ "4": {
+  "class_type": "DiffusersMVModelMakeup",
+  "inputs": {
+   "pipeline": [
+    "1",
+    0
+   ],
+   "scheduler": [
+    "3",
+    0
+   ],
+   "autoencoder": [
+    "2",
+    0
+   ],
+   "load_mvadapter": true,
+   "num_views": 4,
+   "enable_vae_slicing": true,
+   "enable_vae_tiling": false,
+   "adapter_path": "",
+   "adapter_name": ""
+  },
+  "_meta": {
+   "title": "mv adapter"
+  }
+ },
+ "5": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "concept reference"
+  }
+ },
+ "6": {
+  "class_type": "ViewSelector",
+  "inputs": {
+   "front_view": true,
+   "front_right_view": false,
+   "right_view": true,
+   "back_view": true,
+   "left_view": true,
+   "front_left_view": false
+  },
+  "_meta": {
+   "title": "front/right/back/left"
+  }
+ },
+ "7": {
+  "class_type": "DiffusersMVSampler",
+  "inputs": {
+   "pipeline": [
+    "4",
+    0
+   ],
+   "num_views": 4,
+   "reference_image": [
+    "5",
+    0
+   ],
+   "azimuth_degrees": [
+    "6",
+    0
+   ],
+   "prompt": "",
+   "negative_prompt": "",
+   "width": 768,
+   "height": 768,
+   "steps": 30,
+   "cfg": 6.0,
+   "seed": 0
+  },
+  "_meta": {
+   "title": "mv sampler"
+  }
+ },
+ "8": {
+  "class_type": "ImageFromBatch",
+  "inputs": {
+   "image": [
+    "7",
+    0
+   ],
+   "batch_index": 0,
+   "length": 1
+  },
+  "_meta": {
+   "title": "pick front"
+  }
+ },
+ "9": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "8",
+    0
+   ],
+   "filename_prefix": "petpop/mv_front"
+  },
+  "_meta": {
+   "title": "view_front"
+  }
+ },
+ "10": {
+  "class_type": "ImageFromBatch",
+  "inputs": {
+   "image": [
+    "7",
+    0
+   ],
+   "batch_index": 1,
+   "length": 1
+  },
+  "_meta": {
+   "title": "pick right"
+  }
+ },
+ "11": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "10",
+    0
+   ],
+   "filename_prefix": "petpop/mv_right"
+  },
+  "_meta": {
+   "title": "view_right"
+  }
+ },
+ "12": {
+  "class_type": "ImageFromBatch",
+  "inputs": {
+   "image": [
+    "7",
+    0
+   ],
+   "batch_index": 2,
+   "length": 1
+  },
+  "_meta": {
+   "title": "pick back"
+  }
+ },
+ "13": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "12",
+    0
+   ],
+   "filename_prefix": "petpop/mv_back"
+  },
+  "_meta": {
+   "title": "view_back"
+  }
+ },
+ "14": {
+  "class_type": "ImageFromBatch",
+  "inputs": {
+   "image": [
+    "7",
+    0
+   ],
+   "batch_index": 3,
+   "length": 1
+  },
+  "_meta": {
+   "title": "pick left"
+  }
+ },
+ "15": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "14",
+    0
+   ],
+   "filename_prefix": "petpop/mv_left"
+  },
+  "_meta": {
+   "title": "view_left"
+  }
+ }
+}

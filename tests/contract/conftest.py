@@ -9,7 +9,7 @@ def client(request, monkeypatch, tmp_path):
     monkeypatch.setenv("PETPOP_VAR", str(tmp_path / "var"))
     monkeypatch.setenv("PETPOP_STAFF_TOKEN", "test-staff")
     monkeypatch.setenv("PETPOP_SECRET", "test-secret")
-    monkeypatch.setenv("PETPOP_PROFILE", "test")
+    monkeypatch.setenv("PETPOP_QUALITY", "test")
     with IMPLS[request.param]() as c:
         c.impl_name = request.param
         yield c

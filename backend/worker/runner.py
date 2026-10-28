@@ -28,10 +28,7 @@ from .context import StageContext, StageFailed
 
 log = logging.getLogger("petpop.worker")
 
-# Hard timeouts (s) from the brief; control renders are part of B's budget on the GPU host.
-TIMEOUTS = {"A": 10, "control": 30, "B": 60, "C": 90, "D": 150, "E": 90, "F": 120}
-# CPU (mock mode) runs Blender for real on a laptop-class CPU, so its budgets are scaled.
-CPU_TIMEOUT_SCALE = 6.0
+# Stage timeouts and expected timings come from the GenAI profile (config/genai/<profile>.yaml).
 STAGES: list[tuple[str, Callable, int, str]] = [
     ("A", stage_a.run, 4, "Reading your description"),
     ("control", control.run, 8, "Shaping the base figure"),
@@ -64,7 +61,8 @@ class StageRunner:
             return ManifestBuilder.load(json.loads(self.ctx.store.get(key)))
         base_meta = json.loads((BASE_DIR / self.spec["species"] / "morphs.json").read_text())
         return ManifestBuilder(self.ctx.job_id, self.spec, mode=self.ctx.settings.mode, fidelity="high",
-                               base_mesh_version=base_meta.get("version", "unknown"))
+                               base_mesh_version=base_meta.get("version", "unknown"),
+                               genai={**self.ctx.settings.genai.summary(), "quality": self.ctx.quality["preset"]})
 
     def _save_manifest(self) -> None:
         self.ctx.store.put(self.ctx.key("manifest.json"), self.manifest.to_json())
@@ -78,8 +76,7 @@ class StageRunner:
 
     # ------------------------------------------------------------------ execution
     def _timeout(self, stage: str) -> float:
-        t = TIMEOUTS[stage]
-        return t * CPU_TIMEOUT_SCALE if self.ctx.settings.mode == "mock" else t
+        return self.ctx.settings.genai.timeout(stage)
 
     def _call(self, stage: str, fn: Callable, **kw) -> list[str]:
         self.ctx.deadline = time.monotonic() + self._timeout(stage)
@@ -137,6 +134,10 @@ class StageRunner:
             else:
                 ok, attempts, err = self._attempt(stage, fn)
             ms = int((time.monotonic() - t0) * 1000)
+            expected = ctx.settings.genai.expected(stage)
+            if ok and ms > 2000 * expected and ms > 1000:
+                log.warning("job %s stage %s took %.1f s, expected ~%.1f s on profile %s", ctx.job_id, stage,
+                            ms / 1000, expected, ctx.settings.profile)
             if not ok:
                 self.manifest.stage(stage, "failed", ms, attempts, backend, err, started, now_iso())
                 self.on_stage(stage, "failed", ms, started)

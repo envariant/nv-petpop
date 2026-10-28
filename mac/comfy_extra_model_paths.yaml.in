@@ -1,0 +1,10 @@
+# Rendered by mac/setup.sh into ComfyUI/extra_model_paths.yaml: ComfyUI reads weights from the pinned model root.
+petpop:
+  base_path: __MODELS__
+  checkpoints: checkpoints
+  vae: vae
+  controlnet: controlnet
+  ipadapter: ipadapter
+  clip_vision: clip_vision
+  loras: loras
+  diffusion_models: diffusion_models

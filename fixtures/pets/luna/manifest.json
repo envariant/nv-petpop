@@ -1,5 +1,5 @@
 {
- "manifest_version": "1.0",
+ "manifest_version": "1.1",
  "job_id": "fx_luna",
  "species": "cat",
  "pet_name": "Luna",
@@ -7,14 +7,30 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T12:20:42.289Z",
- "finished_at": "2026-10-28T12:21:58.975Z",
+ "created_at": "2026-10-28T14:41:13.418Z",
+ "finished_at": "2026-10-28T14:42:10.071Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
   "vocab": "1.0",
   "base_mesh": "proxy-1.0",
   "workflows": {}
+ },
+ "genai": {
+  "profile": "mock",
+  "profile_version": 1,
+  "profile_sha": "33b5fbe5b044",
+  "host": "cpu",
+  "accelerator": "none",
+  "adapters": {
+   "parser": "rules",
+   "image": "mock",
+   "shape": "mock",
+   "texture": "projection"
+  },
+  "models": {},
+  "model_pins": {},
+  "quality": "fixture"
  },
  "seeds": {
   "job": 2002
@@ -23,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 1001,
+   "ms": 12,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T12:20:42.289Z",
-   "ended_at": "2026-10-28T12:20:43.290Z"
+   "started_at": "2026-10-28T14:41:13.418Z",
+   "ended_at": "2026-10-28T14:41:13.430Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 5035,
+   "ms": 6080,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T12:20:43.291Z",
-   "ended_at": "2026-10-28T12:20:48.327Z"
+   "started_at": "2026-10-28T14:41:13.431Z",
+   "ended_at": "2026-10-28T14:41:19.511Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 6002,
+   "ms": 1595,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:20:48.327Z",
-   "ended_at": "2026-10-28T12:20:54.330Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:41:19.512Z",
+   "ended_at": "2026-10-28T14:41:21.107Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 9005,
+   "ms": 2468,
    "attempts": 1,
-   "backend": "mock-image",
-   "started_at": "2026-10-28T12:20:54.332Z",
-   "ended_at": "2026-10-28T12:21:03.337Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:41:21.109Z",
+   "ended_at": "2026-10-28T14:41:23.577Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 19917,
+   "ms": 5719,
    "attempts": 1,
-   "backend": "mock-shape",
-   "started_at": "2026-10-28T12:21:03.338Z",
-   "ended_at": "2026-10-28T12:21:23.256Z"
+   "backend": "mock",
+   "started_at": "2026-10-28T14:41:23.579Z",
+   "ended_at": "2026-10-28T14:41:29.298Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 9146,
+   "ms": 1768,
    "attempts": 1,
    "backend": "blender",
    "notes": "inverted 0, laplacian x0.90, self-intersections 0",
-   "started_at": "2026-10-28T12:21:23.257Z",
-   "ended_at": "2026-10-28T12:21:32.403Z"
+   "started_at": "2026-10-28T14:41:29.299Z",
+   "ended_at": "2026-10-28T14:41:31.068Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 26564,
+   "ms": 38997,
    "attempts": 1,
-   "backend": "mock-texture",
-   "started_at": "2026-10-28T12:21:32.407Z",
-   "ended_at": "2026-10-28T12:21:58.972Z"
+   "backend": "projection",
+   "started_at": "2026-10-28T14:41:31.069Z",
+   "ended_at": "2026-10-28T14:42:10.066Z"
   }
  ],
  "files": [
@@ -155,8 +171,8 @@
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_luna/albedo.png",
-   "bytes": 106150,
-   "sha256": "f7d217494e1a209ed6a88f44d7473a41b2c34a866fede5772afe962f442fcaf1"
+   "bytes": 653064,
+   "sha256": "0142daa76879761ec011c22210c062835d98b37afdf2429befd46ab8213b889c"
   },
   {
    "name": "figure_uv.obj",
@@ -179,8 +195,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.3mf",
-   "bytes": 611575,
-   "sha256": "2d17a145a423c1c3cf28e901ad877935da9a69972dd3865d07b3a3507a83030c"
+   "bytes": 611574,
+   "sha256": "383d069400fa98cbe19c40da26f4df7ff67da94dc0c5d8d2ce867b615c39796e"
   },
   {
    "name": "paint_mask.png",
@@ -195,24 +211,24 @@
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_luna/thumbnail.png",
-   "bytes": 63304,
-   "sha256": "5b9addfd30d21d8ebf58902d903ccd01264fe33ac382ece301c1f9992346db12"
+   "bytes": 60918,
+   "sha256": "f535357e6e4ba02c9137c4080afdcaab5717240b7a84acf66d2cc4977870c2ad"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_luna/turntable.mp4",
-   "bytes": 90024,
-   "sha256": "5a9c2d8c90d5d180bcf41b5871779291e366b89ba16abbcfe85ccc9d6e3e8745"
+   "bytes": 90541,
+   "sha256": "f0d9b44b9dafb04001fc7836b294ce8daa3d3f9a3ac8ae4502a2a8741ed9d0f7"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.glb",
-   "bytes": 291604,
-   "sha256": "46c80c619abdbf62b231dd18224ad2bb4e8148a60212aa745e5133e822cc0a2f"
+   "bytes": 838516,
+   "sha256": "2478c349f04360983bcd6ef86db2362de1c7b535d8537ea700f63d1d914e1ed2"
   }
  ],
  "metrics": {
@@ -233,6 +249,6 @@
   "paint_mask_pct": 2.96,
   "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 76670
+  "total_ms": 56639
  }
 }

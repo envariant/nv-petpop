@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- ComfyUI on MPS for the mac-m4pro GenAI profile. Rendered by mac/setup.sh. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.petpop.comfyui</string>
+  <key>WorkingDirectory</key><string>__GENAI__/ComfyUI</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__GENAI__/ComfyUI/venv/bin/python</string>
+    <string>main.py</string>
+    <string>--listen</string><string>127.0.0.1</string>
+    <string>--port</string><string>8188</string>
+    <string>--disable-auto-launch</string>
+    <string>--force-fp16</string>
+    <string>--extra-model-paths-config</string><string>__GENAI__/ComfyUI/extra_model_paths.yaml</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTORCH_ENABLE_MPS_FALLBACK</key><string>1</string>
+    <key>PYTORCH_MPS_HIGH_WATERMARK_RATIO</key><string>0.0</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>__GENAI__/logs/comfyui.log</string>
+  <key>StandardErrorPath</key><string>__GENAI__/logs/comfyui.log</string>
+</dict>
+</plist>

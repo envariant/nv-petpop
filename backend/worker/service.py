@@ -112,7 +112,7 @@ class Worker:
         last_ok = time.monotonic()
         while not self._stop.wait(period):
             try:
-                if httpx.get(f"{self.s.comfy_url}/system_stats", timeout=3).status_code == 200:
+                if httpx.get(f"{self.s.genai.url('comfy')}/system_stats", headers=self.s.genai.auth_headers(), timeout=5).status_code == 200:
                     last_ok = time.monotonic()
                     continue
             except httpx.HTTPError:
@@ -125,9 +125,9 @@ class Worker:
                 last_ok = time.monotonic()
 
     def loop(self, poll: float = 0.5) -> None:
-        log.info("worker started (mode=%s, profile=%s)", self.s.mode, self.s.profile)
+        log.info("worker started (GenAI profile %s, mode %s, quality %s)", self.s.profile, self.s.mode, self.s.quality["preset"])
         self._recover()
-        if self.s.mode == "real":
+        if "comfy" in (self.s.genai["services"] or {}):
             threading.Thread(target=self.watchdog, name="comfy-watchdog", daemon=True).start()
         while not self._stop.is_set():
             job_id = self.bus.claim()
