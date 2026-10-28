@@ -1,0 +1,77 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "corgi_pembroke",
+  "label": "Pembroke Welsh Corgi",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "small",
+  "build": "stocky",
+  "leg_length": "short",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "large",
+  "tip": "rounded"
+ },
+ "tail": {
+  "type": "bob",
+  "length": "short",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.3
+ },
+ "colour": {
+  "base": {
+   "name": "red",
+   "hex": "#C8763A"
+  },
+  "pattern": "saddle_with_white_chest",
+  "markings": [
+   "white_blaze",
+   "white_socks",
+   "white_chest"
+  ],
+  "secondary": {
+   "name": "white",
+   "hex": "#F4EFE6"
+  }
+ },
+ "eyes": {
+  "colour": "brown",
+  "hex": "#3B2412",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [
+  {
+   "type": "collar",
+   "colour_hex": "#DD3333",
+   "tag": true,
+   "colour_name": "red"
+  }
+ ],
+ "personality": [
+  "cheeky",
+  "loves snacks"
+ ],
+ "free_text": "Biscuit is a chunky corgi with one ear that flops",
+ "overrides": {
+  "ears.asymmetry": "left_floppy"
+ },
+ "seed": 918273,
+ "pet_name": "Biscuit"
+}

@@ -1,0 +1,201 @@
+{
+  "vocab_version": "1.0",
+  "description": "Slot vocabulary: every enumeration value maps to a prompt phrase, a morph-target mapping (empty object means no geometry effect) and parser synonyms. Morph weights are summed per target and clamped to [-1, 1]; 0 is the base mesh.",
+  "morph_targets": {
+    "dog": ["head_scale", "muzzle_len", "muzzle_width", "brachy", "ear_erect", "ear_drop", "ear_fold", "ear_size", "tail_len", "tail_curl", "tail_plume", "body_stocky", "body_slim", "leg_len", "fluff"],
+    "cat": ["head_scale", "muzzle_len", "muzzle_width", "ear_erect", "ear_fold", "ear_size", "ear_tuft", "tail_len", "tail_plume", "body_stocky", "body_slim", "fluff"]
+  },
+  "species_substitutes": {
+    "dog": { "ear_tuft": {} },
+    "cat": { "brachy": { "muzzle_len": -0.6 }, "ear_drop": { "ear_fold": 0.7 }, "tail_curl": { "tail_plume": 0.3 }, "leg_len": {} }
+  },
+  "palette": {
+    "black": { "hex": "#1E1B1A", "prompt": "black", "synonyms": ["black", "jet black", "dark"] },
+    "white": { "hex": "#F4EFE6", "prompt": "white", "synonyms": ["white", "snow white", "snowy"] },
+    "cream": { "hex": "#EAD9B8", "prompt": "cream", "synonyms": ["cream", "ivory", "wheaten"] },
+    "gold": { "hex": "#D9A441", "prompt": "golden", "synonyms": ["gold", "golden", "yellow", "honey"] },
+    "red": { "hex": "#C8763A", "prompt": "red", "synonyms": ["red", "rust", "copper coloured"] },
+    "tan": { "hex": "#B88A5A", "prompt": "tan", "synonyms": ["tan", "caramel", "light brown"] },
+    "fawn": { "hex": "#D2B48C", "prompt": "fawn", "synonyms": ["fawn", "beige", "sandy"] },
+    "chocolate": { "hex": "#5C3A21", "prompt": "chocolate brown", "synonyms": ["chocolate", "brown", "dark brown", "liver"] },
+    "grey": { "hex": "#8A8A8A", "prompt": "grey", "synonyms": ["grey", "gray"] },
+    "blue_grey": { "hex": "#6F7F8F", "prompt": "blue-grey", "synonyms": ["blue grey", "blue-grey", "blue gray", "slate", "blue"] },
+    "ginger": { "hex": "#E08A3C", "prompt": "ginger", "synonyms": ["ginger", "orange", "marmalade"] },
+    "silver": { "hex": "#C9CCD1", "prompt": "silver", "synonyms": ["silver", "platinum"] }
+  },
+  "eye_palette": {
+    "brown": { "hex": "#3B2412", "prompt": "brown", "synonyms": ["brown"] },
+    "amber": { "hex": "#C88A1E", "prompt": "amber", "synonyms": ["amber", "gold", "golden", "yellow"] },
+    "hazel": { "hex": "#8E7618", "prompt": "hazel", "synonyms": ["hazel"] },
+    "green": { "hex": "#4E8C3A", "prompt": "green", "synonyms": ["green", "emerald"] },
+    "blue": { "hex": "#4A86C5", "prompt": "blue", "synonyms": ["blue", "icy blue"] },
+    "copper": { "hex": "#B5652A", "prompt": "copper", "synonyms": ["copper", "orange"] }
+  },
+  "slots": {
+    "species": {
+      "dog": { "prompt": "dog", "morph": {}, "synonyms": ["dog", "puppy", "pup", "doggo"] },
+      "cat": { "prompt": "cat", "morph": {}, "synonyms": ["cat", "kitten", "kitty"] }
+    },
+    "body.size": {
+      "tiny": { "prompt": "tiny", "morph": { "head_scale": 0.6 }, "synonyms": ["tiny", "teacup", "toy"] },
+      "small": { "prompt": "small", "morph": { "head_scale": 0.3 }, "synonyms": ["small", "little"] },
+      "medium": { "prompt": "medium-sized", "morph": {}, "synonyms": ["medium sized", "medium-sized"] },
+      "large": { "prompt": "large", "morph": { "head_scale": -0.25 }, "synonyms": ["large", "big", "huge", "giant"] }
+    },
+    "body.build": {
+      "slim": { "prompt": "slim", "morph": { "body_slim": 1.0 }, "synonyms": ["slim", "skinny", "lean", "slender", "thin"] },
+      "standard": { "prompt": "", "morph": {}, "synonyms": [] },
+      "stocky": { "prompt": "stocky chunky", "morph": { "body_stocky": 1.0 }, "synonyms": ["stocky", "chunky", "chubby", "fat", "tubby", "round", "plump"] }
+    },
+    "body.leg_length": {
+      "short": { "prompt": "short-legged", "morph": { "leg_len": -0.8 }, "synonyms": ["short legs", "short-legged", "stubby legs"] },
+      "medium": { "prompt": "", "morph": {}, "synonyms": [] },
+      "long": { "prompt": "long-legged", "morph": { "leg_len": 0.8 }, "synonyms": ["long legs", "long-legged", "leggy"] }
+    },
+    "body.pose": {
+      "sitting": { "prompt": "sitting pose", "morph": {}, "synonyms": ["sitting"] }
+    },
+    "head.muzzle_length": {
+      "short": { "prompt": "short", "morph": { "muzzle_len": -0.8 }, "synonyms": ["short snout", "short muzzle", "flat face", "squashed face", "smushed face"] },
+      "medium": { "prompt": "medium", "morph": {}, "synonyms": [] },
+      "long": { "prompt": "long", "morph": { "muzzle_len": 0.9 }, "synonyms": ["long snout", "long muzzle", "long nose", "pointy snout"] }
+    },
+    "head.muzzle_width": {
+      "narrow": { "prompt": "narrow", "morph": { "muzzle_width": -0.7 }, "synonyms": ["narrow muzzle", "narrow snout"] },
+      "medium": { "prompt": "", "morph": {}, "synonyms": [] },
+      "wide": { "prompt": "broad", "morph": { "muzzle_width": 0.8 }, "synonyms": ["wide muzzle", "broad muzzle", "jowly", "big cheeks"] }
+    },
+    "head.brachycephalic": {
+      "true": { "prompt": "flat-faced", "morph": { "brachy": 1.0 }, "synonyms": ["flat faced", "flat-faced", "squashed face", "smushed face", "pushed in face"] },
+      "false": { "prompt": "", "morph": {}, "synonyms": [] }
+    },
+    "ears.shape": {
+      "erect": { "prompt": "upright pointed", "morph": { "ear_erect": 1.0 }, "synonyms": ["erect ears", "pointy ears", "upright ears", "prick ears", "pricked ears", "ears up"] },
+      "semi_erect": { "prompt": "semi-erect tipped", "morph": { "ear_erect": 0.5, "ear_drop": 0.3 }, "synonyms": ["semi erect ears", "tipped ears", "half up ears"] },
+      "drop": { "prompt": "floppy drop", "morph": { "ear_drop": 1.0 }, "synonyms": ["floppy ears", "drop ears", "droopy ears", "long ears", "floppy"] },
+      "folded": { "prompt": "folded", "morph": { "ear_fold": 1.0 }, "synonyms": ["folded ears", "folded", "fold ears"] },
+      "rose": { "prompt": "small rose", "morph": { "ear_fold": 0.5, "ear_drop": 0.3 }, "synonyms": ["rose ears"] }
+    },
+    "ears.size": {
+      "small": { "prompt": "small", "morph": { "ear_size": -0.6 }, "synonyms": ["small ears", "tiny ears", "little ears"] },
+      "medium": { "prompt": "", "morph": {}, "synonyms": [] },
+      "large": { "prompt": "large", "morph": { "ear_size": 0.8 }, "synonyms": ["big ears", "large ears", "huge ears", "giant ears"] }
+    },
+    "ears.tip": {
+      "pointed": { "prompt": "", "morph": {}, "synonyms": ["pointed tips"] },
+      "rounded": { "prompt": "round-tipped", "morph": {}, "synonyms": ["rounded ears", "round ears"] }
+    },
+    "ears.tufted": {
+      "true": { "prompt": "tufted", "morph": { "ear_tuft": 1.0 }, "synonyms": ["ear tufts", "tufted ears", "lynx tips"] },
+      "false": { "prompt": "", "morph": {}, "synonyms": [] }
+    },
+    "tail.type": {
+      "curled": { "prompt": "tightly curled tail over the back", "morph": { "tail_curl": 1.0 }, "synonyms": ["curly tail", "curled tail", "tail curls"] },
+      "plume": { "prompt": "fluffy plumed", "morph": { "tail_plume": 1.0 }, "synonyms": ["fluffy tail", "plume tail", "bushy tail", "feathery tail"] },
+      "straight": { "prompt": "straight", "morph": {}, "synonyms": ["straight tail"] },
+      "bob": { "prompt": "short bobbed", "morph": { "tail_len": -1.0 }, "synonyms": ["bob tail", "bobtail", "no tail", "stumpy tail", "docked tail", "stubby tail"] },
+      "long_thin": { "prompt": "long thin", "morph": { "tail_len": 0.6, "tail_plume": -0.5 }, "synonyms": ["long thin tail", "thin tail", "whip tail", "skinny tail"] }
+    },
+    "tail.length": {
+      "short": { "prompt": "short", "morph": { "tail_len": -0.6 }, "synonyms": ["short tail"] },
+      "medium": { "prompt": "", "morph": {}, "synonyms": [] },
+      "long": { "prompt": "long", "morph": { "tail_len": 0.6 }, "synonyms": ["long tail"] }
+    },
+    "tail.curl": {
+      "none": { "prompt": "", "morph": {}, "synonyms": [] },
+      "slight": { "prompt": "gently curved", "morph": { "tail_curl": 0.4 }, "synonyms": ["slightly curled tail"] },
+      "tight": { "prompt": "tightly curled", "morph": { "tail_curl": 1.0 }, "synonyms": ["tightly curled tail"] }
+    },
+    "coat.length": {
+      "short": { "prompt": "short", "morph": {}, "synonyms": ["short hair", "short haired", "short-haired", "short coat", "sleek"] },
+      "medium": { "prompt": "medium-length", "morph": { "fluff": 0.3 }, "synonyms": ["medium hair", "medium coat"] },
+      "long": { "prompt": "long", "morph": { "fluff": 0.7 }, "synonyms": ["long hair", "long haired", "long-haired", "long coat", "shaggy"] }
+    },
+    "coat.texture": {
+      "smooth": { "prompt": "smooth", "morph": {}, "synonyms": ["smooth", "glossy"] },
+      "wiry": { "prompt": "wiry", "morph": { "fluff": 0.1 }, "synonyms": ["wiry", "scruffy", "rough coat"] },
+      "curly": { "prompt": "curly", "morph": { "fluff": 0.3 }, "synonyms": ["curly", "poodle like", "wavy"] },
+      "silky": { "prompt": "silky", "morph": {}, "synonyms": ["silky", "soft"] },
+      "fluffy": { "prompt": "fluffy", "morph": { "fluff": 0.3 }, "synonyms": ["fluffy", "fuzzy", "floof", "floofy", "puffy"] }
+    },
+    "colour.pattern": {
+      "solid": { "prompt": "solid", "morph": {}, "synonyms": ["solid", "all over", "one colour"] },
+      "bicolour": { "prompt": "two-tone", "morph": {}, "synonyms": ["bicolour", "bicolor", "two tone", "two-tone"] },
+      "tricolour": { "prompt": "tricolour", "morph": {}, "synonyms": ["tricolour", "tricolor", "three colour", "tri colour"] },
+      "saddle_with_white_chest": { "prompt": "saddle markings and white chest", "morph": {}, "synonyms": ["saddle"] },
+      "merle": { "prompt": "merle", "morph": {}, "synonyms": ["merle", "dapple"] },
+      "brindle": { "prompt": "brindle striped", "morph": {}, "synonyms": ["brindle"] },
+      "sable": { "prompt": "sable shaded", "morph": {}, "synonyms": ["sable"] },
+      "spotted": { "prompt": "spotted", "morph": {}, "synonyms": ["spotted", "spots", "dalmatian", "spotty"] },
+      "tabby": { "prompt": "tabby striped", "morph": {}, "synonyms": ["tabby", "stripes", "striped", "stripy"] },
+      "tuxedo": { "prompt": "tuxedo", "morph": {}, "synonyms": ["tuxedo", "tux"] },
+      "calico": { "prompt": "calico patched", "morph": {}, "synonyms": ["calico", "tortoiseshell", "tortie", "patches", "patchy"] },
+      "colourpoint": { "prompt": "colourpoint", "morph": {}, "synonyms": ["colourpoint", "colorpoint", "pointed colouring", "siamese colouring"] }
+    },
+    "colour.markings": {
+      "white_blaze": { "prompt": "white blaze down the face", "morph": {}, "synonyms": ["blaze", "white stripe on face", "white blaze"] },
+      "white_socks": { "prompt": "white socks", "morph": {}, "synonyms": ["socks", "white paws", "white feet", "mittens", "white socks"] },
+      "white_chest": { "prompt": "white chest", "morph": {}, "synonyms": ["white chest", "white bib", "bib", "white belly"] },
+      "dark_mask": { "prompt": "dark face mask", "morph": {}, "synonyms": ["mask", "dark mask", "black mask", "dark face"] },
+      "points": { "prompt": "darker ears, face and paws", "morph": {}, "synonyms": ["points", "dark points"] }
+    },
+    "eyes.colour": {
+      "brown": { "prompt": "brown", "morph": {}, "synonyms": ["brown eyes"] },
+      "amber": { "prompt": "amber", "morph": {}, "synonyms": ["amber eyes", "yellow eyes", "golden eyes"] },
+      "hazel": { "prompt": "hazel", "morph": {}, "synonyms": ["hazel eyes"] },
+      "green": { "prompt": "green", "morph": {}, "synonyms": ["green eyes"] },
+      "blue": { "prompt": "blue", "morph": {}, "synonyms": ["blue eyes"] },
+      "copper": { "prompt": "copper", "morph": {}, "synonyms": ["copper eyes", "orange eyes"] }
+    },
+    "eyes.heterochromia": {
+      "true": { "prompt": "odd-eyed", "morph": {}, "synonyms": ["odd eyes", "odd-eyed", "two different coloured eyes", "different colour eyes", "heterochromia"] },
+      "false": { "prompt": "", "morph": {}, "synonyms": [] }
+    },
+    "nose.colour": {
+      "black": { "prompt": "black", "morph": {}, "synonyms": ["black nose"] },
+      "brown": { "prompt": "brown", "morph": {}, "synonyms": ["brown nose"] },
+      "pink": { "prompt": "pink", "morph": {}, "synonyms": ["pink nose"] },
+      "liver": { "prompt": "liver", "morph": {}, "synonyms": ["liver nose"] },
+      "grey": { "prompt": "grey", "morph": {}, "synonyms": ["grey nose", "gray nose"] }
+    },
+    "accessories.type": {
+      "collar": { "prompt": "collar", "morph": {}, "synonyms": ["collar"] },
+      "bandana": { "prompt": "bandana", "morph": {}, "synonyms": ["bandana", "neckerchief", "scarf"] },
+      "bow": { "prompt": "bow", "morph": {}, "synonyms": ["bow", "bow tie", "ribbon"] },
+      "hat": { "prompt": "little hat", "morph": {}, "synonyms": ["hat", "cap", "beanie"] },
+      "glasses": { "prompt": "round glasses", "morph": {}, "synonyms": ["glasses", "spectacles", "specs", "sunglasses"] }
+    },
+    "accessories.tag": {
+      "true": { "prompt": "with a little name tag", "morph": {}, "synonyms": ["name tag", "tag"] },
+      "false": { "prompt": "", "morph": {}, "synonyms": [] }
+    },
+    "overrides.ears.asymmetry": {
+      "none": { "prompt": "", "morph": {}, "synonyms": [] },
+      "left_floppy": { "prompt": "one floppy ear", "morph": {}, "synonyms": ["left ear flops", "one ear that flops", "one floppy ear", "one ear flops", "one ear up"] },
+      "right_floppy": { "prompt": "one floppy ear", "morph": {}, "synonyms": ["right ear flops"] }
+    }
+  },
+  "personality_words": {
+    "cheeky": "cheeky grin",
+    "happy": "happy smile",
+    "lazy": "sleepy half-closed eyes",
+    "sleepy": "sleepy half-closed eyes",
+    "playful": "playful expression",
+    "grumpy": "grumpy expression",
+    "shy": "shy expression",
+    "curious": "curious head tilt",
+    "goofy": "goofy grin",
+    "proud": "proud expression",
+    "sweet": "sweet expression",
+    "loves snacks": "happy expression",
+    "loves socks": "playful expression",
+    "energetic": "excited expression",
+    "calm": "calm expression",
+    "sassy": "sassy expression",
+    "loyal": "gentle expression",
+    "friendly": "friendly smile",
+    "mischievous": "mischievous grin",
+    "clever": "bright alert expression"
+  },
+  "blocklist": ["nude", "naked", "blood", "gore", "kill", "dead", "gun", "weapon", "nsfw", "sexy", "funko", "pop!"]
+}

@@ -1,0 +1,71 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "pug",
+  "label": "Pug",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "small",
+  "build": "stocky",
+  "leg_length": "short",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "short",
+  "muzzle_width": "wide",
+  "brachycephalic": true
+ },
+ "ears": {
+  "shape": "rose",
+  "size": "small",
+  "tip": "rounded"
+ },
+ "tail": {
+  "type": "curled",
+  "length": "short",
+  "curl": "tight"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.1
+ },
+ "colour": {
+  "base": {
+   "name": "fawn",
+   "hex": "#D2B48C"
+  },
+  "pattern": "solid",
+  "markings": [
+   "dark_mask"
+  ],
+  "secondary": {
+   "name": "black",
+   "hex": "#1E1B1A"
+  }
+ },
+ "eyes": {
+  "colour": "brown",
+  "hex": "#3B2412",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [
+  {
+   "type": "hat",
+   "colour_hex": "#F2C230",
+   "colour_name": "gold"
+  }
+ ],
+ "personality": [
+  "goofy"
+ ],
+ "free_text": "",
+ "overrides": {},
+ "seed": 1005,
+ "pet_name": "Mochi"
+}

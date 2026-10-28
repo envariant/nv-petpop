@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/manifest.schema.json",
+  "title": "JobManifest",
+  "description": "jobs/{job_id}/manifest.json: every file a job wrote, its stage, timings and the seeds and versions used (BRIEF Section 6.6).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_version", "job_id", "species", "seed", "mode", "fidelity", "fallback", "created_at", "versions", "seeds", "stages", "files", "metrics"],
+  "properties": {
+    "manifest_version": { "const": "1.0" },
+    "job_id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "species": { "enum": ["dog", "cat"] },
+    "pet_name": { "type": "string" },
+    "seed": { "type": "integer", "minimum": 0 },
+    "mode": { "enum": ["mock", "real"] },
+    "fidelity": { "enum": ["high", "low"] },
+    "fallback": { "enum": ["none", "single_view", "parametric", "unwrapped"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": ["string", "null"], "format": "date-time" },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pipeline", "spec", "vocab", "base_mesh", "workflows"],
+      "properties": {
+        "pipeline": { "type": "string" },
+        "spec": { "type": "string" },
+        "vocab": { "type": "string" },
+        "base_mesh": { "type": "string" },
+        "workflows": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "seeds": {
+      "type": "object",
+      "additionalProperties": { "type": "integer" }
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "status", "ms", "attempts", "backend"],
+        "properties": {
+          "stage": { "$ref": "#/$defs/stage" },
+          "status": { "enum": ["ok", "failed", "skipped", "fallback"] },
+          "started_at": { "type": "string", "format": "date-time" },
+          "ended_at": { "type": "string", "format": "date-time" },
+          "ms": { "type": "integer", "minimum": 0 },
+          "attempts": { "type": "integer", "minimum": 0 },
+          "backend": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind", "stage", "object_key", "bytes"],
+        "properties": {
+          "name": { "type": "string" },
+          "kind": { "$ref": "#/$defs/kind" },
+          "stage": { "$ref": "#/$defs/stage" },
+          "object_key": { "type": "string" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "iou_mean": { "type": ["number", "null"] },
+        "iou_views": { "type": "array", "items": { "type": "number" } },
+        "wrap_valid": { "type": "boolean" },
+        "wrap_notes": { "type": "string" },
+        "print_watertight": { "type": "boolean" },
+        "print_tris": { "type": "integer" },
+        "print_height_mm": { "type": "number" },
+        "min_wall_ok": { "type": "boolean" },
+        "min_wall_mm": { "type": ["number", "null"] },
+        "paint_mask_pct": { "type": "number" },
+        "uv_layout_hash": { "type": "string" },
+        "topology_hash": { "type": "string" },
+        "total_ms": { "type": "integer" }
+      }
+    }
+  },
+  "$defs": {
+    "stage": { "enum": ["A", "control", "B", "C", "D", "E", "F"] },
+    "kind": { "enum": ["spec", "control", "concept", "view", "shape", "wrapped", "uv_obj", "albedo", "glb", "3mf", "stl", "mask", "turntable", "thumbnail", "manifest"] }
+  }
+}

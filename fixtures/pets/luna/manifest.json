@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_luna",
+ "species": "cat",
+ "pet_name": "Luna",
+ "seed": 2002,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:38:16.235Z",
+ "finished_at": "2026-10-28T10:38:39.071Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 2002
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 1,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1373,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5855,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4665,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.958"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 193,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 10730,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_luna/spec.json",
+   "bytes": 1003,
+   "sha256": "e97eafd1b6d20d18124fe220cfa07a3dc1152068e01e58665b3f7350b35ea7b2"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_luna/concept.png",
+   "bytes": 46385,
+   "sha256": "3ef084b3d7691af62d03ec6ca888cb2d5678421dc8c4c6dcb4cb2e0cdf7ef122"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_luna/views/front.png",
+   "bytes": 35812,
+   "sha256": "2cc475edb5192493e241b224de08b1051d5e290a8ff4097f4928a86fd6a0f183"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_luna/views/left.png",
+   "bytes": 34578,
+   "sha256": "eb95c3b876a196e1504c7f22ff5571ef7b24d581d368ce53c1fbf83ad56485de"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_luna/views/back.png",
+   "bytes": 32827,
+   "sha256": "7bd59165a5df4e05ad79bceb476b1cf41c98884439f8de482913030dd9d87c26"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_luna/views/right.png",
+   "bytes": 34906,
+   "sha256": "c72908ef13fbae7e96464b7490352fc41f9d179403c85d62e76d4552429755bd"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_luna/shape.glb",
+   "bytes": 262168,
+   "sha256": "ce8a7b751c9916cd43bd48109b22fbecbf53fe4a15e2e4865932c9d3b4e1c0d8"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/figure_uv.obj",
+   "bytes": 1115398,
+   "sha256": "ac2f04404b2770e2a7dd3f24bb37dc15e21d7b8cee58b6bc6576a83dbca9dcc6"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/albedo.png",
+   "bytes": 106150,
+   "sha256": "a1a3fa6a0cfe45d47109210f7f1af7dc5bffe34d95fe0fba792bd17c3a21389f"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/figure.glb",
+   "bytes": 462640,
+   "sha256": "8d73336d174b2aab97f5e401700901b1b4fe60eeec865ded9c38382839785deb"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/figure.stl",
+   "bytes": 766284,
+   "sha256": "fb17d63972b63178ee9f35b8e4c687fda21a973dac89a0923e81c0fa17861b49"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/figure.3mf",
+   "bytes": 302948,
+   "sha256": "6c2607de2deb404f4f97d7dc148025dbb1e2c604c012fd9648bad2e368864458"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/paint_mask.png",
+   "bytes": 6096,
+   "sha256": "61db29c3fe5bcb75bf4147c3b54148a42c3bef2252be309d4ab67f43cee730e4"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/thumbnail.png",
+   "bytes": 20963,
+   "sha256": "f35d83920b05452c5f03c870c8804d2c428a2b699f795953e36f8e25f1fb9f3c"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.958,
+  "iou_views": [
+   0.9565,
+   0.9595,
+   0.9565,
+   0.9596
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15324,
+  "print_height_mm": 100.43,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 2.91,
+  "uv_layout_hash": "78f037cbe940ba43",
+  "topology_hash": "9ad6ca9a22865e07",
+  "total_ms": 22817
+ }
+}

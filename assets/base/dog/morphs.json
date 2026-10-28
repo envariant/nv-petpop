@@ -1,0 +1,66 @@
+{
+ "species": "dog",
+ "version": "proxy-1.0",
+ "kind": "proxy",
+ "morph_targets": [
+  "head_scale",
+  "muzzle_len",
+  "muzzle_width",
+  "brachy",
+  "ear_erect",
+  "ear_drop",
+  "ear_fold",
+  "ear_size",
+  "tail_len",
+  "tail_curl",
+  "tail_plume",
+  "body_stocky",
+  "body_slim",
+  "leg_len",
+  "fluff"
+ ],
+ "vertex_groups": [
+  "head",
+  "muzzle",
+  "ear_L",
+  "ear_R",
+  "body",
+  "leg_FL",
+  "leg_FR",
+  "leg_BL",
+  "leg_BR",
+  "tail",
+  "base",
+  "eye_L",
+  "eye_R",
+  "nose"
+ ],
+ "shells": [
+  "body",
+  "ear_L",
+  "ear_R",
+  "tail",
+  "eye_L",
+  "eye_R",
+  "nose"
+ ],
+ "masks": {
+  "mask_a.png": [
+   "chest",
+   "socks",
+   "blaze",
+   "points"
+  ],
+  "mask_b.png": [
+   "saddle",
+   "face_mask",
+   "coat",
+   "eye_nose"
+  ]
+ },
+ "vertices": 7266,
+ "polygons": 7256,
+ "triangles": 14512,
+ "topology_hash": "837de5361ae6d863",
+ "uv_hash": "8991c3506593f7ea"
+}

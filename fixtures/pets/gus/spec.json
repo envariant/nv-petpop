@@ -1,0 +1,65 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "french_bulldog",
+  "label": "French Bulldog",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "small",
+  "build": "stocky",
+  "leg_length": "short",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "short",
+  "muzzle_width": "wide",
+  "brachycephalic": true
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "large",
+  "tip": "rounded"
+ },
+ "tail": {
+  "type": "bob",
+  "length": "short",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.1
+ },
+ "colour": {
+  "base": {
+   "name": "fawn",
+   "hex": "#D2B48C"
+  },
+  "pattern": "solid",
+  "markings": [
+   "dark_mask"
+  ]
+ },
+ "eyes": {
+  "colour": "brown",
+  "hex": "#3B2412",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [
+  {
+   "type": "bow",
+   "colour_hex": "#E04A8A",
+   "colour_name": "red"
+  }
+ ],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 1003,
+ "pet_name": "Gus"
+}

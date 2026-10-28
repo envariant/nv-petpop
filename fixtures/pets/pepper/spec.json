@@ -1,0 +1,61 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "dalmatian",
+  "label": "Dalmatian",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "large",
+  "build": "slim",
+  "leg_length": "long",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "drop",
+  "size": "medium",
+  "tip": "rounded"
+ },
+ "tail": {
+  "type": "straight",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.1
+ },
+ "colour": {
+  "base": {
+   "name": "white",
+   "hex": "#F4EFE6"
+  },
+  "pattern": "spotted",
+  "markings": [],
+  "secondary": {
+   "name": "black",
+   "hex": "#1E1B1A"
+  }
+ },
+ "eyes": {
+  "colour": "brown",
+  "hex": "#3B2412",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 1004,
+ "pet_name": "Pepper"
+}

@@ -1,0 +1,81 @@
+{
+ "name": "failed_stage",
+ "description": "Stage D fails after both retries and the fallbacks are disabled; the job ends failed with the stage name.",
+ "trigger_names": [
+  "oops",
+  "fail"
+ ],
+ "queue_ahead": 0,
+ "queue_job_s": 0,
+ "outcome": "failed",
+ "fallback": "none",
+ "steps": [
+  {
+   "stage": "A",
+   "at_s": 0,
+   "pct": 2,
+   "message": "Reading your description"
+  },
+  {
+   "stage": "control",
+   "at_s": 4,
+   "pct": 6,
+   "message": "Shaping the base figure"
+  },
+  {
+   "stage": "B",
+   "at_s": 8,
+   "pct": 10,
+   "message": "Sketching the concept"
+  },
+  {
+   "stage": "B",
+   "at_s": 30,
+   "pct": 24,
+   "message": "Concept ready",
+   "preview": "concept.png",
+   "preview_kind": "concept"
+  },
+  {
+   "stage": "C",
+   "at_s": 34,
+   "pct": 28,
+   "message": "Drawing four views"
+  },
+  {
+   "stage": "C",
+   "at_s": 60,
+   "pct": 45,
+   "message": "Four views ready",
+   "preview": "views/front.png",
+   "preview_kind": "view_front",
+   "also": [
+    [
+     "views/left.png",
+     "view_left"
+    ],
+    [
+     "views/back.png",
+     "view_back"
+    ],
+    [
+     "views/right.png",
+     "view_right"
+    ]
+   ]
+  },
+  {
+   "stage": "D",
+   "at_s": 64,
+   "pct": 50,
+   "message": "Sculpting the shape"
+  },
+  {
+   "stage": "D",
+   "at_s": 110,
+   "pct": 55,
+   "message": "Stage D failed"
+  }
+ ],
+ "error": "Stage D (shape) timed out after 150 s"
+}

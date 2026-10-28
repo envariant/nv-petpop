@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Gate 6 (S5): kiosk hardening on the kiosk screen with the GPU box (attract loop, idle wipe, regression set,
+# print and paint of three demo pets). Not runnable in a cloud session.
+source "$(dirname "$0")/lib.sh"
+if [ "$PETPOP_MODE" = "mock" ]; then echo "gate-6: SKIPPED (needs GPU and the kiosk screen)"; exit 0; fi
+step "regression set on real models" "$PY" scripts/regress.py --gate 6
+echo "GATE 6 PASSED"

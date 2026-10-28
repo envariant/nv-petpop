@@ -1,0 +1,63 @@
+{
+ "species": "cat",
+ "version": "proxy-1.0",
+ "kind": "proxy",
+ "morph_targets": [
+  "head_scale",
+  "muzzle_len",
+  "muzzle_width",
+  "ear_erect",
+  "ear_fold",
+  "ear_size",
+  "ear_tuft",
+  "tail_len",
+  "tail_plume",
+  "body_stocky",
+  "body_slim",
+  "fluff"
+ ],
+ "vertex_groups": [
+  "head",
+  "muzzle",
+  "ear_L",
+  "ear_R",
+  "body",
+  "leg_FL",
+  "leg_FR",
+  "leg_BL",
+  "leg_BR",
+  "tail",
+  "base",
+  "eye_L",
+  "eye_R",
+  "nose"
+ ],
+ "shells": [
+  "body",
+  "ear_L",
+  "ear_R",
+  "tail",
+  "eye_L",
+  "eye_R",
+  "nose"
+ ],
+ "masks": {
+  "mask_a.png": [
+   "chest",
+   "socks",
+   "blaze",
+   "points"
+  ],
+  "mask_b.png": [
+   "saddle",
+   "face_mask",
+   "coat",
+   "eye_nose"
+  ]
+ },
+ "vertices": 7268,
+ "polygons": 7258,
+ "triangles": 14516,
+ "topology_hash": "9ad6ca9a22865e07",
+ "uv_hash": "78f037cbe940ba43"
+}

@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_pepper",
+ "species": "dog",
+ "pet_name": "Pepper",
+ "seed": 1004,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:37:08.182Z",
+ "finished_at": "2026-10-28T10:37:29.791Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 1004
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 3,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1464,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5416,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4100,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.976"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 239,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 10376,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_pepper/spec.json",
+   "bytes": 955,
+   "sha256": "b7ffdd943f94e1b3b094cd9c50ba60417d9d5802ac55340107ab1bd19867325e"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_pepper/concept.png",
+   "bytes": 46039,
+   "sha256": "54a0af3dc33c08da10904705e9aacbf5954da94bf43df238594a2a72a11c0e32"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_pepper/views/front.png",
+   "bytes": 35877,
+   "sha256": "3eaf24bb1ee289825b414493999fb6ee1139bd1c2d9f4f30ba6a7cd09f96d0ea"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_pepper/views/left.png",
+   "bytes": 37895,
+   "sha256": "6400d850ede1ea9437b386a1e13d07faf5651421d65df1432595d1b02b04f213"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_pepper/views/back.png",
+   "bytes": 33145,
+   "sha256": "3be57d61e4b23ed2ff8fd8735a612ebef3449be5170cebbbcfeda68b29f745af"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_pepper/views/right.png",
+   "bytes": 37337,
+   "sha256": "ece5f1e1774f970013ffc378a7c29edf6f4533a07f6c64159873309c62b1f117"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_pepper/shape.glb",
+   "bytes": 262096,
+   "sha256": "1abf96358ce4a515d25e15c0270ed9bb8e27f8875aa7b564a846a18840b61a35"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/figure_uv.obj",
+   "bytes": 1115844,
+   "sha256": "d1a98c7709967b678d16cf38999da94f7f8bf4630ec0bebf73a6964136787bed"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/albedo.png",
+   "bytes": 90863,
+   "sha256": "0cad4577920501a786b33e017f9fbbe33aa4626015959800f258a4dce84cc03e"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/figure.glb",
+   "bytes": 446328,
+   "sha256": "a69945ef025435e41103224e71579e979fb73e5c9cae248aa6eb8dfba3abfd3a"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/figure.stl",
+   "bytes": 755584,
+   "sha256": "201ab8c76f038a966749c981f3678c21ab1dfe3b681612206d660211be14a951"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/figure.3mf",
+   "bytes": 297850,
+   "sha256": "5cd5aa4de2c47a1557a169cabd34e7b6ddfd10c527de2f030bfdd22ca6e52c27"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/paint_mask.png",
+   "bytes": 7318,
+   "sha256": "b41fff73da1dc707a73034123dcc4ec6c74ddb4d63a2a552c0490250b2df7273"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/thumbnail.png",
+   "bytes": 21174,
+   "sha256": "9517b816f6cc2d99ae8ab3b4ab629cc909f78a7a28eec765401da79a0d1aa6fc"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9764,
+  "iou_views": [
+   0.9787,
+   0.974,
+   0.9787,
+   0.974
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15110,
+  "print_height_mm": 87.7,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 4.87,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 21598
+ }
+}

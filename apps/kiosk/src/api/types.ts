@@ -1,0 +1,21 @@
+import type { components } from './schema';
+
+type S = components['schemas'];
+export type PetSpec = S['PetSpec'];
+export type PetSpecPatch = Record<string, unknown>;
+export type Species = S['PetSpec_species'];
+export type Breed = S['Breed'];
+export type BreedList = S['BreedList'];
+export type Session = S['Session'];
+export type ParseResponse = S['ParseResponse'];
+export type Job = S['Job'];
+export type JobCreated = S['JobCreated'];
+export type JobStatus = Job['status'];
+export type Stage = Job['stage'];
+export type Artefact = S['Artefact'];
+export type ProgressEvent = S['ProgressEvent'];
+export type FulfilResponse = S['FulfilResponse'];
+export type ResultPage = S['ResultPage'];
+export type StaffQueue = S['StaffQueue'];
+export type StaffJob = S['StaffJob'];
+export type Health = S['Health'];

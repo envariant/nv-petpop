@@ -1,0 +1,8 @@
+{
+  "_comment": "Placeholder dimensions until the painter fixture is measured (BRIEF Section 14, open question 1).",
+  "figure_height_mm": 90.0,
+  "base_disc": { "diameter_mm": 48.0, "thickness_mm": 4.0 },
+  "socket": { "diameter_mm": 8.0, "depth_mm": 10.0, "keying_flat_mm": 1.0 },
+  "min_wall_mm": 1.5,
+  "paint_head_standoff_mm": 5.0
+}

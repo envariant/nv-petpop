@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_marmalade",
+ "species": "cat",
+ "pet_name": "Marmalade",
+ "seed": 2003,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:38:39.077Z",
+ "finished_at": "2026-10-28T10:39:00.071Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 2003
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 3,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1578,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5274,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4286,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.964"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 241,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 9596,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_marmalade/spec.json",
+   "bytes": 999,
+   "sha256": "2328ce073a0953b88ce4b57cf4007a9ffef38da5e9b16bbfc45d20727e64300d"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_marmalade/concept.png",
+   "bytes": 53237,
+   "sha256": "7aa96849c53a924e626d3666849d2d6829ed0a47e7354505b210922babfe365c"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_marmalade/views/front.png",
+   "bytes": 41590,
+   "sha256": "5018353a44749260f300abb060c880aaca1d6f292266c6983c2bd7381915341d"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_marmalade/views/left.png",
+   "bytes": 39756,
+   "sha256": "feaace058734c19627b1d2c13997a37f40f0a69eaf01e374f65096b113a51d49"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_marmalade/views/back.png",
+   "bytes": 38720,
+   "sha256": "d48c1b52cac70dc01f4fd170f8bb488c11cde73863d4f7dc1240395fd55641e1"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_marmalade/views/right.png",
+   "bytes": 39732,
+   "sha256": "f0d2ccc605b6e8f908141036685a1d3d93e564e6d6fff209c015600ebba56f38"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_marmalade/shape.glb",
+   "bytes": 262164,
+   "sha256": "9b2ba572013714d677e42bff3ff531d63460d8851a01414ee9c78be4927e8f8a"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/figure_uv.obj",
+   "bytes": 1116306,
+   "sha256": "27267299421de02475fab01232976005f34848fdaf4bda46f1c183ef2166f82d"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/albedo.png",
+   "bytes": 213486,
+   "sha256": "ea18e3dd06bb2b5bcc3135a172d92ad3510e8ac0e68c08e6bc0ec5b04bd9a527"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/figure.glb",
+   "bytes": 569156,
+   "sha256": "fb57dbdd52cd39c1e6daf93bcd3b55adf6537b8307e21c3683585950c23e949b"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/figure.stl",
+   "bytes": 765484,
+   "sha256": "ef444e91074d68bb52732a57ae05aea97daa5293877dd2d47330bcd9bef91baa"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/figure.3mf",
+   "bytes": 302085,
+   "sha256": "4777574880c28c29c9685b765723b079b7bf90fc9a695525104e8db5b5a8bfe9"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/paint_mask.png",
+   "bytes": 6639,
+   "sha256": "49ebc5647f774a50e4d27f21eb47665d6e028f204d37570805d8fefec5a627f5"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/thumbnail.png",
+   "bytes": 24699,
+   "sha256": "3ff979a6e06fecc536019bc5e3ff0837182c0dbc55ca40a8e5c0606a66c87a84"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9645,
+  "iou_views": [
+   0.9601,
+   0.9688,
+   0.9601,
+   0.9688
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15308,
+  "print_height_mm": 93.81,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 3.6,
+  "uv_layout_hash": "78f037cbe940ba43",
+  "topology_hash": "9ad6ca9a22865e07",
+  "total_ms": 20978
+ }
+}

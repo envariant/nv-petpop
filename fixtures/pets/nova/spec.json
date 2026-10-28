@@ -1,0 +1,66 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "husky",
+  "label": "Siberian Husky",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "large",
+  "build": "standard",
+  "leg_length": "medium",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "medium",
+  "tip": "pointed"
+ },
+ "tail": {
+  "type": "plume",
+  "length": "long",
+  "curl": "slight"
+ },
+ "coat": {
+  "length": "medium",
+  "texture": "fluffy",
+  "fluffiness": 0.6
+ },
+ "colour": {
+  "base": {
+   "name": "grey",
+   "hex": "#8A8A8A"
+  },
+  "pattern": "bicolour",
+  "markings": [
+   "white_chest",
+   "white_socks"
+  ],
+  "secondary": {
+   "name": "white",
+   "hex": "#F4EFE6"
+  }
+ },
+ "eyes": {
+  "colour": "blue",
+  "hex": "#4A86C5",
+  "heterochromia": true,
+  "second_colour": "brown",
+  "second_hex": "#3B2412"
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 1002,
+ "pet_name": "Nova"
+}

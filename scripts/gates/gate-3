@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Gate 3 (S3): ComfyUI concept + views (stages B, C) on the GPU host. Runs only on the GPU host (PETPOP_MODE=real).
+source "$(dirname "$0")/lib.sh"
+skip_without_gpu 3
+echo "gate-3: ComfyUI concept + views (stages B, C) on the GPU host"
+step "GPU services reachable" bash -c 'curl -fsS "${COMFY_URL:?COMFY_URL}/system_stats" && curl -fsS "${OLLAMA_URL:?OLLAMA_URL}/api/tags"'
+step "contract test against the real backend (real adapters)" env PETPOP_GATE=3 "$PY" -m pytest tests/contract -k backend
+step "regression metrics meet gate 3 thresholds" "$PY" scripts/regress.py --gate 3
+echo "GATE 3 PASSED"

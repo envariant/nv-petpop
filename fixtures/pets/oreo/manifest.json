@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_oreo",
+ "species": "cat",
+ "pet_name": "Oreo",
+ "seed": 2001,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:37:54.167Z",
+ "finished_at": "2026-10-28T10:38:16.231Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 2001
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 1,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1681,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5428,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4396,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.962"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 200,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 10347,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_oreo/spec.json",
+   "bytes": 1095,
+   "sha256": "681f18ae95b60ac8a1cfaf6eba0e93f09f9afddfdf3e1e08ab619e91dc5b45e8"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_oreo/concept.png",
+   "bytes": 41129,
+   "sha256": "24f86055b2bb4574f7db15f1cc14d3c2eaba81e7eec6eac87498bed4bdc4faa6"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_oreo/views/front.png",
+   "bytes": 32218,
+   "sha256": "22015cd8910015888ee14268a9655a0a1333b5508e347dd053cfd91c700687ff"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_oreo/views/left.png",
+   "bytes": 25787,
+   "sha256": "78f5da9d1db201bbebf8a192a5b44bcf4a855a389a519bf88fc7a93bd10e8309"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_oreo/views/back.png",
+   "bytes": 21110,
+   "sha256": "dfa698cf45b3aa0e47a432ae61c045616684c77b22589c10a296f3ab1e3c9b98"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_oreo/views/right.png",
+   "bytes": 26534,
+   "sha256": "a7fa8c320a914f9b8adb8ca4f4b60240611a2b7440c8ab8016baf3a5de22e10a"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_oreo/shape.glb",
+   "bytes": 262160,
+   "sha256": "28a28d1c7778a0c3b3e3f8c63d6fcac92f7f7eae9c0fa05adacc07293464f979"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/figure_uv.obj",
+   "bytes": 1115932,
+   "sha256": "213c428d2c961f41bcd34db502eb29d7a2b0364245c11c37b1ea8563825da797"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/albedo.png",
+   "bytes": 133670,
+   "sha256": "f5e91dcc694ff464d542294fbfb692c1fc10f55d0968a118cf3f57b7928fcc27"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/figure.glb",
+   "bytes": 490860,
+   "sha256": "ae44b90631b48765f1df56cad9bb4a28832f79667620dd9e45e1eefa7e72c901"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/figure.stl",
+   "bytes": 761884,
+   "sha256": "ad25389b9f34cbe2c9c1f244f60b5022ae232f113a36ee000a2ab4d6fb2e0a61"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/figure.3mf",
+   "bytes": 301364,
+   "sha256": "101aea63562f6c8eab8d5de742090a25142adc9c991759c446942ebdada27514"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/paint_mask.png",
+   "bytes": 6802,
+   "sha256": "55af4f5aac37bd86c70b95689cb0b3c3e85e5558dbebc4570922d52e18dfc82c"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/thumbnail.png",
+   "bytes": 18913,
+   "sha256": "19b76f10d8bc0f2c46399694ef6fb0c4eb463a7365ce37924506e2e5b09a32dd"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9619,
+  "iou_views": [
+   0.9615,
+   0.9622,
+   0.9615,
+   0.9622
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15236,
+  "print_height_mm": 93.72,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 3.6,
+  "uv_layout_hash": "78f037cbe940ba43",
+  "topology_hash": "9ad6ca9a22865e07",
+  "total_ms": 22053
+ }
+}

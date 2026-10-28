@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_mochi",
+ "species": "dog",
+ "pet_name": "Mochi",
+ "seed": 1005,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:37:29.795Z",
+ "finished_at": "2026-10-28T10:37:54.151Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 1005
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 1,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1448,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5634,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4532,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.977"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 201,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 12527,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_mochi/spec.json",
+   "bytes": 1048,
+   "sha256": "c60062a292b70f0f85ce915f5c4e3655e8946e49c0d0e8022ca76993cd3791c7"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_mochi/concept.png",
+   "bytes": 45451,
+   "sha256": "ebd98b1ba797f82c0adb97567b65f9debee479ae8c279b1df8c60dd94ff5c24f"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_mochi/views/front.png",
+   "bytes": 34617,
+   "sha256": "3f4478fc4ab19296c0cb897f1fdbc489fc1406ff1730997284fe165adbfc66c1"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_mochi/views/left.png",
+   "bytes": 29261,
+   "sha256": "2957c6331ab6419bbdbfb4d5003ad927acf03e7bbf0e08bbe57bebd6201ae5cf"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_mochi/views/back.png",
+   "bytes": 30463,
+   "sha256": "0027e7cba404f4245bd8dab970fc94d655f1160f54f5016eec93b9b2b63d74a0"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_mochi/views/right.png",
+   "bytes": 30094,
+   "sha256": "45aa89c63bde6dcc1ffd172be818ce547216798c197befa4f5b16c4068ef566a"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_mochi/shape.glb",
+   "bytes": 262092,
+   "sha256": "d24373e1c315f113dfc8c13e4010ed5b8d9b37257960b1722a8965f40620afd1"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/figure_uv.obj",
+   "bytes": 1116717,
+   "sha256": "de76c5d5d821758818d2b1c53af2d565bf2768ec2ca88878303ec3ce4b9274e7"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/albedo.png",
+   "bytes": 62681,
+   "sha256": "c1ddeb69db226a50d0087385e3ac9e5b3d1a4c79d3962a29fbc4156ae3ce8521"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/figure.glb",
+   "bytes": 417792,
+   "sha256": "9acdb6814cbf6f6e5aede6af48bd62042edad4692e7b8f21761a3c2daac03321"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/figure.stl",
+   "bytes": 719984,
+   "sha256": "d1738da9afc6b137f5fbf4185e1fc59d3ee0a660a1a86dc8d82d9ce14fbaacaa"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/figure.3mf",
+   "bytes": 284647,
+   "sha256": "3fd28edb36235f01e7c7947a500183c6dcf858e6fda6359b142fe3c734276d72"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/paint_mask.png",
+   "bytes": 10581,
+   "sha256": "97888c3359c22fdef651f006216e12f7bdc29bc553f11610af688d837f3551ca"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_mochi/thumbnail.png",
+   "bytes": 19401,
+   "sha256": "5dad42ff351059d0efe0890c8d88c1959f444d7dea7bc7ea730ef05eeef41941"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9767,
+  "iou_views": [
+   0.9741,
+   0.9792,
+   0.9741,
+   0.9792
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 14398,
+  "print_height_mm": 76.52,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 10.91,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 24343
+ }
+}

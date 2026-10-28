@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_sunny",
+ "species": "dog",
+ "pet_name": "Sunny",
+ "seed": 1001,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:35:59.121Z",
+ "finished_at": "2026-10-28T10:36:21.999Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 1001
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 2,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1363,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5958,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4515,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.977"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 225,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 10803,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_sunny/spec.json",
+   "bytes": 994,
+   "sha256": "16e6c37a9f45dec3bd42bf78374a8a215337a66fe21a9c3b06bc5d8cec88fd5f"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_sunny/concept.png",
+   "bytes": 41601,
+   "sha256": "d387718000d617df6670c718fc2efb1927c474eee1feb8a2d963baa5de96d73e"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_sunny/views/front.png",
+   "bytes": 31772,
+   "sha256": "faae80a00dbe05538e9f309d0bb91b4e90adccfb6fefd7f21347f7c50e90e501"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_sunny/views/left.png",
+   "bytes": 34019,
+   "sha256": "d00d4ebe9572998bd2fbe280d4d3cd7aaf7bfcfad52876cf1a90d809b492b8a0"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_sunny/views/back.png",
+   "bytes": 29626,
+   "sha256": "fd85f61cdee00e204eebd04e08b1bee9998bfd930fe5453deaed9a19ba2e20d3"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_sunny/views/right.png",
+   "bytes": 33945,
+   "sha256": "64d4eaf86b63c2833884a874799dbee9071968b209f5d7e4e7c3a3b449fae2d0"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_sunny/shape.glb",
+   "bytes": 262096,
+   "sha256": "f061738b2f9eca40d5ab325dd643d43f41373e9c2220cdb3d20a360a65e89a5a"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/figure_uv.obj",
+   "bytes": 1116866,
+   "sha256": "1c6ed767d53742e9ba395df69b612af882d6fe44d5b424ba5a879851ab739829"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/albedo.png",
+   "bytes": 22916,
+   "sha256": "1d064951ca341a5efbe95ed549c7c615c1257fd6e5336bbed7a9a9507866b35e"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/figure.glb",
+   "bytes": 377452,
+   "sha256": "7160014e9cd4e7008c284421ab7f8474f5bc1df8bdcdf7d6d01c157486537aae"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/figure.stl",
+   "bytes": 719584,
+   "sha256": "faa2c8a4bf33efe13b901f5d76fad7fda161ab478af67243be71bbad1b38dbe8"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/figure.3mf",
+   "bytes": 284638,
+   "sha256": "e6c5eb48a74dea0e74f94e26e00d00166809f2344983ac8c440fb7504ddb3b98"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/paint_mask.png",
+   "bytes": 11783,
+   "sha256": "3d48f0f92442e4c0e0b8cf3b66f2de29a1bb2be9e81de9efe94d9c5493dde7ea"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_sunny/thumbnail.png",
+   "bytes": 18466,
+   "sha256": "742cc5f868b47af093427a7a7c125ee796a2fc296d3ce07dee72d9ff90da244a"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9767,
+  "iou_views": [
+   0.9808,
+   0.9725,
+   0.9808,
+   0.9725
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 14390,
+  "print_height_mm": 83.79,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 7.73,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 22866
+ }
+}

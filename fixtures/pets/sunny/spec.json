@@ -1,0 +1,63 @@
+{
+ "spec_version": "1.0",
+ "species": "dog",
+ "breed": {
+  "id": "golden_retriever",
+  "label": "Golden Retriever",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "large",
+  "build": "standard",
+  "leg_length": "medium",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "drop",
+  "size": "medium",
+  "tip": "rounded"
+ },
+ "tail": {
+  "type": "plume",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "long",
+  "texture": "silky",
+  "fluffiness": 0.6
+ },
+ "colour": {
+  "base": {
+   "name": "gold",
+   "hex": "#D9A441"
+  },
+  "pattern": "solid",
+  "markings": []
+ },
+ "eyes": {
+  "colour": "brown",
+  "hex": "#3B2412",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [
+  {
+   "type": "bandana",
+   "colour_hex": "#3366CC",
+   "colour_name": "blue_grey"
+  }
+ ],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 1001,
+ "pet_name": "Sunny"
+}
