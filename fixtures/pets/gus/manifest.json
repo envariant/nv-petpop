@@ -5,10 +5,10 @@
  "pet_name": "Gus",
  "seed": 1003,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:49:31.226Z",
- "finished_at": "2026-10-28T10:49:53.630Z",
+ "created_at": "2026-10-28T12:15:40.345Z",
+ "finished_at": "2026-10-28T12:16:57.412Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1000,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:15:40.345Z",
+   "ended_at": "2026-10-28T12:15:41.346Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 1,
+   "ms": 5312,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:15:41.346Z",
+   "ended_at": "2026-10-28T12:15:46.659Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1440,
+   "ms": 6003,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:15:46.659Z",
+   "ended_at": "2026-10-28T12:15:52.663Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5107,
+   "ms": 9004,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:15:52.664Z",
+   "ended_at": "2026-10-28T12:16:01.669Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4116,
+   "ms": 20166,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.958"
+   "started_at": "2026-10-28T12:16:01.670Z",
+   "ended_at": "2026-10-28T12:16:21.836Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 235,
+   "ms": 9133,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 7, laplacian x0.92, self-intersections 74",
+   "started_at": "2026-10-28T12:16:21.838Z",
+   "ended_at": "2026-10-28T12:16:30.971Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 11493,
+   "ms": 26434,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:16:30.973Z",
+   "ended_at": "2026-10-28T12:16:57.407Z"
   }
  ],
  "files": [
@@ -81,128 +95,144 @@
    "sha256": "0ba68eb386ab2d527a81170172587c7d3cde8195efe5bb35a7455de78373b36a"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_gus/prompts.json",
+   "bytes": 3722,
+   "sha256": "68e3b4ecbb949c204ffa3b0da0e1ff61f8d7c25f7f0c1631a51a24699327aa63"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_gus/concept.png",
-   "bytes": 50817,
-   "sha256": "9e6b796989494306ad9f9a44754051bfec9616636fc25e11746084e471e4c2bc"
+   "bytes": 142324,
+   "sha256": "382c7b8245c7351f14b979f007dd65e6626e60fe5e616e667c145fe4d42a1b0a"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_gus/views/front.png",
-   "bytes": 38745,
-   "sha256": "fbecbd7d63625616c490dfc2fb65fdbf175ce8cab8f67172d67a80c39252ed3a"
+   "bytes": 84174,
+   "sha256": "0333277d94cbd33051a8267da9a3814ccac742bdee361d147cbaff196f044442"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_gus/views/left.png",
-   "bytes": 30769,
-   "sha256": "f987c57ff355515e8513a2cf67ea51359bfd482aa512003789b8fae1d022c1f6"
+   "bytes": 68110,
+   "sha256": "844fb4c5e71de0783dc32fdee5e68f3969f88c245ccde4edb90b570b5694af57"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_gus/views/back.png",
-   "bytes": 34713,
-   "sha256": "7b01128cf7e016b86bcd01adf1da068f6beb1fb3d18d90d828e7eae7834ed8fa"
+   "bytes": 79347,
+   "sha256": "4b161f9b0e6a0750826d5c5c9a37ecaae58beb1ac0afd92d3fc5961fbe79605f"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_gus/views/right.png",
-   "bytes": 31717,
-   "sha256": "8510ec0c3fc143c9220a1c5e45307cfc572d4b388ee6611c438718e9e084a631"
+   "bytes": 67635,
+   "sha256": "b6d83d4cc88309c6670cd0b78bf9820b4ad5218efd381442f359694a8abfa181"
   },
   {
    "name": "shape.glb",
    "kind": "shape",
    "stage": "D",
    "object_key": "jobs/fx_gus/shape.glb",
-   "bytes": 262092,
-   "sha256": "1f72227b7959f05e593be5e6713766e73fab243fb5725ce4837a437dd4b22392"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_gus/figure_uv.obj",
-   "bytes": 1116582,
-   "sha256": "02eb2797f7e5763f6f28fe4c08101deb3568925830961035c6a47b730725ed8f"
+   "bytes": 271692,
+   "sha256": "2c6fdad7d2384db1eac066a575d3a407508db9d8254741ddf744430f1a809eae"
   },
   {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_gus/albedo.png",
-   "bytes": 62681,
-   "sha256": "c1ddeb69db226a50d0087385e3ac9e5b3d1a4c79d3962a29fbc4156ae3ce8521"
+   "bytes": 62680,
+   "sha256": "5dd160763b8f09c7e1e2d29d8d90a2e2fff43710fe135dbc056aef576f0ead99"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_gus/figure.glb",
-   "bytes": 417792,
-   "sha256": "fb3b2c357a92843022cbc0a05adde13497c1e83921f0f745bb5c2b636318fdc4"
+   "object_key": "jobs/fx_gus/figure_uv.obj",
+   "bytes": 1116157,
+   "sha256": "75c52fd2634c2b2d41ea7857f66ea22a68b4dfabfdcbc71f6b6f8596f7673b90"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_gus/figure.stl",
-   "bytes": 768184,
-   "sha256": "9ee1a4c56e7879f979a27fd459f55a18001112032c9ec453a06276111a8e6e9b"
+   "bytes": 1499984,
+   "sha256": "c921a3fccc89bf033830b7af4e16c50b3f74d5bba7a207b8a893a4f19d5518f9"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_gus/figure.3mf",
-   "bytes": 304535,
-   "sha256": "16223d592d1be65e34017926bebb574c63b495b49bedef3782ebfe359384e755"
+   "bytes": 610208,
+   "sha256": "c31463c7c2272919a7c2302a38a70b785821882217c3be25543df3473bed778f"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_gus/paint_mask.png",
-   "bytes": 8989,
-   "sha256": "21f0be1c7994b0404bf9f5408f384ecb2416c1b062ebb1a73f334099ea8a3868"
+   "bytes": 6347,
+   "sha256": "6c4b7cc4606dc567fecd680334b4d0fbd17225cbf2cc1371577fcf3c80d682c3"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_gus/thumbnail.png",
-   "bytes": 22221,
-   "sha256": "225399fdf435bd4d715162b649f4cfdcd3798ef302f8f0642706de37366a741d"
+   "bytes": 64943,
+   "sha256": "9700e4abee8cf8b80986b61c62b2d55b18b23f8ec04d81500fa149fd235cb4f9"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/turntable.mp4",
+   "bytes": 82084,
+   "sha256": "c0f0e82c4cb892f9608962d90c493876ce8839e5826425ba4f58dc36cf19c100"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/figure.glb",
+   "bytes": 251880,
+   "sha256": "9a12e1bcabd533487be9c62ac5ab61dd7953eba78e32df1c6f5d670870c4b37e"
   }
  ],
  "metrics": {
-  "iou_mean": 0.9575,
+  "iou_mean": 0.9537,
   "iou_views": [
-   0.9526,
-   0.9624,
-   0.9526,
-   0.9624
+   0.9602,
+   0.9527,
+   0.9471,
+   0.9548
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
+  "wrap_notes": "inverted 7, laplacian x0.92, self-intersections 74",
+  "print_tris": 29998,
+  "print_height_mm": 96.69,
+  "min_wall_mm": 1.1,
+  "min_wall_ok": false,
   "print_watertight": true,
-  "print_tris": 15362,
-  "print_height_mm": 97.6,
-  "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 9.36,
-  "uv_layout_hash": "8991c3506593f7ea",
+  "paint_mask_pct": 4.39,
+  "uv_layout_hash": "a925f74e10d7acea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 22392
+  "total_ms": 77052
  }
 }

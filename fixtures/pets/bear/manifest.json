@@ -5,10 +5,10 @@
  "pet_name": "Bear",
  "seed": 2004,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:51:46.774Z",
- "finished_at": "2026-10-28T10:52:11.421Z",
+ "created_at": "2026-10-28T12:23:16.262Z",
+ "finished_at": "2026-10-28T12:24:35.830Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1001,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:23:16.262Z",
+   "ended_at": "2026-10-28T12:23:17.263Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 4,
+   "ms": 5244,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:23:17.264Z",
+   "ended_at": "2026-10-28T12:23:22.508Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1465,
+   "ms": 6002,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:23:22.509Z",
+   "ended_at": "2026-10-28T12:23:28.512Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5847,
+   "ms": 9005,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:23:28.513Z",
+   "ended_at": "2026-10-28T12:23:37.519Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4363,
+   "ms": 20256,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.953"
+   "started_at": "2026-10-28T12:23:37.520Z",
+   "ended_at": "2026-10-28T12:23:57.776Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 206,
+   "ms": 9087,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 22, laplacian x0.91, self-intersections 3",
+   "started_at": "2026-10-28T12:23:57.778Z",
+   "ended_at": "2026-10-28T12:24:06.865Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 12748,
+   "ms": 28960,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:24:06.866Z",
+   "ended_at": "2026-10-28T12:24:35.827Z"
   }
  ],
  "files": [
@@ -81,128 +95,144 @@
    "sha256": "1b664e474af4753f99dbd822b78139431ec44c6cc6f00f5753e2b6fae5af73d3"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_bear/prompts.json",
+   "bytes": 3755,
+   "sha256": "954c11aaa2e875346e671b8e3ebee37f35019ae6346ae207d988d2026c05baf8"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_bear/concept.png",
-   "bytes": 53662,
-   "sha256": "c617676a5325d30c00a36451a0e8bc9624020694c4271114ca6c49f60b51ab3d"
+   "bytes": 140408,
+   "sha256": "c5b297fd455c766861fac1d34a83e10dc7d8bed0455807f76244c48badfa9c96"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_bear/views/front.png",
-   "bytes": 41966,
-   "sha256": "a173b751a3d319d5bed660fe18cf864feaa9ee420bd6d90b4bf8780aed347700"
+   "bytes": 83778,
+   "sha256": "06a846af71c79eadc7cf3bd69330a0d8c69f34411d59e850ba5bb338632a0c0b"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_bear/views/left.png",
-   "bytes": 38632,
-   "sha256": "930f44c42bc5d2a356292d5b50c4bc4a96fc35d1d2c03be2b2b0b4da9bcf1231"
+   "bytes": 83048,
+   "sha256": "4c3bee003934ca2704d88340933db84144ecaf94bd80185ebed6d23e39e0a9c4"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_bear/views/back.png",
-   "bytes": 35993,
-   "sha256": "6a9f3702819f47867a853c8ed2f4c17e51e0c967ffa65fb56fb2fe5dd0ceeea8"
+   "bytes": 84606,
+   "sha256": "2eab084e9dbe3eb6604917fd2f8e45b44282c55edcef074ff13db5309e6ab3dc"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_bear/views/right.png",
-   "bytes": 38267,
-   "sha256": "08e83d54e718b7a2851dc51ce0caa71a8fba15a18b7918d7416d3c2d1d01ff8a"
+   "bytes": 82828,
+   "sha256": "b843fb8b7efc35561a9792adf5fe044da203a11bcf87b7f89fdb1bd23315664e"
   },
   {
    "name": "shape.glb",
    "kind": "shape",
    "stage": "D",
    "object_key": "jobs/fx_bear/shape.glb",
-   "bytes": 262164,
-   "sha256": "525e0bcb1dc9001cb9551063de5bb4da15473438fbee09975bd2f8041f06300f"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_bear/figure_uv.obj",
-   "bytes": 1116676,
-   "sha256": "43b456db180412ab2d833897ed8e8f0e7364c895a7e766410eac7848e948b1f3"
+   "bytes": 276612,
+   "sha256": "e9439c95f85f63e6a3369dcf256bbe5007ee4fd8f29ea006a2fed07ceb4925c3"
   },
   {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_bear/albedo.png",
-   "bytes": 269195,
-   "sha256": "5842693d3075ccaab5b4d1b4ab25d9002f1ccf2429bd04bfc15f793576e049d2"
+   "bytes": 263941,
+   "sha256": "1f590eb1341a75a6ce393fa184a131956efd90bd9c4767d40d0ce249419d13af"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_bear/figure.glb",
-   "bytes": 627468,
-   "sha256": "c5381b1b5ba5bdf83abaf2db740fc771521c2a011acefdbb34e1ce8509c38ff7"
+   "object_key": "jobs/fx_bear/figure_uv.obj",
+   "bytes": 1116508,
+   "sha256": "be38d07c8c58d172edb6fa39a04b6a10a758ba40f1a3f1590eefdc5b227c95af"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_bear/figure.stl",
-   "bytes": 756784,
-   "sha256": "a8d555ab3e181241d220e72ade2e0c2ead096bc64f3bd5d40042f2a186176cc3"
+   "bytes": 1499884,
+   "sha256": "76cfe74d037fb3a625a69af3b2add89e562146fc298f9d11eed3f5809fb174ad"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_bear/figure.3mf",
-   "bytes": 298942,
-   "sha256": "a3785eecfcb5a3ac421ad53e5087515dd32ece7965ffc09ee2e883cdffd49868"
+   "bytes": 610753,
+   "sha256": "f12df7c4c97e981e840f798b1a4a7f8d54321dd36d98f5bbf7891224fe9d338a"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_bear/paint_mask.png",
-   "bytes": 10237,
-   "sha256": "07296d96b4d8524a8f72c0206a1ebb2b865457693a73c1cdf6a75f023d561ee7"
+   "bytes": 5976,
+   "sha256": "b72f7ef3da0fdf7f4e7b49b87f116ec4ddf1d864a124c1d18737e3818ff4d9a1"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_bear/thumbnail.png",
-   "bytes": 24723,
-   "sha256": "455becc03010435651f72d7df899971bb4dfd91274824dac96cbab8d7a92931a"
+   "bytes": 69476,
+   "sha256": "aa84f7f3017c52607232a2294bf02455f4d8ff76bc51f0fd25f5f2487aae506f"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/turntable.mp4",
+   "bytes": 123287,
+   "sha256": "c9229d5dedd43c59d6bc178bc148262e13606fc166ecdbe1686950163146c9de"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/figure.glb",
+   "bytes": 456120,
+   "sha256": "33cf7d09e049cd452aeae59b2ee856a5351c2f79935860715746c68b2a8cb1cf"
   }
  ],
  "metrics": {
-  "iou_mean": 0.9533,
+  "iou_mean": 0.9469,
   "iou_views": [
-   0.966,
-   0.9405,
-   0.966,
-   0.9407
+   0.954,
+   0.9391,
+   0.9585,
+   0.9362
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
-  "print_watertight": true,
-  "print_tris": 15134,
-  "print_height_mm": 106.35,
+  "wrap_notes": "inverted 22, laplacian x0.91, self-intersections 3",
+  "print_tris": 29996,
+  "print_height_mm": 104.92,
+  "min_wall_mm": 2.573,
   "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 5.58,
-  "uv_layout_hash": "78f037cbe940ba43",
+  "print_watertight": true,
+  "paint_mask_pct": 3.73,
+  "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 24633
+  "total_ms": 79555
  }
 }

@@ -5,10 +5,10 @@
  "pet_name": "Oreo",
  "seed": 2001,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:50:37.501Z",
- "finished_at": "2026-10-28T10:51:01.196Z",
+ "created_at": "2026-10-28T12:19:28.381Z",
+ "finished_at": "2026-10-28T12:20:42.247Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1000,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:19:28.381Z",
+   "ended_at": "2026-10-28T12:19:29.382Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 1,
+   "ms": 5144,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:19:29.383Z",
+   "ended_at": "2026-10-28T12:19:34.527Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1395,
+   "ms": 6002,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:19:34.528Z",
+   "ended_at": "2026-10-28T12:19:40.531Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5889,
+   "ms": 9005,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:19:40.532Z",
+   "ended_at": "2026-10-28T12:19:49.537Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 5609,
+   "ms": 19513,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.962"
+   "started_at": "2026-10-28T12:19:49.538Z",
+   "ended_at": "2026-10-28T12:20:09.051Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 292,
+   "ms": 9135,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 0, laplacian x0.90, self-intersections 0",
+   "started_at": "2026-10-28T12:20:09.053Z",
+   "ended_at": "2026-10-28T12:20:18.188Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 10498,
+   "ms": 24053,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:20:18.190Z",
+   "ended_at": "2026-10-28T12:20:42.244Z"
   }
  ],
  "files": [
@@ -81,128 +95,144 @@
    "sha256": "681f18ae95b60ac8a1cfaf6eba0e93f09f9afddfdf3e1e08ab619e91dc5b45e8"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_oreo/prompts.json",
+   "bytes": 3549,
+   "sha256": "923ba7209f005d7fddab6e6a49837815223079261ea30bf47fb9582f96a1e95d"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_oreo/concept.png",
-   "bytes": 41129,
-   "sha256": "24f86055b2bb4574f7db15f1cc14d3c2eaba81e7eec6eac87498bed4bdc4faa6"
+   "bytes": 123812,
+   "sha256": "b93c06c91d93d7b99b0b341e2d6024e4b586360e347fb6389081a5f567047f82"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_oreo/views/front.png",
-   "bytes": 32218,
-   "sha256": "22015cd8910015888ee14268a9655a0a1333b5508e347dd053cfd91c700687ff"
+   "bytes": 74090,
+   "sha256": "36faadf32976a8326a5b883d469aa0fc71347f3a79ba5f24cd2df1944df61317"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_oreo/views/left.png",
-   "bytes": 25787,
-   "sha256": "78f5da9d1db201bbebf8a192a5b44bcf4a855a389a519bf88fc7a93bd10e8309"
+   "bytes": 72520,
+   "sha256": "6c216bf2382e330f81d2e244f1c92a317b8272574bd80367c0fa6639d8589e9a"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_oreo/views/back.png",
-   "bytes": 21110,
-   "sha256": "dfa698cf45b3aa0e47a432ae61c045616684c77b22589c10a296f3ab1e3c9b98"
+   "bytes": 72896,
+   "sha256": "2405c2f7841ec9eac836e263d8e7f2e24b8496b50e06c7f161b1727c9c5fd5a9"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_oreo/views/right.png",
-   "bytes": 26534,
-   "sha256": "a7fa8c320a914f9b8adb8ca4f4b60240611a2b7440c8ab8016baf3a5de22e10a"
+   "bytes": 72831,
+   "sha256": "ecd8488a484ecd9b6f8f4d6ad650b162957b80f7ebf7ee3e3b0096b17ebfb4c6"
   },
   {
    "name": "shape.glb",
    "kind": "shape",
    "stage": "D",
    "object_key": "jobs/fx_oreo/shape.glb",
-   "bytes": 262160,
-   "sha256": "de119327b4ce85208b891bc0a6202d681c3237fd8853b8034e8c8d560583c7f5"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_oreo/figure_uv.obj",
-   "bytes": 1115932,
-   "sha256": "213c428d2c961f41bcd34db502eb29d7a2b0364245c11c37b1ea8563825da797"
+   "bytes": 271764,
+   "sha256": "44ff6e9947b8b1f04da8249df406f7a2377a5dc76b92a15ef3662571ce3bdcf5"
   },
   {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_oreo/albedo.png",
-   "bytes": 133670,
-   "sha256": "f5e91dcc694ff464d542294fbfb692c1fc10f55d0968a118cf3f57b7928fcc27"
+   "bytes": 133704,
+   "sha256": "071d4e89add5b715a67c5f54426652d9a5507141a4d5e37c4f0af7914b11fec9"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_oreo/figure.glb",
-   "bytes": 490860,
-   "sha256": "85dd6f5dc9d1933413ab820f84e470bf875bc3c1b48af263aa2a6afb49abae23"
+   "object_key": "jobs/fx_oreo/figure_uv.obj",
+   "bytes": 1115711,
+   "sha256": "48a3f0cc68efde0adf26d751db4f4765851340a6e438be530dd47a5dd0177326"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_oreo/figure.stl",
-   "bytes": 761884,
-   "sha256": "ad25389b9f34cbe2c9c1f244f60b5022ae232f113a36ee000a2ab4d6fb2e0a61"
+   "bytes": 1499984,
+   "sha256": "eca1c4e96c9ec6b74396db493c18a16f8e679676a7bde8967ce6eac921221267"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_oreo/figure.3mf",
-   "bytes": 301367,
-   "sha256": "ab4bc83ec1be5aec7c1a17428eebcb2e73c0691b67a98b4b3f16e9fb606aeaff"
+   "bytes": 621105,
+   "sha256": "983779c23a6b448144f3a3b4deeca30baa80e8c0ce72f23078fc1a8831fb8316"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_oreo/paint_mask.png",
-   "bytes": 6802,
-   "sha256": "55af4f5aac37bd86c70b95689cb0b3c3e85e5558dbebc4570922d52e18dfc82c"
+   "bytes": 5634,
+   "sha256": "1d3aaf43ac8c358a4122549adf457708353342f8c0a84f56f591fca93086ef98"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_oreo/thumbnail.png",
-   "bytes": 18913,
-   "sha256": "19b76f10d8bc0f2c46399694ef6fb0c4eb463a7365ce37924506e2e5b09a32dd"
+   "bytes": 58814,
+   "sha256": "d00d30d72a7d107506d332f60a60af9abe1acaf99b236d7bb87da735b37bac0d"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/turntable.mp4",
+   "bytes": 85675,
+   "sha256": "24d995142d00a9320fc78fbcdca473ef843bba1f747e3fb30f5efeb69c2bb85d"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_oreo/figure.glb",
+   "bytes": 324408,
+   "sha256": "677ae93f60766e9efa1c8bbd717281364db8c5c0fe83d4c7799ed8591d2f4e4c"
   }
  ],
  "metrics": {
-  "iou_mean": 0.9619,
+  "iou_mean": 0.9533,
   "iou_views": [
-   0.9615,
-   0.9622,
-   0.9615,
-   0.9622
+   0.9634,
+   0.9473,
+   0.9494,
+   0.9532
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
-  "print_watertight": true,
-  "print_tris": 15236,
-  "print_height_mm": 93.72,
+  "wrap_notes": "inverted 0, laplacian x0.90, self-intersections 0",
+  "print_tris": 29999,
+  "print_height_mm": 93.19,
+  "min_wall_mm": 3.164,
   "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 3.6,
-  "uv_layout_hash": "78f037cbe940ba43",
+  "print_watertight": true,
+  "paint_mask_pct": 3.46,
+  "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 23684
+  "total_ms": 73852
  }
 }

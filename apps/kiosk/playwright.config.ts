@@ -22,7 +22,10 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `cd ../.. && PYTHONPATH=.:mock-server PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin .venv/bin/python -m mock_server --port ${MOCK_PORT}`,
+      // PP_BACKEND=real runs the same tests against the real backend (make dev mode, embedded worker).
+      command: process.env.PP_BACKEND === 'real'
+        ? `cd ../.. && rm -rf var/e2e && PYTHONPATH=.:mock-server PETPOP_VAR=var/e2e PETPOP_EMBED_WORKER=1 PETPOP_PROFILE=test PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin .venv/bin/python -m backend.api --port ${MOCK_PORT}`
+        : `cd ../.. && PYTHONPATH=.:mock-server PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin .venv/bin/python -m mock_server --port ${MOCK_PORT}`,
       url: `http://127.0.0.1:${MOCK_PORT}/api/v1/health`,
       reuseExistingServer: false,
       timeout: 60_000,

@@ -1,0 +1,9 @@
+# Custom node packs, pinned by commit (fill the commits on the GPU host in S3, then rebuild the image).
+# name                         repo                                                     commit
+ComfyUI-Hunyuan3DWrapper      https://github.com/kijai/ComfyUI-Hunyuan3DWrapper         REPLACE_WITH_COMMIT
+ComfyUI_IPAdapter_plus        https://github.com/cubiq/ComfyUI_IPAdapter_plus           REPLACE_WITH_COMMIT
+comfyui_controlnet_aux        https://github.com/Fannovel16/comfyui_controlnet_aux      REPLACE_WITH_COMMIT
+ComfyUI-BiRefNet              https://github.com/viperyl/ComfyUI-BiRefNet               REPLACE_WITH_COMMIT
+ComfyUI-MVAdapter             https://github.com/huanngzh/ComfyUI-MVAdapter             REPLACE_WITH_COMMIT
+# dev only, not in the production image
+# ComfyUI-Manager             https://github.com/ltdrdata/ComfyUI-Manager               REPLACE_WITH_COMMIT

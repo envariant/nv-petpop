@@ -1,0 +1,31 @@
+{
+ "prompts": {
+  "positive": "petpop_style, a chibi vinyl collectible figurine of a Orange Tabby cat, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, ginger coat with cream tabby striped, upright pointed ears, long thin tail, medium muzzle, large glossy amber bead eyes, pink nose, Classic ginger tabby with bold swirling stripes and an M on the forehead, sleepy half-closed eyes, matte vinyl material, soft studio lighting, product photo, front view, orthographic, centred, full body, plain white background, no shadow",
+  "negative": "realistic fur, photorealistic, hair strands, text, watermark, logo, multiple animals, cropped, out of frame, cast shadow, floor, props, blurry, deformed, extra limbs, open mouth with teeth, human, clothing beyond accessories, dramatic lighting",
+  "views": {
+   "front": "petpop_style, a chibi vinyl collectible figurine of a Orange Tabby cat, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, ginger coat with cream tabby striped, upright pointed ears, long thin tail, medium muzzle, large glossy amber bead eyes, pink nose, Classic ginger tabby with bold swirling stripes and an M on the forehead, sleepy half-closed eyes, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, front view",
+   "left": "petpop_style, a chibi vinyl collectible figurine of a Orange Tabby cat, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, ginger coat with cream tabby striped, upright pointed ears, long thin tail, medium muzzle, large glossy amber bead eyes, pink nose, Classic ginger tabby with bold swirling stripes and an M on the forehead, sleepy half-closed eyes, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, left side view, profile",
+   "back": "petpop_style, a chibi vinyl collectible figurine of a Orange Tabby cat, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, ginger coat with cream tabby striped, upright pointed ears, long thin tail, medium muzzle, large glossy amber bead eyes, pink nose, Classic ginger tabby with bold swirling stripes and an M on the forehead, sleepy half-closed eyes, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, back view, from behind, tail visible",
+   "right": "petpop_style, a chibi vinyl collectible figurine of a Orange Tabby cat, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, ginger coat with cream tabby striped, upright pointed ears, long thin tail, medium muzzle, large glossy amber bead eyes, pink nose, Classic ginger tabby with bold swirling stripes and an M on the forehead, sleepy half-closed eyes, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, right side view, profile"
+  }
+ },
+ "morph_weights": {
+  "head_scale": 0.0,
+  "muzzle_len": 0.0,
+  "muzzle_width": 0.0,
+  "ear_erect": 1.0,
+  "ear_fold": 0.0,
+  "ear_size": 0.0,
+  "ear_tuft": 0.0,
+  "tail_len": 1.0,
+  "tail_plume": -0.5,
+  "body_stocky": 1.0,
+  "body_slim": 0.0,
+  "fluff": 0.1
+ },
+ "parser": "rules",
+ "screened_words": 0,
+ "personality_mapped": [
+  "lazy"
+ ]
+}

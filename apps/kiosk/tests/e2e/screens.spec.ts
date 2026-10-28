@@ -139,7 +139,7 @@ test('phone result page opens from the QR link', async ({ page, request }) => {
 });
 
 test('idle: "Still there?" countdown, then the session is wiped', async ({ page }) => {
-  await page.goto('/?idle=2&countdown=4'); // the 90 s + 15 s policy, shortened
+  await page.goto('/?idle=6&countdown=4'); // the 90 s + 15 s policy, shortened
   await page.getByTestId('attract').tap();
   await page.getByTestId('species-dog').tap();
   await expect(page.getByTestId('still-there')).toBeVisible({ timeout: 20_000 });

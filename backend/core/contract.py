@@ -171,9 +171,9 @@ def make_router(impl: ApiImpl) -> APIRouter:
     return r
 
 
-def make_app(impl: ApiImpl, title: str = "PetPop API") -> FastAPI:
+def make_app(impl: ApiImpl, title: str = "PetPop API", lifespan=None) -> FastAPI:
     app = FastAPI(title=title, version=m.API_VERSION, docs_url=f"{API_PREFIX}/docs",
-                  openapi_url=f"{API_PREFIX}/openapi.json")
+                  openapi_url=f"{API_PREFIX}/openapi.json", lifespan=lifespan)
     app.include_router(make_router(impl))
 
     @app.exception_handler(ApiError)

@@ -1,0 +1,1936 @@
+{
+ "version": 1,
+ "pets": [
+  {
+   "id": "dog_corgi_pembroke",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "corgi_pembroke",
+     "label": "Pembroke Welsh Corgi",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "saddle_with_white_chest",
+     "markings": [
+      "white_blaze",
+      "white_socks",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10000,
+    "pet_name": "dog01"
+   }
+  },
+  {
+   "id": "dog_labrador",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "labrador",
+     "label": "Labrador Retriever",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10001,
+    "pet_name": "dog02"
+   }
+  },
+  {
+   "id": "dog_german_shepherd",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "german_shepherd",
+     "label": "German Shepherd",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "smooth",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "saddle_with_white_chest",
+     "markings": [
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10002,
+    "pet_name": "dog03"
+   }
+  },
+  {
+   "id": "dog_french_bulldog",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "french_bulldog",
+     "label": "French Bulldog",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "solid",
+     "markings": [
+      "dark_mask"
+     ]
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10003,
+    "pet_name": "dog04"
+   }
+  },
+  {
+   "id": "dog_pug",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "pug",
+     "label": "Pug",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "short",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "solid",
+     "markings": [
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10004,
+    "pet_name": "dog05"
+   }
+  },
+  {
+   "id": "dog_poodle_standard",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "poodle_standard",
+     "label": "Standard Poodle",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "curly",
+     "fluffiness": 0.7
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10005,
+    "pet_name": "dog06"
+   }
+  },
+  {
+   "id": "dog_dachshund",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "dachshund",
+     "label": "Dachshund",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10006,
+    "pet_name": "dog07"
+   }
+  },
+  {
+   "id": "dog_husky",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "husky",
+     "label": "Siberian Husky",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "slight"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "fluffy",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10007,
+    "pet_name": "dog08"
+   }
+  },
+  {
+   "id": "dog_shiba_inu",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "shiba_inu",
+     "label": "Shiba Inu",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10008,
+    "pet_name": "dog09"
+   }
+  },
+  {
+   "id": "dog_border_collie",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "border_collie",
+     "label": "Border Collie",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze",
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10009,
+    "pet_name": "dog10"
+   }
+  },
+  {
+   "id": "dog_boxer",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "boxer",
+     "label": "Boxer",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest",
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10010,
+    "pet_name": "dog11"
+   }
+  },
+  {
+   "id": "dog_dalmatian",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "dalmatian",
+     "label": "Dalmatian",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10011,
+    "pet_name": "dog12"
+   }
+  },
+  {
+   "id": "dog_schnauzer_mini",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "schnauzer_mini",
+     "label": "Miniature Schnauzer",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "wiry",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10012,
+    "pet_name": "dog13"
+   }
+  },
+  {
+   "id": "dog_greyhound",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "greyhound",
+     "label": "Greyhound",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10013,
+    "pet_name": "dog14"
+   }
+  },
+  {
+   "id": "dog_bulldog",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "dog",
+    "breed": {
+     "id": "bulldog",
+     "label": "English Bulldog",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "folded",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10014,
+    "pet_name": "dog15"
+   }
+  },
+  {
+   "id": "cat_domestic_shorthair",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "domestic_shorthair",
+     "label": "Domestic Shorthair",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10015,
+    "pet_name": "cat01"
+   }
+  },
+  {
+   "id": "cat_persian",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "persian",
+     "label": "Persian",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10016,
+    "pet_name": "cat02"
+   }
+  },
+  {
+   "id": "cat_maine_coon",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "maine_coon",
+     "label": "Maine Coon",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": true
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.9
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10017,
+    "pet_name": "cat03"
+   }
+  },
+  {
+   "id": "cat_siamese",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "siamese",
+     "label": "Siamese",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points"
+     ],
+     "secondary": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10018,
+    "pet_name": "cat04"
+   }
+  },
+  {
+   "id": "cat_scottish_fold",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "scottish_fold",
+     "label": "Scottish Fold",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "folded",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     },
+     "pattern": "tabby",
+     "markings": [],
+     "secondary": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10019,
+    "pet_name": "cat05"
+   }
+  },
+  {
+   "id": "cat_bengal",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "bengal",
+     "label": "Bengal",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10020,
+    "pet_name": "cat06"
+   }
+  },
+  {
+   "id": "cat_sphynx",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "sphynx",
+     "label": "Sphynx",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.0
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10021,
+    "pet_name": "cat07"
+   }
+  },
+  {
+   "id": "cat_ragdoll",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "ragdoll",
+     "label": "Ragdoll",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10022,
+    "pet_name": "cat08"
+   }
+  },
+  {
+   "id": "cat_british_shorthair",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "british_shorthair",
+     "label": "British Shorthair",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10023,
+    "pet_name": "cat09"
+   }
+  },
+  {
+   "id": "cat_tuxedo",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "tuxedo",
+     "label": "Tuxedo Cat",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "tuxedo",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10024,
+    "pet_name": "cat10"
+   }
+  },
+  {
+   "id": "cat_calico",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "calico",
+     "label": "Calico Cat",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "curled",
+     "length": "long",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "calico",
+     "markings": [],
+     "secondary": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10025,
+    "pet_name": "cat11"
+   }
+  },
+  {
+   "id": "cat_manx",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "manx",
+     "label": "Manx",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10026,
+    "pet_name": "cat12"
+   }
+  },
+  {
+   "id": "cat_devon_rex",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "devon_rex",
+     "label": "Devon Rex",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "large",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "curly",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10027,
+    "pet_name": "cat13"
+   }
+  },
+  {
+   "id": "cat_tabby_orange",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "tabby_orange",
+     "label": "Orange Tabby",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     },
+     "pattern": "tabby",
+     "markings": [],
+     "secondary": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10028,
+    "pet_name": "cat14"
+   }
+  },
+  {
+   "id": "cat_norwegian_forest",
+   "spec": {
+    "spec_version": "1.0",
+    "species": "cat",
+    "breed": {
+     "id": "norwegian_forest",
+     "label": "Norwegian Forest Cat",
+     "confidence": 1.0
+    },
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": true
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    },
+    "accessories": [],
+    "personality": [],
+    "free_text": "",
+    "overrides": {},
+    "seed": 10029,
+    "pet_name": "cat15"
+   }
+  }
+ ]
+}

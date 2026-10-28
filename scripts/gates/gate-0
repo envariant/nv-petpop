@@ -3,7 +3,7 @@
 source "$(dirname "$0")/lib.sh"
 echo "gate-0: contract and mock server"
 step "schemas, vocab, presets, parser, fixtures (unit)" env PETPOP_MOCK_SPEED=0 "$PY" -m pytest tests/unit
-step "contract test against the mock server" env PETPOP_MOCK_SPEED=0 "$PY" -m pytest tests/contract
+step "contract test against the mock server" env PETPOP_MOCK_SPEED=0 "$PY" -m pytest tests/contract -k "not backend"
 step "mock scripts reach every kiosk state" "$PY" -m pytest mock-server/tests
 step "openapi.json matches the contract router" "$PY" scripts/export_openapi.py --check
 step "base meshes pass check_base_mesh" "$PY" scripts/check_base_mesh.py

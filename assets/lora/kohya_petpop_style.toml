@@ -1,0 +1,29 @@
+# Kohya sd-scripts config for the petpop_style SDXL LoRA (BRIEF Section 12): 150 renders, 20 epochs, on the
+# GPU box (S4). Trigger word petpop_style is the first token of every caption.
+[general]
+pretrained_model_name_or_path = "/srv/models/checkpoints/sd_xl_base_1.0.safetensors"
+train_data_dir = "assets/lora/dataset"
+output_dir = "assets/lora/output"
+output_name = "petpop_style_v1"
+caption_extension = ".txt"
+resolution = "1024,1024"
+enable_bucket = true
+
+[network]
+network_module = "networks.lora"
+network_dim = 32
+network_alpha = 16
+
+[training]
+max_train_epochs = 20
+train_batch_size = 2
+learning_rate = 1e-4
+unet_lr = 1e-4
+text_encoder_lr = 5e-5
+lr_scheduler = "cosine"
+optimizer_type = "AdamW8bit"
+mixed_precision = "bf16"
+gradient_checkpointing = true
+cache_latents = true
+seed = 42
+save_every_n_epochs = 5

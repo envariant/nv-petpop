@@ -1,0 +1,9 @@
+petpop:
+  base_path: /opt/ComfyUI/models
+  checkpoints: checkpoints
+  loras: loras
+  controlnet: controlnet
+  ipadapter: ipadapter
+  clip_vision: clip_vision
+  diffusion_models: diffusion_models
+  vae: vae
