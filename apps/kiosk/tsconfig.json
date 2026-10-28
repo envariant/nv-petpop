@@ -16,7 +16,7 @@
     "allowImportingTsExtensions": false,
     "types": ["vite/client"],
     "baseUrl": ".",
-    "paths": { "@data/*": ["../../data/*"], "@fixtures/*": ["../../fixtures/*"], "@mockscripts/*": ["../../mock-server/scripts/*"] }
+    "paths": { "@data/*": ["../../data/*"], "@fixtures/*": ["../../fixtures/*"], "@mockscripts/*": ["../../mock-server/scripts/*"], "@assets/*": ["../../assets/*"] }
   },
   "include": ["src", ".storybook", "tests", "vite.config.ts", "playwright.config.ts"]
 }

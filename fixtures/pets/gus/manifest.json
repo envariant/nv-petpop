@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "low",
  "fallback": "none",
- "created_at": "2026-10-28T10:36:44.595Z",
- "finished_at": "2026-10-28T10:37:08.178Z",
+ "created_at": "2026-10-28T10:49:31.226Z",
+ "finished_at": "2026-10-28T10:49:53.630Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -30,28 +30,28 @@
   {
    "stage": "control",
    "status": "ok",
-   "ms": 2,
+   "ms": 1,
    "attempts": 1,
    "backend": "lowfi"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1364,
+   "ms": 1440,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5985,
+   "ms": 5107,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4566,
+   "ms": 4116,
    "attempts": 1,
    "backend": "mock-shape",
    "notes": "iou 0.958"
@@ -59,14 +59,14 @@
   {
    "stage": "E",
    "status": "ok",
-   "ms": 224,
+   "ms": 235,
    "attempts": 1,
    "backend": "lowfi-wrap"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 11429,
+   "ms": 11493,
    "attempts": 1,
    "backend": "lowfi-bake"
   }
@@ -126,7 +126,7 @@
    "stage": "D",
    "object_key": "jobs/fx_gus/shape.glb",
    "bytes": 262092,
-   "sha256": "235887a905e40af9e11b9db3485e188fd3fda201a795dda1110fb0044c0e514e"
+   "sha256": "1f72227b7959f05e593be5e6713766e73fab243fb5725ce4837a437dd4b22392"
   },
   {
    "name": "figure_uv.obj",
@@ -150,7 +150,7 @@
    "stage": "F",
    "object_key": "jobs/fx_gus/figure.glb",
    "bytes": 417792,
-   "sha256": "65c1161d7c3523eb4e2076b6cf395a7e8433980d760c4d6d2371255908964974"
+   "sha256": "fb3b2c357a92843022cbc0a05adde13497c1e83921f0f745bb5c2b636318fdc4"
   },
   {
    "name": "figure.stl",
@@ -165,8 +165,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_gus/figure.3mf",
-   "bytes": 304539,
-   "sha256": "5a028e98f1123a26e9f1cb10c865a85a2e516cfddde21c3f3d07d3f2b3b7b88b"
+   "bytes": 304535,
+   "sha256": "16223d592d1be65e34017926bebb574c63b495b49bedef3782ebfe359384e755"
   },
   {
    "name": "paint_mask.png",
@@ -203,6 +203,6 @@
   "paint_mask_pct": 9.36,
   "uv_layout_hash": "8991c3506593f7ea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 23570
+  "total_ms": 22392
  }
 }

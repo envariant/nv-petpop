@@ -231,14 +231,17 @@ def write_obj(path: Path, base: BaseMesh, co: np.ndarray) -> None:
     Path(path).write_text(buf.getvalue())
 
 
-def to_trimesh(base: BaseMesh, co: np.ndarray, texture=None):
-    """Loop-split trimesh (one vertex per loop) so the UVs survive; optional PIL texture."""
+def to_trimesh(base: BaseMesh, co: np.ndarray, texture=None, yup: bool = False):
+    """Loop-split trimesh (one vertex per loop) so the UVs survive; optional PIL texture.
+    yup=True converts Blender Z-up/front -Y to glTF Y-up/front +Z (for GLB export)."""
     import trimesh
     from trimesh.visual import TextureVisuals
     from trimesh.visual.material import PBRMaterial
 
     loops = base.tri_loops.reshape(-1)
     verts = co[base.loops_v[loops]]
+    if yup:
+        verts = np.stack([verts[:, 0], verts[:, 2], -verts[:, 1]], axis=1)
     faces = np.arange(len(loops)).reshape(-1, 3)
     mesh = trimesh.Trimesh(vertices=verts, faces=faces, process=False)
     if texture is not None:
