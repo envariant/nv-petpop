@@ -1,0 +1,32 @@
+{
+ "prompts": {
+  "positive": "petpop_style, a chibi vinyl collectible figurine of a French Bulldog dog, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, fawn coat, large upright pointed ears, short bobbed tail, short muzzle, large glossy brown bead eyes, black nose, red bow, Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail, friendly expression, matte vinyl material, soft studio lighting, product photo, front view, orthographic, centred, full body, plain white background, no shadow",
+  "negative": "realistic fur, photorealistic, hair strands, text, watermark, logo, multiple animals, cropped, out of frame, cast shadow, floor, props, blurry, deformed, extra limbs, open mouth with teeth, human, clothing beyond accessories, dramatic lighting",
+  "views": {
+   "front": "petpop_style, a chibi vinyl collectible figurine of a French Bulldog dog, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, fawn coat, large upright pointed ears, short bobbed tail, short muzzle, large glossy brown bead eyes, black nose, red bow, Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail, friendly expression, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, front view",
+   "left": "petpop_style, a chibi vinyl collectible figurine of a French Bulldog dog, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, fawn coat, large upright pointed ears, short bobbed tail, short muzzle, large glossy brown bead eyes, black nose, red bow, Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail, friendly expression, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, left side view, profile",
+   "back": "petpop_style, a chibi vinyl collectible figurine of a French Bulldog dog, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, fawn coat, large upright pointed ears, short bobbed tail, short muzzle, large glossy brown bead eyes, black nose, red bow, Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail, friendly expression, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, back view, from behind, tail visible",
+   "right": "petpop_style, a chibi vinyl collectible figurine of a French Bulldog dog, sitting pose, oversized round head, small compact body, short stubby legs, short smooth fur simplified into smooth sculpted shapes, fawn coat, large upright pointed ears, short bobbed tail, short muzzle, large glossy brown bead eyes, black nose, red bow, Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail, friendly expression, matte vinyl material, soft studio lighting, product photo, orthographic, centred, full body, plain white background, no shadow, right side view, profile"
+  }
+ },
+ "morph_weights": {
+  "head_scale": 0.3,
+  "muzzle_len": -0.8,
+  "muzzle_width": 0.8,
+  "brachy": 1.0,
+  "ear_erect": 1.0,
+  "ear_drop": 0.0,
+  "ear_fold": 0.0,
+  "ear_size": 0.8,
+  "tail_len": -1.0,
+  "tail_curl": 0.0,
+  "tail_plume": 0.0,
+  "body_stocky": 1.0,
+  "body_slim": 0.0,
+  "leg_len": -0.8,
+  "fluff": 0.05
+ },
+ "parser": "rules",
+ "screened_words": 0,
+ "personality_mapped": []
+}

@@ -1,0 +1,122 @@
+"""Stage F: texture bake and export (BRIEF Section 6.6): albedo in the fixed UV layout with per-region colour
+correction and seam padding, figure_uv.obj, the print mesh (STL + 3MF), the paint check mask, the Draco GLB,
+thumbnail and turntable."""
+from __future__ import annotations
+
+import io
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+from backend.core import lowfi
+from backend.core.meshkit import dilate, load_base, raster_uv, to_trimesh, write_obj
+from backend.core.paths import PIPELINES
+
+from . import blender
+from .backends.mock.pacing import Pace
+
+sys.path.insert(0, str(PIPELINES / "blender"))
+import bake  # noqa: E402
+
+
+def encode_mp4(frames_dir: Path, fps: int, out: Path) -> bool:
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg or not any(frames_dir.glob("f*.png")):
+        return False
+    r = subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-framerate", str(fps), "-i", str(frames_dir / "f%03d.png"),
+                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                        "-movflags", "+faststart", str(out)], capture_output=True, timeout=120)
+    return r.returncode == 0 and out.exists()
+
+
+def repair(mesh):
+    """Drop degenerate slivers left by the exact booleans, merge, fill pin-holes, fix winding."""
+    import trimesh
+
+    mesh.update_faces(mesh.nondegenerate_faces(height=1e-6))
+    mesh.remove_unreferenced_vertices()
+    mesh.merge_vertices()
+    if not mesh.is_watertight:
+        parts = mesh.split(only_watertight=False)
+        keep = [p for p in parts if len(p.faces) >= 0.005 * len(mesh.faces)]
+        mesh = trimesh.util.concatenate(keep) if len(keep) > 1 else keep[0]
+        trimesh.repair.fill_holes(mesh)
+    trimesh.repair.fix_normals(mesh)
+    return mesh
+
+
+def run(job_id, spec, manifest, *, ctx) -> list[str]:
+    ctx.check_fault("F")
+    spec = json.loads(ctx.get("spec.json"))
+    base = load_base(spec["species"])
+    coords = np.load(io.BytesIO(ctx.get("wrapped_coords.npy"))).astype(np.float64)
+    q = ctx.quality
+    keys: list[str] = []
+    with Pace("F"):
+        views = {v: ctx.get(f"views/{v}.png") for v in ("front", "left", "back", "right")}
+        albedo_png = ctx.backends.texture.paint(ctx, spec, ctx.get("figure_wrapped.obj"), coords, views)
+        if ctx.settings.mode == "real":
+            albedo_png = lowfi.png_bytes(bake.colour_correct(base, spec, Image.open(io.BytesIO(albedo_png))))
+        keys.append(ctx.put(manifest, "albedo.png", "albedo", "F", albedo_png))
+        work = ctx.workdir("export")
+        write_obj(work / "figure_uv.obj", base, coords)
+        keys.append(ctx.put(manifest, "figure_uv.obj", "uv_obj", "F", (work / "figure_uv.obj").read_bytes()))
+        ctx.progress("F", 86, "Preparing the print file")
+        albedo_path = work / "albedo.png"
+        albedo_path.write_bytes(albedo_png)
+        np.save(work / "coords.npy", coords.astype(np.float32))
+        metrics: dict = {}
+        import trimesh
+
+        if blender.available(ctx.settings.bpy_python):
+            res = blender.run(ctx.settings.bpy_python, ["export_print", "paint_check", "preview"], {
+                "species": spec["species"], "coords": str(work / "coords.npy"), "albedo": str(albedo_path),
+                "accessories": spec.get("accessories", []), "quality": q, "out_dir": str(work)}, timeout=ctx.remaining())
+            stl = Path(res["stl"]).read_bytes()
+            flags = np.load(res["flags"]).astype(np.float32)
+            glb = Path(res["glb"]).read_bytes()
+            thumb = Path(res["thumbnail"]).read_bytes()
+            metrics.update(print_tris=int(res["tris"]), print_height_mm=float(res["height_mm"]),
+                           min_wall_mm=None if np.isnan(res["min_wall_mm"]) else float(res["min_wall_mm"]),
+                           min_wall_ok=bool(res["min_wall_ok"]))
+            mp4 = work / "turntable.mp4"
+            turntable = encode_mp4(Path(res["frames_dir"]), int(res["fps"]), mp4)
+        else:
+            ctx.state["fidelity"] = "low"
+            pm = lowfi.print_mesh(base, coords)
+            stl = pm.export(file_type="stl")
+            mask_img, _ = lowfi.paint_check(base, coords, int(q["mask_px"]))
+            flags = None
+            glb = to_trimesh(base, coords, texture=Image.open(io.BytesIO(albedo_png)), yup=True).export(file_type="glb")
+            from backend.core.colouring import vertex_colours
+
+            thumb = lowfi.png_bytes(lowfi.flat_render(base, coords, vertex_colours(base, spec, coords), 25, 256, False))
+            metrics.update(print_tris=int(len(pm.faces)), print_height_mm=round(float(pm.extents[2]), 2),
+                           min_wall_mm=None, min_wall_ok=True)
+            turntable = False
+        pm = repair(trimesh.load(io.BytesIO(stl), file_type="stl"))
+        stl = pm.export(file_type="stl")
+        metrics["print_watertight"] = bool(pm.is_watertight)
+        keys.append(ctx.put(manifest, "figure.stl", "stl", "F", stl))
+        keys.append(ctx.put(manifest, "figure.3mf", "3mf", "F", pm.export(file_type="3mf")))
+        if flags is not None:
+            img, cov = raster_uv(base, flags[:, None], int(q["mask_px"]), per_face=True)
+            img = dilate(img, cov, 2)
+            mask_img = Image.fromarray((img[..., 0] > 0.5).astype(np.uint8) * 255, "L")
+            metrics["paint_mask_pct"] = round(float(flags.mean() * 100), 2)
+        else:
+            metrics["paint_mask_pct"] = round(float(np.asarray(mask_img).mean() / 255 * 100), 2)
+        keys.append(ctx.put(manifest, "paint_mask.png", "mask", "F", lowfi.png_bytes(mask_img)))
+        keys.append(ctx.put(manifest, "thumbnail.png", "thumbnail", "F", thumb))
+        if turntable:
+            keys.append(ctx.put(manifest, "turntable.mp4", "turntable", "F", (work / "turntable.mp4").read_bytes()))
+        key = ctx.put(manifest, "figure.glb", "glb", "F", glb)
+        keys.append(key)
+        ctx.state["f_metrics"] = metrics
+        ctx.progress("F", 98, "Finishing touches", preview=("glb", key))
+    return keys

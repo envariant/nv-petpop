@@ -1,0 +1,61 @@
+# Every model weight pinned by URL and SHA256 (BRIEF Section 12). `make models` downloads into
+# ${PETPOP_MODELS:-/srv/models} and verifies; it refuses entries whose sha256 is not filled in.
+# Fill sha256 on the GPU host in S3 (sha256sum after a first trusted download), then commit.
+models:
+  - name: sdxl-base-1.0
+    dest: checkpoints/sd_xl_base_1.0.safetensors
+    url: https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors
+    sha256: TODO
+    licence: CreativeML Open RAIL++-M
+  - name: sdxl-vae-fp16-fix
+    dest: vae/sdxl_vae_fp16_fix.safetensors
+    url: https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl.vae.safetensors
+    sha256: TODO
+    licence: MIT
+  - name: controlnet-depth-sdxl-1.0
+    dest: controlnet/controlnet-depth-sdxl-1.0.safetensors
+    url: https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.fp16.safetensors
+    sha256: TODO
+    licence: OpenRAIL++
+  - name: ip-adapter-plus-sdxl-vit-h
+    dest: ipadapter/ip-adapter-plus_sdxl_vit-h.safetensors
+    url: https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors
+    sha256: TODO
+    licence: Apache-2.0
+  - name: clip-vit-h-image-encoder
+    dest: clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
+    url: https://huggingface.co/h94/IP-Adapter/resolve/main/models/image_encoder/model.safetensors
+    sha256: TODO
+    licence: MIT
+  - name: hunyuan3d-dit-v2-mv
+    dest: diffusion_models/hunyuan3d-dit-v2-mv-fp16.safetensors
+    url: https://huggingface.co/tencent/Hunyuan3D-2mv/resolve/main/hunyuan3d-dit-v2-mv/model.fp16.safetensors
+    sha256: TODO
+    licence: Tencent Hunyuan community licence (check commercial terms)
+  - name: hunyuan3d-vae-v2
+    dest: vae/hunyuan3d-vae-v2-0.safetensors
+    url: https://huggingface.co/tencent/Hunyuan3D-2/resolve/main/hunyuan3d-vae-v2-0/model.fp16.safetensors
+    sha256: TODO
+    licence: Tencent Hunyuan community licence
+  - name: hunyuan3d-2.1-shape
+    dest: diffusion_models/hunyuan3d-dit-v2-1.safetensors
+    url: https://huggingface.co/tencent/Hunyuan3D-2.1/resolve/main/hunyuan3d-dit-v2-1/model.fp16.ckpt
+    sha256: TODO
+    licence: Tencent Hunyuan community licence
+  - name: hunyuan3d-paint-v2-0
+    dest: hunyuan3d-paint-v2-0/
+    url: https://huggingface.co/tencent/Hunyuan3D-2/tree/main/hunyuan3d-paint-v2-0
+    sha256: TODO
+    licence: Tencent Hunyuan community licence
+  - name: birefnet
+    dest: birefnet/BiRefNet-general.safetensors
+    url: https://huggingface.co/ZhengPeng7/BiRefNet/resolve/main/model.safetensors
+    sha256: TODO
+    licence: MIT
+  - name: petpop-style-lora
+    dest: loras/petpop_style_v1.safetensors
+    url: local://assets/lora/output/petpop_style_v1.safetensors   # trained in S4 on the GPU box
+    sha256: TODO
+    licence: in-house
+ollama:
+  - qwen2.5:7b-instruct-q4_K_M   # pulled by `ollama pull` inside the ollama container

@@ -135,16 +135,28 @@ def build_lowfi(pet: tuple) -> None:
           f"watertight {pm.is_watertight}")
 
 
+PRUNE = ("control/", "wrapped_coords.npy", "figure_wrapped.obj")  # intermediates the kiosk never shows
+
+
 def build_real(pet: tuple) -> None:
+    import os
+
     from backend.worker.local_run import run_pipeline_to_dir  # noqa: PLC0415
 
+    os.environ.setdefault("PETPOP_PROFILE", "fixture")
+    os.environ.setdefault("PETPOP_MOCK_SPEED", "0")
     pid = pet[0]
     spec = fixture_spec(pet)
     out = FIXTURES / pid
     if out.exists():
         shutil.rmtree(out)
-    run_pipeline_to_dir(f"fx_{pid}", spec, out)
-    print(f"{pid}: done")
+    m = run_pipeline_to_dir(f"fx_{pid}", spec, out)
+    for name in [f["name"] for f in m["files"] if f["name"].startswith(PRUNE)]:
+        (out / name).unlink(missing_ok=True)
+    shutil.rmtree(out / "control", ignore_errors=True)
+    m["files"] = [f for f in m["files"] if not f["name"].startswith(PRUNE)]
+    (out / "manifest.json").write_text(json.dumps(m, indent=1) + "\n")
+    print(f"{pid}: {m['fallback']}, iou {m['metrics'].get('iou_mean')}, watertight {m['metrics']['print_watertight']}")
 
 
 def main() -> None:

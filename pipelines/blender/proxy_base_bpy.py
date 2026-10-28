@@ -43,7 +43,7 @@ if SPECIES == "dog":
     HAUNCH = ((11, 7, 9), (8, 11, 8.5))
     HIND_PAW = ((12, -5, 2.5), (4.5, 6.5, 2.8))
     EAR = dict(base=(12, -1, 74), radii=(6.5, 2.4, 11), tilt=35.0)
-    TAIL = dict(root=(0, 18, 7), radii=(3.2, 3.2, 12), pitch=-55.0)
+    TAIL = dict(root=(0, 15, 7), radii=(3.2, 3.2, 12), pitch=-55.0)
     EYE = ((9, -19.5, 63), 4.3)
     NOSE = ((0, -28.3, 55.5), 2.9)
 else:
@@ -54,7 +54,7 @@ else:
     HAUNCH = ((10.5, 7, 9), (7.5, 10.5, 8.5))
     HIND_PAW = ((11, -5, 2.5), (4.0, 6.0, 2.6))
     EAR = dict(base=(11.5, 0, 71), radii=(6.0, 2.0, 9.5), tilt=18.0)
-    TAIL = dict(root=(0, 17, 6), radii=(2.6, 2.6, 16), pitch=-80.0)
+    TAIL = dict(root=(0, 14, 6), radii=(2.6, 2.6, 16), pitch=-80.0)
     EYE = ((8.5, -16.8, 61), 4.4)
     NOSE = ((0, -22.6, 54.5), 2.2)
 
@@ -187,7 +187,7 @@ def build_tail():
     obj = quad_sphere("tail", (0, 0, 0), (rx, ry, rz), cuts=8)
     rot = Matrix.Rotation(math.radians(TAIL["pitch"]), 3, "X")
     for v in obj.data.vertices:
-        co = v.co + Vector((0, 0, rz * 0.9))
+        co = v.co + Vector((0, 0, rz * 0.75))  # root end sunk into the body so the print fuses
         v.co = rot @ co + root
     obj.name = "tail"
     return obj
@@ -423,11 +423,11 @@ def morph_offsets(co, w, shell_idx, lm):
     sl[:, 1] = BODY[0][1] + (co[:, 1] - BODY[0][1]) * 0.9
     out["body_slim"] = blend(sl, body_w)
     if "leg_len" in MORPHS:
+        # Continuous vertical stretch of everything up to the top of the front legs (no folds).
         leg_top = FRONT_LEG[0][2] + FRONT_LEG[1][2]
-        legs = w["leg_FL"] + w["leg_FR"]
         ll = co.copy()
-        ll[:, 2] = np.where(co[:, 2] < leg_top, co[:, 2] * 1.3, co[:, 2] + leg_top * 0.3)
-        out["leg_len"] = co + (ll - co) * np.clip(legs + (co[:, 2] >= leg_top) * (1 - legs), 0, 1)[:, None]
+        ll[:, 2] = co[:, 2] + 0.3 * np.minimum(co[:, 2], leg_top)
+        out["leg_len"] = ll
     # fluff: push coat shells outwards along vertex normals.
     return out
 
@@ -485,7 +485,15 @@ def main() -> None:
     normals = vertex_normals(obj)
     targets = morph_offsets(co, smooth_weights(obj, w, shell_idx, 14), shell_idx, lm)
     fluff_w = np.clip((shell_idx <= 3).astype(float) - w["base"], 0, 1)
-    targets["fluff"] = co + normals * 2.6 * fluff_w[:, None]
+    # Smoothed normals so neighbouring offsets never cross in creases (neck, leg roots).
+    ev = np.array([e.vertices[:] for e in obj.data.edges])
+    sn = normals.copy()
+    for _ in range(12):
+        acc = sn.copy()
+        np.add.at(acc, ev[:, 0], sn[ev[:, 1]])
+        np.add.at(acc, ev[:, 1], sn[ev[:, 0]])
+        sn = acc / (np.linalg.norm(acc, axis=1, keepdims=True) + 1e-12)
+    targets["fluff"] = co + sn * 1.8 * fluff_w[:, None]
     obj.shape_key_add(name="Basis", from_mix=False)
     for name in MORPHS:
         kb = obj.shape_key_add(name=name, from_mix=False)

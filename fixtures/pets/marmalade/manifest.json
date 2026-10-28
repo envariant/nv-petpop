@@ -5,10 +5,10 @@
  "pet_name": "Marmalade",
  "seed": 2003,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:51:23.741Z",
- "finished_at": "2026-10-28T10:51:46.761Z",
+ "created_at": "2026-10-28T12:21:59.033Z",
+ "finished_at": "2026-10-28T12:23:16.214Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1001,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:21:59.033Z",
+   "ended_at": "2026-10-28T12:22:00.034Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 2,
+   "ms": 5454,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:22:00.035Z",
+   "ended_at": "2026-10-28T12:22:05.489Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1474,
+   "ms": 6002,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:22:05.490Z",
+   "ended_at": "2026-10-28T12:22:11.493Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5440,
+   "ms": 9005,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:22:11.495Z",
+   "ended_at": "2026-10-28T12:22:20.500Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4872,
+   "ms": 20079,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.964"
+   "started_at": "2026-10-28T12:22:20.501Z",
+   "ended_at": "2026-10-28T12:22:40.581Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 207,
+   "ms": 9095,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 0, laplacian x0.92, self-intersections 0",
+   "started_at": "2026-10-28T12:22:40.583Z",
+   "ended_at": "2026-10-28T12:22:49.678Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 11012,
+   "ms": 26530,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:22:49.679Z",
+   "ended_at": "2026-10-28T12:23:16.210Z"
   }
  ],
  "files": [
@@ -81,44 +95,52 @@
    "sha256": "2328ce073a0953b88ce4b57cf4007a9ffef38da5e9b16bbfc45d20727e64300d"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_marmalade/prompts.json",
+   "bytes": 3640,
+   "sha256": "8e40c53706bb39db18d7e0436ce496a05e20dd3ba49b7449097ec14ec6b4038f"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_marmalade/concept.png",
-   "bytes": 53237,
-   "sha256": "7aa96849c53a924e626d3666849d2d6829ed0a47e7354505b210922babfe365c"
+   "bytes": 145425,
+   "sha256": "e6c2412251953227aafae9152fead4c97b53ae33eeedcbbe9c47b54966956e23"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_marmalade/views/front.png",
-   "bytes": 41590,
-   "sha256": "5018353a44749260f300abb060c880aaca1d6f292266c6983c2bd7381915341d"
+   "bytes": 86092,
+   "sha256": "39bcc0cc98499d6e0c21b84c6279e2964cdad7008f3b25879e9c672495d662c4"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_marmalade/views/left.png",
-   "bytes": 39756,
-   "sha256": "feaace058734c19627b1d2c13997a37f40f0a69eaf01e374f65096b113a51d49"
+   "bytes": 85040,
+   "sha256": "b573267a3a3359b7b8845185f19194dde45137518259131523eb06375aae71a1"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_marmalade/views/back.png",
-   "bytes": 38720,
-   "sha256": "d48c1b52cac70dc01f4fd170f8bb488c11cde73863d4f7dc1240395fd55641e1"
+   "bytes": 87025,
+   "sha256": "9b3e12a93b81cae0b85aefa16f9f1c9a0a7576ab694a94b2b6f8a55e6703265c"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_marmalade/views/right.png",
-   "bytes": 39732,
-   "sha256": "f0d2ccc605b6e8f908141036685a1d3d93e564e6d6fff209c015600ebba56f38"
+   "bytes": 84455,
+   "sha256": "a029f8811347bdaee58393d3047df680307da1ecf47d04890bdd866b724acfc2"
   },
   {
    "name": "shape.glb",
@@ -126,83 +148,91 @@
    "stage": "D",
    "object_key": "jobs/fx_marmalade/shape.glb",
    "bytes": 262164,
-   "sha256": "2aff14b5d5e59e2bb19caa7cdc4cad6e071e4270746fe6639af3ea5b94bc072c"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_marmalade/figure_uv.obj",
-   "bytes": 1116306,
-   "sha256": "27267299421de02475fab01232976005f34848fdaf4bda46f1c183ef2166f82d"
+   "sha256": "9ab65fae6614dead4c29f433d626846d25f4551556c693f2cbeea0f754c03d90"
   },
   {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/albedo.png",
-   "bytes": 213486,
-   "sha256": "ea18e3dd06bb2b5bcc3135a172d92ad3510e8ac0e68c08e6bc0ec5b04bd9a527"
+   "bytes": 211987,
+   "sha256": "019501d2f8dc6859f89e3f35c880da98294ba3d9610788ee1a61fb5bb865b66e"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_marmalade/figure.glb",
-   "bytes": 569156,
-   "sha256": "7da1a8ee0798bf7e01fa73445a6fd059b44faa055ecbc283b0dab2be10ce41b3"
+   "object_key": "jobs/fx_marmalade/figure_uv.obj",
+   "bytes": 1116123,
+   "sha256": "3d6c0cf9785809b96808f2f8cc1a84aee232fa51c448b1fd8182b29ad727280d"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure.stl",
-   "bytes": 765484,
-   "sha256": "ef444e91074d68bb52732a57ae05aea97daa5293877dd2d47330bcd9bef91baa"
+   "bytes": 1499984,
+   "sha256": "14a570a4f5222efd64263e6efd216640fb6d18425c703aa50e9a2f46887e8f2d"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure.3mf",
-   "bytes": 302084,
-   "sha256": "c5d08f8536a3bd65ca93e857c8dee186fe44d03a62176548d29f3fc79d5cd318"
+   "bytes": 611641,
+   "sha256": "203bcb637efe872609712c646e4ee156ba9b3c6f51a7de464ebaf661025d727d"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/paint_mask.png",
-   "bytes": 6639,
-   "sha256": "49ebc5647f774a50e4d27f21eb47665d6e028f204d37570805d8fefec5a627f5"
+   "bytes": 4895,
+   "sha256": "c7b354785d5a65a46e9d5ed2f8d0ab36393540866d443bdc71f256cc16d57e55"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/thumbnail.png",
-   "bytes": 24699,
-   "sha256": "3ff979a6e06fecc536019bc5e3ff0837182c0dbc55ca40a8e5c0606a66c87a84"
+   "bytes": 67016,
+   "sha256": "4ee8949a29706a6f852d22832e95eda000843e27c169b0e8d79d907cbaf18abe"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/turntable.mp4",
+   "bytes": 101401,
+   "sha256": "968d47c90d8e0d46e20e29b925c4b4d9ddb7a91f521eb888c879ed56bb83c1ff"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/figure.glb",
+   "bytes": 399020,
+   "sha256": "a88c9c29ca5719d22f2c83108c18c823662daab192e07d662d3af49da6031320"
   }
  ],
  "metrics": {
-  "iou_mean": 0.9645,
+  "iou_mean": 0.9619,
   "iou_views": [
-   0.9601,
-   0.9688,
-   0.9601,
-   0.9688
+   0.9595,
+   0.9653,
+   0.96,
+   0.9628
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
-  "print_watertight": true,
-  "print_tris": 15308,
-  "print_height_mm": 93.81,
+  "wrap_notes": "inverted 0, laplacian x0.92, self-intersections 0",
+  "print_tris": 29998,
+  "print_height_mm": 93.5,
+  "min_wall_mm": 3.187,
   "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 3.6,
-  "uv_layout_hash": "78f037cbe940ba43",
+  "print_watertight": true,
+  "paint_mask_pct": 2.91,
+  "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 23007
+  "total_ms": 77166
  }
 }

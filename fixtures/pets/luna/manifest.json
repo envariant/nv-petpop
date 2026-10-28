@@ -5,10 +5,10 @@
  "pet_name": "Luna",
  "seed": 2002,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:51:01.207Z",
- "finished_at": "2026-10-28T10:51:23.729Z",
+ "created_at": "2026-10-28T12:20:42.289Z",
+ "finished_at": "2026-10-28T12:21:58.975Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1001,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:20:42.289Z",
+   "ended_at": "2026-10-28T12:20:43.290Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 1,
+   "ms": 5035,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:20:43.291Z",
+   "ended_at": "2026-10-28T12:20:48.327Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1346,
+   "ms": 6002,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:20:48.327Z",
+   "ended_at": "2026-10-28T12:20:54.330Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5765,
+   "ms": 9005,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:20:54.332Z",
+   "ended_at": "2026-10-28T12:21:03.337Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4725,
+   "ms": 19917,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.958"
+   "started_at": "2026-10-28T12:21:03.338Z",
+   "ended_at": "2026-10-28T12:21:23.256Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 290,
+   "ms": 9146,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 0, laplacian x0.90, self-intersections 0",
+   "started_at": "2026-10-28T12:21:23.257Z",
+   "ended_at": "2026-10-28T12:21:32.403Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 10383,
+   "ms": 26564,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:21:32.407Z",
+   "ended_at": "2026-10-28T12:21:58.972Z"
   }
  ],
  "files": [
@@ -81,60 +95,60 @@
    "sha256": "e97eafd1b6d20d18124fe220cfa07a3dc1152068e01e58665b3f7350b35ea7b2"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_luna/prompts.json",
+   "bytes": 3765,
+   "sha256": "63f1f928d8bfafa6be9de0d3d678c98bf63416fa43b9b23141cf39f00381a3fb"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_luna/concept.png",
-   "bytes": 46385,
-   "sha256": "3ef084b3d7691af62d03ec6ca888cb2d5678421dc8c4c6dcb4cb2e0cdf7ef122"
+   "bytes": 115164,
+   "sha256": "1dc2626bcfe9ed146208af71a69009918905b2753d57c944bc97c18391fdc609"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_luna/views/front.png",
-   "bytes": 35812,
-   "sha256": "2cc475edb5192493e241b224de08b1051d5e290a8ff4097f4928a86fd6a0f183"
+   "bytes": 68608,
+   "sha256": "23766b3e79c9c0b30dc03b7eb9cc6262000ea377aee9f74036c6e765b4d4a468"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_luna/views/left.png",
-   "bytes": 34578,
-   "sha256": "eb95c3b876a196e1504c7f22ff5571ef7b24d581d368ce53c1fbf83ad56485de"
+   "bytes": 67849,
+   "sha256": "03329ad555c71a96a9e9024b68e6b7eaad4361287a5e07614bda1c221d6dc827"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_luna/views/back.png",
-   "bytes": 32827,
-   "sha256": "7bd59165a5df4e05ad79bceb476b1cf41c98884439f8de482913030dd9d87c26"
+   "bytes": 67562,
+   "sha256": "62ecccc4632472f382b49621b1638b8305e415534f738abca8c43d43175771d3"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_luna/views/right.png",
-   "bytes": 34906,
-   "sha256": "c72908ef13fbae7e96464b7490352fc41f9d179403c85d62e76d4552429755bd"
+   "bytes": 67570,
+   "sha256": "b676541bcb921343316a72c7d600c30f909f373e9c16d7ef046bc6121a770e9a"
   },
   {
    "name": "shape.glb",
    "kind": "shape",
    "stage": "D",
    "object_key": "jobs/fx_luna/shape.glb",
-   "bytes": 262168,
-   "sha256": "23ab42912c45e4e9890adf7656d9a991743dee052146ea73fa113b602aa8d4d0"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_luna/figure_uv.obj",
-   "bytes": 1115398,
-   "sha256": "ac2f04404b2770e2a7dd3f24bb37dc15e21d7b8cee58b6bc6576a83dbca9dcc6"
+   "bytes": 262164,
+   "sha256": "c04f00416512465ffdbe9a7c30048e8c52b58d13ff7f1b9936876fd60a3b64e5"
   },
   {
    "name": "albedo.png",
@@ -142,67 +156,83 @@
    "stage": "F",
    "object_key": "jobs/fx_luna/albedo.png",
    "bytes": 106150,
-   "sha256": "a1a3fa6a0cfe45d47109210f7f1af7dc5bffe34d95fe0fba792bd17c3a21389f"
+   "sha256": "f7d217494e1a209ed6a88f44d7473a41b2c34a866fede5772afe962f442fcaf1"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_luna/figure.glb",
-   "bytes": 462640,
-   "sha256": "093834225d5d9406889aa71d88798ce63be52efa645a0c649a0a69f409f923a5"
+   "object_key": "jobs/fx_luna/figure_uv.obj",
+   "bytes": 1115194,
+   "sha256": "ebdb3b830ad47a5dff71de8a696776556fc582b0d3359199865929aa5a421bb5"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.stl",
-   "bytes": 766284,
-   "sha256": "fb17d63972b63178ee9f35b8e4c687fda21a973dac89a0923e81c0fa17861b49"
+   "bytes": 1500084,
+   "sha256": "3b68b89e8ea8f39cf96b0b6814754ece710dc096661f962a70e605e045129400"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.3mf",
-   "bytes": 302953,
-   "sha256": "935271d5e7bcbfb6e2e3f932320ca05649d865ffdacac38b6be12efcd3f16913"
+   "bytes": 611575,
+   "sha256": "2d17a145a423c1c3cf28e901ad877935da9a69972dd3865d07b3a3507a83030c"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_luna/paint_mask.png",
-   "bytes": 6096,
-   "sha256": "61db29c3fe5bcb75bf4147c3b54148a42c3bef2252be309d4ab67f43cee730e4"
+   "bytes": 4903,
+   "sha256": "8903fc4825b9341d541cb196d2e1f032bcc755e1aa793e9a8c42db23e4bca413"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_luna/thumbnail.png",
-   "bytes": 20963,
-   "sha256": "f35d83920b05452c5f03c870c8804d2c428a2b699f795953e36f8e25f1fb9f3c"
+   "bytes": 63304,
+   "sha256": "5b9addfd30d21d8ebf58902d903ccd01264fe33ac382ece301c1f9992346db12"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/turntable.mp4",
+   "bytes": 90024,
+   "sha256": "5a9c2d8c90d5d180bcf41b5871779291e366b89ba16abbcfe85ccc9d6e3e8745"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/figure.glb",
+   "bytes": 291604,
+   "sha256": "46c80c619abdbf62b231dd18224ad2bb4e8148a60212aa745e5133e822cc0a2f"
   }
  ],
  "metrics": {
-  "iou_mean": 0.958,
+  "iou_mean": 0.9473,
   "iou_views": [
-   0.9565,
-   0.9595,
-   0.9565,
-   0.9596
+   0.9535,
+   0.9316,
+   0.9535,
+   0.9505
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
-  "print_watertight": true,
-  "print_tris": 15324,
-  "print_height_mm": 100.43,
+  "wrap_notes": "inverted 0, laplacian x0.90, self-intersections 0",
+  "print_tris": 30000,
+  "print_height_mm": 99.85,
+  "min_wall_mm": 2.91,
   "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 2.91,
-  "uv_layout_hash": "78f037cbe940ba43",
+  "print_watertight": true,
+  "paint_mask_pct": 2.96,
+  "uv_layout_hash": "277c6a886ac7c151",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 22510
+  "total_ms": 76670
  }
 }

@@ -1,6 +1,8 @@
-"""Implementations that must pass the identical contract test (mock server now, backend from S2)."""
+"""Implementations that must pass the identical contract test: the mock server and the real backend
+(`make dev` mode: SQLite, local store, embedded worker, mock adapters, Blender CPU stages)."""
 from __future__ import annotations
 
+import os
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 
@@ -15,4 +17,14 @@ def mock_client() -> Iterator[TestClient]:
         yield c
 
 
-IMPLS: dict[str, Callable] = {"mock": mock_client}
+@contextmanager
+def backend_client() -> Iterator[TestClient]:
+    os.environ.setdefault("PETPOP_PROFILE", "test")
+    from backend.api.app import create_app
+
+    app = create_app(embed_worker=True)
+    with TestClient(app) as c:
+        yield c
+
+
+IMPLS: dict[str, Callable] = {"mock": mock_client, "backend": backend_client}

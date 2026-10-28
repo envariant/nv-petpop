@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Gate 2 (S2/M2): the real backend's parametric path in make-dev mode (CPU, mock adapters, Blender stages).
+source "$(dirname "$0")/lib.sh"
+echo "gate-2: real backend, parametric path"
+export PETPOP_MOCK_SPEED=0
+step "unit tests" "$PY" -m pytest tests/unit
+step "identical contract test: mock server AND real backend" "$PY" -m pytest tests/contract
+step "pipeline: fallbacks by fault injection, resume, determinism, one topology" "$PY" -m pytest tests/pipeline
+step "base meshes and accessory library" bash -c '"$0" scripts/check_base_mesh.py && test -f assets/accessories/accessories.blend' "$PY"
+step "fixture pack comes from the real pipeline" "$PY" -c '
+import json, pathlib
+for d in sorted(pathlib.Path("fixtures/pets").iterdir()):
+    if d.is_dir():
+        m = json.loads((d / "manifest.json").read_text())
+        assert m["fidelity"] == "high" and m["metrics"]["print_watertight"], d.name
+        assert any(s["stage"] == "control" for s in m["stages"]), d.name'
+step "SPA build served by the API" bash -c 'cd apps/kiosk && npm run -s build'
+step "backend process: one origin, QR page, fulfil folder, staff, metrics" "$PY" -m pytest tests/server
+step "regression set (30 pets) meets the gate-2 thresholds" "$PY" scripts/regress.py --gate 2 --profile test
+step "Playwright walkthrough against the real backend" bash -c 'cd apps/kiosk && PP_BACKEND=real npx playwright test tests/e2e/walkthrough.spec.ts'
+echo "GATE 2 PASSED"

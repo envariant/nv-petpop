@@ -1,0 +1,15 @@
+# ComfyUI pinned by commit with the custom node packs from pipelines/comfy/requirements.txt.
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+ARG COMFY_COMMIT=REPLACE_WITH_PINNED_COMMIT
+RUN apt-get update && apt-get install -y --no-install-recommends git python3.11 python3-pip libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git && cd ComfyUI && git checkout ${COMFY_COMMIT} \
+    && pip3 install --no-cache-dir -r requirements.txt
+COPY pipelines/comfy/requirements.txt /opt/custom_nodes.txt
+COPY pipelines/comfy/install_nodes.sh /opt/install_nodes.sh
+RUN bash /opt/install_nodes.sh /opt/custom_nodes.txt /opt/ComfyUI/custom_nodes
+WORKDIR /opt/ComfyUI
+EXPOSE 8188
+CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--disable-auto-launch", \
+     "--extra-model-paths-config", "/opt/ComfyUI/extra_model_paths.yaml"]

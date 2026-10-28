@@ -5,10 +5,10 @@
  "pet_name": "Nova",
  "seed": 1002,
  "mode": "mock",
- "fidelity": "low",
+ "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T10:49:10.352Z",
- "finished_at": "2026-10-28T10:49:31.215Z",
+ "created_at": "2026-10-28T12:14:25.536Z",
+ "finished_at": "2026-10-28T12:15:40.293Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -23,52 +23,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 0,
+   "ms": 1001,
    "attempts": 1,
-   "backend": "rules"
+   "backend": "rules",
+   "started_at": "2026-10-28T12:14:25.537Z",
+   "ended_at": "2026-10-28T12:14:26.538Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 2,
+   "ms": 4941,
    "attempts": 1,
-   "backend": "lowfi"
+   "backend": "blender",
+   "started_at": "2026-10-28T12:14:26.538Z",
+   "ended_at": "2026-10-28T12:14:31.480Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1458,
+   "ms": 6002,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:14:31.481Z",
+   "ended_at": "2026-10-28T12:14:37.484Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5293,
+   "ms": 9004,
    "attempts": 1,
-   "backend": "lowfi-render"
+   "backend": "mock-image",
+   "started_at": "2026-10-28T12:14:37.485Z",
+   "ended_at": "2026-10-28T12:14:46.489Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4460,
+   "ms": 19747,
    "attempts": 1,
    "backend": "mock-shape",
-   "notes": "iou 0.964"
+   "started_at": "2026-10-28T12:14:46.491Z",
+   "ended_at": "2026-10-28T12:15:06.238Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 217,
+   "ms": 9086,
    "attempts": 1,
-   "backend": "lowfi-wrap"
+   "backend": "blender",
+   "notes": "inverted 6, laplacian x0.91, self-intersections 0",
+   "started_at": "2026-10-28T12:15:06.240Z",
+   "ended_at": "2026-10-28T12:15:15.326Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 9418,
+   "ms": 24961,
    "attempts": 1,
-   "backend": "lowfi-bake"
+   "backend": "mock-texture",
+   "started_at": "2026-10-28T12:15:15.328Z",
+   "ended_at": "2026-10-28T12:15:40.289Z"
   }
  ],
  "files": [
@@ -81,60 +95,60 @@
    "sha256": "ae401a77df7f025784471d751ad5c14a3790aae8b82e235f5092f8577b356f8f"
   },
   {
+   "name": "prompts.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_nova/prompts.json",
+   "bytes": 3815,
+   "sha256": "e10361b01e9097d1e42ad4719abd5580939cdff965b87d6443dd44cb7cab653a"
+  },
+  {
    "name": "concept.png",
    "kind": "concept",
    "stage": "B",
    "object_key": "jobs/fx_nova/concept.png",
-   "bytes": 42829,
-   "sha256": "325c6931e4e2ae358ad4635f04c198e2f40831d72f73dd9792013a588bdc48a2"
+   "bytes": 108781,
+   "sha256": "3aa6538f7558f6e13b556f0537c113416a5dc00e51c4b791d1f09625d3528f9b"
   },
   {
    "name": "views/front.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_nova/views/front.png",
-   "bytes": 32785,
-   "sha256": "3a0d0707c7da1221e3a6a38c524fb30f89ec5ab1875dc54495b7dedf1fdb36a6"
+   "bytes": 65432,
+   "sha256": "4af24eb71e0eb679c5632850d29bc9123be2ce0cace6886aff5cd2e5e293688c"
   },
   {
    "name": "views/left.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_nova/views/left.png",
-   "bytes": 27932,
-   "sha256": "7d5c281cc864ad38380a23d56e5d2641c47788f7e4ced4cdc7d5e9443a7989fe"
+   "bytes": 56670,
+   "sha256": "01f4341e12c61fa170bb32b3bb8d04adae3ecf2b0abeb792de9a3770e99e8e72"
   },
   {
    "name": "views/back.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_nova/views/back.png",
-   "bytes": 25999,
-   "sha256": "47bb5763a838d658c392113d3c81fd2b7e88628031ca45e69beab723c8f88c83"
+   "bytes": 52142,
+   "sha256": "d8de4597abde13d9920fa7aac58cef1a2e86c461f4798c21acaec56f39691801"
   },
   {
    "name": "views/right.png",
    "kind": "view",
    "stage": "C",
    "object_key": "jobs/fx_nova/views/right.png",
-   "bytes": 28156,
-   "sha256": "763a9f4cd01799c8cd6241d2b0be6be9e047fabc17726da6f7c5c90e9b82fe4c"
+   "bytes": 56353,
+   "sha256": "55460f63c5808b7fdf3c1cb08ede6fac9c80961a75a3266228af82933873e37a"
   },
   {
    "name": "shape.glb",
    "kind": "shape",
    "stage": "D",
    "object_key": "jobs/fx_nova/shape.glb",
-   "bytes": 262092,
-   "sha256": "4cb55ff17a22d9b7d19df6029b6c0b9304cc89daae0e4475e915d082153b25fe"
-  },
-  {
-   "name": "figure_uv.obj",
-   "kind": "uv_obj",
-   "stage": "F",
-   "object_key": "jobs/fx_nova/figure_uv.obj",
-   "bytes": 1116695,
-   "sha256": "5792192515e99973f4c21b48d0b826e3facb08b09ba3a3efad432d2243e47888"
+   "bytes": 262096,
+   "sha256": "17aeaf42dd7bfcb656ad09deaac1fcea0f9ddf08dc0fd49a5dc5c8960401d306"
   },
   {
    "name": "albedo.png",
@@ -142,67 +156,83 @@
    "stage": "F",
    "object_key": "jobs/fx_nova/albedo.png",
    "bytes": 112318,
-   "sha256": "b9e3c196ab1926cacc89d854e60e636c077661a54147c1458277cdb3b20c2b52"
+   "sha256": "b184f415b9b879f4c5112b365b1286fa893d17e1c5d50700e67583be9b04c5c0"
   },
   {
-   "name": "figure.glb",
-   "kind": "glb",
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
    "stage": "F",
-   "object_key": "jobs/fx_nova/figure.glb",
-   "bytes": 468636,
-   "sha256": "e8c237780f9dbf3acada57c30fa803ee6048f2bf5d9251d5ea3ee872c92e8433"
+   "object_key": "jobs/fx_nova/figure_uv.obj",
+   "bytes": 1116718,
+   "sha256": "229c0bd7e23bed4af8aa457302ebad490e1b8020e7f788517bae522e86651a45"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_nova/figure.stl",
-   "bytes": 740284,
-   "sha256": "4ae0102cbf6c5890e024033ef2ab70c29035ef19012cb6e815d9dfb32a810d52"
+   "bytes": 1500084,
+   "sha256": "8a2a53a106db206de86341a84cda4db5d0e1c0d3424258272a3db8789573db12"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_nova/figure.3mf",
-   "bytes": 293157,
-   "sha256": "a69ca1ebc7de01b881daf6e6da54cf80c6149be5baeed816063a0d18bbd342be"
+   "bytes": 607690,
+   "sha256": "5a2031c87f8ae8200c5c1defd4d39c3e9548a0bb69270965026abe72d5a74875"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_nova/paint_mask.png",
-   "bytes": 11715,
-   "sha256": "076cb72b59c19d714d1724e94f2b4f80de3169aac0cc51748579dda2d74ffa9f"
+   "bytes": 7088,
+   "sha256": "18f61f999f5de3c22caf3971bac3bd7a5734b4a95ef906fee80879b05c210caf"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_nova/thumbnail.png",
-   "bytes": 18785,
-   "sha256": "ed55a4e69a56a7ae4d5fe07162cfe75ea85fc1b9f463665cb1913d1d3c545d6d"
+   "bytes": 52907,
+   "sha256": "7151357d654f4ab7bdb9d70848345a7ee667abdece4fe3bb7864fd685f153e5f"
+  },
+  {
+   "name": "turntable.mp4",
+   "kind": "turntable",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/turntable.mp4",
+   "bytes": 77394,
+   "sha256": "077f34a5335e15c878eae60656a0390895cf1ebcedb9fdc59681b75bbb3cb18e"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/figure.glb",
+   "bytes": 298152,
+   "sha256": "00ccbc32eeca08f00e5b68c9788ab95ea60fc7e9acece770bae049115d1cc5d1"
   }
  ],
  "metrics": {
-  "iou_mean": 0.9641,
+  "iou_mean": 0.9671,
   "iou_views": [
-   0.966,
-   0.9622,
-   0.966,
-   0.9622
+   0.9678,
+   0.9653,
+   0.9702,
+   0.9652
   ],
   "wrap_valid": true,
-  "wrap_notes": "nearest-point stand-in",
-  "print_watertight": true,
-  "print_tris": 14804,
-  "print_height_mm": 96.76,
+  "wrap_notes": "inverted 6, laplacian x0.91, self-intersections 0",
+  "print_tris": 30000,
+  "print_height_mm": 96.13,
+  "min_wall_mm": 3.999,
   "min_wall_ok": true,
-  "min_wall_mm": null,
-  "paint_mask_pct": 6.0,
-  "uv_layout_hash": "8991c3506593f7ea",
+  "print_watertight": true,
+  "paint_mask_pct": 3.99,
+  "uv_layout_hash": "a925f74e10d7acea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 20848
+  "total_ms": 74742
  }
 }
