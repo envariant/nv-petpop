@@ -23,21 +23,21 @@ for reference only and are never started in a cloud session.
 
 ## S1 / M1: front end in full (`make gate-1`)
 
-- [ ] Kiosk shell: Vite + React 18 + TS + Tailwind + Framer Motion + Zustand, 1080x1920 portrait, scaled to the viewport, single origin
-- [ ] Screen 1 Attract loop (turntable of six figurines, "Tap to make yours", captions)
-- [ ] Screen 2 Species (two tiles, accent colour per species)
-- [ ] Screen 3 Breed (searchable grid, on-screen keyboard, "Mixed / not sure", preset pre-fill)
-- [ ] Screen 4 Build (all Section 4 selectors as swatches, tiles and chips; live 3D preview with morph targets and procedural material, labelled "preview")
-- [ ] Screen 5 Brief (on-screen keyboard, example chips, `/spec/parse`, highlights changed selectors, "for flavour only" fallback)
-- [ ] Screen 6 Name and generate (name, summary card, Generate, three-run session cap)
-- [ ] Screen 7 Generating (WebSocket progress, real intermediate previews, queue position, failure and fallback states)
-- [ ] Screen 8 Result (turntable, pinch zoom, textured/clay toggle, Tweak keeps the seed, QR, Send to print with ticket)
-- [ ] Phone result page `/r/:token`
-- [ ] Kiosk behaviour: 90 s idle then 15 s "Still there?" then wipe; "Back in a moment" offline overlay with auto-retry; hidden five-tap staff panel
-- [ ] Pattern and marking tiles pre-rendered from the base mesh by a build script
-- [ ] Storybook: a story for every screen, three visual directions as themes
-- [ ] Playwright: a test for every screen plus the full walkthrough (gate-1)
-- [ ] `scripts/gates/gate-1` passes; PR for M1
+- [x] Kiosk shell: Vite + React 18 + TS + Tailwind + Framer Motion + Zustand, 1080x1920 portrait, scaled to the viewport, single origin
+- [x] Screen 1 Attract loop (turntable of six figurines, "Tap to make yours", captions)
+- [x] Screen 2 Species (two tiles, accent colour per species)
+- [x] Screen 3 Breed (searchable grid, on-screen keyboard, "Mixed / not sure", preset pre-fill)
+- [x] Screen 4 Build (all Section 4 selectors as swatches, tiles and chips; live 3D preview with morph targets and procedural material, labelled "preview")
+- [x] Screen 5 Brief (on-screen keyboard, example chips, `/spec/parse`, highlights changed selectors, "for flavour only" fallback)
+- [x] Screen 6 Name and generate (name, summary card, Generate, three-run session cap)
+- [x] Screen 7 Generating (WebSocket progress, real intermediate previews, queue position, failure and fallback states)
+- [x] Screen 8 Result (turntable, pinch zoom, textured/clay toggle, Tweak keeps the seed, QR, Send to print with ticket)
+- [x] Phone result page `/r/:token`
+- [x] Kiosk behaviour: 90 s idle then 15 s "Still there?" then wipe; "Back in a moment" offline overlay with auto-retry; hidden five-tap staff panel
+- [x] Pattern and marking tiles pre-rendered from the base mesh by a build script
+- [x] Storybook: a story for every screen, three visual directions as themes
+- [x] Playwright: a test for every screen plus the full walkthrough (gate-1)
+- [x] `scripts/gates/gate-1` passes; PR for M1 (the 5-person touch review on the kiosk screen is Nishant's step)
 
 ## S2 / M2: real backend, parametric path (`make gate-2`)
 

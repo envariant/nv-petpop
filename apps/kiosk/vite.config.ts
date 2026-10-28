@@ -11,6 +11,7 @@ export default defineConfig({
       '@data': fileURLToPath(new URL('../../data', import.meta.url)),
       '@fixtures': fileURLToPath(new URL('../../fixtures', import.meta.url)),
       '@mockscripts': fileURLToPath(new URL('../../mock-server/scripts', import.meta.url)),
+      '@assets': fileURLToPath(new URL('../../assets', import.meta.url)),
     },
   },
   server: {

@@ -1,0 +1,110 @@
+{
+ "dog": {
+  "colour.pattern": [
+   "solid",
+   "bicolour",
+   "tricolour",
+   "saddle_with_white_chest",
+   "merle",
+   "brindle",
+   "sable",
+   "spotted"
+  ],
+  "colour.markings": [
+   "white_blaze",
+   "white_socks",
+   "white_chest",
+   "dark_mask",
+   "points"
+  ],
+  "ears.shape": [
+   "erect",
+   "semi_erect",
+   "drop",
+   "folded",
+   "rose"
+  ],
+  "tail.type": [
+   "curled",
+   "plume",
+   "straight",
+   "bob",
+   "long_thin"
+  ],
+  "head.muzzle_length": [
+   "short",
+   "medium",
+   "long"
+  ],
+  "body.size": [
+   "tiny",
+   "small",
+   "medium",
+   "large"
+  ],
+  "body.build": [
+   "slim",
+   "standard",
+   "stocky"
+  ],
+  "coat.length": [
+   "short",
+   "medium",
+   "long"
+  ]
+ },
+ "cat": {
+  "colour.pattern": [
+   "solid",
+   "bicolour",
+   "tabby",
+   "tuxedo",
+   "calico",
+   "colourpoint",
+   "spotted",
+   "tricolour"
+  ],
+  "colour.markings": [
+   "white_blaze",
+   "white_socks",
+   "white_chest",
+   "dark_mask",
+   "points"
+  ],
+  "ears.shape": [
+   "erect",
+   "semi_erect",
+   "drop",
+   "folded",
+   "rose"
+  ],
+  "tail.type": [
+   "curled",
+   "plume",
+   "straight",
+   "bob",
+   "long_thin"
+  ],
+  "head.muzzle_length": [
+   "short",
+   "medium",
+   "long"
+  ],
+  "body.size": [
+   "tiny",
+   "small",
+   "medium",
+   "large"
+  ],
+  "body.build": [
+   "slim",
+   "standard",
+   "stocky"
+  ],
+  "coat.length": [
+   "short",
+   "medium",
+   "long"
+  ]
+ }
+}

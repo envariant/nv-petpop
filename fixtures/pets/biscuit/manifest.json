@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "low",
  "fallback": "none",
- "created_at": "2026-10-28T10:35:35.362Z",
- "finished_at": "2026-10-28T10:35:59.092Z",
+ "created_at": "2026-10-28T10:48:25.000Z",
+ "finished_at": "2026-10-28T10:48:46.915Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -37,21 +37,21 @@
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1397,
+   "ms": 1457,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 6285,
+   "ms": 5337,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4802,
+   "ms": 4935,
    "attempts": 1,
    "backend": "mock-shape",
    "notes": "iou 0.958"
@@ -59,14 +59,14 @@
   {
    "stage": "E",
    "status": "ok",
-   "ms": 216,
+   "ms": 243,
    "attempts": 1,
    "backend": "lowfi-wrap"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 11016,
+   "ms": 9928,
    "attempts": 1,
    "backend": "lowfi-bake"
   }
@@ -126,7 +126,7 @@
    "stage": "D",
    "object_key": "jobs/fx_biscuit/shape.glb",
    "bytes": 262092,
-   "sha256": "6eb9272610e7af708c76f92e473ce36bc40fe9370c7c7b1ce6e91874320f2aea"
+   "sha256": "8a978b4da3d40c3b13dfdd9c925a4fa8a89e474c0a6b4b3b58453f3923e25ef2"
   },
   {
    "name": "figure_uv.obj",
@@ -150,7 +150,7 @@
    "stage": "F",
    "object_key": "jobs/fx_biscuit/figure.glb",
    "bytes": 521420,
-   "sha256": "a30b0b191cd6acecf16c88cfc799a5993032d0ab4de95304ea7d931ffce5d869"
+   "sha256": "296fac0701b751c9b75a1299e4fce7985ce71a9649a65bfa911912816507806c"
   },
   {
    "name": "figure.stl",
@@ -166,7 +166,7 @@
    "stage": "F",
    "object_key": "jobs/fx_biscuit/figure.3mf",
    "bytes": 302588,
-   "sha256": "122e856800e0a97e1e090dffff20a3ac3fbe1e30220accd29f505f1b18e3da42"
+   "sha256": "12132472cd6c6cde8b788756855d689fd0827b26d0f660ef856a9e3f9804b8aa"
   },
   {
    "name": "paint_mask.png",
@@ -203,6 +203,6 @@
   "paint_mask_pct": 8.54,
   "uv_layout_hash": "8991c3506593f7ea",
   "topology_hash": "837de5361ae6d863",
-  "total_ms": 23718
+  "total_ms": 21902
  }
 }

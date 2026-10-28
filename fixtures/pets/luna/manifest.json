@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "low",
  "fallback": "none",
- "created_at": "2026-10-28T10:38:16.235Z",
- "finished_at": "2026-10-28T10:38:39.071Z",
+ "created_at": "2026-10-28T10:51:01.207Z",
+ "finished_at": "2026-10-28T10:51:23.729Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -37,21 +37,21 @@
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1373,
+   "ms": 1346,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 5855,
+   "ms": 5765,
    "attempts": 1,
    "backend": "lowfi-render"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 4665,
+   "ms": 4725,
    "attempts": 1,
    "backend": "mock-shape",
    "notes": "iou 0.958"
@@ -59,14 +59,14 @@
   {
    "stage": "E",
    "status": "ok",
-   "ms": 193,
+   "ms": 290,
    "attempts": 1,
    "backend": "lowfi-wrap"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 10730,
+   "ms": 10383,
    "attempts": 1,
    "backend": "lowfi-bake"
   }
@@ -126,7 +126,7 @@
    "stage": "D",
    "object_key": "jobs/fx_luna/shape.glb",
    "bytes": 262168,
-   "sha256": "ce8a7b751c9916cd43bd48109b22fbecbf53fe4a15e2e4865932c9d3b4e1c0d8"
+   "sha256": "23ab42912c45e4e9890adf7656d9a991743dee052146ea73fa113b602aa8d4d0"
   },
   {
    "name": "figure_uv.obj",
@@ -150,7 +150,7 @@
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.glb",
    "bytes": 462640,
-   "sha256": "8d73336d174b2aab97f5e401700901b1b4fe60eeec865ded9c38382839785deb"
+   "sha256": "093834225d5d9406889aa71d88798ce63be52efa645a0c649a0a69f409f923a5"
   },
   {
    "name": "figure.stl",
@@ -165,8 +165,8 @@
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.3mf",
-   "bytes": 302948,
-   "sha256": "6c2607de2deb404f4f97d7dc148025dbb1e2c604c012fd9648bad2e368864458"
+   "bytes": 302953,
+   "sha256": "935271d5e7bcbfb6e2e3f932320ca05649d865ffdacac38b6be12efcd3f16913"
   },
   {
    "name": "paint_mask.png",
@@ -203,6 +203,6 @@
   "paint_mask_pct": 2.91,
   "uv_layout_hash": "78f037cbe940ba43",
   "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 22817
+  "total_ms": 22510
  }
 }

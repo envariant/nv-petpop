@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Gate 1 (S1/M1): the whole front end against the mock server. The Playwright walkthrough is the gate;
+# the per-screen tests, stories and builds must also be green.
+source "$(dirname "$0")/lib.sh"
+echo "gate-1: front end in full"
+step "web unit tests (MSW coverage, screen coverage) and typecheck" bash -c 'cd apps/kiosk && npx vitest run && npx tsc -b --noEmit'
+step "openapi.json and TypeScript client unchanged since S0 freeze" bash -c '"$0" scripts/export_openapi.py --check && cd apps/kiosk && npx openapi-typescript ../../data/schema/openapi.json -o /tmp/pp-schema.d.ts >/dev/null && diff -q /tmp/pp-schema.d.ts src/api/schema.d.ts' "$PY"
+step "production SPA build" bash -c 'cd apps/kiosk && npm run -s build'
+step "Storybook builds (a story per screen, three directions)" bash -c 'cd apps/kiosk && npm run -s build-storybook'
+step "Playwright: per-screen tests" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/screens.spec.ts'
+step "Playwright: touch walkthrough (gate-1)" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/walkthrough.spec.ts'
+echo "GATE 1 PASSED"
