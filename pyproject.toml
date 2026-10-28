@@ -1,0 +1,37 @@
+[project]
+name = "petpop"
+version = "0.1.0"
+description = "PetPop kiosk: pet description to chibi figurine (PoC)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "sqlalchemy>=2.0",
+  "jsonschema>=4.22",
+  "jinja2>=3.1",
+  "httpx>=0.27",
+  "pillow>=10",
+  "numpy>=1.26",
+  "trimesh>=4",
+  "networkx>=3",
+  "qrcode>=7.4",
+  "websockets>=12",
+  "pyyaml>=6",
+  "scipy>=1.11",
+  "manifold3d>=2.4",
+  "rtree>=1.2",
+  "lxml>=5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+gpu-host = ["arq>=0.26", "redis>=5", "boto3>=1.34", "psycopg[binary]>=3.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "mock-server/tests"]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.setuptools]
+packages = []

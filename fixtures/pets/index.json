@@ -1,0 +1,74 @@
+{
+ "pets": [
+  {
+   "id": "biscuit",
+   "species": "dog",
+   "breed": "corgi_pembroke",
+   "pet_name": "Biscuit",
+   "job_id": "fx_biscuit"
+  },
+  {
+   "id": "sunny",
+   "species": "dog",
+   "breed": "golden_retriever",
+   "pet_name": "Sunny",
+   "job_id": "fx_sunny"
+  },
+  {
+   "id": "nova",
+   "species": "dog",
+   "breed": "husky",
+   "pet_name": "Nova",
+   "job_id": "fx_nova"
+  },
+  {
+   "id": "gus",
+   "species": "dog",
+   "breed": "french_bulldog",
+   "pet_name": "Gus",
+   "job_id": "fx_gus"
+  },
+  {
+   "id": "pepper",
+   "species": "dog",
+   "breed": "dalmatian",
+   "pet_name": "Pepper",
+   "job_id": "fx_pepper"
+  },
+  {
+   "id": "mochi",
+   "species": "dog",
+   "breed": "pug",
+   "pet_name": "Mochi",
+   "job_id": "fx_mochi"
+  },
+  {
+   "id": "oreo",
+   "species": "cat",
+   "breed": "tuxedo",
+   "pet_name": "Oreo",
+   "job_id": "fx_oreo"
+  },
+  {
+   "id": "luna",
+   "species": "cat",
+   "breed": "siamese",
+   "pet_name": "Luna",
+   "job_id": "fx_luna"
+  },
+  {
+   "id": "marmalade",
+   "species": "cat",
+   "breed": "tabby_orange",
+   "pet_name": "Marmalade",
+   "job_id": "fx_marmalade"
+  },
+  {
+   "id": "bear",
+   "species": "cat",
+   "breed": "maine_coon",
+   "pet_name": "Bear",
+   "job_id": "fx_bear"
+  }
+ ]
+}

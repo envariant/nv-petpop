@@ -1,0 +1,70 @@
+{
+ "spec_version": "1.0",
+ "species": "cat",
+ "breed": {
+  "id": "maine_coon",
+  "label": "Maine Coon",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "large",
+  "build": "stocky",
+  "leg_length": "long",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "wide",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "large",
+  "tip": "pointed",
+  "tufted": true
+ },
+ "tail": {
+  "type": "plume",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "long",
+  "texture": "fluffy",
+  "fluffiness": 0.9
+ },
+ "colour": {
+  "base": {
+   "name": "tan",
+   "hex": "#B88A5A"
+  },
+  "pattern": "tabby",
+  "markings": [
+   "white_chest"
+  ],
+  "secondary": {
+   "name": "black",
+   "hex": "#1E1B1A"
+  }
+ },
+ "eyes": {
+  "colour": "amber",
+  "hex": "#C88A1E",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "black"
+ },
+ "accessories": [
+  {
+   "type": "glasses",
+   "colour_hex": "#1E1B1A",
+   "colour_name": "black"
+  }
+ ],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 2004,
+ "pet_name": "Bear"
+}

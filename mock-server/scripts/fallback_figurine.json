@@ -1,0 +1,106 @@
+{
+ "name": "fallback_figurine",
+ "description": "Stage D fails twice; the parametric base mesh ships with the baked concept texture (fallback = parametric).",
+ "trigger_names": [
+  "plan b",
+  "fallback"
+ ],
+ "queue_ahead": 0,
+ "queue_job_s": 0,
+ "outcome": "done",
+ "fallback": "parametric",
+ "steps": [
+  {
+   "stage": "A",
+   "at_s": 0,
+   "pct": 2,
+   "message": "Reading your description"
+  },
+  {
+   "stage": "control",
+   "at_s": 4,
+   "pct": 6,
+   "message": "Shaping the base figure"
+  },
+  {
+   "stage": "B",
+   "at_s": 8,
+   "pct": 10,
+   "message": "Sketching the concept"
+  },
+  {
+   "stage": "B",
+   "at_s": 30,
+   "pct": 24,
+   "message": "Concept ready",
+   "preview": "concept.png",
+   "preview_kind": "concept"
+  },
+  {
+   "stage": "C",
+   "at_s": 34,
+   "pct": 28,
+   "message": "Drawing four views"
+  },
+  {
+   "stage": "C",
+   "at_s": 60,
+   "pct": 45,
+   "message": "Four views ready",
+   "preview": "views/front.png",
+   "preview_kind": "view_front",
+   "also": [
+    [
+     "views/left.png",
+     "view_left"
+    ],
+    [
+     "views/back.png",
+     "view_back"
+    ],
+    [
+     "views/right.png",
+     "view_right"
+    ]
+   ]
+  },
+  {
+   "stage": "D",
+   "at_s": 64,
+   "pct": 50,
+   "message": "Sculpting the shape"
+  },
+  {
+   "stage": "D",
+   "at_s": 100,
+   "pct": 56,
+   "message": "Views disagree, trying the front view alone"
+  },
+  {
+   "stage": "D",
+   "at_s": 125,
+   "pct": 62,
+   "message": "Using the classic figure shape"
+  },
+  {
+   "stage": "E",
+   "at_s": 128,
+   "pct": 74,
+   "message": "Fitting the figurine template"
+  },
+  {
+   "stage": "F",
+   "at_s": 140,
+   "pct": 82,
+   "message": "Painting and preparing for print"
+  },
+  {
+   "stage": "done",
+   "at_s": 160,
+   "pct": 100,
+   "message": "Your figurine is ready",
+   "preview": "figure.glb",
+   "preview_kind": "glb"
+  }
+ ]
+}

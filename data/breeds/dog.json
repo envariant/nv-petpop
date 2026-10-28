@@ -1,0 +1,3330 @@
+{
+ "species": "dog",
+ "accent": "#FF8A3D",
+ "breeds": [
+  {
+   "id": "corgi_pembroke",
+   "species": "dog",
+   "label": "Pembroke Welsh Corgi",
+   "prompt_hint": "Long low body on very short legs, large erect triangular ears, fox-like face.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "saddle_with_white_chest",
+     "markings": [
+      "white_blaze",
+      "white_socks",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "corgi_cardigan",
+   "species": "dog",
+   "label": "Cardigan Welsh Corgi",
+   "prompt_hint": "Long low body with a full brushy tail, big rounded upright ears and a fox-like head.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.35
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "merle",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "labrador",
+   "species": "dog",
+   "label": "Labrador Retriever",
+   "prompt_hint": "Broad friendly head with soft drop ears and an otter-like tail. Solid sturdy athletic build.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "golden_retriever",
+   "species": "dog",
+   "label": "Golden Retriever",
+   "prompt_hint": "Feathered golden coat with a gentle face and soft drop ears. Plumed tail and kind dark eyes.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "german_shepherd",
+   "species": "dog",
+   "label": "German Shepherd",
+   "prompt_hint": "Large erect pointed ears and a long wedge-shaped muzzle. Black saddle over a tan coat with a bushy tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "smooth",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "saddle_with_white_chest",
+     "markings": [
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "french_bulldog",
+   "species": "dog",
+   "label": "French Bulldog",
+   "prompt_hint": "Large rounded bat ears on a square flat-faced head. Compact muscular body with a stub tail.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "solid",
+     "markings": [
+      "dark_mask"
+     ]
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "bulldog",
+   "species": "dog",
+   "label": "English Bulldog",
+   "prompt_hint": "Wide wrinkled flat face with a pushed-in nose and small rose ears. Very broad low stocky body.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "poodle_standard",
+   "species": "dog",
+   "label": "Standard Poodle",
+   "prompt_hint": "Tight curly coat with a topknot and long elegant muzzle. Long drop ears and proud upright stance.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "curly",
+     "fluffiness": 0.7
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "poodle_toy",
+   "species": "dog",
+   "label": "Toy Poodle",
+   "prompt_hint": "Tiny dog with a cloud of tight curls and long fluffy drop ears. Fine muzzle and bright eyes.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "curly",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "beagle",
+   "species": "dog",
+   "label": "Beagle",
+   "prompt_hint": "Classic tricolour hound with long soft drop ears and a white-tipped upright tail.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "tricolour",
+     "markings": [
+      "white_blaze",
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "dachshund",
+   "species": "dog",
+   "label": "Dachshund",
+   "prompt_hint": "Very long low sausage body on tiny legs with a long muzzle and long drop ears.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "pug",
+   "species": "dog",
+   "label": "Pug",
+   "prompt_hint": "Round wrinkly flat face with a black mask and big round eyes. Tightly curled tail over the back.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "short",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "solid",
+     "markings": [
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "shih_tzu",
+   "species": "dog",
+   "label": "Shih Tzu",
+   "prompt_hint": "Long flowing silky coat and a flat sweet face with a topknot. Plumed tail curled over the back.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "standard",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "slight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze"
+     ],
+     "secondary": {
+      "name": "gold",
+      "hex": "#D9A441"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "yorkshire_terrier",
+   "species": "dog",
+   "label": "Yorkshire Terrier",
+   "prompt_hint": "Tiny terrier with a long silky steel-blue and tan coat. Small erect V-shaped ears.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "saddle_with_white_chest",
+     "markings": [],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "chihuahua",
+   "species": "dog",
+   "label": "Chihuahua",
+   "prompt_hint": "Apple-domed head with huge erect ears and big round eyes on a tiny body.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "medium",
+     "curl": "slight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "pomeranian",
+   "species": "dog",
+   "label": "Pomeranian",
+   "prompt_hint": "A round ball of fluff with a fox-like face and tiny erect ears. Plumed tail fanned over the back.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "husky",
+   "species": "dog",
+   "label": "Siberian Husky",
+   "prompt_hint": "Wolf-like face mask with striking blue eyes and erect triangular ears. Thick fluffy sickle tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "slight"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "fluffy",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "malamute",
+   "species": "dog",
+   "label": "Alaskan Malamute",
+   "prompt_hint": "Powerful heavy-boned sled dog with a cap and mask pattern. Plumed tail curled over the back.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest",
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "samoyed",
+   "species": "dog",
+   "label": "Samoyed",
+   "prompt_hint": "Snow-white fluffy cloud of a coat with a smiling face. Small erect ears and plumed curled tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "shiba_inu",
+   "species": "dog",
+   "label": "Shiba Inu",
+   "prompt_hint": "Fox-like face with small triangular ears and cream cheeks. Thick tail tightly curled over the back.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "akita",
+   "species": "dog",
+   "label": "Akita",
+   "prompt_hint": "Bear-like broad head with small erect ears and deep-set eyes. Big plush tail curled over the back.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "curled",
+     "length": "long",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "fluffy",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "border_collie",
+   "species": "dog",
+   "label": "Border Collie",
+   "prompt_hint": "Alert intelligent face with semi-erect tipped ears and a white blaze. Black and white feathered coat.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze",
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "australian_shepherd",
+   "species": "dog",
+   "label": "Australian Shepherd",
+   "prompt_hint": "Marbled blue merle coat with copper points and a white blaze. Tipped ears and a bobbed tail.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "merle",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "sheltie",
+   "species": "dog",
+   "label": "Shetland Sheepdog",
+   "prompt_hint": "Miniature collie with a long refined wedge head and a big white ruff. Tipped ears and plumed tail.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "sable",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "rough_collie",
+   "species": "dog",
+   "label": "Rough Collie",
+   "prompt_hint": "Long elegant wedge-shaped head and a magnificent white mane. Tipped ears and long plumed tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "sable",
+     "markings": [
+      "white_chest",
+      "white_blaze"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "boxer",
+   "species": "dog",
+   "label": "Boxer",
+   "prompt_hint": "Square short muzzle with a black mask and an underbite smile. Lean muscular body with a short tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest",
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "rottweiler",
+   "species": "dog",
+   "label": "Rottweiler",
+   "prompt_hint": "Broad powerful black dog with rust markings on the cheeks, chest and legs. Small drop ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "points"
+     ],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "doberman",
+   "species": "dog",
+   "label": "Dobermann",
+   "prompt_hint": "Sleek elegant black and rust dog with a long muzzle and tall erect ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "points"
+     ],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "great_dane",
+   "species": "dog",
+   "label": "Great Dane",
+   "prompt_hint": "Giant gentle dog with a long rectangular head and drop ears. Harlequin black and white patches.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "dalmatian",
+   "species": "dog",
+   "label": "Dalmatian",
+   "prompt_hint": "White coat covered in round black spots. Gentle face with soft drop ears and a long tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "cocker_spaniel",
+   "species": "dog",
+   "label": "English Cocker Spaniel",
+   "prompt_hint": "Long silky feathered ears and a soft domed head. Merry face with a bobbed tail.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "cavalier",
+   "species": "dog",
+   "label": "Cavalier King Charles Spaniel",
+   "prompt_hint": "Big dark round eyes and long feathered ears. Chestnut and white silky coat.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "springer_spaniel",
+   "species": "dog",
+   "label": "English Springer Spaniel",
+   "prompt_hint": "Liver and white spaniel with long wavy ears and a friendly face.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "silky",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "liver"
+    }
+   }
+  },
+  {
+   "id": "bichon_frise",
+   "species": "dog",
+   "label": "Bichon Frise",
+   "prompt_hint": "A powder puff of white curls with a round head and dark eyes. Plumed tail over the back.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "standard",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "curly",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "maltese",
+   "species": "dog",
+   "label": "Maltese",
+   "prompt_hint": "Tiny dog with a floor-length pure white silky coat and dark button eyes.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "slight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "havanese",
+   "species": "dog",
+   "label": "Havanese",
+   "prompt_hint": "Small sturdy dog with a long silky wavy coat and a cheerful face.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "standard",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "schnauzer_mini",
+   "species": "dog",
+   "label": "Miniature Schnauzer",
+   "prompt_hint": "Rectangular bearded face with bushy eyebrows and a moustache. Salt-and-pepper wiry coat.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "wiry",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "west_highland",
+   "species": "dog",
+   "label": "West Highland White Terrier",
+   "prompt_hint": "White wiry-coated terrier with a round chrysanthemum face and small pointed ears.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "wiry",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "scottish_terrier",
+   "species": "dog",
+   "label": "Scottish Terrier",
+   "prompt_hint": "Low sturdy black terrier with a long bearded head and erect pointed ears.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "wiry",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "jack_russell",
+   "species": "dog",
+   "label": "Jack Russell Terrier",
+   "prompt_hint": "Small white terrier with tan patches on the head. Folded button ears and a lively face.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "semi_erect",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "staffy",
+   "species": "dog",
+   "label": "Staffordshire Bull Terrier",
+   "prompt_hint": "Broad muscular head with strong cheeks and a wide smile. Small rose ears and a stocky body.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "pitbull",
+   "species": "dog",
+   "label": "American Pit Bull Terrier",
+   "prompt_hint": "Wide wedge-shaped head with a big grin and small rose ears. Muscular compact body.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "bull_terrier",
+   "species": "dog",
+   "label": "Bull Terrier",
+   "prompt_hint": "Distinctive egg-shaped head with small triangular eyes and erect ears.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "basset_hound",
+   "species": "dog",
+   "label": "Basset Hound",
+   "prompt_hint": "Very long velvety ears and droopy eyes on a long low heavy body.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "tricolour",
+     "markings": [
+      "white_blaze",
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "bloodhound",
+   "species": "dog",
+   "label": "Bloodhound",
+   "prompt_hint": "Long wrinkled droopy face with extremely long ears and sad eyes.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "greyhound",
+   "species": "dog",
+   "label": "Greyhound",
+   "prompt_hint": "Lean aerodynamic sighthound with a long narrow head and small folded rose ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "whippet",
+   "species": "dog",
+   "label": "Whippet",
+   "prompt_hint": "Slender graceful sighthound with a narrow head, rose ears and long thin tail.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "fawn",
+      "hex": "#D2B48C"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "italian_greyhound",
+   "species": "dog",
+   "label": "Italian Greyhound",
+   "prompt_hint": "Tiny delicate sighthound with a fine long muzzle and folded rose ears.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "rose",
+     "size": "small",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "bernese",
+   "species": "dog",
+   "label": "Bernese Mountain Dog",
+   "prompt_hint": "Big tricolour mountain dog with a white blaze and chest. Soft drop ears and a bushy tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.7
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "tricolour",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "saint_bernard",
+   "species": "dog",
+   "label": "Saint Bernard",
+   "prompt_hint": "Giant gentle dog with a massive head, dark mask and white blaze.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "medium",
+     "texture": "smooth",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze",
+      "white_chest",
+      "dark_mask"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "newfoundland",
+   "species": "dog",
+   "label": "Newfoundland",
+   "prompt_hint": "Huge fluffy black bear of a dog with a broad head and small drop ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "cane_corso",
+   "species": "dog",
+   "label": "Cane Corso",
+   "prompt_hint": "Large muscular mastiff with a broad square head and short muzzle.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "small",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "boston_terrier",
+   "species": "dog",
+   "label": "Boston Terrier",
+   "prompt_hint": "Tuxedo-coated small dog with a square flat face, big round eyes and large erect ears.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "tuxedo",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "pekingese",
+   "species": "dog",
+   "label": "Pekingese",
+   "prompt_hint": "Lion-like mane with a flat face and dark mask. Long feathered ears.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.9
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": [
+      "dark_mask"
+     ]
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "lhasa_apso",
+   "species": "dog",
+   "label": "Lhasa Apso",
+   "prompt_hint": "Long heavy straight coat that parts down the back. Small face and plumed tail over the back.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "papillon",
+   "species": "dog",
+   "label": "Papillon",
+   "prompt_hint": "Tiny dog with large fringed butterfly ears and a white blaze.",
+   "preset": {
+    "body": {
+     "size": "tiny",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "tight"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_blaze"
+     ],
+     "secondary": {
+      "name": "red",
+      "hex": "#C8763A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "weimaraner",
+   "species": "dog",
+   "label": "Weimaraner",
+   "prompt_hint": "Sleek silver-grey dog with light amber eyes and long drop ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "vizsla",
+   "species": "dog",
+   "label": "Vizsla",
+   "prompt_hint": "Lean golden-rust pointer with long silky drop ears and a red nose.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "straight",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "brown"
+    }
+   }
+  },
+  {
+   "id": "bernedoodle",
+   "species": "dog",
+   "label": "Bernedoodle",
+   "prompt_hint": "Big curly tricolour doodle with a teddy-bear face and soft drop ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "curly",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "tricolour",
+     "markings": [
+      "white_blaze",
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "labradoodle",
+   "species": "dog",
+   "label": "Labradoodle",
+   "prompt_hint": "Shaggy curly teddy-bear coat with a friendly face and soft drop ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "medium",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "curly",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "cockapoo",
+   "species": "dog",
+   "label": "Cockapoo",
+   "prompt_hint": "Small curly-coated doodle with long fluffy ears and a sweet round face.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "drop",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "curly",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "mixed",
+   "species": "dog",
+   "label": "Mixed / not sure",
+   "prompt_hint": "A friendly mixed-breed dog with balanced, typical proportions.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded"
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "brown",
+     "hex": "#3B2412",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  }
+ ]
+}

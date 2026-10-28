@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_gus",
+ "species": "dog",
+ "pet_name": "Gus",
+ "seed": 1003,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:36:44.595Z",
+ "finished_at": "2026-10-28T10:37:08.178Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 1003
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 2,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1364,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5985,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4566,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.958"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 224,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 11429,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_gus/spec.json",
+   "bytes": 990,
+   "sha256": "0ba68eb386ab2d527a81170172587c7d3cde8195efe5bb35a7455de78373b36a"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_gus/concept.png",
+   "bytes": 50817,
+   "sha256": "9e6b796989494306ad9f9a44754051bfec9616636fc25e11746084e471e4c2bc"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_gus/views/front.png",
+   "bytes": 38745,
+   "sha256": "fbecbd7d63625616c490dfc2fb65fdbf175ce8cab8f67172d67a80c39252ed3a"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_gus/views/left.png",
+   "bytes": 30769,
+   "sha256": "f987c57ff355515e8513a2cf67ea51359bfd482aa512003789b8fae1d022c1f6"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_gus/views/back.png",
+   "bytes": 34713,
+   "sha256": "7b01128cf7e016b86bcd01adf1da068f6beb1fb3d18d90d828e7eae7834ed8fa"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_gus/views/right.png",
+   "bytes": 31717,
+   "sha256": "8510ec0c3fc143c9220a1c5e45307cfc572d4b388ee6611c438718e9e084a631"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_gus/shape.glb",
+   "bytes": 262092,
+   "sha256": "235887a905e40af9e11b9db3485e188fd3fda201a795dda1110fb0044c0e514e"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/figure_uv.obj",
+   "bytes": 1116582,
+   "sha256": "02eb2797f7e5763f6f28fe4c08101deb3568925830961035c6a47b730725ed8f"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/albedo.png",
+   "bytes": 62681,
+   "sha256": "c1ddeb69db226a50d0087385e3ac9e5b3d1a4c79d3962a29fbc4156ae3ce8521"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/figure.glb",
+   "bytes": 417792,
+   "sha256": "65c1161d7c3523eb4e2076b6cf395a7e8433980d760c4d6d2371255908964974"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/figure.stl",
+   "bytes": 768184,
+   "sha256": "9ee1a4c56e7879f979a27fd459f55a18001112032c9ec453a06276111a8e6e9b"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/figure.3mf",
+   "bytes": 304539,
+   "sha256": "5a028e98f1123a26e9f1cb10c865a85a2e516cfddde21c3f3d07d3f2b3b7b88b"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/paint_mask.png",
+   "bytes": 8989,
+   "sha256": "21f0be1c7994b0404bf9f5408f384ecb2416c1b062ebb1a73f334099ea8a3868"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_gus/thumbnail.png",
+   "bytes": 22221,
+   "sha256": "225399fdf435bd4d715162b649f4cfdcd3798ef302f8f0642706de37366a741d"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9575,
+  "iou_views": [
+   0.9526,
+   0.9624,
+   0.9526,
+   0.9624
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15362,
+  "print_height_mm": 97.6,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 9.36,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 23570
+ }
+}

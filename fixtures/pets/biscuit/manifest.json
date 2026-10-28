@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_biscuit",
+ "species": "dog",
+ "pet_name": "Biscuit",
+ "seed": 918273,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:35:35.362Z",
+ "finished_at": "2026-10-28T10:35:59.092Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 918273
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 2,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1397,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 6285,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4802,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.958"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 216,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 11016,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_biscuit/spec.json",
+   "bytes": 1258,
+   "sha256": "a511e1274a99eda45ca6e7c74d7f534ecdcadb0985bf5651744956c1704834b0"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_biscuit/concept.png",
+   "bytes": 56007,
+   "sha256": "e45b8dac3f5a5bb99d4e6f7f034959d2eae482ae6d5bc304d5610852fc38e276"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_biscuit/views/front.png",
+   "bytes": 43668,
+   "sha256": "e87dee01b30321af1272a8ba2d9bd5ca6f758263b53ac91252db374d3a78e1fc"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_biscuit/views/left.png",
+   "bytes": 33354,
+   "sha256": "f49c405f41f373917abfb44dc598ea844edd15ff6ff740cae29e5d2ec3c73354"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_biscuit/views/back.png",
+   "bytes": 33977,
+   "sha256": "c281ea0238fe2181ef7114c449db5b2dea64ed3691d1006595d578571cdd0fca"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_biscuit/views/right.png",
+   "bytes": 33983,
+   "sha256": "d364b3a62624c39e58a6c9631ea6bb806c2a28db492abfb67a64335917a69bd0"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_biscuit/shape.glb",
+   "bytes": 262092,
+   "sha256": "6eb9272610e7af708c76f92e473ce36bc40fe9370c7c7b1ce6e91874320f2aea"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/figure_uv.obj",
+   "bytes": 1116357,
+   "sha256": "8a29e369d99233e9852ca27c7cb371231f9cd74395f58046239aff85a60cd37e"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/albedo.png",
+   "bytes": 163256,
+   "sha256": "eb9b75fa9b12a7d8cc84b900a15fe42ae441fa9bfc6984885367abf6c55275eb"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/figure.glb",
+   "bytes": 521420,
+   "sha256": "a30b0b191cd6acecf16c88cfc799a5993032d0ab4de95304ea7d931ffce5d869"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/figure.stl",
+   "bytes": 763984,
+   "sha256": "2dbb2b43f3e769625e796bb0ae391a0c855aa72df48977d2ed92c306644fa3b8"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/figure.3mf",
+   "bytes": 302588,
+   "sha256": "122e856800e0a97e1e090dffff20a3ac3fbe1e30220accd29f505f1b18e3da42"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/paint_mask.png",
+   "bytes": 9561,
+   "sha256": "725aab8a8a9d5686db7d717200ed2bba390d0f1c6a066142f1909c824649f485"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_biscuit/thumbnail.png",
+   "bytes": 25010,
+   "sha256": "af6e99a7d4adc44f95a0917519dec9d4f3eb99df71df4d7460118c4058c2794f"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9577,
+  "iou_views": [
+   0.9535,
+   0.9618,
+   0.9535,
+   0.9618
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15278,
+  "print_height_mm": 99.0,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 8.54,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 23718
+ }
+}

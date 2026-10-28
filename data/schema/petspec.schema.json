@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/petspec.schema.json",
+  "title": "PetSpec",
+  "description": "One pet description. Every selector, breed preset and parsed brief compiles into this object (BRIEF Section 3). Enumerations are closed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version", "species", "breed", "body", "head", "ears", "tail", "coat", "colour", "eyes", "nose", "accessories", "seed"],
+  "properties": {
+    "spec_version": { "const": "1.0" },
+    "pet_name": { "type": "string", "maxLength": 24 },
+    "species": { "$ref": "#/$defs/species" },
+    "breed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$", "maxLength": 48 },
+        "label": { "type": "string", "maxLength": 64 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["size", "build", "leg_length", "pose"],
+      "properties": {
+        "size": { "enum": ["tiny", "small", "medium", "large"] },
+        "build": { "enum": ["slim", "standard", "stocky"] },
+        "leg_length": { "enum": ["short", "medium", "long"] },
+        "pose": { "enum": ["sitting"] }
+      }
+    },
+    "head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["muzzle_length", "muzzle_width", "brachycephalic"],
+      "properties": {
+        "muzzle_length": { "enum": ["short", "medium", "long"] },
+        "muzzle_width": { "enum": ["narrow", "medium", "wide"] },
+        "brachycephalic": { "type": "boolean" }
+      }
+    },
+    "ears": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shape", "size", "tip"],
+      "properties": {
+        "shape": { "enum": ["erect", "semi_erect", "drop", "folded", "rose"] },
+        "size": { "enum": ["small", "medium", "large"] },
+        "tip": { "enum": ["pointed", "rounded"] },
+        "tufted": { "type": "boolean" }
+      }
+    },
+    "tail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "length", "curl"],
+      "properties": {
+        "type": { "enum": ["curled", "plume", "straight", "bob", "long_thin"] },
+        "length": { "enum": ["short", "medium", "long"] },
+        "curl": { "enum": ["none", "slight", "tight"] }
+      }
+    },
+    "coat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["length", "texture", "fluffiness"],
+      "properties": {
+        "length": { "enum": ["short", "medium", "long"] },
+        "texture": { "enum": ["smooth", "wiry", "curly", "silky", "fluffy"] },
+        "fluffiness": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "colour": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base", "pattern", "markings"],
+      "properties": {
+        "base": { "$ref": "#/$defs/colour" },
+        "secondary": { "$ref": "#/$defs/colour" },
+        "pattern": {
+          "enum": ["solid", "bicolour", "tricolour", "saddle_with_white_chest", "merle", "brindle", "sable", "spotted", "tabby", "tuxedo", "calico", "colourpoint"]
+        },
+        "markings": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 5,
+          "items": { "enum": ["white_blaze", "white_socks", "white_chest", "dark_mask", "points"] }
+        }
+      }
+    },
+    "eyes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["colour", "hex", "heterochromia"],
+      "properties": {
+        "colour": { "$ref": "#/$defs/eye_colour" },
+        "hex": { "$ref": "#/$defs/hex" },
+        "heterochromia": { "type": "boolean" },
+        "second_colour": { "$ref": "#/$defs/eye_colour" },
+        "second_hex": { "$ref": "#/$defs/hex" }
+      }
+    },
+    "nose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["colour"],
+      "properties": {
+        "colour": { "enum": ["black", "brown", "pink", "liver", "grey"] }
+      }
+    },
+    "accessories": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "colour_hex"],
+        "properties": {
+          "type": { "enum": ["collar", "bandana", "bow", "hat", "glasses"] },
+          "colour_hex": { "$ref": "#/$defs/hex" },
+          "colour_name": { "$ref": "#/$defs/palette_name" },
+          "tag": { "type": "boolean" }
+        }
+      }
+    },
+    "personality": {
+      "type": "array",
+      "maxItems": 4,
+      "items": { "type": "string", "minLength": 1, "maxLength": 30 }
+    },
+    "free_text": { "type": "string", "maxLength": 500 },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ears.asymmetry": { "enum": ["none", "left_floppy", "right_floppy"] }
+      }
+    },
+    "seed": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
+  },
+  "$defs": {
+    "species": { "enum": ["dog", "cat"] },
+    "hex": { "type": "string", "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$" },
+    "palette_name": {
+      "enum": ["black", "white", "cream", "gold", "red", "tan", "fawn", "chocolate", "grey", "blue_grey", "ginger", "silver"]
+    },
+    "colour": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "hex"],
+      "properties": {
+        "name": { "$ref": "#/$defs/palette_name" },
+        "hex": { "$ref": "#/$defs/hex" }
+      }
+    },
+    "eye_colour": { "enum": ["brown", "amber", "hazel", "green", "blue", "copper"] }
+  }
+}

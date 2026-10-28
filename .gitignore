@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+dist/
+storybook-static/
+test-results/
+playwright-report/
+var/
+.env
+*.blend1
+/tmp/
+*.tsbuildinfo

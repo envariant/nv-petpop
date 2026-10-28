@@ -1,0 +1,71 @@
+{
+ "spec_version": "1.0",
+ "species": "cat",
+ "breed": {
+  "id": "tuxedo",
+  "label": "Tuxedo Cat",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "medium",
+  "build": "standard",
+  "leg_length": "medium",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "medium",
+  "tip": "pointed",
+  "tufted": false
+ },
+ "tail": {
+  "type": "long_thin",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.2
+ },
+ "colour": {
+  "base": {
+   "name": "black",
+   "hex": "#1E1B1A"
+  },
+  "pattern": "tuxedo",
+  "markings": [
+   "white_chest",
+   "white_socks"
+  ],
+  "secondary": {
+   "name": "white",
+   "hex": "#F4EFE6"
+  }
+ },
+ "eyes": {
+  "colour": "green",
+  "hex": "#4E8C3A",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "pink"
+ },
+ "accessories": [
+  {
+   "type": "bow",
+   "colour_hex": "#DD3333",
+   "colour_name": "red"
+  }
+ ],
+ "personality": [],
+ "free_text": "",
+ "overrides": {},
+ "seed": 2001,
+ "pet_name": "Oreo"
+}

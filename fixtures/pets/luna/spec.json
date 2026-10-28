@@ -1,0 +1,66 @@
+{
+ "spec_version": "1.0",
+ "species": "cat",
+ "breed": {
+  "id": "siamese",
+  "label": "Siamese",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "medium",
+  "build": "slim",
+  "leg_length": "long",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "long",
+  "muzzle_width": "narrow",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "large",
+  "tip": "pointed",
+  "tufted": false
+ },
+ "tail": {
+  "type": "long_thin",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.1
+ },
+ "colour": {
+  "base": {
+   "name": "cream",
+   "hex": "#EAD9B8"
+  },
+  "pattern": "colourpoint",
+  "markings": [
+   "points"
+  ],
+  "secondary": {
+   "name": "chocolate",
+   "hex": "#5C3A21"
+  }
+ },
+ "eyes": {
+  "colour": "blue",
+  "hex": "#4A86C5",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "pink"
+ },
+ "accessories": [],
+ "personality": [
+  "curious"
+ ],
+ "free_text": "",
+ "overrides": {},
+ "seed": 2002,
+ "pet_name": "Luna"
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Gate 5 (S3): texture stage (Hunyuan3D-Paint) and full real pipeline under 4 min. Runs only on the GPU host (PETPOP_MODE=real).
+source "$(dirname "$0")/lib.sh"
+skip_without_gpu 5
+echo "gate-5: texture stage (Hunyuan3D-Paint) and full real pipeline under 4 min"
+step "GPU services reachable" bash -c 'curl -fsS "${COMFY_URL:?COMFY_URL}/system_stats" && curl -fsS "${OLLAMA_URL:?OLLAMA_URL}/api/tags"'
+step "contract test against the real backend (real adapters)" env PETPOP_GATE=5 "$PY" -m pytest tests/contract -k backend
+step "regression metrics meet gate 5 thresholds" "$PY" scripts/regress.py --gate 5
+echo "GATE 5 PASSED"

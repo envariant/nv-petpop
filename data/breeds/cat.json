@@ -1,0 +1,1421 @@
+{
+ "species": "cat",
+ "accent": "#7A5CFF",
+ "breeds": [
+  {
+   "id": "domestic_shorthair",
+   "species": "cat",
+   "label": "Domestic Shorthair",
+   "prompt_hint": "Everyday house cat with a rounded head and upright pointed ears. Striped tabby coat.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "domestic_longhair",
+   "species": "cat",
+   "label": "Domestic Longhair",
+   "prompt_hint": "Fluffy long-haired house cat with a full ruff and plumed tail.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.7
+    },
+    "colour": {
+     "base": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     },
+     "pattern": "bicolour",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "tabby_orange",
+   "species": "cat",
+   "label": "Orange Tabby",
+   "prompt_hint": "Classic ginger tabby with bold swirling stripes and an M on the forehead.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     },
+     "pattern": "tabby",
+     "markings": [],
+     "secondary": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "tuxedo",
+   "species": "cat",
+   "label": "Tuxedo Cat",
+   "prompt_hint": "Black cat with a white bib and white socks like a dinner suit.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "tuxedo",
+     "markings": [
+      "white_chest",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "calico",
+   "species": "cat",
+   "label": "Calico Cat",
+   "prompt_hint": "White cat with bold patches of ginger and black.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "calico",
+     "markings": [],
+     "secondary": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "tortoiseshell",
+   "species": "cat",
+   "label": "Tortoiseshell",
+   "prompt_hint": "Mottled brindled coat of black and ginger woven together.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "calico",
+     "markings": [],
+     "secondary": {
+      "name": "ginger",
+      "hex": "#E08A3C"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "siamese",
+   "species": "cat",
+   "label": "Siamese",
+   "prompt_hint": "Slender cat with a long wedge head and very large ears. Cream body with dark points and blue eyes.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points"
+     ],
+     "secondary": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "persian",
+   "species": "cat",
+   "label": "Persian",
+   "prompt_hint": "Very flat round face with tiny ears and a huge flowing coat.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "maine_coon",
+   "species": "cat",
+   "label": "Maine Coon",
+   "prompt_hint": "Giant shaggy cat with lynx-tipped tufted ears, a ruff and a huge bushy tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": true
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 0.9
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "ragdoll",
+   "species": "cat",
+   "label": "Ragdoll",
+   "prompt_hint": "Large soft colourpoint cat with mitted white paws and deep blue eyes.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.8
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "british_shorthair",
+   "species": "cat",
+   "label": "British Shorthair",
+   "prompt_hint": "Round chubby cheeks on a round head with small ears. Dense plush blue-grey coat.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "scottish_fold",
+   "species": "cat",
+   "label": "Scottish Fold",
+   "prompt_hint": "Round owl-like face with ears folded flat forward. Big round eyes.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "folded",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.4
+    },
+    "colour": {
+     "base": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     },
+     "pattern": "tabby",
+     "markings": [],
+     "secondary": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "bengal",
+   "species": "cat",
+   "label": "Bengal",
+   "prompt_hint": "Athletic wild-looking cat with leopard rosettes on a golden coat.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "sphynx",
+   "species": "cat",
+   "label": "Sphynx",
+   "prompt_hint": "Hairless wrinkled cat with huge bat-like ears and lemon-shaped eyes.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.0
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "russian_blue",
+   "species": "cat",
+   "label": "Russian Blue",
+   "prompt_hint": "Elegant silver-blue cat with vivid green eyes and a gentle smile.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "silky",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "blue_grey",
+      "hex": "#6F7F8F"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "grey"
+    }
+   }
+  },
+  {
+   "id": "abyssinian",
+   "species": "cat",
+   "label": "Abyssinian",
+   "prompt_hint": "Slender ruddy ticked cat with large alert ears and almond eyes.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "red",
+      "hex": "#C8763A"
+     },
+     "pattern": "solid",
+     "markings": [],
+     "secondary": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "norwegian_forest",
+   "species": "cat",
+   "label": "Norwegian Forest Cat",
+   "prompt_hint": "Big woolly cat with a thick mane, tufted ears and a bushy tail.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "stocky",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": true
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "silver",
+      "hex": "#C9CCD1"
+     },
+     "pattern": "tabby",
+     "markings": [
+      "white_chest"
+     ],
+     "secondary": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     }
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "birman",
+   "species": "cat",
+   "label": "Birman",
+   "prompt_hint": "Silky colourpoint cat with pure white gloves on all four paws.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.7
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points",
+      "white_socks"
+     ],
+     "secondary": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "exotic_shorthair",
+   "species": "cat",
+   "label": "Exotic Shorthair",
+   "prompt_hint": "Teddy-bear-like flat-faced cat with plush short fur and tiny ears.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.5
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "devon_rex",
+   "species": "cat",
+   "label": "Devon Rex",
+   "prompt_hint": "Pixie-like cat with enormous low-set ears and a wavy curly coat.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "curly",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "grey",
+      "hex": "#8A8A8A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "cornish_rex",
+   "species": "cat",
+   "label": "Cornish Rex",
+   "prompt_hint": "Greyhound-like curly-coated cat with tall ears and an egg-shaped head.",
+   "preset": {
+    "body": {
+     "size": "small",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "long",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "curly",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "bicolour",
+     "markings": [],
+     "secondary": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "savannah",
+   "species": "cat",
+   "label": "Savannah",
+   "prompt_hint": "Tall leggy spotted cat with very large upright ears.",
+   "preset": {
+    "body": {
+     "size": "large",
+     "build": "slim",
+     "leg_length": "long",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": true
+    },
+    "tail": {
+     "type": "straight",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.1
+    },
+    "colour": {
+     "base": {
+      "name": "gold",
+      "hex": "#D9A441"
+     },
+     "pattern": "spotted",
+     "markings": [],
+     "secondary": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     }
+    },
+    "eyes": {
+     "colour": "amber",
+     "hex": "#C88A1E",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "himalayan",
+   "species": "cat",
+   "label": "Himalayan",
+   "prompt_hint": "Flat-faced long-haired cat with colourpoint markings and blue eyes.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "short",
+     "muzzle_width": "wide",
+     "brachycephalic": true
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "small",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "medium",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "fluffy",
+     "fluffiness": 1.0
+    },
+    "colour": {
+     "base": {
+      "name": "cream",
+      "hex": "#EAD9B8"
+     },
+     "pattern": "colourpoint",
+     "markings": [
+      "points"
+     ],
+     "secondary": {
+      "name": "chocolate",
+      "hex": "#5C3A21"
+     }
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "turkish_angora",
+   "species": "cat",
+   "label": "Turkish Angora",
+   "prompt_hint": "Fine-boned white cat with a silky coat and a plumed tail.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "slim",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "narrow",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "large",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "plume",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "long",
+     "texture": "silky",
+     "fluffiness": 0.6
+    },
+    "colour": {
+     "base": {
+      "name": "white",
+      "hex": "#F4EFE6"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "blue",
+     "hex": "#4A86C5",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  },
+  {
+   "id": "manx",
+   "species": "cat",
+   "label": "Manx",
+   "prompt_hint": "Round tailless cat with a rounded rump and round head.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "stocky",
+     "leg_length": "short",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "rounded",
+     "tufted": false
+    },
+    "tail": {
+     "type": "bob",
+     "length": "short",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "fluffy",
+     "fluffiness": 0.3
+    },
+    "colour": {
+     "base": {
+      "name": "black",
+      "hex": "#1E1B1A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "copper",
+     "hex": "#B5652A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "black"
+    }
+   }
+  },
+  {
+   "id": "mixed",
+   "species": "cat",
+   "label": "Mixed / not sure",
+   "prompt_hint": "A friendly mixed-breed cat with balanced, typical proportions.",
+   "preset": {
+    "body": {
+     "size": "medium",
+     "build": "standard",
+     "leg_length": "medium",
+     "pose": "sitting"
+    },
+    "head": {
+     "muzzle_length": "medium",
+     "muzzle_width": "medium",
+     "brachycephalic": false
+    },
+    "ears": {
+     "shape": "erect",
+     "size": "medium",
+     "tip": "pointed",
+     "tufted": false
+    },
+    "tail": {
+     "type": "long_thin",
+     "length": "long",
+     "curl": "none"
+    },
+    "coat": {
+     "length": "short",
+     "texture": "smooth",
+     "fluffiness": 0.2
+    },
+    "colour": {
+     "base": {
+      "name": "tan",
+      "hex": "#B88A5A"
+     },
+     "pattern": "solid",
+     "markings": []
+    },
+    "eyes": {
+     "colour": "green",
+     "hex": "#4E8C3A",
+     "heterochromia": false
+    },
+    "nose": {
+     "colour": "pink"
+    }
+   }
+  }
+ ]
+}

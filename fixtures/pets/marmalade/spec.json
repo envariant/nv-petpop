@@ -1,0 +1,64 @@
+{
+ "spec_version": "1.0",
+ "species": "cat",
+ "breed": {
+  "id": "tabby_orange",
+  "label": "Orange Tabby",
+  "confidence": 1.0
+ },
+ "body": {
+  "size": "medium",
+  "build": "stocky",
+  "leg_length": "medium",
+  "pose": "sitting"
+ },
+ "head": {
+  "muzzle_length": "medium",
+  "muzzle_width": "medium",
+  "brachycephalic": false
+ },
+ "ears": {
+  "shape": "erect",
+  "size": "medium",
+  "tip": "pointed",
+  "tufted": false
+ },
+ "tail": {
+  "type": "long_thin",
+  "length": "long",
+  "curl": "none"
+ },
+ "coat": {
+  "length": "short",
+  "texture": "smooth",
+  "fluffiness": 0.2
+ },
+ "colour": {
+  "base": {
+   "name": "ginger",
+   "hex": "#E08A3C"
+  },
+  "pattern": "tabby",
+  "markings": [],
+  "secondary": {
+   "name": "cream",
+   "hex": "#EAD9B8"
+  }
+ },
+ "eyes": {
+  "colour": "amber",
+  "hex": "#C88A1E",
+  "heterochromia": false
+ },
+ "nose": {
+  "colour": "pink"
+ },
+ "accessories": [],
+ "personality": [
+  "lazy"
+ ],
+ "free_text": "",
+ "overrides": {},
+ "seed": 2003,
+ "pet_name": "Marmalade"
+}

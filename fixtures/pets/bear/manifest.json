@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_bear",
+ "species": "cat",
+ "pet_name": "Bear",
+ "seed": 2004,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:39:00.077Z",
+ "finished_at": "2026-10-28T10:39:21.029Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 2004
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 4,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1446,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5170,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4366,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.953"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 243,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 9711,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_bear/spec.json",
+   "bytes": 1071,
+   "sha256": "1b664e474af4753f99dbd822b78139431ec44c6cc6f00f5753e2b6fae5af73d3"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_bear/concept.png",
+   "bytes": 53662,
+   "sha256": "c617676a5325d30c00a36451a0e8bc9624020694c4271114ca6c49f60b51ab3d"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_bear/views/front.png",
+   "bytes": 41966,
+   "sha256": "a173b751a3d319d5bed660fe18cf864feaa9ee420bd6d90b4bf8780aed347700"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_bear/views/left.png",
+   "bytes": 38632,
+   "sha256": "930f44c42bc5d2a356292d5b50c4bc4a96fc35d1d2c03be2b2b0b4da9bcf1231"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_bear/views/back.png",
+   "bytes": 35993,
+   "sha256": "6a9f3702819f47867a853c8ed2f4c17e51e0c967ffa65fb56fb2fe5dd0ceeea8"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_bear/views/right.png",
+   "bytes": 38267,
+   "sha256": "08e83d54e718b7a2851dc51ce0caa71a8fba15a18b7918d7416d3c2d1d01ff8a"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_bear/shape.glb",
+   "bytes": 262164,
+   "sha256": "ff1b1514ed61283c25b18aa4c6a0dd0fc853cc18b744f2e3b1ef7fdce92c7996"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/figure_uv.obj",
+   "bytes": 1116676,
+   "sha256": "43b456db180412ab2d833897ed8e8f0e7364c895a7e766410eac7848e948b1f3"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/albedo.png",
+   "bytes": 269195,
+   "sha256": "5842693d3075ccaab5b4d1b4ab25d9002f1ccf2429bd04bfc15f793576e049d2"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/figure.glb",
+   "bytes": 627468,
+   "sha256": "a637da4aa89c07dfac2b5d27c84c998fdcdb49af58b8d4eb607e21a51992740d"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/figure.stl",
+   "bytes": 756784,
+   "sha256": "a8d555ab3e181241d220e72ade2e0c2ead096bc64f3bd5d40042f2a186176cc3"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/figure.3mf",
+   "bytes": 298940,
+   "sha256": "a123b6dcc1e4a6b420899e6731ee1963b6672471f6109ec45b38fa06b50da670"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/paint_mask.png",
+   "bytes": 10237,
+   "sha256": "07296d96b4d8524a8f72c0206a1ebb2b865457693a73c1cdf6a75f023d561ee7"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_bear/thumbnail.png",
+   "bytes": 24723,
+   "sha256": "455becc03010435651f72d7df899971bb4dfd91274824dac96cbab8d7a92931a"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9533,
+  "iou_views": [
+   0.966,
+   0.9405,
+   0.966,
+   0.9407
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 15134,
+  "print_height_mm": 106.35,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 5.58,
+  "uv_layout_hash": "78f037cbe940ba43",
+  "topology_hash": "9ad6ca9a22865e07",
+  "total_ms": 20940
+ }
+}

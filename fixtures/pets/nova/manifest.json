@@ -1,0 +1,208 @@
+{
+ "manifest_version": "1.0",
+ "job_id": "fx_nova",
+ "species": "dog",
+ "pet_name": "Nova",
+ "seed": 1002,
+ "mode": "mock",
+ "fidelity": "low",
+ "fallback": "none",
+ "created_at": "2026-10-28T10:36:22.010Z",
+ "finished_at": "2026-10-28T10:36:44.585Z",
+ "versions": {
+  "pipeline": "0.2.0",
+  "spec": "1.0",
+  "vocab": "1.0",
+  "base_mesh": "proxy-1.0",
+  "workflows": {}
+ },
+ "seeds": {
+  "job": 1002
+ },
+ "stages": [
+  {
+   "stage": "A",
+   "status": "ok",
+   "ms": 0,
+   "attempts": 1,
+   "backend": "rules"
+  },
+  {
+   "stage": "control",
+   "status": "ok",
+   "ms": 1,
+   "attempts": 1,
+   "backend": "lowfi"
+  },
+  {
+   "stage": "B",
+   "status": "ok",
+   "ms": 1577,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "C",
+   "status": "ok",
+   "ms": 5237,
+   "attempts": 1,
+   "backend": "lowfi-render"
+  },
+  {
+   "stage": "D",
+   "status": "ok",
+   "ms": 4623,
+   "attempts": 1,
+   "backend": "mock-shape",
+   "notes": "iou 0.964"
+  },
+  {
+   "stage": "E",
+   "status": "ok",
+   "ms": 215,
+   "attempts": 1,
+   "backend": "lowfi-wrap"
+  },
+  {
+   "stage": "F",
+   "status": "ok",
+   "ms": 10904,
+   "attempts": 1,
+   "backend": "lowfi-bake"
+  }
+ ],
+ "files": [
+  {
+   "name": "spec.json",
+   "kind": "spec",
+   "stage": "A",
+   "object_key": "jobs/fx_nova/spec.json",
+   "bytes": 1052,
+   "sha256": "ae401a77df7f025784471d751ad5c14a3790aae8b82e235f5092f8577b356f8f"
+  },
+  {
+   "name": "concept.png",
+   "kind": "concept",
+   "stage": "B",
+   "object_key": "jobs/fx_nova/concept.png",
+   "bytes": 42829,
+   "sha256": "325c6931e4e2ae358ad4635f04c198e2f40831d72f73dd9792013a588bdc48a2"
+  },
+  {
+   "name": "views/front.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_nova/views/front.png",
+   "bytes": 32785,
+   "sha256": "3a0d0707c7da1221e3a6a38c524fb30f89ec5ab1875dc54495b7dedf1fdb36a6"
+  },
+  {
+   "name": "views/left.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_nova/views/left.png",
+   "bytes": 27932,
+   "sha256": "7d5c281cc864ad38380a23d56e5d2641c47788f7e4ced4cdc7d5e9443a7989fe"
+  },
+  {
+   "name": "views/back.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_nova/views/back.png",
+   "bytes": 25999,
+   "sha256": "47bb5763a838d658c392113d3c81fd2b7e88628031ca45e69beab723c8f88c83"
+  },
+  {
+   "name": "views/right.png",
+   "kind": "view",
+   "stage": "C",
+   "object_key": "jobs/fx_nova/views/right.png",
+   "bytes": 28156,
+   "sha256": "763a9f4cd01799c8cd6241d2b0be6be9e047fabc17726da6f7c5c90e9b82fe4c"
+  },
+  {
+   "name": "shape.glb",
+   "kind": "shape",
+   "stage": "D",
+   "object_key": "jobs/fx_nova/shape.glb",
+   "bytes": 262092,
+   "sha256": "aca2ad6830f8826a16a689e8dd068975d8d3a359b59f4e9d86f0b1b60d5c5d28"
+  },
+  {
+   "name": "figure_uv.obj",
+   "kind": "uv_obj",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/figure_uv.obj",
+   "bytes": 1116695,
+   "sha256": "5792192515e99973f4c21b48d0b826e3facb08b09ba3a3efad432d2243e47888"
+  },
+  {
+   "name": "albedo.png",
+   "kind": "albedo",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/albedo.png",
+   "bytes": 112318,
+   "sha256": "b9e3c196ab1926cacc89d854e60e636c077661a54147c1458277cdb3b20c2b52"
+  },
+  {
+   "name": "figure.glb",
+   "kind": "glb",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/figure.glb",
+   "bytes": 468636,
+   "sha256": "8fb8cf83aba876853fef17cab7126f013fc25563fef0f0be22b7a0dfb4711fc7"
+  },
+  {
+   "name": "figure.stl",
+   "kind": "stl",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/figure.stl",
+   "bytes": 740284,
+   "sha256": "4ae0102cbf6c5890e024033ef2ab70c29035ef19012cb6e815d9dfb32a810d52"
+  },
+  {
+   "name": "figure.3mf",
+   "kind": "3mf",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/figure.3mf",
+   "bytes": 293156,
+   "sha256": "8d1e56d887d52612288e936acc1ade29a79796452639f27b51689bfbcdc53954"
+  },
+  {
+   "name": "paint_mask.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/paint_mask.png",
+   "bytes": 11715,
+   "sha256": "076cb72b59c19d714d1724e94f2b4f80de3169aac0cc51748579dda2d74ffa9f"
+  },
+  {
+   "name": "thumbnail.png",
+   "kind": "thumbnail",
+   "stage": "F",
+   "object_key": "jobs/fx_nova/thumbnail.png",
+   "bytes": 18785,
+   "sha256": "ed55a4e69a56a7ae4d5fe07162cfe75ea85fc1b9f463665cb1913d1d3c545d6d"
+  }
+ ],
+ "metrics": {
+  "iou_mean": 0.9641,
+  "iou_views": [
+   0.966,
+   0.9622,
+   0.966,
+   0.9622
+  ],
+  "wrap_valid": true,
+  "wrap_notes": "nearest-point stand-in",
+  "print_watertight": true,
+  "print_tris": 14804,
+  "print_height_mm": 96.76,
+  "min_wall_ok": true,
+  "min_wall_mm": null,
+  "paint_mask_pct": 6.0,
+  "uv_layout_hash": "8991c3506593f7ea",
+  "topology_hash": "837de5361ae6d863",
+  "total_ms": 22557
+ }
+}
