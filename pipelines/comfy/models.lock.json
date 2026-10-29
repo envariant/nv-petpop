@@ -1,0 +1,245 @@
+{
+ "entries": {
+  "clip-vit-h-image-encoder": {
+   "dest": "clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors",
+   "files": {
+    "models/image_encoder/model.safetensors": {
+     "sha256": "6ca9667da1ca9e0b0f75e46bb030f7e011f44f86cbfb8d5a36590fcd7507b030",
+     "size": 2528373448
+    }
+   },
+   "repo": "h94/IP-Adapter",
+   "revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+   "sha256": "6ca9667da1ca9e0b0f75e46bb030f7e011f44f86cbfb8d5a36590fcd7507b030"
+  },
+  "controlnet-depth-sdxl-1.0": {
+   "dest": "controlnet/controlnet-depth-sdxl-1.0.fp16.safetensors",
+   "files": {
+    "diffusion_pytorch_model.fp16.safetensors": {
+     "sha256": "66a6813e6bd7270ecfe68206a59ddd605a011ae85321188376605c66e0a4f303",
+     "size": 2502139134
+    }
+   },
+   "repo": "diffusers/controlnet-depth-sdxl-1.0",
+   "revision": "17bb97973f29801224cd66f192c5ffacf82648b4",
+   "sha256": "66a6813e6bd7270ecfe68206a59ddd605a011ae85321188376605c66e0a4f303"
+  },
+  "hunyuan3d-2.1-shape-snapshot": {
+   "dest": "hf/tencent/Hunyuan3D-2.1",
+   "files": {
+    "hunyuan3d-dit-v2-1/config.yaml": {
+     "sha256": "a9e9b66f0163a9b827d730633ac88f47fcc8e3071dcbb9ee12d88ef7537c5c6e",
+     "size": 2078
+    },
+    "hunyuan3d-dit-v2-1/model.fp16.ckpt": {
+     "sha256": "6b519fc7242f78e9b5f47ea4d55668fe3d944a2d27332f4ca68d29a6ff603f5e",
+     "size": 7366389768
+    }
+   },
+   "repo": "tencent/Hunyuan3D-2.1",
+   "revision": "0b94677654c57bb9a6b6845cd7b704ccf551d327",
+   "sha256": "173e50028ea049dbe7150cd3fc92fcfeef00b6285121fbffea5c2dfc9a1f79f9"
+  },
+  "hunyuan3d-dit-v2-1": {
+   "dest": "diffusion_models/hunyuan3d-dit-v2-1.fp16.ckpt",
+   "files": {
+    "hunyuan3d-dit-v2-1/model.fp16.ckpt": {
+     "sha256": "6b519fc7242f78e9b5f47ea4d55668fe3d944a2d27332f4ca68d29a6ff603f5e",
+     "size": 7366389768
+    }
+   },
+   "repo": "tencent/Hunyuan3D-2.1",
+   "revision": "0b94677654c57bb9a6b6845cd7b704ccf551d327",
+   "sha256": "6b519fc7242f78e9b5f47ea4d55668fe3d944a2d27332f4ca68d29a6ff603f5e"
+  },
+  "hunyuan3d-dit-v2-mv": {
+   "dest": "checkpoints/hunyuan3d-dit-v2-mv.fp16.safetensors",
+   "files": {
+    "hunyuan3d-dit-v2-mv/model.fp16.safetensors": {
+     "sha256": "d36f5881bcdc56726b73e517cd444c13c60732431622da7268145355c8d38e9c",
+     "size": 4928151562
+    }
+   },
+   "repo": "tencent/Hunyuan3D-2mv",
+   "revision": "3a761b539b29fe4ff64714813aa9560fd66f5de0",
+   "sha256": "d36f5881bcdc56726b73e517cd444c13c60732431622da7268145355c8d38e9c"
+  },
+  "hunyuan3d-paint-v2-0": {
+   "dest": "hf/tencent/Hunyuan3D-2",
+   "files": {
+    "hunyuan3d-delight-v2-0/feature_extractor/preprocessor_config.json": {
+     "sha256": "205d45875859846dc1ca211b9a19f5db72f47e953b396954ee34d48d8e95c3c6",
+     "size": 466
+    },
+    "hunyuan3d-delight-v2-0/model_index.json": {
+     "sha256": "13a10da7af47b30e4da0e76ab44902d8826457afaa431024f7033a369a2572c0",
+     "size": 621
+    },
+    "hunyuan3d-delight-v2-0/scheduler/scheduler_config.json": {
+     "sha256": "ba61cbc02207f4a6276fd7cd3a76b96ac12ed6d847aad48d65e54cd9be928b69",
+     "size": 533
+    },
+    "hunyuan3d-delight-v2-0/text_encoder/config.json": {
+     "sha256": "55c23f6c5b5a2dc5aea935ad82eb6e13a9fa839cf3acd3608fac419a4efd893d",
+     "size": 583
+    },
+    "hunyuan3d-delight-v2-0/text_encoder/model.safetensors": {
+     "sha256": "bc1827c465450322616f06dea41596eac7d493f4e95904dcb51f0fc745c4e13f",
+     "size": 680820392
+    },
+    "hunyuan3d-delight-v2-0/tokenizer/merges.txt": {
+     "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+     "size": 524619
+    },
+    "hunyuan3d-delight-v2-0/tokenizer/special_tokens_map.json": {
+     "sha256": "c2d0fb8b86ad86b1f46134d4a5f93fd1e688c932a78efc8d149087c33a53ad06",
+     "size": 574
+    },
+    "hunyuan3d-delight-v2-0/tokenizer/tokenizer_config.json": {
+     "sha256": "516314ccab66918d7cb647480ac27abd3520d14e1e5825aac99f50c851c16071",
+     "size": 855
+    },
+    "hunyuan3d-delight-v2-0/tokenizer/vocab.json": {
+     "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+     "size": 1059962
+    },
+    "hunyuan3d-delight-v2-0/unet/config.json": {
+     "sha256": "ba51cb0cff8c8404dd028dc9b55a4dc706114fca2e0feb6a844f54ae981d2d2a",
+     "size": 1835
+    },
+    "hunyuan3d-delight-v2-0/unet/diffusion_pytorch_model.safetensors": {
+     "sha256": "0ce61d15a43d11ba19079ab8f24dfce78b876d3f5291470079ef64b17e08ca58",
+     "size": 3463772592
+    },
+    "hunyuan3d-delight-v2-0/vae/config.json": {
+     "sha256": "f4aa821fb7a627f93e17b83face435b9d38e34f45c37dae91925e2a6c81f497f",
+     "size": 787
+    },
+    "hunyuan3d-delight-v2-0/vae/diffusion_pytorch_model.safetensors": {
+     "sha256": "3e4c08995484ee61270175e9e7a072b66a6e4eeb5f0c266667fe1f45b90daf9a",
+     "size": 167335342
+    },
+    "hunyuan3d-paint-v2-0/.gitattributes": {
+     "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+     "size": 1519
+    },
+    "hunyuan3d-paint-v2-0/feature_extractor/preprocessor_config.json": {
+     "sha256": "2a1da83b5e1032aaeef397552ddb408dca0d8cd1dc58f61bf6abf38d6f33a0a2",
+     "size": 342
+    },
+    "hunyuan3d-paint-v2-0/model_index.json": {
+     "sha256": "2100e8bedefbe893024e744419070f888bcb076c6655a5a3b8cb1769f4d001a2",
+     "size": 538
+    },
+    "hunyuan3d-paint-v2-0/scheduler/scheduler_config.json": {
+     "sha256": "9a6a7268e4d7c1bc5000450927070e338dc57a51f4530078627c88f5828e792d",
+     "size": 387
+    },
+    "hunyuan3d-paint-v2-0/text_encoder/config.json": {
+     "sha256": "7e33bfc475f6cf76e69b28b101993ca834d1f22ff4d35caefde32d63d4f42fba",
+     "size": 613
+    },
+    "hunyuan3d-paint-v2-0/text_encoder/pytorch_model.bin": {
+     "sha256": "c3e254d7b61353497ea0be2c4013df4ea8f739ee88cffa0ba58cd085459ed565",
+     "size": 1361671895
+    },
+    "hunyuan3d-paint-v2-0/tokenizer/merges.txt": {
+     "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+     "size": 524619
+    },
+    "hunyuan3d-paint-v2-0/tokenizer/special_tokens_map.json": {
+     "sha256": "f118ab3a983206e4f32583448de6bd6aae4ee21869135cef1f5848a753cdaab6",
+     "size": 460
+    },
+    "hunyuan3d-paint-v2-0/tokenizer/tokenizer_config.json": {
+     "sha256": "d562b18a0c6d32a168fce3d7a342fce64579ebacffb98fb71b0affc494fc32d8",
+     "size": 807
+    },
+    "hunyuan3d-paint-v2-0/tokenizer/vocab.json": {
+     "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+     "size": 1059962
+    },
+    "hunyuan3d-paint-v2-0/unet/config.json": {
+     "sha256": "ce0c6d379e3b1d3e1f79338de70c80a1e36f17a6372439a8249b6fb0dfa1b608",
+     "size": 911
+    },
+    "hunyuan3d-paint-v2-0/unet/diffusion_pytorch_model.bin": {
+     "sha256": "2efb4438e649e1ce152822dde082defe062cdd320bb9f1a27b9a4715d9c56e1a",
+     "size": 3663114747
+    },
+    "hunyuan3d-paint-v2-0/unet/diffusion_pytorch_model.safetensors": {
+     "sha256": "1c5ce434ba976b30bbb51a080917ecd39f8d8761691887b5df3be765ef4bd9e9",
+     "size": 3662636472
+    },
+    "hunyuan3d-paint-v2-0/unet/modules.py": {
+     "sha256": "c27b687216e74497e2c41bb71cff779673bc4963bb58abc67f9f1b1f0853d86d",
+     "size": 18900
+    },
+    "hunyuan3d-paint-v2-0/vae/config.json": {
+     "sha256": "424117cb534ce03497c41305ed868980123917b2b6abba4bbaa615e968772903",
+     "size": 553
+    },
+    "hunyuan3d-paint-v2-0/vae/diffusion_pytorch_model.bin": {
+     "sha256": "1b4889b6b1d4ce7ae320a02dedaeff1780ad77d415ea0d744b476155c6377ddc",
+     "size": 334707217
+    },
+    "hunyuan3d-paint-v2-0/vae/diffusion_pytorch_model.safetensors": {
+     "sha256": "abcec86e499e1ce9f05d1630725d386dc533b61fe0947ab034f07f89042e7a61",
+     "size": 167335310
+    }
+   },
+   "repo": "tencent/Hunyuan3D-2",
+   "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+   "sha256": "0eef11925de8b7acdbb3768c3c7a89837281d8e799ac9eeb5966b93b378b260b"
+  },
+  "ip-adapter-plus-sdxl-vit-h": {
+   "dest": "ipadapter/ip-adapter-plus_sdxl_vit-h.safetensors",
+   "files": {
+    "sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors": {
+     "sha256": "3f5062b8400c94b7159665b21ba5c62acdcd7682262743d7f2aefedef00e6581",
+     "size": 847517512
+    }
+   },
+   "repo": "h94/IP-Adapter",
+   "revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+   "sha256": "3f5062b8400c94b7159665b21ba5c62acdcd7682262743d7f2aefedef00e6581"
+  },
+  "mvadapter-i2mv-sdxl": {
+   "dest": "hf/huanngzh/mv-adapter/mvadapter_i2mv_sdxl.safetensors",
+   "files": {
+    "mvadapter_i2mv_sdxl.safetensors": {
+     "sha256": "260e486d507247db30601d22de317e3f9c07f75a29912d43ed5c3a4aab4db4c9",
+     "size": 3602537816
+    }
+   },
+   "repo": "huanngzh/mv-adapter",
+   "revision": "6de4033df6b53366f3c009d22f5ec434bb55e59f",
+   "sha256": "260e486d507247db30601d22de317e3f9c07f75a29912d43ed5c3a4aab4db4c9"
+  },
+  "sdxl-base-1.0": {
+   "dest": "checkpoints/sd_xl_base_1.0.safetensors",
+   "files": {
+    "sd_xl_base_1.0.safetensors": {
+     "sha256": "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b",
+     "size": 6938078334
+    }
+   },
+   "repo": "stabilityai/stable-diffusion-xl-base-1.0",
+   "revision": "462165984030d82259a11f4367a4eed129e94a7b",
+   "sha256": "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b"
+  },
+  "sdxl-vae-fp16-fix": {
+   "dest": "vae/sdxl_vae_fp16_fix.safetensors",
+   "files": {
+    "sdxl.vae.safetensors": {
+     "sha256": "235745af8d86bf4a4c1b5b4f529868b37019a10f7c0b2e79ad0abca3a22bc6e1",
+     "size": 334641162
+    }
+   },
+   "repo": "madebyollin/sdxl-vae-fp16-fix",
+   "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
+   "sha256": "235745af8d86bf4a4c1b5b4f529868b37019a10f7c0b2e79ad0abca3a22bc6e1"
+  }
+ },
+ "note": "Generated by scripts/models.py --pin --from-hub. Do not edit."
+}

@@ -7,7 +7,7 @@ authenticated tunnel.
 | Service | Port (localhost only) | What runs | launchd label |
 | --- | --- | --- | --- |
 | ComfyUI | 8188 | SDXL fp16 + depth ControlNet + IP-Adapter Plus on MPS | `com.petpop.comfyui` |
-| Shape server | 8190 | Hunyuan3D-2.1 on the MPS fork (`mac/shape_server`) | `com.petpop.shape` |
+| Shape server | 8190 | Hunyuan3D-2.1 on the MPS fork (`mac/shape_server`), octree 192 / 30 steps | `com.petpop.shape` |
 | Ollama | 11434 | qwen2.5 7B instruct, Q4 | `com.petpop.ollama` |
 | Proxy + tunnel | 8787 | Caddy (bearer token, path routing) + Cloudflare tunnel | started by `mac/tunnel.sh` |
 
@@ -16,11 +16,28 @@ Only one model is resident at a time:
 - Ollama runs with `OLLAMA_KEEP_ALIVE=0`.
 - The shape server unloads after every mesh.
 
-Expect 8 to 12 minutes per pet. The 4-minute target is waived on this profile.
+Expect 12 to 16 minutes per pet; shape alone is about 6 (the fork's M4 Pro benchmark). The 4-minute target is
+waived on this profile.
+
+Everything the Mac runs is pinned in this repo and checked before use, so two Macs set up from the same commit
+run the same bytes:
+
+| What | Pinned in | Checked by |
+| --- | --- | --- |
+| uv, Ollama, Caddy, cloudflared | `mac/tools.lock` (release + SHA256/512) | `setup.sh`, before unpacking |
+| CPython 3.11.17 | `mac/tools.lock` | the pinned uv (its built-in hashes) |
+| Python packages (3 venvs) | `mac/locks/{comfyui,shape,tools}.txt` (every package `==` + hashes, wheels only) | `uv pip sync --require-hashes` |
+| ComfyUI, IP-Adapter Plus, the MPS fork, Tencent's Hunyuan3D-2.1 | `pipelines/comfy/requirements.txt` (commits) | `setup.sh`, after checkout |
+| Weights | `pipelines/comfy/models.yaml` + `models.lock.json` (revision + SHA256 per file) | `make -C mac models` / `verify` |
+| Ollama model | `models.yaml` (`manifest_digest`) | `setup.sh`, after the pull |
+
+Nothing comes from Homebrew, and the fork's `install.sh` is not run: it clones Tencent's repo at HEAD and installs
+unpinned packages. `setup.sh` does the same steps from the pins instead.
 
 ## 0. Before you start
 
-- macOS on Apple Silicon with Homebrew, about 60 GB free (weights about 25 GB, venvs and caches the rest).
+- macOS 15 or later on Apple Silicon, with the Xcode Command Line Tools (`xcode-select --install`). About 45 GB
+  free: weights 20.5 GB, the Ollama model 4.7 GB, venvs and caches the rest. No Homebrew needed.
 - A Hugging Face account. Set `HF_TOKEN` if a download asks for it.
 - Read the Tencent Hunyuan community licence: it is not granted in the EU, the UK or South Korea.
 
@@ -34,26 +51,29 @@ git clone https://github.com/envariant/nv-petpop && cd nv-petpop && git checkout
 make -C mac setup
 ```
 
-This runs `mac/setup.sh`, which does the following:
-- Installs python@3.11, uv, ollama, caddy and cloudflared.
-- Clones ComfyUI, ComfyUI_IPAdapter_plus and `VladimirTalyzin/hunyuan3d-2.1-mac` at the commits in `pipelines/comfy/requirements.txt`.
-- Creates their venvs and pulls the Ollama model.
-- Writes `~/petpop-genai/genai.env` (including a random `GENAI_TOKEN`, chmod 600).
-- Loads the three launchd units.
+This runs `mac/setup.sh`, which does the following, all under `~/petpop-genai`:
+- Downloads uv, Ollama, Caddy and cloudflared at the releases in `mac/tools.lock` into `opt/` (linked from
+  `bin/`), refusing any file whose hash differs.
+- Installs CPython 3.11.17 with that uv into `python/`.
+- Checks out ComfyUI, ComfyUI_IPAdapter_plus, `VladimirTalyzin/hunyuan3d-2.1-mac` and Tencent's
+  `Hunyuan3D-2.1` (inside the fork, where the fork expects it) at their pinned commits.
+- Syncs three venvs in `venvs/` (comfyui, shape, tools) from the hash-locked `mac/locks/*.txt`.
+- Pulls the Ollama model into `ollama/` and checks its manifest digest against the pin.
+- Writes `genai.env` (including a random `GENAI_TOKEN`, chmod 600) and loads the three launchd units.
 
-## 2. Download and pin the weights (once, about 25 GB)
+Re-running it is safe and is how you take an update: it re-checks every pin and leaves what already matches.
+
+## 2. Fetch the weights (once, about 20.5 GB)
 
 ```bash
 make -C mac models
 ```
 
-This downloads every `mac-m4pro` entry of `pipelines/comfy/models.yaml` from its pinned Hugging Face
-revision into `~/petpop-models`. It checks each file against Hugging Face's own SHA256, then writes the
-value into `models.yaml` in place of `TODO`. Commit the pins:
-
-```bash
-git add pipelines/comfy/models.yaml && git commit -m "chore(models): pin mac-m4pro weights" && git push
-```
+This downloads every `mac-m4pro` entry of `pipelines/comfy/models.yaml` from its pinned Hugging Face revision
+into `~/petpop-models`, hashing each file as it arrives. A file that does not match the SHA256 committed in
+`pipelines/comfy/models.lock.json` is deleted and the command fails, so the directory only ever holds the
+pinned bytes. The pins were written from Hugging Face's metadata (`scripts/models.py --pin --from-hub`), so
+there is nothing to commit afterwards. `make -C mac verify` re-hashes everything later.
 
 ## 3. Start and check the services
 
@@ -94,15 +114,15 @@ A quick tunnel gets a new random hostname every time `tunnel.sh` starts. For a s
 named tunnel once (needs a Cloudflare account and a domain):
 
 ```bash
-cloudflared tunnel login
+~/petpop-genai/bin/cloudflared tunnel login
 ```
 
 ```bash
-cloudflared tunnel create petpop
+~/petpop-genai/bin/cloudflared tunnel create petpop
 ```
 
 ```bash
-cloudflared tunnel route dns petpop genai.example.com
+~/petpop-genai/bin/cloudflared tunnel route dns petpop genai.example.com
 ```
 
 ```bash
@@ -122,6 +142,7 @@ under Allowed domains.
 | Logs | `make -C mac logs` |
 | Re-check weights | `make -C mac verify` |
 | After `git pull` | `make -C mac setup` (idempotent), then `make -C mac restart` |
+| Take package upgrades | move `EXCLUDE_NEWER` in `mac/lock.sh`, `make -C mac lock`, commit, then `make -C mac setup` |
 
 ## Troubleshooting
 
@@ -129,10 +150,15 @@ under Allowed domains.
   Check it is in `~/petpop-models/vae`.
 - **MPS out of memory.** Another model is still resident. Run `make -C mac restart`, and check that nothing
   else holds the GPU (Activity Monitor, GPU History).
-- **Shape server fails to import `hy3dshape`.** Check that `HY3D_DIR` points at the fork checkout and that
-  `$HY3D_DIR/venv` exists. Re-run `./install.sh --shape-only --skip-weights` inside the fork.
-- **Shape server cannot find the weights.** It loads from `~/petpop-models/hf/tencent/Hunyuan3D-2.1` when
-  `make -C mac models` has run, and from the Hugging Face cache otherwise.
+- **Shape server fails to import `hy3dshape`, `backend` or `compat_patches`.** Check that `HY3D_DIR` points
+  at the fork checkout and that `$HY3D_DIR/Hunyuan3D-2.1` exists. Re-run `make -C mac setup`.
+- **Shape server answers 503 "no weights".** It loads only from
+  `~/petpop-models/hf/tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1` and never downloads (`HF_HUB_OFFLINE=1`). Run
+  `make -C mac models`.
+- **`setup.sh` stops on a hash or digest mismatch.** Something upstream changed under a pinned name (a
+  re-published release, a moved Ollama tag). Nothing was installed from it. Re-pin deliberately: edit
+  `mac/tools.lock`, re-run `mac/lock.sh` for Python packages (`make -C mac lock`), or update the digest in
+  `models.yaml`, and commit.
 - **401 through the tunnel.** `GENAI_TOKEN` in the cloud environment does not match `~/petpop-genai/genai.env`.
 - **Workflow errors on the first run.** All six workflows are `meta.validated: false`. Fix node inputs in the
   generator (`scripts/make_comfy_workflows.py`), regenerate with `make workflows`, then set

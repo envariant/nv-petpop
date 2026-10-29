@@ -8,7 +8,8 @@ Profile: GENAI_PROFILE selects config/genai/<profile>.yaml (mock, the default; m
 profile alone names models, hosts, quality, residency, timeouts and expected timings; the worker never does.
 Gates 3 to 6 print "SKIPPED (needs a GenAI host)" on the mock profile.
 Commands: make dev (API + worker + SPA), make mock (standalone mock server), make test, make gate-N, make regress,
-make up / make smoke-stack (Compose stack), make workflows (regenerate ComfyUI JSONs), make -C mac ... (Mac host).
+make up / make smoke-stack (Compose stack), make workflows (regenerate ComfyUI JSONs), make -C mac ... (Mac host),
+mac/lock.sh (re-lock the Mac's Python packages; safe in the VM, installs nothing).
 
 Loop: take the next unchecked item in docs/PROGRESS.md, implement it, run make test, run the milestone's
 gate, commit with a conventional message, tick the item, continue. Do not stop to ask questions. Where the
@@ -19,7 +20,9 @@ working on poc without waiting for review.
 
 Ownership: never hand-edit assets/base/ or the node ids in pipelines/comfy/*.json; generate proxies and the
 workflows by script (scripts/make_proxy_base.py, scripts/make_comfy_workflows.py). Model ids and pins live in
-config/genai/*.yaml and pipelines/comfy/models.yaml; sha256 pins are written only by scripts/models.py --pin.
+config/genai/*.yaml and pipelines/comfy/models.yaml; sha256 pins are written only by scripts/models.py --pin
+(--from-hub in the VM: metadata only, no weights). The Mac setup is fully pinned (mac/tools.lock, mac/locks/,
+pipelines/comfy/requirements.txt, models.lock.json): add nothing to it that is not pinned and hash-checked.
 Contract: data/schema/openapi.json is the source of truth; change it only with a version bump that updates
 mock-server, the TypeScript client and the backend in the same commit.
 Front end: every screen has a Storybook story and a Playwright test; gate-1 is the Playwright walkthrough.

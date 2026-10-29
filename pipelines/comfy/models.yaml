@@ -3,10 +3,13 @@
 #   deploy_as  the name the GenAI profile uses (config/genai/*.yaml)
 #   dest       path under the host's model root (ComfyUI models dir via extra_model_paths, or the shape server)
 #   revision   Hugging Face commit the file is pinned to (resolved 2026-10-28)
-#   sha256     TODO until `make -C mac models` (Mac) or `make models` (NVIDIA) downloads the file, checks it
-#              against Hugging Face's LFS sha256 and writes the value here. Commit the result.
+#   sha256     the file's SHA256, or for a multi-file entry the SHA256 of its sorted "path sha256" lines. Written
+#              with models.lock.json (every file's path, size and SHA256) by `scripts/models.py --pin --from-hub`
+#              from Hugging Face's LFS metadata at the pinned revision; no weights are downloaded to pin.
 #
-# Repo paths and revisions were checked against the Hugging Face API; nothing was downloaded in the cloud VM.
+# A host fetches with `make -C mac models` (Mac) or `make models` (NVIDIA): each file comes from its pinned
+# revision and must match the lock byte for byte, or nothing is kept. `repo: local` entries (the S4 LoRA) are
+# pinned on the host with `scripts/models.py --pin`.
 models:
   - name: sdxl-base-1.0
     deploy_as: sd_xl_base_1.0.safetensors
@@ -15,7 +18,7 @@ models:
     file: sd_xl_base_1.0.safetensors
     revision: 462165984030d82259a11f4367a4eed129e94a7b
     size: 6938078334
-    sha256: TODO
+    sha256: 31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b
     profiles: [mac-m4pro, nvidia-24gb]
     licence: CreativeML Open RAIL++-M
 
@@ -26,7 +29,7 @@ models:
     file: sdxl.vae.safetensors
     revision: 207b116dae70ace3637169f1ddd2434b91b3a8cd
     size: 334641162
-    sha256: TODO
+    sha256: 235745af8d86bf4a4c1b5b4f529868b37019a10f7c0b2e79ad0abca3a22bc6e1
     profiles: [mac-m4pro, nvidia-24gb]
     licence: MIT
 
@@ -37,7 +40,7 @@ models:
     file: diffusion_pytorch_model.fp16.safetensors
     revision: 17bb97973f29801224cd66f192c5ffacf82648b4
     size: 2502139134
-    sha256: TODO
+    sha256: 66a6813e6bd7270ecfe68206a59ddd605a011ae85321188376605c66e0a4f303
     profiles: [mac-m4pro, nvidia-24gb]
     licence: OpenRAIL++
 
@@ -48,7 +51,7 @@ models:
     file: sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors
     revision: 018e402774aeeddd60609b4ecdb7e298259dc729
     size: 847517512
-    sha256: TODO
+    sha256: 3f5062b8400c94b7159665b21ba5c62acdcd7682262743d7f2aefedef00e6581
     profiles: [mac-m4pro, nvidia-24gb]
     licence: Apache-2.0
 
@@ -59,7 +62,7 @@ models:
     file: models/image_encoder/model.safetensors
     revision: 018e402774aeeddd60609b4ecdb7e298259dc729
     size: 2528373448
-    sha256: TODO
+    sha256: 6ca9667da1ca9e0b0f75e46bb030f7e011f44f86cbfb8d5a36590fcd7507b030
     profiles: [mac-m4pro, nvidia-24gb]
     licence: MIT
 
@@ -70,7 +73,7 @@ models:
     file: hunyuan3d-dit-v2-mv/model.fp16.safetensors
     revision: 3a761b539b29fe4ff64714813aa9560fd66f5de0
     size: 4928151562
-    sha256: TODO
+    sha256: d36f5881bcdc56726b73e517cd444c13c60732431622da7268145355c8d38e9c
     profiles: [nvidia-24gb]
     licence: Tencent Hunyuan community licence (check commercial terms)
 
@@ -81,18 +84,20 @@ models:
     file: hunyuan3d-dit-v2-1/model.fp16.ckpt
     revision: 0b94677654c57bb9a6b6845cd7b704ccf551d327
     size: 7366389768
-    sha256: TODO
+    sha256: 6b519fc7242f78e9b5f47ea4d55668fe3d944a2d27332f4ca68d29a6ff603f5e
     profiles: [nvidia-24gb]
     licence: Tencent Hunyuan community licence (not granted in the EU, UK or South Korea)
 
-  # The Mac shape server loads Hunyuan3D-2.1 as a Hugging Face snapshot directory (dit + vae).
+  # The Mac shape server loads Hunyuan3D-2.1 from a local directory in the Hugging Face layout. Only the DiT
+  # folder is read: its checkpoint carries the DiT, the VAE and the DINOv2 conditioner (built from the inline
+  # config), so neither hunyuan3d-vae-v2-1 nor facebook/dinov2-* is needed for shape.
   - name: hunyuan3d-2.1-shape-snapshot
     deploy_as: tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1
     dest: hf/tencent/Hunyuan3D-2.1
     repo: tencent/Hunyuan3D-2.1
-    files: [hunyuan3d-dit-v2-1/config.yaml, hunyuan3d-dit-v2-1/model.fp16.ckpt, hunyuan3d-vae-v2-1/config.yaml, hunyuan3d-vae-v2-1/model.fp16.ckpt]
+    files: [hunyuan3d-dit-v2-1/config.yaml, hunyuan3d-dit-v2-1/model.fp16.ckpt]
     revision: 0b94677654c57bb9a6b6845cd7b704ccf551d327
-    sha256: TODO          # digest of the sorted "path sha256" lines of the files above
+    sha256: 173e50028ea049dbe7150cd3fc92fcfeef00b6285121fbffea5c2dfc9a1f79f9
     profiles: [mac-m4pro]
     licence: Tencent Hunyuan community licence (not granted in the EU, UK or South Korea)
 
@@ -103,7 +108,7 @@ models:
     file: mvadapter_i2mv_sdxl.safetensors
     revision: 6de4033df6b53366f3c009d22f5ec434bb55e59f
     size: 3602537816
-    sha256: TODO
+    sha256: 260e486d507247db30601d22de317e3f9c07f75a29912d43ed5c3a4aab4db4c9
     profiles: [nvidia-24gb]
     optional: true        # only for the 02b_views_mvadapter alternative
     licence: Apache-2.0
@@ -114,7 +119,7 @@ models:
     repo: tencent/Hunyuan3D-2
     files_glob: [hunyuan3d-paint-v2-0/*, hunyuan3d-delight-v2-0/*]
     revision: 9cd649ba6913f7a852e3286bad86bfa9a2d83dcf
-    sha256: TODO
+    sha256: 0eef11925de8b7acdbb3768c3c7a89837281d8e799ac9eeb5966b93b378b260b
     profiles: [nvidia-24gb]
     optional: true        # TEXTURE_BACKEND=hy_paint only
     licence: Tencent Hunyuan community licence
@@ -130,6 +135,11 @@ models:
     optional: true
     licence: in-house
 
+# Ollama pulls by tag; the manifest digest (what `GET /api/tags` reports as `digest`, and the first 12 hex digits
+# of `ollama list`'s ID) is pinned here and checked after every pull, so a moved tag fails the setup. Ollama
+# itself checks each layer blob against the manifest while pulling. Read from registry.ollama.ai 2026-10-28.
 ollama:
-  - tag: qwen2.5:7b-instruct-q4_K_M    # pulled with `ollama pull` (registry manifest checked 2026-10-28)
+  - tag: qwen2.5:7b-instruct-q4_K_M
+    manifest_digest: sha256:845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e
+    model_layer: sha256:2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730   # 4.68 GB GGUF
     profiles: [mac-m4pro, nvidia-24gb]

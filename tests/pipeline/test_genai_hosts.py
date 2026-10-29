@@ -80,7 +80,7 @@ def test_mac_m4pro_profile(env, host, tmp_path):
     frees = [e for e in host.log if e["path"] == "/comfy/free"]
     assert all(e["json"]["unload_models"] for e in frees) and len(frees) >= 2
     shape = next(e for e in host.log if e["path"] == "/shape/v1/shape#params")["json"]
-    assert shape["octree_resolution"] == 256 and shape["steps"] == 30 and shape["unload_after"] is True
+    assert shape["octree_resolution"] == 192 and shape["steps"] == 30 and shape["unload_after"] is True
     concept = next(e for e in host.log if e["path"] == "/comfy/prompt")["json"]["prompt"]
     ckpt = next(n for n in concept.values() if n["class_type"] == "CheckpointLoaderSimple")
     assert ckpt["inputs"]["ckpt_name"] == "sd_xl_base_1.0.safetensors"  # the model name came from the profile

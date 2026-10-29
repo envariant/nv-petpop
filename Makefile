@@ -76,8 +76,8 @@ down:
 smoke-stack: ## build and run the stack here on the mock profile, push one job through it, tear it down
 	scripts/smoke_stack.sh
 
-models: ## NVIDIA host: verify pinned weights (the Mac uses make -C mac models)
-	$(PY) scripts/models.py --verify --dest $${PETPOP_MODELS:-/srv/models} --profile $(GENAI_PROFILE)
+models: ## NVIDIA host: fetch the pinned weights, each checked against models.lock.json (the Mac: make -C mac models)
+	$(PY) scripts/models.py --fetch --dest $${PETPOP_MODELS:-/srv/models} --profile $(GENAI_PROFILE)
 
 gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6: ## run acceptance gate N
 	scripts/gates/$@

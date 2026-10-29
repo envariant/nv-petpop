@@ -3,20 +3,22 @@ SHELL := /bin/bash
 REPO := $(abspath ..)
 PETPOP_GENAI ?= $(HOME)/petpop-genai
 PETPOP_MODELS ?= $(HOME)/petpop-models
-UV_RUN := uv run --python 3.11 --with httpx --with pyyaml --with jsonschema
+TOOLS_PY := $(PETPOP_GENAI)/venvs/tools/bin/python
 export GENAI_PROFILE := mac-m4pro
 
-.PHONY: setup models verify start stop restart status logs tunnel check
+.PHONY: setup lock models verify start stop restart status logs tunnel check
 
-setup:   ## install everything and load the launchd units
+setup:   ## install the pinned tools, Python, venvs and code; load the launchd units
 	$(REPO)/mac/setup.sh
 
-models:  ## download the mac-m4pro weights, check them against Hugging Face, write SHA256 pins into models.yaml
-	cd $(REPO) && $(UV_RUN) python scripts/models.py --pin --dest $(PETPOP_MODELS) --profile mac-m4pro
-	@echo "Pins written to pipelines/comfy/models.yaml; review with git diff and commit."
+lock:    ## regenerate mac/locks/*.txt (needs uv; also runs in the cloud VM); commit the result
+	PATH="$(PETPOP_GENAI)/bin:$$PATH" $(REPO)/mac/lock.sh
+
+models:  ## fetch the mac-m4pro weights; every file must match pipelines/comfy/models.lock.json
+	cd $(REPO) && $(TOOLS_PY) scripts/models.py --fetch --dest $(PETPOP_MODELS) --profile mac-m4pro
 
 verify:  ## re-hash the downloaded weights against the committed pins
-	cd $(REPO) && $(UV_RUN) python scripts/models.py --verify --dest $(PETPOP_MODELS) --profile mac-m4pro
+	cd $(REPO) && $(TOOLS_PY) scripts/models.py --verify --dest $(PETPOP_MODELS) --profile mac-m4pro
 
 start:
 	for u in comfyui shape ollama; do launchctl kickstart -k gui/$$(id -u)/com.petpop.$$u; done
@@ -34,7 +36,7 @@ logs:
 
 check:   ## probe the three services locally (no tunnel)
 	cd $(REPO) && COMFY_URL=http://127.0.0.1:8188 SHAPE_URL=http://127.0.0.1:8190 OLLAMA_URL=http://127.0.0.1:11434 \
-		$(UV_RUN) python scripts/genai_check.py
+		$(TOOLS_PY) scripts/genai_check.py
 
 tunnel:  ## authenticating proxy + Cloudflare tunnel; prints the URLs for the cloud environment
 	$(REPO)/mac/tunnel.sh

@@ -10,6 +10,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 PETPOP_GENAI="${PETPOP_GENAI:-$HOME/petpop-genai}"
 set -a; . "$PETPOP_GENAI/genai.env"; set +a
+BIN="$PETPOP_GENAI/bin"   # caddy and cloudflared at the releases pinned in mac/tools.lock (installed by setup.sh)
 PORT="${PETPOP_PROXY_PORT:-8787}"
 LOG="$PETPOP_GENAI/logs"
 mkdir -p "$LOG"
@@ -18,16 +19,16 @@ pids=()
 cleanup() { kill "${pids[@]}" 2>/dev/null || true; }
 trap cleanup EXIT INT TERM
 
-caddy run --config "$REPO/mac/Caddyfile" --adapter caddyfile >"$LOG/caddy.log" 2>&1 & pids+=($!)
+"$BIN/caddy" run --config "$REPO/mac/Caddyfile" --adapter caddyfile >"$LOG/caddy.log" 2>&1 & pids+=($!)
 for _ in $(seq 1 20); do
   [ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/comfy/system_stats")" = "401" ] && break; sleep 0.5
 done
 
 if [ -n "${CF_TUNNEL:-}" ] && [ -n "${CF_HOSTNAME:-}" ]; then
-  cloudflared tunnel --no-autoupdate run --url "http://127.0.0.1:$PORT" "$CF_TUNNEL" >"$LOG/cloudflared.log" 2>&1 & pids+=($!)
+  "$BIN/cloudflared" tunnel --no-autoupdate run --url "http://127.0.0.1:$PORT" "$CF_TUNNEL" >"$LOG/cloudflared.log" 2>&1 & pids+=($!)
   BASE="https://$CF_HOSTNAME"
 else
-  cloudflared tunnel --no-autoupdate --url "http://127.0.0.1:$PORT" >"$LOG/cloudflared.log" 2>&1 & pids+=($!)
+  "$BIN/cloudflared" tunnel --no-autoupdate --url "http://127.0.0.1:$PORT" >"$LOG/cloudflared.log" 2>&1 & pids+=($!)
   BASE=""
   for _ in $(seq 1 60); do
     BASE="$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG/cloudflared.log" | head -1 || true)"

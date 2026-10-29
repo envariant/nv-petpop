@@ -27,8 +27,8 @@ def test_mac_profile_rules():
     assert p["host"]["accelerator"] == "mps"
     assert p["residency"]["max_resident_models"] == 1 and p["residency"]["free_comfy_after_call"]
     assert p["residency"]["ollama_keep_alive_s"] == 0 and p["residency"]["shape_unload_after_call"]
-    assert p["latency"]["enforce"] is False and p["expected_s"]["total"] == [480, 720]
-    assert p["shape"]["backend"] == "http" and p["shape"]["params"]["octree_resolution"] == 256
+    assert p["latency"]["enforce"] is False and p["expected_s"]["total"] == [720, 960]
+    assert p["shape"]["backend"] == "http" and p["shape"]["params"]["octree_resolution"] == 192
     assert p["shape"]["params"]["steps"] == 30
     assert "hy_paint" not in p["texture"]["allowed"]  # Hunyuan3D-Paint stays NVIDIA-only
 

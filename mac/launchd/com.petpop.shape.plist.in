@@ -7,7 +7,7 @@
   <key>WorkingDirectory</key><string>__REPO__</string>
   <key>ProgramArguments</key>
   <array>
-    <string>__GENAI__/hunyuan3d-2.1-mac/venv/bin/python</string>
+    <string>__GENAI__/venvs/shape/bin/python</string>
     <string>__REPO__/mac/shape_server/server.py</string>
     <string>--host</string><string>127.0.0.1</string>
     <string>--port</string><string>8190</string>
@@ -17,7 +17,6 @@
     <key>GENAI_PROFILE</key><string>mac-m4pro</string>
     <key>HY3D_DIR</key><string>__GENAI__/hunyuan3d-2.1-mac</string>
     <key>PETPOP_MODELS</key><string>__MODELS__</string>
-    <key>HY3D_BACKEND</key><string>mps</string>
   </dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>

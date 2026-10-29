@@ -7,7 +7,7 @@ residency, stage timeouts, expected timings) lives in `config/genai/<profile>.ya
 | Profile | Where the GenAI runs | Shape model | Texture | Latency |
 | --- | --- | --- | --- | --- |
 | `mock` (default) | nowhere: CPU stand-ins in the VM | morphed base mesh + noise | projection | n/a |
-| `mac-m4pro` | Apple Silicon M4 Pro 24 GB, MPS, via tunnel | Hunyuan3D-2.1 (MPS fork), octree 256 / 30 steps | projection | waived (8 to 12 min) |
+| `mac-m4pro` | Apple Silicon M4 Pro 24 GB, MPS, via tunnel | Hunyuan3D-2.1 (MPS fork), octree 192 / 30 steps | projection | waived (12 to 16 min) |
 | `nvidia-24gb` | 24 GB NVIDIA box, CUDA | Hunyuan3D-2mv, octree 384 / 50 steps | projection, `hy_paint` optional | 4 min enforced |
 
 The PetPop backend (API, worker, Blender wrap/bake/export) keeps running in the cloud VM. Only ComfyUI, the
@@ -23,24 +23,21 @@ shape server and Ollama run on the Mac.
    git clone https://github.com/envariant/nv-petpop && cd nv-petpop && git checkout poc
    ```
 
-2. Install Homebrew packages, ComfyUI with IP-Adapter Plus, the Hunyuan3D-2.1 MPS fork and Ollama, the
-   secrets file, and the three launchd units:
+2. Install the Xcode Command Line Tools if the Mac lacks them (`xcode-select --install`). Nothing else is
+   needed beforehand; there is no Homebrew step.
+
+3. Install the pinned tools, Python, venvs and code, pull the Ollama model, write the secrets file, and load the
+   three launchd units. Every download is checked against a hash committed in this repo:
 
    ```bash
    make -C mac setup
    ```
 
-3. Download about 25 GB of weights, check them against Hugging Face's SHA256, and write the pins into
-   `pipelines/comfy/models.yaml`:
+4. Fetch about 20.5 GB of weights. Each file must match the SHA256 in `pipelines/comfy/models.lock.json`, or
+   it is deleted and the command fails. The pins are already committed, so there is nothing to commit after:
 
    ```bash
    make -C mac models
-   ```
-
-4. Commit the pins:
-
-   ```bash
-   git add pipelines/comfy/models.yaml && git commit -m "chore(models): pin mac-m4pro weights" && git push
    ```
 
 5. Start the services and probe them locally:
@@ -90,7 +87,7 @@ Allowed domains. This VM reached `trycloudflare.com` on 2026-10-28.
    `GENAI_PROFILE=mac-m4pro`. Use `make dev` rather than `make up` here: the VM's TLS-inspecting proxy is
    trusted by host processes but not by containers.
 4. Gates 3 to 6 run on the profile: `make gate-3` ... `make gate-6`. On `mac-m4pro` gate 5 waives the latency
-   target, and the regression set takes about 5 hours (30 x 8 to 12 min). Run it overnight, or use
+   target, and the regression set takes 6 to 8 hours (30 x 12 to 16 min). Run it overnight, or use
    `--limit` to subset.
 5. When a workflow first runs cleanly, set `validated: true` (with the date and host) in
    `scripts/make_comfy_workflows.py`, then run `make workflows`.
@@ -113,17 +110,25 @@ Allowed domains. This VM reached `trycloudflare.com` on 2026-10-28.
   but unverified.
 - **Mac scripts.** `mac/setup.sh` and the launchd units are written for macOS and were not executed (the VM is
   Linux). The plists parse and the shell scripts pass `bash -n`.
-- **Shape server.** `mac/shape_server/server.py` calls the upstream Hunyuan3D-2.1 API
-  (`Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(path, subfolder, device, dtype)`). The MPS fork keeps
-  that API but documents only its Gradio UI, so the first run may need small fixes.
-- **The hy3dmlx MLX port.** It could not be found, so the profile uses the PyTorch MPS fork. A different
-  engine can be added under `shape.server` in the profile.
+- **Shape server.** `mac/shape_server/server.py` now loads the model the way the fork's own app does: the
+  fork's `backend` and `compat_patches` before torch, Tencent's code from `$HY3D_DIR/Hunyuan3D-2.1`, the
+  fp16 `.ckpt` from the local weights only. `tests/unit/test_mac_host.py` checks that wiring against stubs;
+  the real model has not run.
+- **The hy3dmlx MLX port.** Its weights are on Hugging Face (`AgenticVibes/hy3dmlx-shape-v2.1`), but its
+  loader code (`github.com/AgenticVibes/hy3dmlx`) is not public and it is not on PyPI. Its published timings
+  (12.9 s per step on an M3 Ultra) are also slower than the MPS fork's (7.6 s per step on an M4 Pro), so the
+  profile keeps the fork. Another engine can be added under `shape.server` in the profile.
 
-**Pins**
-- Model files and revisions were verified against the Hugging Face API, and ComfyUI, the node packs and the
-  MPS fork are pinned to their commits as of 2026-10-28.
-- The weight SHA256 values are `TODO` until `make -C mac models` (or `scripts/models.py --pin` on the NVIDIA
-  box) writes them.
+**Pins (the Mac setup is deterministic)**
+- **Weights:** every file's SHA256 is committed (`models.yaml` + `models.lock.json`), written from Hugging
+  Face's metadata at each pinned revision without downloading anything. Only the untrained S4 LoRA is `TODO`.
+- **Code:** ComfyUI, IP-Adapter Plus, the MPS fork and Tencent's Hunyuan3D-2.1 are pinned to commits.
+- **Python packages:** every package in the three Mac venvs is `==`-pinned with hashes, wheels only
+  (`mac/locks/`, regenerated reproducibly by `mac/lock.sh`).
+- **Tools and Python:** uv, Ollama, Caddy, cloudflared and CPython 3.11.17 are pinned releases with hashes
+  (`mac/tools.lock`).
+- **Ollama model:** the manifest digest is pinned and checked after the pull.
+- The fork's `install.sh` is not used: it clones Tencent's repo at HEAD and installs unpinned packages.
 
 **Still open from earlier stages**
 - **Proxy base meshes and LoRA.** The base meshes are proxies and the style LoRA is untrained (S4).
@@ -137,5 +142,5 @@ Allowed domains. This VM reached `trycloudflare.com` on 2026-10-28.
 
 `GENAI_PROFILE=nvidia-24gb make up` adds `infra/docker-compose.nvidia.yml`, which brings ComfyUI (with the
 Hunyuan3D wrapper and MV-Adapter node packs) and Ollama up on the local GPU and reserves the GPU for the
-worker. Pin its weights with `scripts/models.py --pin --profile nvidia-24gb --dest /srv/models`, then run
+worker. Fetch its weights with `make models GENAI_PROFILE=nvidia-24gb` (checked against the same lock), then run
 gates 3 to 6 with the 4-minute target enforced. To opt in to Hunyuan3D-Paint, set `TEXTURE_BACKEND=hy_paint`.
