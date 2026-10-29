@@ -173,8 +173,15 @@ for unit in comfyui shape ollama; do
   sed -e "s#__REPO__#$REPO#g" -e "s#__GENAI__#$PETPOP_GENAI#g" -e "s#__MODELS__#$PETPOP_MODELS#g" \
       -e "s#__OLLAMA__#$OLLAMA_BIN#g" "$src" > "$dst"
   plutil -lint -s "$dst"
+  # bootout returns before a running service has exited; bootstrap then fails with "5: Input/output error". Wait for
+  # the old instance to go, and retry the load a few times.
   launchctl bootout "gui/$(id -u)/com.petpop.$unit" 2>/dev/null || true
-  launchctl bootstrap "gui/$(id -u)" "$dst"
+  for _ in $(seq 1 30); do launchctl print "gui/$(id -u)/com.petpop.$unit" >/dev/null 2>&1 || break; sleep 1; done
+  for try in 1 2 3 4 5; do
+    launchctl bootstrap "gui/$(id -u)" "$dst" && break
+    [ "$try" = 5 ] && die "could not load com.petpop.$unit (see: launchctl print gui/$(id -u)/com.petpop.$unit)"
+    sleep 2
+  done
   echo "loaded com.petpop.$unit"
 done
 
