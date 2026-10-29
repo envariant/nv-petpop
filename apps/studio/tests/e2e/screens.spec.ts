@@ -1,6 +1,6 @@
 // One Playwright test per Studio screen and behaviour (BRIEF Sections 2, 4 and 17).
 import { expect, test } from '@playwright/test';
-import { PASSWORD, signIn, toBuild, toGenerate, typeOnKeyboard } from './helpers';
+import { PASSWORD, runBatch, signIn, signInHome, toBuild, toGenerate, typeOnKeyboard } from './helpers';
 
 test('0 sign in: a wrong password is refused, a staff login opens the Generate workspace', async ({ page }) => {
   await page.goto('/studio/');
@@ -124,6 +124,75 @@ test('7 result: clay toggle, QR, send to print, tweak keeps the seed', async ({ 
   await page.getByTestId('nav-next').tap();
   await page.getByTestId('nav-next').tap();
   await expect(page.locator('[data-screen=generating]')).toBeVisible();
+});
+
+test('8 generate: the batch spec builder counts breeds x variants x seeds and starts a batch', async ({ page }) => {
+  await signInHome(page);
+  await page.getByTestId('batch-breed-beagle').tap();
+  await page.getByTestId('batch-breed-pug').tap();
+  await page.getByTestId('batch-variant-big_ears').tap();
+  await page.getByTestId('seeds-plus').tap();
+  await expect(page.getByTestId('start-batch')).toContainText('Generate 8 figurines'); // 2 breeds x 2 variants x 2 seeds
+  await page.getByTestId('batch-breed-pug').tap();
+  await page.getByTestId('batch-variant-big_ears').tap();
+  await page.getByTestId('seeds-minus').tap();
+  await expect(page.getByTestId('start-batch')).toContainText('Generate 1 figurine');
+  await page.getByTestId('start-batch').tap();
+  await expect(page.getByTestId('curate-notice')).toContainText('Batch started: 1 figurines');
+  await expect(page.getByTestId('batch-list').locator('button')).not.toHaveCount(0);
+});
+
+test('9 review: turntables, QC per region, accept, reject and tag; operators cannot review', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await runBatch(page, ['beagle']);
+  const fig = page.locator('[data-testid^=fig-]').first();
+  await expect(fig.locator('video, img').first()).toBeVisible();
+  await expect(fig.locator('[data-testid^=cand-]')).toHaveCount(6);
+  await expect(fig).toContainText('sym');
+  const legs = (await fig.locator('[data-testid^=cand-legs_]').getAttribute('data-testid'))!.replace('cand-', '');
+  await page.getByTestId(`reject-${legs}`).tap();
+  await expect(page.getByTestId(`cand-${legs}`)).toContainText('rejected');
+  await page.getByTestId('accept-passing').tap();
+  await expect(page.getByTestId('review')).toContainText('accepted');
+  const ears = (await fig.locator('[data-testid^=cand-ears_]').getAttribute('data-testid'))!.replace('cand-', '');
+  await page.getByTestId(`hero-${ears}`).tap();
+  await expect(page.getByTestId(`hero-${ears}`)).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId(`publish-${ears}`).tap();
+  await expect(page.getByTestId(`cand-${ears}`)).toContainText('published');
+});
+
+test('10 library: the pattern editor versions a published layer; publish ships the new version', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await page.getByTestId('nav-library').tap();
+  await page.getByTestId('kind-pattern').tap();
+  await page.getByTestId('item-pattern_blaze').tap();
+  await expect(page.getByTestId('item-editor')).toContainText('published 1');
+  await page.getByTestId('edit-name').fill('Big blaze');
+  await page.getByTestId('edit-colour-F2C230').tap();
+  await page.getByTestId('cov-default').fill('0.6');
+  await page.getByTestId('edit-save').tap();
+  await expect(page.getByTestId('curate-notice')).toContainText('as version 2');
+  await page.getByTestId('edit-publish').tap();
+  await expect(page.getByTestId('curate-notice')).toContainText('Published Big blaze v2');
+  await expect(page.getByTestId('item-editor')).toContainText('published 2');
+  await page.getByTestId('kind-shell').tap();
+  await page.getByTestId('item-shell_collar').tap();
+  await page.getByTestId('edit-tags').fill('classic, red');
+  await page.getByTestId('edit-save').tap();
+  await expect(page.getByTestId('item-editor')).toContainText('version 2');
+});
+
+test('11 releases: only an admin publishes a release, and it lists with its counts', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await page.getByTestId('nav-releases').tap();
+  await expect(page.getByTestId('create-release')).toBeDisabled();
+  await expect(page.getByTestId('release-release-dog-1')).toBeVisible();
+  await page.getByTestId('logout').tap();
+  await signInHome(page, 'admin');
+  await page.getByTestId('nav-releases').tap();
+  await page.getByTestId('create-release').tap();
+  await expect(page.getByTestId('curate-notice')).toContainText('release-dog-');
+  await expect(page.locator('[data-testid^=release-release-dog-]')).toHaveCount(2);
 });
 
 test('offline: "Back in a moment" while the API is down, auto-recovers', async ({ page }) => {

@@ -5,7 +5,7 @@ const MOCK_PORT = 8012;
 const WEB_PORT = 5182;
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests', // e2e/ (gates 1 and 2) and gate8/ (gate 8)
   timeout: 90_000,
   expect: { timeout: 15_000 },
   workers: 1,

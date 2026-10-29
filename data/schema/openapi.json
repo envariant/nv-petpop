@@ -52,6 +52,325 @@
     "title": "Artefact",
     "type": "object"
    },
+   "Batch": {
+    "additionalProperties": false,
+    "properties": {
+     "batch_id": {
+      "title": "Batch Id",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "created_by": {
+      "title": "Created By",
+      "type": "string"
+     },
+     "figurines": {
+      "items": {
+       "$ref": "#/components/schemas/BatchFigurine"
+      },
+      "title": "Figurines",
+      "type": "array"
+     },
+     "request": {
+      "additionalProperties": true,
+      "title": "Request",
+      "type": "object"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "running",
+       "review",
+       "done"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "summary": {
+      "$ref": "#/components/schemas/BatchSummary"
+     }
+    },
+    "required": [
+     "batch_id",
+     "species",
+     "status",
+     "created_by",
+     "created_at",
+     "request",
+     "summary",
+     "figurines"
+    ],
+    "title": "Batch",
+    "type": "object"
+   },
+   "BatchCreate": {
+    "additionalProperties": false,
+    "description": "A curation batch: breeds x variants x seeds, each a full pipeline run on the studio queue.",
+    "properties": {
+     "breeds": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 30,
+      "minItems": 1,
+      "title": "Breeds",
+      "type": "array"
+     },
+     "first_seed": {
+      "default": 1,
+      "maximum": 2147483647.0,
+      "minimum": 1.0,
+      "title": "First Seed",
+      "type": "integer"
+     },
+     "seeds": {
+      "default": 1,
+      "maximum": 10.0,
+      "minimum": 1.0,
+      "title": "Seeds",
+      "type": "integer"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "variants": {
+      "items": {
+       "$ref": "#/components/schemas/BatchVariant"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Variants",
+      "type": "array"
+     }
+    },
+    "required": [
+     "species",
+     "breeds"
+    ],
+    "title": "BatchCreate",
+    "type": "object"
+   },
+   "BatchFigurine": {
+    "additionalProperties": false,
+    "properties": {
+     "breed_id": {
+      "title": "Breed Id",
+      "type": "string"
+     },
+     "candidates": {
+      "description": "The figurine's family and one part per region, once curated.",
+      "items": {
+       "$ref": "#/components/schemas/LibraryCandidate"
+      },
+      "title": "Candidates",
+      "type": "array"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "glb_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Glb Url"
+     },
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "seed": {
+      "title": "Seed",
+      "type": "integer"
+     },
+     "stage": {
+      "enum": [
+       "queued",
+       "A",
+       "control",
+       "B",
+       "C",
+       "D",
+       "E",
+       "F",
+       "done"
+      ],
+      "title": "Stage",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "done",
+       "failed",
+       "fulfilled"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "thumbnail_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Thumbnail Url"
+     },
+     "turntable_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Turntable Url"
+     },
+     "variant": {
+      "title": "Variant",
+      "type": "string"
+     }
+    },
+    "required": [
+     "job_id",
+     "breed_id",
+     "variant",
+     "seed",
+     "status",
+     "stage",
+     "glb_url",
+     "thumbnail_url",
+     "turntable_url",
+     "candidates"
+    ],
+    "title": "BatchFigurine",
+    "type": "object"
+   },
+   "BatchList": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/Batch"
+      },
+      "title": "Items",
+      "type": "array"
+     }
+    },
+    "required": [
+     "items"
+    ],
+    "title": "BatchList",
+    "type": "object"
+   },
+   "BatchSummary": {
+    "additionalProperties": false,
+    "properties": {
+     "accepted": {
+      "title": "Accepted",
+      "type": "integer"
+     },
+     "candidates": {
+      "title": "Candidates",
+      "type": "integer"
+     },
+     "failed": {
+      "title": "Failed",
+      "type": "integer"
+     },
+     "figurines": {
+      "title": "Figurines",
+      "type": "integer"
+     },
+     "finished": {
+      "title": "Finished",
+      "type": "integer"
+     },
+     "parts_sets_published": {
+      "description": "Figurines whose family and at least four region parts are published.",
+      "title": "Parts Sets Published",
+      "type": "integer"
+     },
+     "passed_qc": {
+      "title": "Passed Qc",
+      "type": "integer"
+     },
+     "published": {
+      "title": "Published",
+      "type": "integer"
+     },
+     "rejected": {
+      "title": "Rejected",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "figurines",
+     "finished",
+     "failed",
+     "candidates",
+     "passed_qc",
+     "accepted",
+     "rejected",
+     "published",
+     "parts_sets_published"
+    ],
+    "title": "BatchSummary",
+    "type": "object"
+   },
+   "BatchVariant": {
+    "additionalProperties": false,
+    "properties": {
+     "label": {
+      "maxLength": 24,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_-]+$",
+      "title": "Label",
+      "type": "string"
+     },
+     "patch": {
+      "$ref": "#/components/schemas/PetSpecPatch"
+     }
+    },
+    "required": [
+     "label"
+    ],
+    "title": "BatchVariant",
+    "type": "object"
+   },
    "BespokeAccepted": {
     "additionalProperties": false,
     "properties": {
@@ -793,7 +1112,8 @@
       "enum": [
        "pipeline",
        "bespoke",
-       "export"
+       "export",
+       "batch"
       ],
       "title": "Kind",
       "type": "string"
@@ -1124,6 +1444,102 @@
     "title": "KioskOrder",
     "type": "object"
    },
+   "LibraryCandidate": {
+    "additionalProperties": false,
+    "properties": {
+     "auto_rejected": {
+      "title": "Auto Rejected",
+      "type": "boolean"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "family",
+       "region"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "qc": {
+      "additionalProperties": true,
+      "description": "symmetry_mm, boundary_strain, self_intersections, passed, reasons.",
+      "title": "Qc",
+      "type": "object"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "enum": [
+         "ears",
+         "tail",
+         "muzzle",
+         "head",
+         "legs"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "status": {
+      "enum": [
+       "draft",
+       "accepted",
+       "rejected",
+       "published",
+       "superseded"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "tags": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+     },
+     "thumbnail_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Thumbnail Url"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "version",
+     "kind",
+     "region",
+     "name",
+     "status",
+     "tags",
+     "qc",
+     "auto_rejected",
+     "thumbnail_url"
+    ],
+    "title": "LibraryCandidate",
+    "type": "object"
+   },
    "LibraryFamilies": {
     "additionalProperties": false,
     "properties": {
@@ -1211,6 +1627,328 @@
      "thumbnail_url"
     ],
     "title": "LibraryFamily",
+    "type": "object"
+   },
+   "LibraryItem": {
+    "additionalProperties": false,
+    "properties": {
+     "batch_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Batch Id"
+     },
+     "breeds": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Breeds"
+     },
+     "coverage": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PatternCoverage"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "default_colour": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Colour"
+     },
+     "default_parts": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "string"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Parts"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "family",
+       "region",
+       "shell",
+       "pattern"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "published_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Published At"
+     },
+     "published_version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Published Version"
+     },
+     "qc": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Qc"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "enum": [
+         "ears",
+         "tail",
+         "muzzle",
+         "head",
+         "legs"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "socket": {
+      "anyOf": [
+       {
+        "enum": [
+         "neck",
+         "head",
+         "face"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Socket"
+     },
+     "source_job": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Job"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "draft",
+       "accepted",
+       "rejected",
+       "published",
+       "superseded"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "tags": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+     },
+     "thumbnail_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Thumbnail Url"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     },
+     "versions": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Versions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "kind",
+     "id",
+     "version",
+     "versions",
+     "published_version",
+     "species",
+     "name",
+     "status",
+     "tags",
+     "thumbnail_url"
+    ],
+    "title": "LibraryItem",
+    "type": "object"
+   },
+   "LibraryItemList": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/LibraryItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species",
+     "items"
+    ],
+    "title": "LibraryItemList",
+    "type": "object"
+   },
+   "LibraryItemPatch": {
+    "additionalProperties": false,
+    "description": "The parts and pattern editors. Editing a published item starts its next version (a draft).",
+    "properties": {
+     "breeds": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Breeds"
+     },
+     "coverage": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PatternCoverage"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "default_colour": {
+      "anyOf": [
+       {
+        "pattern": "^#[0-9A-Fa-f]{6}$",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Colour"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     }
+    },
+    "title": "LibraryItemPatch",
     "type": "object"
    },
    "LibraryPart": {
@@ -2100,6 +2838,110 @@
     "title": "ProgressEvent",
     "type": "object"
    },
+   "ReleaseCreate": {
+    "additionalProperties": false,
+    "properties": {
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species"
+    ],
+    "title": "ReleaseCreate",
+    "type": "object"
+   },
+   "ReleaseInfo": {
+    "additionalProperties": false,
+    "properties": {
+     "bytes": {
+      "title": "Bytes",
+      "type": "integer"
+     },
+     "counts": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Counts",
+      "type": "object"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "created_by": {
+      "title": "Created By",
+      "type": "string"
+     },
+     "number": {
+      "title": "Number",
+      "type": "integer"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "sha256": {
+      "title": "Sha256",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Signed download of the bundle (none for the imported proxy release).",
+      "title": "Url"
+     }
+    },
+    "required": [
+     "release_version",
+     "species",
+     "number",
+     "created_by",
+     "created_at",
+     "counts",
+     "bytes",
+     "sha256"
+    ],
+    "title": "ReleaseInfo",
+    "type": "object"
+   },
+   "ReleaseList": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ReleaseInfo"
+      },
+      "title": "Items",
+      "type": "array"
+     }
+    },
+    "required": [
+     "items"
+    ],
+    "title": "ReleaseList",
+    "type": "object"
+   },
    "ReleaseManifest": {
     "additionalProperties": false,
     "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
@@ -2559,6 +3401,62 @@
     "title": "ResultPage",
     "type": "object"
    },
+   "ReviewDecision": {
+    "additionalProperties": false,
+    "properties": {
+     "action": {
+      "enum": [
+       "accept",
+       "reject"
+      ],
+      "title": "Action",
+      "type": "string"
+     },
+     "item_id": {
+      "title": "Item Id",
+      "type": "string"
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     }
+    },
+    "required": [
+     "item_id",
+     "action"
+    ],
+    "title": "ReviewDecision",
+    "type": "object"
+   },
+   "ReviewRequest": {
+    "additionalProperties": false,
+    "properties": {
+     "decisions": {
+      "items": {
+       "$ref": "#/components/schemas/ReviewDecision"
+      },
+      "maxItems": 400,
+      "minItems": 1,
+      "title": "Decisions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "decisions"
+    ],
+    "title": "ReviewRequest",
+    "type": "object"
+   },
    "Session": {
     "additionalProperties": false,
     "description": "An anonymous kiosk session (no accounts); wiped on idle.",
@@ -2657,7 +3555,8 @@
       "enum": [
        "pipeline",
        "bespoke",
-       "export"
+       "export",
+       "batch"
       ],
       "title": "Kind",
       "type": "string"
@@ -2984,7 +3883,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.0.0"
+  "version": "3.1.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -4173,6 +5072,378 @@
     ]
    }
   },
+  "/api/v1/studio/batches": {
+   "get": {
+    "operationId": "studioListBatches",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BatchList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Batches",
+    "tags": [
+     "studio"
+    ]
+   },
+   "post": {
+    "operationId": "studioCreateBatch",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BatchCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Batch"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Create Batch",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/batches/{batch_id}": {
+   "get": {
+    "operationId": "studioGetBatch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "batch_id",
+      "required": true,
+      "schema": {
+       "title": "Batch Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Batch"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Get Batch",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/batches/{batch_id}/review": {
+   "post": {
+    "operationId": "studioReviewBatch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "batch_id",
+      "required": true,
+      "schema": {
+       "title": "Batch Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Batch"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Review Batch",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
   "/api/v1/studio/breeds": {
    "get": {
     "operationId": "studioListBreeds",
@@ -4834,6 +6105,541 @@
     ]
    }
   },
+  "/api/v1/studio/library/{species}": {
+   "get": {
+    "operationId": "studioLibraryItems",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "kind",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "family",
+          "region",
+          "shell",
+          "pattern"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     },
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "draft",
+          "accepted",
+          "rejected",
+          "published",
+          "superseded"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryItemList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Library Items",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/library/{species}/{kind}/{item_id}": {
+   "patch": {
+    "operationId": "studioEditItem",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "kind",
+      "required": true,
+      "schema": {
+       "enum": [
+        "family",
+        "region",
+        "shell",
+        "pattern"
+       ],
+       "title": "Kind",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "item_id",
+      "required": true,
+      "schema": {
+       "title": "Item Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LibraryItemPatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryItem"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Edit Item",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/library/{species}/{kind}/{item_id}/publish": {
+   "post": {
+    "operationId": "studioPublishItem",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "kind",
+      "required": true,
+      "schema": {
+       "enum": [
+        "family",
+        "region",
+        "shell",
+        "pattern"
+       ],
+       "title": "Kind",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "item_id",
+      "required": true,
+      "schema": {
+       "title": "Item Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryItem"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Publish Item",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish": {
+   "post": {
+    "operationId": "studioUnpublishItem",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "kind",
+      "required": true,
+      "schema": {
+       "enum": [
+        "family",
+        "region",
+        "shell",
+        "pattern"
+       ],
+       "title": "Kind",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "item_id",
+      "required": true,
+      "schema": {
+       "title": "Item Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryItem"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Unpublish Item",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
   "/api/v1/studio/queue": {
    "get": {
     "operationId": "studioQueue",
@@ -4898,6 +6704,172 @@
      }
     },
     "summary": "Queue",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/releases": {
+   "get": {
+    "operationId": "studioListReleases",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReleaseList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Releases",
+    "tags": [
+     "studio"
+    ]
+   },
+   "post": {
+    "operationId": "studioCreateRelease",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReleaseCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReleaseInfo"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Create Release",
     "tags": [
      "studio"
     ]

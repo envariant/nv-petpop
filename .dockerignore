@@ -11,6 +11,7 @@ apps/kiosk/playwright-report
 apps/kiosk/public/assets
 apps/kiosk/public/draco
 apps/kiosk/public/fixtures
+apps/kiosk/public/library
 apps/kiosk/public/mockServiceWorker.js
 apps/studio/dist
 apps/studio/storybook-static
@@ -19,6 +20,7 @@ apps/studio/playwright-report
 apps/studio/public/assets
 apps/studio/public/draco
 apps/studio/public/fixtures
+apps/studio/public/library
 apps/studio/public/mockServiceWorker.js
 tests/regression/metrics.*
 *.blend1

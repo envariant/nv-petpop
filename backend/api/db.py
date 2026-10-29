@@ -30,7 +30,8 @@ class JobRow(Base):
     __tablename__ = "jobs"
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
     queue: Mapped[str] = mapped_column(String(8), default="studio", index=True)  # kiosk | studio (BRIEF Section 17)
-    kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export
+    kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export | batch
+    batch_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)  # a Studio curation batch (M8)
     session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
     requested_by: Mapped[str] = mapped_column(String(48), default="")
     contact: Mapped[str | None] = mapped_column(String(80), nullable=True)
@@ -107,7 +108,7 @@ class EventRow(Base):
 class _LibraryItem:
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     version: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
-    species: Mapped[str] = mapped_column(String(8), index=True)
+    species: Mapped[str] = mapped_column(String(8), primary_key=True)  # ids repeat across species (shell_collar)
     base_mesh_version: Mapped[str] = mapped_column(String(32))
     name: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(12), default="draft", index=True)  # draft/accepted/rejected/published
@@ -158,6 +159,20 @@ class PatternLayerRow(_LibraryItem, Base):
     __tablename__ = "pattern_layers"
     default_colour: Mapped[str] = mapped_column(String(7))
     coverage: Mapped[dict[str, float]] = mapped_column(JSON)
+
+
+class LibraryReleaseRow(Base):
+    """A release Studio packed (or imported): release-<species>-<n>, its bundle in the store and its counts."""
+    __tablename__ = "library_releases"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    species: Mapped[str] = mapped_column(String(8), index=True)
+    number: Mapped[int] = mapped_column(Integer)
+    created_by: Mapped[str] = mapped_column(String(48))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    object_key: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    counts: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
+    sha256: Mapped[str] = mapped_column(String(64), default="")
+    bytes: Mapped[int] = mapped_column(BigInteger, default=0)
 
 
 class CompositionRow(Base):

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { KioskFrame } from '@petpop/ui';
 import { BuildScreen } from './screens/Build';
+import { GenerateScreen, LibraryScreen, ReleasesScreen, ReviewScreen } from './screens/Curate';
 import { BriefScreen, NameScreen } from './screens/Brief';
 import { BreedScreen, SpeciesScreen } from './screens/Intro';
 import { LoginScreen } from './screens/Login';
@@ -12,6 +13,10 @@ import { Offline, QueuePanel, useOnline } from './screens/Overlays';
 import { useSession, type Screen } from './store/session';
 
 export const SCREENS: Record<Screen, () => JSX.Element | null> = {
+  generate: GenerateScreen,
+  review: ReviewScreen,
+  library: LibraryScreen,
+  releases: ReleasesScreen,
   species: SpeciesScreen,
   breed: BreedScreen,
   build: BuildScreen,
@@ -21,15 +26,30 @@ export const SCREENS: Record<Screen, () => JSX.Element | null> = {
   result: ResultScreen,
 };
 
+const AREAS: { screen: Screen; title: string }[] = [
+  { screen: 'generate', title: 'Generate' },
+  { screen: 'review', title: 'Review' },
+  { screen: 'library', title: 'Library' },
+  { screen: 'releases', title: 'Releases' },
+];
+
 export function StudioBar({ onQueue }: { onQueue: () => void }) {
   const user = useSession((s) => s.user);
   const logout = useSession((s) => s.logout);
-  const newFigure = useSession((s) => s.newFigure);
+  const screen = useSession((s) => s.screen);
+  const go = useSession((s) => s.go);
   return (
     <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-8 py-4 text-2xl text-muted" data-testid="studio-bar">
-      <button onClick={newFigure} className="hit font-display" data-testid="home">
-        Pet<span className="text-accent">Pop</span> Studio · Generate
-      </button>
+      <div className="flex items-center gap-5">
+        <button onClick={() => go('generate')} className="hit font-display" data-testid="home">
+          Pet<span className="text-accent">Pop</span> Studio
+        </button>
+        {AREAS.map((a) => (
+          <button key={a.screen} onClick={() => go(a.screen)} className={`hit ${screen === a.screen ? 'font-semibold text-ink' : ''}`} data-testid={`nav-${a.screen}`}>
+            {a.title}
+          </button>
+        ))}
+      </div>
       <div className="flex items-center gap-6">
         <span data-testid="studio-user">
           {user?.username} ({user?.role})

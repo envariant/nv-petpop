@@ -36,7 +36,7 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 ### A2 Contracts
 
-- [ ] Contract 1, the library release: `data/schema/release.schema.json`, signed `release-<species>-<n>.tar`,
+- [x] Contract 1, the library release: `data/schema/release.schema.json`, signed `release-<species>-<n>.tar`,
   its own contract test (built in M8, loaded in M7)
 - [x] Contract 2, the composition: `data/schema/composition.schema.json`, the only input to a library export
   (M7)
@@ -62,14 +62,14 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 ### B2 M8 Studio (`make gate-8`; PR)
 
-- [ ] Generate workspace reworked as a batch spec builder (breeds x variants x seeds)
-- [ ] Batch runner on the studio queue (stages A to E on any profile)
-- [ ] Region-delta and full-mesh family-delta extraction per figurine
-- [ ] QC metrics (wrap validity, symmetry error, boundary strain, self-intersection) with auto-reject thresholds
-- [ ] Review grid with turntables; accept, reject and tag per region; "fix in Blender" round-trip noted
-- [ ] Parts and pattern editors; publish with versioning (thumbnail and pattern previews regenerated)
-- [ ] `POST /studio/releases`: signed release bundle; release contract test
-- [ ] Gate 8 on the mock profile with stand-ins: parts that need a GenAI host print SKIPPED; "a release bundle
+- [x] Generate workspace reworked as a batch spec builder (breeds x variants x seeds)
+- [x] Batch runner on the studio queue (stages A to E on any profile)
+- [x] Region-delta and full-mesh family-delta extraction per figurine
+- [x] QC metrics (wrap validity, symmetry error, boundary strain, self-intersection) with auto-reject thresholds
+- [x] Review grid with turntables; accept, reject and tag per region; "fix in Blender" round-trip noted
+- [x] Parts and pattern editors; publish with versioning (thumbnail and pattern previews regenerated)
+- [x] `POST /studio/releases`: signed release bundle; release contract test
+- [x] Gate 8 on the mock profile with stand-ins (the 20-figurine yield runs on the Mac profile in S8): parts that need a GenAI host print SKIPPED; "a release bundle
   loads on a clean kiosk"
 
 ### B3 M9 Seed the library (S9, staff time on the Mac; needs the frozen base mesh from S4)

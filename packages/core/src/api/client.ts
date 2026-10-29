@@ -4,6 +4,8 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema';
 import type {
+  Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
+  ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
   KioskOrder, LibraryFamilies, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
   Species, StaffQueue, StaffToken, StaffUser,
@@ -89,6 +91,24 @@ export const StudioApi = {
   queue: async (): Promise<StaffQueue> => unwrap(await api.GET('/api/v1/studio/queue', auth())),
   retry: async (id: string): Promise<JobCreated> =>
     unwrap(await api.POST('/api/v1/studio/jobs/{job_id}/retry', { params: { path: { job_id: id } }, ...(auth() as object) })),
+  // library curation (M8)
+  createBatch: async (body: BatchCreate): Promise<Batch> => unwrap(await api.POST('/api/v1/studio/batches', { body, ...(auth() as object) })),
+  batches: async (): Promise<BatchList> => unwrap(await api.GET('/api/v1/studio/batches', auth())),
+  batch: async (id: string): Promise<Batch> =>
+    unwrap(await api.GET('/api/v1/studio/batches/{batch_id}', { params: { path: { batch_id: id } }, ...(auth() as object) })),
+  review: async (id: string, decisions: ReviewDecision[]): Promise<Batch> =>
+    unwrap(await api.POST('/api/v1/studio/batches/{batch_id}/review', { params: { path: { batch_id: id } }, body: { decisions }, ...(auth() as object) })),
+  libraryItems: async (species: Species, kind?: ItemKind, status?: ItemStatus): Promise<LibraryItemList> =>
+    unwrap(await api.GET('/api/v1/studio/library/{species}', { params: { path: { species }, query: { kind, status } }, ...(auth() as object) })),
+  editItem: async (species: Species, kind: ItemKind, id: string, patch: LibraryItemPatch): Promise<LibraryItem> =>
+    unwrap(await api.PATCH('/api/v1/studio/library/{species}/{kind}/{item_id}', { params: { path: { species, kind, item_id: id } }, body: patch, ...(auth() as object) })),
+  publishItem: async (species: Species, kind: ItemKind, id: string): Promise<LibraryItem> =>
+    unwrap(await api.POST('/api/v1/studio/library/{species}/{kind}/{item_id}/publish', { params: { path: { species, kind, item_id: id } }, ...(auth() as object) })),
+  unpublishItem: async (species: Species, kind: ItemKind, id: string): Promise<LibraryItem> =>
+    unwrap(await api.POST('/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish', { params: { path: { species, kind, item_id: id } }, ...(auth() as object) })),
+  releases: async (): Promise<ReleaseList> => unwrap(await api.GET('/api/v1/studio/releases', auth())),
+  createRelease: async (species: Species): Promise<ReleaseInfo> =>
+    unwrap(await api.POST('/api/v1/studio/releases', { body: { species }, ...(auth() as object) })),
 };
 
 export function eventsUrl(jobId: string): string {

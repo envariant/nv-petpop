@@ -15,7 +15,7 @@ make dev            # API + studio and kiosk workers + both SPAs on CPU (GENAI_P
                     #   curator, admin; password in var/.petpop_studio_password)
 make mock           # standalone mock server on :8000 (the frozen contract)
 make test           # Python and web tests
-make gate-0         # acceptance gates 0..7 (3-6 print "SKIPPED (needs a GenAI host)" on the mock profile)
+make gate-0         # acceptance gates 0..8 (3-6 and the parts of 8 that need one print "SKIPPED (needs a GenAI host)" on mock)
 make smoke-stack    # build the Compose stack here, push one job through it, tear it down
 make regress        # 30-pet regression set -> tests/regression/metrics.md
 ```

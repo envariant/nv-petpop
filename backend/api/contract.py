@@ -6,7 +6,8 @@ implementation's responses actually conform to it.
 
 Three routers: meta (health, signed files, the public result page), /kiosk (anonymous kiosk session: the library
 release, compositions and their Stage-F-only export, the five-tap ops panel behind the kiosk's staff PIN) and
-/studio (staff login; roles operator < curator < admin).
+/studio (staff login; roles operator < curator < admin: operators run jobs and batches, curators review, edit and
+publish library items, admins pack releases).
 """
 from __future__ import annotations
 
@@ -73,6 +74,17 @@ class ApiImpl(Protocol):
     async def fulfil(self, job_id: str) -> m.FulfilResponse: ...
     async def staff_queue(self, base: str) -> m.StaffQueue: ...
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated: ...
+    # studio library (M8): batches, review, editors, publish, releases
+    async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch: ...
+    async def list_batches(self) -> m.BatchList: ...
+    async def get_batch(self, batch_id: str) -> m.Batch: ...
+    async def review_batch(self, batch_id: str, body: m.ReviewRequest, user: m.StaffUser) -> m.Batch: ...
+    async def library_items(self, species: str, kind: str | None, status: str | None) -> m.LibraryItemList: ...
+    async def edit_item(self, species: str, kind: str, item_id: str, patch: m.LibraryItemPatch) -> m.LibraryItem: ...
+    async def publish_item(self, species: str, kind: str, item_id: str, user: m.StaffUser) -> m.LibraryItem: ...
+    async def unpublish_item(self, species: str, kind: str, item_id: str) -> m.LibraryItem: ...
+    async def create_release(self, body: m.ReleaseCreate, user: m.StaffUser) -> m.ReleaseInfo: ...
+    async def list_releases(self) -> m.ReleaseList: ...
     # meta
     async def result(self, token: str, base: str) -> m.ResultPage: ...
     async def file(self, key: str, exp: int, sig: str) -> Response: ...
@@ -157,6 +169,8 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
         return dep
 
     operator = Depends(staff("operator"))
+    curator = Depends(staff("curator"))
+    admin = Depends(staff("admin"))
 
     # ------------------------------------------------------------------ meta
     @meta.get("/health", response_model=m.Health, tags=["meta"], operation_id="health")
@@ -287,6 +301,53 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
     @studio.get("/queue", response_model=m.StaffQueue, operation_id="studioQueue", responses=AUTH)
     async def queue(request: Request, _: m.StaffUser = operator) -> m.StaffQueue:
         return await impl.staff_queue(_base(request))
+
+    # ------------------------------------------------------------------ studio library (M8)
+    @studio.post("/batches", response_model=m.Batch, status_code=201, operation_id="studioCreateBatch", responses={**ERR, **AUTH})
+    async def create_batch(body: m.BatchCreate, user: m.StaffUser = operator) -> m.Batch:
+        return await impl.create_batch(body, user)
+
+    @studio.get("/batches", response_model=m.BatchList, operation_id="studioListBatches", responses=AUTH)
+    async def list_batches(_: m.StaffUser = operator) -> m.BatchList:
+        return await impl.list_batches()
+
+    @studio.get("/batches/{batch_id}", response_model=m.Batch, operation_id="studioGetBatch", responses={**ERR, **AUTH})
+    async def get_batch(batch_id: str, _: m.StaffUser = operator) -> m.Batch:
+        return await impl.get_batch(batch_id)
+
+    @studio.post("/batches/{batch_id}/review", response_model=m.Batch, operation_id="studioReviewBatch", responses={**ERR, **AUTH})
+    async def review_batch(batch_id: str, body: m.ReviewRequest, user: m.StaffUser = curator) -> m.Batch:
+        return await impl.review_batch(batch_id, body, user)
+
+    @studio.get("/library/{species}", response_model=m.LibraryItemList, operation_id="studioLibraryItems", responses={**ERR, **AUTH})
+    async def library_items(species: m.Species, kind: m.ItemKind | None = Query(None), status: m.ItemStatus | None = Query(None),
+                            _: m.StaffUser = operator) -> m.LibraryItemList:
+        return await impl.library_items(species, kind, status)
+
+    @studio.patch("/library/{species}/{kind}/{item_id}", response_model=m.LibraryItem, operation_id="studioEditItem",
+                  responses={**ERR, **AUTH})
+    async def edit_item(species: m.Species, kind: m.ItemKind, item_id: str, patch: m.LibraryItemPatch,
+                        _: m.StaffUser = curator) -> m.LibraryItem:
+        return await impl.edit_item(species, kind, item_id, patch)
+
+    @studio.post("/library/{species}/{kind}/{item_id}/publish", response_model=m.LibraryItem, operation_id="studioPublishItem",
+                 responses={**ERR, **AUTH})
+    async def publish_item(species: m.Species, kind: m.ItemKind, item_id: str, user: m.StaffUser = curator) -> m.LibraryItem:
+        return await impl.publish_item(species, kind, item_id, user)
+
+    @studio.post("/library/{species}/{kind}/{item_id}/unpublish", response_model=m.LibraryItem, operation_id="studioUnpublishItem",
+                 responses={**ERR, **AUTH})
+    async def unpublish_item(species: m.Species, kind: m.ItemKind, item_id: str, _: m.StaffUser = curator) -> m.LibraryItem:
+        return await impl.unpublish_item(species, kind, item_id)
+
+    @studio.post("/releases", response_model=m.ReleaseInfo, status_code=201, operation_id="studioCreateRelease",
+                 responses={**ERR, **AUTH})
+    async def create_release(body: m.ReleaseCreate, user: m.StaffUser = admin) -> m.ReleaseInfo:
+        return await impl.create_release(body, user)
+
+    @studio.get("/releases", response_model=m.ReleaseList, operation_id="studioListReleases", responses=AUTH)
+    async def list_releases(_: m.StaffUser = operator) -> m.ReleaseList:
+        return await impl.list_releases()
 
     @studio.websocket("/jobs/{job_id}/events")
     async def events(ws: WebSocket, job_id: str, token: str | None = Query(None)) -> None:

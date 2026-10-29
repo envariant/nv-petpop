@@ -17,7 +17,7 @@ export const HANDLED_PATHS = [
   '/api/v1/kiosk/compositions/{composition_id}/bespoke',
 ];
 
-const API_VERSION = '3.0.0';
+const API_VERSION = '3.1.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();

@@ -48,11 +48,18 @@ class MockLibrary:
         self.secret = secret
         self.releases: dict[str, tuple[dict[str, Any], dict[str, bytes]]] = {}
         for path in sorted(LIBRARY_DIR.glob("release-*.tar")):
-            manifest, files = release.read(path.read_bytes(), key=release.DEV_RELEASE_KEY.encode())
+            manifest, files = release.read(path.read_bytes())
             cur = self.releases.get(manifest["species"])
             if not cur or cur[0]["number"] < manifest["number"]:
                 self.releases[manifest["species"]] = (manifest, files)
         self.compositions: dict[str, MockComposition] = {}
+
+    def add_bundle(self, bundle: bytes) -> None:
+        """A release Studio packed: verified like a kiosk would, then active if newer."""
+        manifest, files = release.read(bundle)
+        cur = self.releases.get(manifest["species"])
+        if not cur or cur[0]["number"] < manifest["number"]:
+            self.releases[manifest["species"]] = (manifest, files)
 
     # ------------------------------------------------------------------ helpers
     def release(self, species: str) -> tuple[dict[str, Any], dict[str, bytes]]:

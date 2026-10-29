@@ -12,6 +12,7 @@ import fallback from '@mockscripts/fallback_figurine.json';
 import fixtureIndex from '@fixtures/pets/index.json';
 import type { Artefact, Breed, Job, PetSpec, ProgressEvent, StaffJob } from '@petpop/core';
 import { applyPatch, assetUrl } from '@petpop/core';
+import { curationHandlers } from './curation';
 import { mockParse } from './parse';
 
 type Step = { stage: string; at_s: number; pct: number; message: string; preview?: string; preview_kind?: string; also?: string[][] };
@@ -27,6 +28,9 @@ export const HANDLED_PATHS = [
   '/api/v1/studio/auth/login', '/api/v1/studio/auth/me', '/api/v1/studio/breeds', '/api/v1/studio/spec/parse', '/api/v1/studio/jobs',
   '/api/v1/studio/jobs/{job_id}', '/api/v1/studio/jobs/{job_id}/events', '/api/v1/studio/jobs/{job_id}/tweak',
   '/api/v1/studio/jobs/{job_id}/fulfil', '/api/v1/studio/jobs/{job_id}/retry', '/api/v1/studio/queue',
+  '/api/v1/studio/batches', '/api/v1/studio/batches/{batch_id}', '/api/v1/studio/batches/{batch_id}/review', '/api/v1/studio/library/{species}',
+  '/api/v1/studio/library/{species}/{kind}/{item_id}', '/api/v1/studio/library/{species}/{kind}/{item_id}/publish',
+  '/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish', '/api/v1/studio/releases',
 ];
 const ROLES = ['operator', 'curator', 'admin'];
 const MOCK_PASSWORD = 'petpop-dev';
@@ -128,7 +132,7 @@ const userOf = (request: Request) => {
 const unauthorised = () => HttpResponse.json({ detail: 'staff login required' }, { status: 401 });
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.0.0', server: 'mock-server' })),
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.1.0', server: 'mock-server' })),
   http.post('/api/v1/studio/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (!ROLES.includes(body.username) || body.password !== MOCK_PASSWORD) return HttpResponse.json({ detail: 'wrong username or password' }, { status: 401 });
@@ -242,4 +246,5 @@ export const handlers = [
       }
     }, 100);
   }),
+  ...curationHandlers(userOf, unauthorised),
 ];

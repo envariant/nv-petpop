@@ -3,6 +3,7 @@
 import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { unpackReleases } from '../../../scripts/unpack_releases.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
@@ -28,4 +29,5 @@ if (existsSync(fx)) {
   mkdirSync(join(pub, 'fixtures'), { recursive: true });
   for (const d of readdirSync(fx)) cpSync(join(fx, d), join(pub, 'fixtures', d), { recursive: true });
 }
+unpackReleases(root, pub); // the proxy library releases, for standalone mode
 console.log('assets synced into public/');

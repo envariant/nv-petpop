@@ -1,8 +1,9 @@
 """Worker processes, one per queue (BRIEF Section 17): each claims its queue's jobs one at a time, mirroring
 progress, timings and artefacts into the database and the event bus (the arq entry points call run_job).
 
-- studio: full pipeline jobs (and bespoke requests from the kiosk). The only process that builds GenAI
-  adapters, so the only one that ever reaches the GenAI host.
+- studio: full pipeline jobs, bespoke requests from the kiosk and curation batches (each figurine is curated into
+  library parts when its pipeline finishes). The only process that builds GenAI adapters, so the only one that
+  ever reaches the GenAI host.
 - kiosk: Stage-F-only library exports (M7) and nothing else. It never builds an adapter and never imports
   one, so a kiosk keeps taking orders with the GenAI host unreachable.
 
@@ -29,7 +30,7 @@ from .runner import JobFailed, StageRunner
 log = logging.getLogger("petpop.worker")
 
 
-JOB_KINDS = {"studio": {"pipeline", "bespoke"}, "kiosk": {"export"}}
+JOB_KINDS = {"studio": {"pipeline", "bespoke", "batch"}, "kiosk": {"export"}}
 
 
 class Worker:
@@ -103,7 +104,22 @@ class Worker:
             return self._fail(job_id, "queued", f"{kind} jobs do not run on the {self.queue} queue")
         if kind == "export":
             return self.run_export(job_id)
-        return self.run_pipeline(job_id)
+        result = self.run_pipeline(job_id)
+        if kind == "batch" and result == "done":
+            return self.curate(job_id)
+        return result
+
+    def curate(self, job_id: str) -> str:
+        """A batch figurine (M8): extract its family and region parts, run QC, file them for review."""
+        from backend.api.studio_library import curate
+
+        try:
+            report = curate(self.db, self.store, job_id)
+            log.info("curated %s: passed %s", job_id, ", ".join(report["passed_regions"]) or "nothing")
+            return "done"
+        except Exception as exc:  # noqa: BLE001 - the figurine stays visible in review with the error
+            log.exception("curation of %s failed", job_id)
+            return self._fail(job_id, "F", f"curation failed: {exc}")
 
     def run_export(self, job_id: str) -> str:
         """A library export (BRIEF Section 16): Stage F only, from the composition JSON; then the print bundle and

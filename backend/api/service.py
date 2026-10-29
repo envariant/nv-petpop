@@ -27,6 +27,7 @@ from petpop_core.spec import apply_patch, fill_colour_names
 from .bus import make_bus
 from .fulfilment import copy_bundle
 from .library import KioskLibrary
+from .studio_library import StudioLibrary
 from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
                  seed_staff, session_factory, utcnow)
 from .store import make_store
@@ -54,6 +55,8 @@ class BackendApi:
         self.store = make_store(s)
         self.library = KioskLibrary(s, self.db, self.bus, self.store, self.secret)
         self.library.load_releases()
+        self.studio = StudioLibrary(s, self.db, self.store, self.bus, self.secret)
+        self.studio.seed()
 
     # ------------------------------------------------------------------ helpers
     def _url(self, key: str) -> str:
@@ -337,6 +340,39 @@ class BackendApi:
             job = self._new_job(db, old.pet_spec, queue=old.queue, kind=old.kind, requested_by=user.username,
                                 session_id=old.session_id, contact=old.contact)
             return self._created(db, job)
+
+    # ------------------------------------------------------------------ studio library (M8)
+    async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:
+        return await asyncio.to_thread(self.studio.create_batch, body, user)
+
+    async def list_batches(self) -> m.BatchList:
+        return await asyncio.to_thread(self.studio.batches)
+
+    async def get_batch(self, batch_id: str) -> m.Batch:
+        return await asyncio.to_thread(self.studio.batch, batch_id)
+
+    async def review_batch(self, batch_id: str, body: m.ReviewRequest, user: m.StaffUser) -> m.Batch:
+        return await asyncio.to_thread(self.studio.review, batch_id, body, user)
+
+    async def library_items(self, species: str, kind: str | None, status: str | None) -> m.LibraryItemList:
+        return await asyncio.to_thread(self.studio.items, species, kind, status)
+
+    async def edit_item(self, species: str, kind: str, item_id: str, patch: m.LibraryItemPatch) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.edit, species, kind, item_id, patch)
+
+    async def publish_item(self, species: str, kind: str, item_id: str, user: m.StaffUser) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.publish, species, kind, item_id, user)
+
+    async def unpublish_item(self, species: str, kind: str, item_id: str) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.unpublish, species, kind, item_id)
+
+    async def create_release(self, body: m.ReleaseCreate, user: m.StaffUser) -> m.ReleaseInfo:
+        info = await asyncio.to_thread(self.studio.create_release, body.species, user)
+        await asyncio.to_thread(self.library.load_releases)  # a kiosk on this box switches now, not at the next poll
+        return info
+
+    async def list_releases(self) -> m.ReleaseList:
+        return await asyncio.to_thread(self.studio.releases)
 
     # ------------------------------------------------------------------ housekeeping
     def purge_free_text(self, days: int = 7) -> int:

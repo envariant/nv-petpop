@@ -37,6 +37,7 @@ from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch
 
 from .library import MockLibrary
+from .studio import MockStudio
 
 SCRIPTS_DIR = ROOT / "mock-server" / "scripts"
 PRINT_BUNDLE = ["figure.3mf", "figure.stl", "albedo.png", "figure_uv.obj", "paint_mask.png", "manifest.json"]
@@ -117,6 +118,7 @@ class MockApi:
         self.jobs: dict[str, MockJob] = {}
         self.index = json.loads((FIXTURES / "index.json").read_text())["pets"]
         self.library = MockLibrary(self.secret)
+        self.studio = MockStudio(self.secret)
 
     # ----------------------------------------------------------------- helpers
     def _pick_script(self, spec: dict[str, Any]) -> dict[str, Any]:
@@ -397,6 +399,10 @@ class MockApi:
     async def file(self, key: str, exp: int, sig: str) -> Response:
         if not check_sig(self.secret, key, exp, sig):
             raise ApiError(403, "bad or expired signature")
+        studio_file = self.studio.file(key)
+        if studio_file is not None:  # library items, batch figurines and release bundles
+            media = mimetypes.guess_type(key)[0] or ("model/gltf-binary" if key.endswith(".glb") else "application/octet-stream")
+            return Response(studio_file, media_type=media, headers={"Cache-Control": "private, max-age=3600"})
         parts = key.split("/", 2)
         if len(parts) == 3 and parts[0] == "compositions":
             data, media = self.library.file(key)
@@ -439,6 +445,41 @@ class MockApi:
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated:
         old = self._job(job_id)
         return self._created(self._enqueue(old.session_id, user.username, old.spec, self.scripts["normal"], kind=old.kind))
+
+    # ----------------------------------------------------------------- studio library (M8)
+    async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:
+        return await asyncio.to_thread(self.studio.create_batch, body, user, mock_speed())
+
+    async def list_batches(self) -> m.BatchList:
+        self.studio.advance()
+        return await asyncio.to_thread(self.studio.ready().batches)
+
+    async def get_batch(self, batch_id: str) -> m.Batch:
+        return await asyncio.to_thread(self.studio.batch, batch_id)
+
+    async def review_batch(self, batch_id: str, body: m.ReviewRequest, user: m.StaffUser) -> m.Batch:
+        self.studio.advance()
+        return await asyncio.to_thread(self.studio.ready().review, batch_id, body, user)
+
+    async def library_items(self, species: str, kind: str | None, status: str | None) -> m.LibraryItemList:
+        return await asyncio.to_thread(self.studio.ready().items, species, kind, status)
+
+    async def edit_item(self, species: str, kind: str, item_id: str, patch: m.LibraryItemPatch) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.ready().edit, species, kind, item_id, patch)
+
+    async def publish_item(self, species: str, kind: str, item_id: str, user: m.StaffUser) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.ready().publish, species, kind, item_id, user)
+
+    async def unpublish_item(self, species: str, kind: str, item_id: str) -> m.LibraryItem:
+        return await asyncio.to_thread(self.studio.ready().unpublish, species, kind, item_id)
+
+    async def create_release(self, body: m.ReleaseCreate, user: m.StaffUser) -> m.ReleaseInfo:
+        info = await asyncio.to_thread(self.studio.ready().create_release, body.species, user)
+        self.library.add_bundle(self.studio.latest_bundle(info))  # the mock kiosk switches to it, like a real one
+        return info
+
+    async def list_releases(self) -> m.ReleaseList:
+        return await asyncio.to_thread(self.studio.ready().releases)
 
 
 def create_app():

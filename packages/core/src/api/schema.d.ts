@@ -310,6 +310,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/studio/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Batches */
+        get: operations["studioListBatches"];
+        put?: never;
+        /** Create Batch */
+        post: operations["studioCreateBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/batches/{batch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Batch */
+        get: operations["studioGetBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/batches/{batch_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Batch */
+        post: operations["studioReviewBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/studio/breeds": {
         parameters: {
             query?: never;
@@ -432,6 +484,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/studio/library/{species}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Items */
+        get: operations["studioLibraryItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/library/{species}/{kind}/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Item */
+        patch: operations["studioEditItem"];
+        trace?: never;
+    };
+    "/api/v1/studio/library/{species}/{kind}/{item_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Item */
+        post: operations["studioPublishItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish Item */
+        post: operations["studioUnpublishItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/studio/queue": {
         parameters: {
             query?: never;
@@ -443,6 +563,24 @@ export interface paths {
         get: operations["studioQueue"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Releases */
+        get: operations["studioListReleases"];
+        put?: never;
+        /** Create Release */
+        post: operations["studioCreateRelease"];
         delete?: never;
         options?: never;
         head?: never;
@@ -485,6 +623,129 @@ export interface components {
             stage: string;
             /** Url */
             url: string;
+        };
+        /** Batch */
+        Batch: {
+            /** Batch Id */
+            batch_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Figurines */
+            figurines: components["schemas"]["BatchFigurine"][];
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "review" | "done";
+            summary: components["schemas"]["BatchSummary"];
+        };
+        /**
+         * BatchCreate
+         * @description A curation batch: breeds x variants x seeds, each a full pipeline run on the studio queue.
+         */
+        BatchCreate: {
+            /** Breeds */
+            breeds: string[];
+            /**
+             * First Seed
+             * @default 1
+             */
+            first_seed: number;
+            /**
+             * Seeds
+             * @default 1
+             */
+            seeds: number;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /** Variants */
+            variants?: components["schemas"]["BatchVariant"][];
+        };
+        /** BatchFigurine */
+        BatchFigurine: {
+            /** Breed Id */
+            breed_id: string;
+            /**
+             * Candidates
+             * @description The figurine's family and one part per region, once curated.
+             */
+            candidates: components["schemas"]["LibraryCandidate"][];
+            /** Error */
+            error?: string | null;
+            /** Glb Url */
+            glb_url: string | null;
+            /** Job Id */
+            job_id: string;
+            /** Seed */
+            seed: number;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "queued" | "A" | "control" | "B" | "C" | "D" | "E" | "F" | "done";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            /** Thumbnail Url */
+            thumbnail_url: string | null;
+            /** Turntable Url */
+            turntable_url: string | null;
+            /** Variant */
+            variant: string;
+        };
+        /** BatchList */
+        BatchList: {
+            /** Items */
+            items: components["schemas"]["Batch"][];
+        };
+        /** BatchSummary */
+        BatchSummary: {
+            /** Accepted */
+            accepted: number;
+            /** Candidates */
+            candidates: number;
+            /** Failed */
+            failed: number;
+            /** Figurines */
+            figurines: number;
+            /** Finished */
+            finished: number;
+            /**
+             * Parts Sets Published
+             * @description Figurines whose family and at least four region parts are published.
+             */
+            parts_sets_published: number;
+            /** Passed Qc */
+            passed_qc: number;
+            /** Published */
+            published: number;
+            /** Rejected */
+            rejected: number;
+        };
+        /** BatchVariant */
+        BatchVariant: {
+            /** Label */
+            label: string;
+            patch?: components["schemas"]["PetSpecPatch"];
         };
         /** BespokeAccepted */
         BespokeAccepted: {
@@ -765,7 +1026,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "pipeline" | "bespoke" | "export";
+            kind: "pipeline" | "bespoke" | "export" | "batch";
             /** Message */
             message: string;
             /** Pct */
@@ -894,6 +1155,40 @@ export interface components {
             /** Ticket */
             ticket: string | null;
         };
+        /** LibraryCandidate */
+        LibraryCandidate: {
+            /** Auto Rejected */
+            auto_rejected: boolean;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "family" | "region";
+            /** Name */
+            name: string;
+            /**
+             * Qc
+             * @description symmetry_mm, boundary_strain, self_intersections, passed, reasons.
+             */
+            qc: {
+                [key: string]: unknown;
+            };
+            /** Region */
+            region: ("ears" | "tail" | "muzzle" | "head" | "legs") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "accepted" | "rejected" | "published" | "superseded";
+            /** Tags */
+            tags: string[];
+            /** Thumbnail Url */
+            thumbnail_url: string | null;
+            /** Version */
+            version: number;
+        };
         /** LibraryFamilies */
         LibraryFamilies: {
             /** Items */
@@ -926,6 +1221,86 @@ export interface components {
             thumbnail_url: string;
             /** Version */
             version: number;
+        };
+        /** LibraryItem */
+        LibraryItem: {
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Breeds */
+            breeds?: string[] | null;
+            coverage?: components["schemas"]["PatternCoverage"] | null;
+            /** Default Colour */
+            default_colour?: string | null;
+            /** Default Parts */
+            default_parts?: {
+                [key: string]: string;
+            } | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "family" | "region" | "shell" | "pattern";
+            /** Name */
+            name: string;
+            /** Published At */
+            published_at?: string | null;
+            /** Published Version */
+            published_version: number | null;
+            /** Qc */
+            qc?: {
+                [key: string]: unknown;
+            } | null;
+            /** Region */
+            region?: ("ears" | "tail" | "muzzle" | "head" | "legs") | null;
+            /** Socket */
+            socket?: ("neck" | "head" | "face") | null;
+            /** Source Job */
+            source_job?: string | null;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "accepted" | "rejected" | "published" | "superseded";
+            /** Tags */
+            tags: string[];
+            /** Thumbnail Url */
+            thumbnail_url: string | null;
+            /** Version */
+            version: number;
+            /** Versions */
+            versions: number[];
+        };
+        /** LibraryItemList */
+        LibraryItemList: {
+            /** Items */
+            items: components["schemas"]["LibraryItem"][];
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+        };
+        /**
+         * LibraryItemPatch
+         * @description The parts and pattern editors. Editing a published item starts its next version (a draft).
+         */
+        LibraryItemPatch: {
+            /** Breeds */
+            breeds?: string[] | null;
+            coverage?: components["schemas"]["PatternCoverage"] | null;
+            /** Default Colour */
+            default_colour?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /** LibraryPart */
         LibraryPart: {
@@ -1217,6 +1592,51 @@ export interface components {
              */
             status: "queued" | "running" | "done" | "failed" | "fulfilled";
         };
+        /** ReleaseCreate */
+        ReleaseCreate: {
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+        };
+        /** ReleaseInfo */
+        ReleaseInfo: {
+            /** Bytes */
+            bytes: number;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Number */
+            number: number;
+            /** Release Version */
+            release_version: string;
+            /** Sha256 */
+            sha256: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Url
+             * @description Signed download of the bundle (none for the imported proxy release).
+             */
+            url?: string | null;
+        };
+        /** ReleaseList */
+        ReleaseList: {
+            /** Items */
+            items: components["schemas"]["ReleaseInfo"][];
+        };
         /**
          * LibraryRelease
          * @description manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.
@@ -1340,6 +1760,23 @@ export interface components {
             /** Turntable Url */
             turntable_url: string | null;
         };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "accept" | "reject";
+            /** Item Id */
+            item_id: string;
+            /** Tags */
+            tags?: string[] | null;
+        };
+        /** ReviewRequest */
+        ReviewRequest: {
+            /** Decisions */
+            decisions: components["schemas"]["ReviewDecision"][];
+        };
         /**
          * Session
          * @description An anonymous kiosk session (no accounts); wiped on idle.
@@ -1391,7 +1828,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "pipeline" | "bespoke" | "export";
+            kind: "pipeline" | "bespoke" | "export" | "batch";
             /** Pet Name */
             pet_name: string | null;
             /** Requested By */
@@ -2359,6 +2796,268 @@ export interface operations {
             };
         };
     };
+    studioListBatches: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioCreateBatch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Batch"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioGetBatch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Batch"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioReviewBatch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Batch"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     studioListBreeds: {
         parameters: {
             query: {
@@ -2804,6 +3503,295 @@ export interface operations {
             };
         };
     };
+    studioLibraryItems: {
+        parameters: {
+            query?: {
+                kind?: ("family" | "region" | "shell" | "pattern") | null;
+                status?: ("draft" | "accepted" | "rejected" | "published" | "superseded") | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItemList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioEditItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                kind: "family" | "region" | "shell" | "pattern";
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibraryItemPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioPublishItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                kind: "family" | "region" | "shell" | "pattern";
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioUnpublishItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                kind: "family" | "region" | "shell" | "pattern";
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     studioQueue: {
         parameters: {
             query?: never;
@@ -2849,6 +3837,126 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioListReleases: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioCreateRelease: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseInfo"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

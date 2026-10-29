@@ -1,6 +1,7 @@
 """API contract models (BRIEF Sections 9 and 17). Shared by mock-server/ and backend/api/ so both publish the
 identical OpenAPI document (data/schema/openapi.json). 2.0.0 splits the surface into /kiosk and /studio; 3.0.0 adds
-the kiosk library mode (releases, compositions, Stage-F-only exports) and moves bespoke onto a composition."""
+the kiosk library mode (releases, compositions, Stage-F-only exports) and moves bespoke onto a composition; 3.1.0
+adds Studio's curation: batches, review, the parts and pattern editors, publish and releases."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -8,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.0.0"
+API_VERSION = "3.1.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -18,7 +19,7 @@ JobStatus = Literal["queued", "running", "done", "failed", "fulfilled"]
 Stage = Literal["queued", "A", "control", "B", "C", "D", "E", "F", "done"]
 Fallback = Literal["none", "single_view", "parametric", "unwrapped"]
 Role = Literal["operator", "curator", "admin"]
-JobKind = Literal["pipeline", "bespoke", "export"]
+JobKind = Literal["pipeline", "bespoke", "export", "batch"]
 ArtefactKind = Literal["spec", "control", "concept", "view", "shape", "wrapped", "uv_obj", "albedo", "glb", "3mf",
                        "stl", "mask", "turntable", "thumbnail", "manifest"]
 
@@ -362,6 +363,148 @@ class KioskOrder(_M):
     status: CompositionState
     created_at: datetime
     thumbnail_url: str | None
+
+
+# --------------------------------------------------------------------------- studio library (BRIEF Section 16, M8, API 3.1.0)
+
+ItemKind = Literal["family", "region", "shell", "pattern"]
+ItemStatus = Literal["draft", "accepted", "rejected", "published", "superseded"]
+BatchState = Literal["running", "review", "done"]
+
+
+class BatchVariant(_M):
+    label: str = Field(min_length=1, max_length=24, pattern=r"^[a-z0-9_-]+$")
+    patch: PetSpecPatch = Field(default_factory=dict, description="Applied over each breed's preset.")
+
+
+class BatchCreate(_M):
+    """A curation batch: breeds x variants x seeds, each a full pipeline run on the studio queue."""
+    species: Species
+    breeds: list[str] = Field(min_length=1, max_length=30)
+    variants: list[BatchVariant] = Field(default_factory=lambda: [BatchVariant(label="preset")], min_length=1, max_length=5)
+    seeds: int = Field(1, ge=1, le=10)
+    first_seed: int = Field(1, ge=1, le=2**31 - 1)
+
+
+class LibraryCandidate(_M):
+    id: str
+    version: int
+    kind: Literal["family", "region"]
+    region: Region | None
+    name: str
+    status: ItemStatus
+    tags: list[str]
+    qc: dict[str, Any] = Field(description="symmetry_mm, boundary_strain, self_intersections, passed, reasons.")
+    auto_rejected: bool
+    thumbnail_url: str | None
+
+
+class BatchFigurine(_M):
+    job_id: str
+    breed_id: str
+    variant: str
+    seed: int
+    status: JobStatus
+    stage: Stage
+    error: str | None = None
+    glb_url: str | None
+    thumbnail_url: str | None
+    turntable_url: str | None
+    candidates: list[LibraryCandidate] = Field(description="The figurine's family and one part per region, once curated.")
+
+
+class BatchSummary(_M):
+    figurines: int
+    finished: int
+    failed: int
+    candidates: int
+    passed_qc: int
+    accepted: int
+    rejected: int
+    published: int
+    parts_sets_published: int = Field(description="Figurines whose family and at least four region parts are published.")
+
+
+class Batch(_M):
+    batch_id: str
+    species: Species
+    status: BatchState
+    created_by: str
+    created_at: datetime
+    request: dict[str, Any]
+    summary: BatchSummary
+    figurines: list[BatchFigurine]
+
+
+class BatchList(_M):
+    items: list[Batch]
+
+
+class ReviewDecision(_M):
+    item_id: str
+    action: Literal["accept", "reject"]
+    tags: list[str] | None = None
+
+
+class ReviewRequest(_M):
+    decisions: list[ReviewDecision] = Field(min_length=1, max_length=400)
+
+
+class LibraryItem(_M):
+    kind: ItemKind
+    id: str
+    version: int
+    versions: list[int]
+    published_version: int | None
+    species: Species
+    name: str
+    status: ItemStatus
+    tags: list[str]
+    region: Region | None = None
+    socket: Literal["neck", "head", "face"] | None = None
+    default_colour: str | None = None
+    coverage: PatternCoverage | None = None
+    breeds: list[str] | None = None
+    default_parts: dict[str, str] | None = None
+    qc: dict[str, Any] | None = None
+    source_job: str | None = None
+    batch_id: str | None = None
+    thumbnail_url: str | None
+    published_at: datetime | None = None
+
+
+class LibraryItemList(_M):
+    species: Species
+    items: list[LibraryItem]
+
+
+class LibraryItemPatch(_M):
+    """The parts and pattern editors. Editing a published item starts its next version (a draft)."""
+    name: str | None = Field(None, min_length=1, max_length=64)
+    tags: list[str] | None = None
+    default_colour: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    coverage: PatternCoverage | None = None
+    breeds: list[str] | None = None
+
+
+class ReleaseCreate(_M):
+    species: Species
+
+
+class ReleaseInfo(_M):
+    release_version: str
+    species: Species
+    number: int
+    created_by: str
+    created_at: datetime
+    counts: dict[str, int]
+    bytes: int
+    sha256: str
+    url: str | None = Field(None, description="Signed download of the bundle (none for the imported proxy release).")
+
+
+class ReleaseList(_M):
+    items: list[ReleaseInfo]
 
 
 class ErrorBody(_M):

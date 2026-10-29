@@ -35,3 +35,17 @@ export type CompositionStatus = S['CompositionStatus'];
 export type CompositionState = CompositionStatus['status'];
 export type ExportAccepted = S['ExportAccepted'];
 export type KioskOrder = S['KioskOrder'];
+// Studio curation (M8).
+export type BatchCreate = S['BatchCreate'];
+export type Batch = S['Batch'];
+export type BatchList = S['BatchList'];
+export type BatchFigurine = S['BatchFigurine'];
+export type LibraryCandidate = S['LibraryCandidate'];
+export type ReviewDecision = S['ReviewDecision'];
+export type LibraryItem = S['LibraryItem'];
+export type LibraryItemList = S['LibraryItemList'];
+export type LibraryItemPatch = S['LibraryItemPatch'];
+export type ItemKind = LibraryItem['kind'];
+export type ItemStatus = LibraryItem['status'];
+export type ReleaseInfo = S['ReleaseInfo'];
+export type ReleaseList = S['ReleaseList'];

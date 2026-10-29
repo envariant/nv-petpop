@@ -313,7 +313,10 @@ def test_every_documented_path_is_exercised():
                  f"{K}/compositions/{{composition_id}}/bespoke",
                  f"{S}/auth/login", f"{S}/auth/me", f"{S}/breeds", f"{S}/spec/parse", f"{S}/jobs", f"{S}/jobs/{{job_id}}",
                  f"{S}/jobs/{{job_id}}/events", f"{S}/jobs/{{job_id}}/tweak", f"{S}/jobs/{{job_id}}/fulfil",
-                 f"{S}/jobs/{{job_id}}/retry", f"{S}/queue"}
+                 f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",
+                 f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
+                 f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
+                 f"{S}/releases"}
     assert set(doc()["paths"]) == exercised
 
 

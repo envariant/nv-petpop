@@ -15,6 +15,8 @@ test('gate-1 studio walkthrough: sign in, generate, print, new figurine', async 
   await shot('0-login');
   await page.getByTestId('login-submit').tap();
   await expect(page.getByTestId('studio-user')).toContainText('operator');
+  await expect(page.locator('[data-screen=generate]')).toBeVisible();
+  await page.getByTestId('one-off').tap(); // a one-off figurine; batches have their own walkthrough (gate 8)
 
   await page.getByTestId('species-dog').tap();
   await shot('1-species');

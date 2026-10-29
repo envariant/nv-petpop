@@ -3,7 +3,8 @@ import { create } from 'zustand';
 import { ApiFailure, StudioApi, applyPatch, clone, randomSeed, setPath, setStaffToken, specFromBreed } from '@petpop/core';
 import type { Breed, Job, ParseResponse, PetSpec, ProgressEvent, Species, StaffUser } from '@petpop/core';
 
-export type Screen = 'species' | 'breed' | 'build' | 'brief' | 'name' | 'generating' | 'result';
+// The Generate workspace (batch builder), Review, Library and Releases (M8), and the one-off figurine flow.
+export type Screen = 'generate' | 'review' | 'library' | 'releases' | 'species' | 'breed' | 'build' | 'brief' | 'name' | 'generating' | 'result';
 export const FLOW: Screen[] = ['species', 'breed', 'build', 'brief', 'name', 'generating', 'result'];
 const TOKEN_KEY = 'pp-studio-token';
 
@@ -84,7 +85,7 @@ export const useSession = create<SessionState>((set, get) => ({
     try {
       const t = await StudioApi.login(username, password);
       store(t.token);
-      set({ user: t.user, loginError: null, ...figure });
+      set({ user: t.user, loginError: null, ...figure, screen: 'generate' });
     } catch (e) {
       set({ loginError: e instanceof ApiFailure && e.status === 401 ? 'Wrong username or password.' : 'Could not reach the studio.' });
     }
@@ -99,7 +100,7 @@ export const useSession = create<SessionState>((set, get) => ({
     if (!token) return;
     setStaffToken(token);
     try {
-      set({ user: await StudioApi.me() });
+      set({ user: await StudioApi.me(), screen: 'generate' });
     } catch {
       store(null);
     }

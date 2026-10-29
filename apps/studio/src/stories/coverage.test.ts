@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // CLAUDE.md: every screen has a Storybook story and a Playwright test.
-const SCREENS = ['species', 'breed', 'build', 'brief', 'name', 'generating', 'result'];
-const STORY_NAMES: Record<string, string> = { species: 'Species', breed: 'Breed', build: 'Build', brief: 'Brief', name: 'NameAndGenerate', generating: 'GeneratingViews', result: 'Result' };
+const SCREENS = ['species', 'breed', 'build', 'brief', 'name', 'generating', 'result', 'generate', 'review', 'library', 'releases'];
+const STORY_NAMES: Record<string, string> = { species: 'Species', breed: 'Breed', build: 'Build', brief: 'Brief', name: 'NameAndGenerate', generating: 'GeneratingViews', result: 'Result', generate: 'Generate', review: 'Review', library: 'Library', releases: 'Releases' };
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
 describe('studio screen coverage', () => {
