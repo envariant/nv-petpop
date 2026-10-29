@@ -144,6 +144,22 @@ under Allowed domains.
 | After `git pull` | `make -C mac setup` (idempotent), then `make -C mac restart` |
 | Take package upgrades | move `EXCLUDE_NEWER` in `mac/lock.sh`, `make -C mac lock`, commit, then `make -C mac setup` |
 
+## 6. Multi-view: MV-Adapter and Hunyuan3D-2mv (library quality, being evaluated)
+
+Per-view SDXL cannot hold identity and viewpoint at once (S3 sweep), so the library path is being tried with
+MV-Adapter (four consistent views from the concept) and Hunyuan3D-2mv (shape from all four). Both run inside
+ComfyUI; the shape server (Hunyuan3D-2.1, single view) is unchanged. About 21 GB more weights:
+
+```bash
+git pull
+make -C mac setup     # clones ComfyUI-MVAdapter at its pinned commit, adds its packages, links ComfyUI/petpop-models
+make -C mac models    # MV-Adapter, SDXL as a diffusers folder (fp16), its VAE, Hunyuan3D-2mv and -2mv-turbo
+make -C mac restart && make -C mac check
+```
+
+Nothing changes in the tunnel. The VM then drives both through `scripts/image_sweep.py --stage mv` and
+`--stage shape`. The pipeline itself does not use them yet.
+
 ## Troubleshooting
 
 - **Black or NaN images from SDXL.** The profile uses the fp16-fix VAE (`sdxl_vae_fp16_fix.safetensors`).

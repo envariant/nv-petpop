@@ -105,7 +105,15 @@ def resolve_from_hub(m: dict) -> dict[str, dict]:
 
 
 def target(m: dict, root: Path, path: str) -> Path:
-    return root / m["dest"] if "file" in m else root / m["dest"] / path
+    """Where a pinned file lands. `rename` maps a repo path to another name under dest (the hash is the file's own),
+    e.g. diffusers' .fp16 weights saved under the plain names a loader that passes no variant looks for."""
+    return root / m["dest"] if "file" in m else root / m["dest"] / m.get("rename", {}).get(path, path)
+
+
+def is_optional(m: dict, profile: str) -> bool:
+    """`optional: true` on every profile, or a list of the profiles it is optional on."""
+    opt = m.get("optional", False)
+    return profile in opt if isinstance(opt, list) else bool(opt)
 
 
 def download(repo: str, revision: str, path: str, dest: Path, want: str) -> None:
@@ -175,7 +183,7 @@ def main() -> int:
     lock = load_lock()["entries"]
     bad = 0
     for m in doc["models"]:
-        if args.profile not in m.get("profiles", []) or (m.get("optional") and not args.with_optional):
+        if args.profile not in m.get("profiles", []) or (is_optional(m, args.profile) and not args.with_optional):
             continue
         if m["repo"] == "local":
             path = root / m["dest"]

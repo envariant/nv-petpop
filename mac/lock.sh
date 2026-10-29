@@ -21,6 +21,11 @@ COMFY_COMMIT="$(awk '$1=="ComfyUI" {print $3}' "$REPO/pipelines/comfy/requiremen
   echo "# torch is held to the shape venv's version so the two venvs run the same MPS build."
   echo "torch==2.13.*"
   curl -fsSL "https://raw.githubusercontent.com/comfyanonymous/ComfyUI/$COMFY_COMMIT/requirements.txt"
+  # ComfyUI-MVAdapter (pinned in pipelines/comfy/requirements.txt). Its own requirements.txt pins diffusers 0.31 and
+  # transformers 4.46, which ComfyUI's transformers>=4.50.3 rules out; current releases still carry the diffusers
+  # internals it imports (convert_from_ckpt, _get_model_file), so its packages are taken unpinned here instead.
+  echo "# ComfyUI-MVAdapter"
+  printf '%s\n' diffusers peft accelerate omegaconf trimesh   # the packages its code imports
 } > "$LOCKS/comfyui.in"
 
 for name in comfyui shape tools; do

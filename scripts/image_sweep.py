@@ -49,6 +49,14 @@ CONCEPT = {
     "c6_style_precise_wc": dict(init=("white", 0.92), depth=None, style_ref=("style transfer precise", 0.5), white=True),
     "c7_txt2img_wc": dict(init=("white", 0.92), depth=None, style_ref=None, white=True),
 }
+# MV-Adapter (workflow 02b) on the Mac: diffusers folders by path under ComfyUI's petpop-models symlink (mac/setup.sh).
+# Experimental; these move into the profile once the path is integrated.
+MV = {"mv_base": "petpop-models/diffusers/stable-diffusion-xl-base-1.0", "mv_vae": "petpop-models/diffusers/sdxl-vae-fp16-fix",
+      "mv_adapter_repo": "petpop-models/hf/huanngzh/mv-adapter", "mvadapter": "mvadapter_i2mv_sdxl.safetensors"}
+# Hunyuan3D-2mv (workflow 03) through ComfyUI's built-in nodes.
+SHAPE = {"full": {"model": "hunyuan3d-dit-v2-mv.fp16.safetensors", "steps": 50, "guidance": 5.5},
+         "turbo": {"model": "hunyuan3d-dit-v2-mv-turbo.fp16.safetensors", "steps": 5, "guidance": 5.0}}
+
 # View variants: ControlNet (strength, end_percent) from the proxy's depth per view; IP-Adapter (type, weight) on the concept.
 VIEW_VARIANTS = {
     "v1_current": dict(depth=(0.7, 1.0), ipa=("linear", 0.7), white=False),
@@ -199,6 +207,44 @@ def views_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[str,
     return prune(g)
 
 
+def mv_graph(c: ComfyClient, p: dict, prompts: dict, concept: str, seed: int, px: int, steps: int, cfg: float) -> dict:
+    graph, meta = c.load(p["workflows"].get("views_alt", "02b_views_mvadapter.json"))
+    base = strip_trigger(prompts["positive"]).replace(", front view", "")
+    values = {**MV, "concept_image": concept, "positive": base + WHITE_BG, "negative": prompts["negative"],
+              "width": px, "height": px, "steps": steps, "cfg": cfg, "seed": seed}
+    return c.fill(graph, meta, values)
+
+
+def shape_graph(c: ComfyClient, views: dict[str, str], variant: dict, seed: int, octree: int) -> dict:
+    graph, meta = c.load("03_shape_hy2mv.json")
+    values = {"model": variant["model"], "seed": seed, "steps": variant["steps"], "guidance": variant["guidance"],
+              "octree_resolution": octree, "num_chunks": 8000, "latent_resolution": 3072, "threshold": 0.6,
+              **{f"view_{v}": name for v, name in views.items()}}
+    return c.fill(graph, meta, values)
+
+
+def mesh_preview(glb: bytes, px: int = 256) -> list[tuple[str, bytes]]:
+    """Shaded grey renders of a mesh from front, left, back and right (CPU z-buffer, no Blender)."""
+    import trimesh
+
+    from backend.core.meshkit import CENTRE_Z_DEFAULT, EXTENT_DEFAULT, render
+
+    m = trimesh.load(io.BytesIO(glb), file_type="glb", force="mesh")
+    v = np.asarray(m.vertices, dtype=np.float64)
+    v = np.stack([v[:, 0], -v[:, 2], v[:, 1]], axis=1)  # glTF Y-up -> the base mesh's Z-up
+    v -= [(v[:, 0].max() + v[:, 0].min()) / 2, (v[:, 1].max() + v[:, 1].min()) / 2, v[:, 2].min()]
+    v *= 0.85 * EXTENT_DEFAULT / max(float(np.ptp(v, axis=0).max()), 1e-6)
+    v[:, 2] += CENTRE_Z_DEFAULT - (v[:, 2].max() / 2)
+    tris = np.asarray(m.faces)
+    out = []
+    for name, az in (("front", 0.0), ("left", 90.0), ("back", 180.0), ("right", 270.0)):
+        r = render(v, tris, az, px, colours=np.full((len(v), 3), 0.85))
+        buf = io.BytesIO()
+        Image.fromarray((np.clip(r["rgb"], 0, 1) * 255).astype(np.uint8), "RGB").save(buf, format="PNG")
+        out.append((name, buf.getvalue()))
+    return out
+
+
 def prune(g: dict) -> dict:
     """Drop nodes nothing reads any more (ComfyUI rejects e.g. a LoadImage with no consumer only if invalid, but
     unused loaders still cost a model load)."""
@@ -274,7 +320,8 @@ def _wait(c: ComfyClient, g: dict, pid: str, t0: float, timeout: float) -> tuple
                 raise ComfyError(json.dumps(entry["status"])[:800])
             out = {}
             for node, res in entry.get("outputs", {}).items():
-                for im in res.get("images", []):
+                for im in [x for key in ("images", "3d", "gltf", "meshes") for x in (res.get(key) or [])
+                           if isinstance(x, dict) and "filename" in x]:
                     v = get(c, "/view", params={"filename": im["filename"], "subfolder": im.get("subfolder", ""),
                                                             "type": im.get("type", "output")})
                     out[g[node]["inputs"].get("filename_prefix", node)] = v.content
@@ -312,7 +359,13 @@ def sheet(rows: list[tuple[str, list[tuple[str, bytes | None]]]], path: Path, ce
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["concept", "views", "all"], default="all")
+    ap.add_argument("--stage", choices=["concept", "views", "all", "mv", "shape"], default="all")
+    ap.add_argument("--mv-steps", type=int, default=30)
+    ap.add_argument("--mv-cfg", type=float, default=3.0)
+    ap.add_argument("--mv-px", type=int, default=768)
+    ap.add_argument("--shape", default="full", help="Hunyuan3D-2mv variant(s) for --stage shape: full,turbo")
+    ap.add_argument("--octree", type=int, default=256)
+    ap.add_argument("--shape-views-from", help="folder holding <breed>__mv__<view>.png (default: --out)")
     ap.add_argument("--breeds", default=BREEDS)
     ap.add_argument("--seed", type=int, default=101)
     ap.add_argument("--px", type=int, default=1024)
@@ -366,6 +419,45 @@ def main() -> int:
                         report["items"].append({"breed": breed, "variant": name, "error": str(exc)[:400]})
                     print(report["items"][-1], flush=True)
                 concept_rows.append((breed, cells))
+            if args.stage == "mv":
+                found = [d / f"{breed}__{args.views_from}.png" for d in (out, out.parent)]
+                src = next(f for f in found if f.exists()).read_bytes()
+                cref = c.upload(f"sweep_{breed}_concept.png", src)
+                try:
+                    imgs, dt = submit(c, mv_graph(c, p, prompts, cref, args.seed, args.mv_px, args.mv_steps, args.mv_cfg), timeout=3600)
+                    row = [("concept", src)]
+                    for view in VIEWS:
+                        png = next(b for k, b in imgs.items() if k.endswith(f"mv_{view}"))
+                        (out / f"{breed}__mv__{view}.png").write_bytes(png)
+                        row.append((f"{view}  white {white_border(png, threshold)}", png))
+                    report["items"].append({"breed": breed, "variant": "mv", "s": round(dt),
+                                            "white_border": [white_border(b, threshold) for _, b in row[1:]]})
+                except (ComfyError, StopIteration) as exc:
+                    row = [("concept", src)] + [(f"{view}  FAILED", None) for view in VIEWS]
+                    report["items"].append({"breed": breed, "variant": "mv", "error": str(exc)[:600]})
+                print(report["items"][-1], flush=True)
+                view_rows.append((f"{breed}\nmv-adapter", row))
+            if args.stage == "shape":
+                from backend.worker.imaging import matte
+
+                vdir = Path(args.shape_views_from) if args.shape_views_from else out
+                names = {v: c.upload(f"sweep_{breed}_mv_{v}.png",
+                                     matte((vdir / f"{breed}__mv__{v}.png").read_bytes(), p["matting"], args.mv_px))
+                         for v in VIEWS}
+                for sv in args.shape.split(","):
+                    try:
+                        imgs, dt = submit(c, shape_graph(c, names, SHAPE[sv], args.seed, args.octree), timeout=3600)
+                        glb = next(iter(imgs.values())) if imgs else None
+                        if glb is None:
+                            raise ComfyError("no GLB in the outputs")
+                        (out / f"{breed}__2mv_{sv}.glb").write_bytes(glb)
+                        row = [(f"{v}  silhouette", png) for v, png in mesh_preview(glb)]
+                        report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "s": round(dt), "glb_bytes": len(glb)})
+                    except (ComfyError, StopIteration) as exc:
+                        row = [(f"{v}  FAILED", None) for v in VIEWS]
+                        report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "error": str(exc)[:600]})
+                    print(report["items"][-1], flush=True)
+                    view_rows.append((f"{breed}\n2mv {sv} {args.octree}", row))
             if args.stage in ("views", "all"):
                 found = [d / f"{breed}__{args.views_from}.png" for d in (out, out.parent)]
                 src = concept_png.get(args.views_from) or next(f for f in found if f.exists()).read_bytes()

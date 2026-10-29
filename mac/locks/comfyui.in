@@ -37,3 +37,9 @@ pydantic~=2.0
 pydantic-settings~=2.0
 PyOpenGL>=3.1.8
 comfy-angle
+# ComfyUI-MVAdapter
+diffusers
+peft
+accelerate
+omegaconf
+trimesh
