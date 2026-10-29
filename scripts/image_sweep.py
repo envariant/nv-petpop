@@ -53,6 +53,11 @@ CONCEPT = {
 VIEW_VARIANTS = {
     "v1_current": dict(depth=(0.7, 1.0), ipa=("linear", 0.7), white=False),
     "v2_rebalanced": dict(depth=(0.45, 0.5), ipa=("linear", 0.9), white=True),
+    # Identity early, viewpoint late: IP-Adapter only over the first half of the steps, depth strong to 90 %, a back
+    # prompt that rules out a face, and a white canvas start.
+    "v3_identity_early": dict(depth=(0.7, 0.9), ipa=("linear", 0.8, 0.5), white=True, canvas=0.92,
+                              back=", seen from directly behind, back of the head and back of the body, no face visible",
+                              back_negative=", face, eyes, nose, muzzle, looking at viewer"),
 }
 
 
@@ -164,6 +169,8 @@ def views_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[str,
               "sampler": prm["sampler"], "scheduler": prm["scheduler"]}
     for view in VIEWS:
         text = prompts["views"][view] if lora else strip_trigger(prompts["views"][view])
+        if view == "back":
+            text += v.get("back", "")
         values[f"positive_{view}"] = text + (WHITE_BG if v["white"] else "")
         values[f"depth_{view}"] = ctrl[f"{view}_depth"]
     g = c.fill(graph, meta, values)
@@ -172,7 +179,24 @@ def views_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[str,
             n["inputs"]["end_percent"] = v["depth"][1]
         if n["class_type"] == "IPAdapterAdvanced":
             n["inputs"]["weight_type"] = v["ipa"][0]
-    return g
+            if len(v["ipa"]) > 2:
+                n["inputs"]["end_at"] = v["ipa"][2]
+    if v.get("back_negative"):  # the back view gets its own negative; the other views keep the shared one
+        back_pos = meta["inputs"]["positive_back"][0]
+        cn = next(k for k, n in g.items() if n["class_type"] == "ControlNetApplyAdvanced" and n["inputs"]["positive"][0] == back_pos)
+        neg = new_id(g)
+        g[neg] = {"class_type": "CLIPTextEncode", "inputs": {"clip": g[back_pos]["inputs"]["clip"],
+                                                            "text": prompts["negative"] + v["back_negative"]}}
+        g[cn]["inputs"]["negative"] = [neg, 0]
+    if v.get("canvas"):  # start every view from a white canvas so the background stays white
+        li, enc = new_id(g), None
+        g[li] = {"class_type": "LoadImage", "inputs": {"image": ctrl["white"]}}
+        enc = new_id(g)
+        g[enc] = {"class_type": "VAEEncode", "inputs": {"pixels": [li, 0], "vae": [meta["inputs"]["vae"][0], 0]}}
+        for n in g.values():
+            if n["class_type"] == "KSampler":
+                n["inputs"]["latent_image"], n["inputs"]["denoise"] = [enc, 0], v["canvas"]
+    return prune(g)
 
 
 def prune(g: dict) -> dict:
