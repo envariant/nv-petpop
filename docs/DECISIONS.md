@@ -106,3 +106,15 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
     - the curation walkthrough against the real backend.
 
     The yield criterion needs a GenAI host and prints SKIPPED (`scripts/gate8_yield.py`).
+
+## Before S3
+
+84. **The shape server queues meshes as jobs.** Cloudflare ends any proxied request after about 100 s (HTTP 524), on both quick and named tunnels, and a Hunyuan3D-2.1 mesh takes about 6 minutes on the M4 Pro. So the shape API now works like ComfyUI's prompt queue:
+    - `POST /v1/shape` validates the request, checks that the weights are present (503 at once if not), queues the job and answers `202 {job_id}`.
+    - One worker thread runs jobs in order, which keeps one model resident.
+    - `GET /v1/shape/{id}` reports queued, running, done or failed; `GET /v1/shape/{id}/mesh` returns the GLB.
+    - `/v1/free` never blocks: during a run it unloads afterwards.
+    - Finished jobs are kept for an hour.
+
+    The adapter submits, polls every 3 s and downloads, with every request capped at 30 s. It tolerates up to 5 consecutive failed polls (a tunnel blip) and gives up at the stage deadline. The old handler also ran the model inside an `async` route, which blocked even `/health` for the whole run; the job thread removes that too. The fake GenAI host logs every request's duration, and the profile test asserts that none takes more than 30 s.
+85. **Named tunnel as the recommended path.** RUNBOOK §4 leads with the named tunnel: a free Cloudflare account, a domain on Cloudflare, three one-time `cloudflared` commands, and `CF_TUNNEL` / `CF_HOSTNAME` in `~/petpop-genai/genai.env`, so `make -C mac tunnel` always serves the same hostname. The quick tunnel (no account, random hostname per start) stays as the fallback.

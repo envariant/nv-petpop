@@ -46,7 +46,11 @@ shape server and Ollama run on the Mac.
    make -C mac start && make -C mac check
    ```
 
-6. Open the tunnel. This starts the token-checking proxy and the Cloudflare tunnel, and prints the URLs:
+6. Open the tunnel. This starts the token-checking proxy and the Cloudflare tunnel, and prints the URLs. For a
+   stable hostname from the start, set up the named tunnel first (once, any time after step 3; RUNBOOK §4): a
+   free Cloudflare account and a domain on Cloudflare, then `cloudflared tunnel login`, `tunnel create` and
+   `tunnel route dns`, and `CF_TUNNEL` / `CF_HOSTNAME` in `~/petpop-genai/genai.env`. Without it you get a quick
+   tunnel, no account needed, on a hostname that changes at every start.
 
    ```bash
    make -C mac tunnel
@@ -69,8 +73,10 @@ The adapters read these through the profile (`config/genai/mac-m4pro.yaml` names
 and `OLLAMA_URL` as the env vars for its services) and send `Authorization: Bearer $GENAI_TOKEN` on every
 call. The proxy on the Mac answers 401 without it.
 
-A quick tunnel's hostname changes every time `tunnel.sh` restarts, so the three URLs must be updated each
-time. A named tunnel (`CF_TUNNEL` / `CF_HOSTNAME`, see the runbook) gives a stable hostname you set once. If
+A named tunnel gives a stable hostname, so these are set once. A quick tunnel's hostname changes every time
+`tunnel.sh` restarts, so the three URLs must be updated each time. Either way, Cloudflare cuts off any request
+that takes more than about 100 s, so the shape server queues each mesh as a job the worker polls (as ComfyUI does
+with prompts); no request waits on a model. If
 the environment's network access is Limited, add the tunnel host (`trycloudflare.com` or your hostname) to
 Allowed domains. This VM reached `trycloudflare.com` on 2026-10-28.
 
