@@ -1,5 +1,6 @@
 """API contract models (BRIEF Sections 9 and 17). Shared by mock-server/ and backend/api/ so both publish the
-identical OpenAPI document (data/schema/openapi.json). 2.0.0 splits the surface into /kiosk and /studio."""
+identical OpenAPI document (data/schema/openapi.json). 2.0.0 splits the surface into /kiosk and /studio; 3.0.0 adds
+the kiosk library mode (releases, compositions, Stage-F-only exports) and moves bespoke onto a composition."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -7,7 +8,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "2.0.0"
+API_VERSION = "3.0.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -17,7 +18,7 @@ JobStatus = Literal["queued", "running", "done", "failed", "fulfilled"]
 Stage = Literal["queued", "A", "control", "B", "C", "D", "E", "F", "done"]
 Fallback = Literal["none", "single_view", "parametric", "unwrapped"]
 Role = Literal["operator", "curator", "admin"]
-JobKind = Literal["pipeline", "bespoke"]
+JobKind = Literal["pipeline", "bespoke", "export"]
 ArtefactKind = Literal["spec", "control", "concept", "view", "shape", "wrapped", "uv_obj", "albedo", "glb", "3mf",
                        "stl", "mask", "turntable", "thumbnail", "manifest"]
 
@@ -52,8 +53,7 @@ class Session(_M):
 
 
 class BespokeRequest(_M):
-    session_id: str
-    spec: PetSpec
+    """"Make it unique" from a composition: the studio starts a bespoke job from it (BRIEF Section 17)."""
     contact: str | None = Field(None, max_length=80, description="How to reach the customer when it is ready.")
 
 
@@ -68,10 +68,11 @@ class KioskOps(_M):
     api_version: str
     mode: Literal["mock", "real"]
     kiosk_id: str
-    release_version: str | None
+    releases: dict[str, str] = Field(description="Active library release per species.")
     bespoke_enabled: bool
     exports_queued: int
     exports_running: int
+    orders: list[KioskOrder] = Field(description="The last 20 orders, newest first.")
 
 
 class StaffLogin(_M):
@@ -241,5 +242,130 @@ class StaffQueue(_M):
     gpu: GpuStatus
 
 
+# --------------------------------------------------------------------------- library mode (BRIEF Section 16, API 3.0.0)
+
+Composition = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "Composition"})]
+ReleaseManifest = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "ReleaseManifest"})]
+Region = Literal["ears", "tail", "muzzle", "head", "legs"]
+CompositionState = Literal["draft", "exporting", "ready", "failed"]
+
+
+class LibraryRelease(_M):
+    """The active release for a species: its manifest (data/schema/release.schema.json) and where its files are."""
+    species: Species
+    release_version: str
+    base_mesh_version: str
+    files_url: str = Field(description="Prefix for the release's files: <files_url><path>.")
+    manifest: ReleaseManifest
+
+
+class LibraryFamily(_M):
+    id: str
+    name: str
+    default_parts: dict[str, str]
+    breeds: list[str]
+    tags: list[str]
+    version: int
+    delta_url: str
+    thumbnail_url: str
+
+
+class LibraryFamilies(_M):
+    species: Species
+    release_version: str
+    items: list[LibraryFamily]
+
+
+class LibraryPart(_M):
+    id: str
+    name: str
+    kind: Literal["delta", "shell"]
+    region: Region | None = Field(None, description="Region of a region-delta part.")
+    socket: Literal["neck", "head", "face"] | None = Field(None, description="Socket of a shell part.")
+    tags: list[str]
+    version: int
+    url: str = Field(description="float16 delta (region parts) or GLB (shell parts).")
+    thumbnail_url: str
+    default_colour: str | None = None
+
+
+class LibraryParts(_M):
+    species: Species
+    release_version: str
+    items: list[LibraryPart]
+
+
+class PatternCoverage(_M):
+    min: float
+    max: float
+    default: float
+
+
+class LibraryPattern(_M):
+    id: str
+    name: str
+    channel: int
+    default_colour: str
+    coverage: PatternCoverage
+    version: int
+    thumbnail_url: str
+
+
+class LibraryPatterns(_M):
+    species: Species
+    release_version: str
+    items: list[LibraryPattern]
+
+
+class CompositionCreate(_M):
+    session_id: str
+    composition: Composition
+
+
+class ExportStatus(_M):
+    job_id: str
+    status: JobStatus
+    stage: Stage
+    pct: int
+    message: str
+
+
+class CompositionStatus(_M):
+    composition_id: str
+    session_id: str
+    status: CompositionState
+    pet_name: str | None
+    species: Species
+    release_version: str
+    created_at: datetime
+    export: ExportStatus | None
+    ticket: str | None = Field(None, description="Order ticket, issued when the export is requested.")
+    result_url: str | None = Field(None, description="Signed public result page for the QR code (7 days), once ready.")
+    artefacts: list[Artefact]
+    previews: dict[str, str]
+    error: str | None = None
+    composition: Composition
+
+
+class ExportAccepted(_M):
+    composition_id: str
+    job_id: str
+    ticket: str
+    queue_position: int
+
+
+class KioskOrder(_M):
+    composition_id: str
+    ticket: str | None
+    pet_name: str | None
+    species: Species
+    status: CompositionState
+    created_at: datetime
+    thumbnail_url: str | None
+
+
 class ErrorBody(_M):
     detail: Any
+
+
+KioskOps.model_rebuild()

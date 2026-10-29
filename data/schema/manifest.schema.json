@@ -29,6 +29,13 @@
         "workflows": { "type": "object", "additionalProperties": { "type": "string" } }
       }
     },
+    "source": {
+      "type": "object",
+      "description": "What the job was made from: absent for a PetSpec through the pipeline; a library composition for a Stage-F-only export (BRIEF Section 16).",
+      "additionalProperties": false,
+      "required": ["kind", "composition_id", "release_version"],
+      "properties": {"kind": {"const": "composition"}, "composition_id": {"type": "string"}, "release_version": {"type": "string"}}
+    },
     "genai": {
       "type": "object",
       "description": "The GenAI profile the job ran on and every model id (with pins) it could use (1.1).",

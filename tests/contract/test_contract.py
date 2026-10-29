@@ -15,6 +15,8 @@ from backend.api.contract import openapi_text
 from backend.core.paths import SCHEMA_DIR
 from petpop_core.schemas import manifest_errors, spec_errors
 from petpop_core.spec import default_spec
+from petpop_library.composition import sample
+from petpop_library.release import release_errors
 
 from .oas import check, doc, schema_validator
 
@@ -88,22 +90,116 @@ def test_studio_auth(client):
     assert client.post(f"{S}/jobs", json={"spec": default_spec("dog", "pug", seed=1)}).status_code == 401
 
 
-def test_kiosk_session_bespoke_and_ops(client):
+def library(client, species: str) -> dict:
+    r = client.get(f"{K}/library/{species}")
+    body = check(f"{K}/library/{{species}}", "get", r)
+    assert release_errors(body["manifest"]) == []
+    assert body["release_version"] == body["manifest"]["release_version"]
+    return body
+
+
+def new_composition(client, sid: str, comp: dict) -> dict:
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": comp})
+    assert r.status_code == 201, r.text
+    return check(f"{K}/compositions", "post", r)
+
+
+def wait_composition(client, cid: str, timeout: float = 300) -> dict:
+    t0 = time.time()
+    while True:
+        body = check(f"{K}/compositions/{{composition_id}}", "get", client.get(f"{K}/compositions/{cid}"))
+        if body["status"] in ("ready", "failed"):
+            return body
+        assert time.time() - t0 < timeout, f"export of {cid} stuck at {body['export']}"
+        time.sleep(0.2)
+
+
+@pytest.mark.parametrize("species", ["dog", "cat"])
+def test_kiosk_library_listing(client, species):
+    rel = library(client, species)
+    fams = check(f"{K}/library/{{species}}/families", "get", client.get(f"{K}/library/{species}/families"))
+    assert fams["items"] and all(f["delta_url"].startswith(rel["files_url"]) for f in fams["items"])
+    ears = check(f"{K}/library/{{species}}/parts", "get", client.get(f"{K}/library/{species}/parts", params={"region": "ears"}))
+    assert ears["items"] and {p["region"] for p in ears["items"]} == {"ears"}
+    shells = check(f"{K}/library/{{species}}/parts", "get", client.get(f"{K}/library/{species}/parts", params={"region": "shells"}))
+    assert shells["items"] and {p["kind"] for p in shells["items"]} == {"shell"}
+    assert client.get(f"{K}/library/{species}/parts", params={"region": "wings"}).status_code == 422
+    pats = check(f"{K}/library/{{species}}/patterns", "get", client.get(f"{K}/library/{species}/patterns"))
+    assert len(pats["items"]) == 10
+    for url in (pats["items"][0]["thumbnail_url"], ears["items"][0]["url"], rel["files_url"] + "base.bin"):
+        r = client.get(url)
+        assert r.status_code == 200 and r.content, url
+    listed = {f["path"]: f for f in rel["manifest"]["files"]}
+    data = client.get(rel["files_url"] + "base.bin").content
+    assert hashlib.sha256(data).hexdigest() == listed["base.bin"]["sha256"]
+    assert client.get(rel["files_url"] + "manifest.sig").status_code == 404  # only files the manifest lists
+    assert client.get(rel["files_url"] + "nope.png").status_code == 404
+
+
+def test_kiosk_order_from_composition(client):
+    """Library mode end to end: a composition is the order record and the only input to a Stage-F-only export."""
     sid = new_session(client)
-    spec = default_spec("dog", "beagle", seed=11, pet_name="Rocket")
-    r = client.post(f"{K}/bespoke", json={"session_id": sid, "spec": spec, "contact": "07700 900123"})
-    accepted = check(f"{K}/bespoke", "post", r)
-    assert r.status_code == 201 and accepted["ticket"].startswith("PP-") and "message" in accepted["message"]
-    again = client.post(f"{K}/bespoke", json={"session_id": sid, "spec": spec})
+    rel = library(client, "dog")
+    comp = sample(rel["manifest"], layers=4, stamps=12, pet_name="Rocket")
+    created = new_composition(client, sid, comp)
+    assert created["status"] == "draft" and created["ticket"] is None and created["composition"] == comp
+    bad = dict(comp, parts=dict(comp["parts"], ears=comp["parts"]["tail"]))
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": bad})
+    assert r.status_code == 422
+    check(f"{K}/compositions", "post", r)
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": dict(comp, release_version="release-dog-999")})
+    assert r.status_code == 422
+    assert client.post(f"{K}/compositions", json={"session_id": "s_nope", "composition": comp}).status_code == 404
+    assert client.get(f"{K}/compositions/c_nope").status_code == 404
+
+    cid = created["composition_id"]
+    r = client.post(f"{K}/compositions/{cid}/export")
+    assert r.status_code == 202, r.text
+    acc = check(f"{K}/compositions/{{composition_id}}/export", "post", r)
+    assert acc["ticket"].startswith("PP-")
+    again = check(f"{K}/compositions/{{composition_id}}/export", "post", client.post(f"{K}/compositions/{cid}/export"))
+    assert again["ticket"] == acc["ticket"]  # idempotent
+    done = wait_composition(client, cid)
+    assert done["status"] == "ready", done["error"]
+    names = {a["name"] for a in done["artefacts"]}
+    assert {"figure.3mf", "figure.stl", "albedo.png", "figure.glb", "thumbnail.png", "composition.json"} <= names
+    arts = {a["name"]: a for a in done["artefacts"]}
+    assert json.loads(client.get(arts["composition.json"]["url"]).content) == comp
+    if "manifest.json" in arts:
+        man = json.loads(client.get(arts["manifest.json"]["url"]).content)
+        assert manifest_errors(man) == []
+        assert man["source"] == {"kind": "composition", "composition_id": cid, "release_version": comp["release_version"]}
+    page = done["result_url"].split("/r/", 1)[1]
+    res = check(f"{P}/r/{{token}}", "get", client.get(f"{P}/r/{page}"))
+    assert res["pet_name"] == "Rocket" and client.get(res["glb_url"]).status_code == 200
+
+    assert client.get(f"{K}/ops").status_code == 403
+    staff = {"X-Staff-Token": "test-staff"}
+    ops = check(f"{K}/ops", "get", client.get(f"{K}/ops", headers=staff))
+    assert ops["releases"]["dog"] == rel["release_version"] and ops["orders"][0]["composition_id"] == cid
+    r = client.post(f"{K}/ops/orders/{cid}/reprint", headers=staff)
+    order = check(f"{K}/ops/orders/{{composition_id}}/reprint", "post", r)
+    assert order["ticket"] == acc["ticket"] and order["status"] == "ready"
+    assert client.post(f"{K}/ops/orders/{cid}/reprint").status_code == 403
+
+
+def test_kiosk_bespoke_from_composition(client):
+    sid = new_session(client)
+    rel = library(client, "dog")
+    comp = dict(sample(rel["manifest"], layers=2, pet_name="Mochi"), breed_id="pug")
+    cid = new_composition(client, sid, comp)["composition_id"]
+    r = client.post(f"{K}/compositions/{cid}/bespoke", json={"contact": "07700 900123"})
+    accepted = check(f"{K}/compositions/{{composition_id}}/bespoke", "post", r)
+    assert r.status_code == 201 and accepted["ticket"].startswith("PP-")
+    again = client.post(f"{K}/compositions/{cid}/bespoke", json={})
     assert again.status_code == 409  # one one-off request per session
-    check(f"{K}/bespoke", "post", again)
-    # The request is a studio job, visible to staff, never on the kiosk queue.
+    check(f"{K}/compositions/{{composition_id}}/bespoke", "post", again)
+    # The request is a studio job whose starting spec is the composition, never on the kiosk queue.
     auth = login(client)
     job = wait_terminal(client, auth, accepted["request_id"])
     assert job["kind"] == "bespoke" and job["session_id"] == sid and job["requested_by"].startswith("kiosk:")
-    assert client.get(f"{K}/ops").status_code == 403
-    ops = check(f"{K}/ops", "get", client.get(f"{K}/ops", headers={"X-Staff-Token": "test-staff"}))
-    assert ops["bespoke_enabled"] is True and ops["exports_queued"] == 0
+    assert job["spec"]["breed"]["id"] == "pug" and job["spec"]["colour"]["base"]["hex"] == comp["base_colour"]
+    assert [a["type"] for a in job["spec"]["accessories"]] == ["collar"]
 
 
 def test_parse(client):
@@ -210,7 +306,11 @@ def test_studio_queue_and_retry(client):
 
 def test_every_documented_path_is_exercised():
     exercised = {f"{P}/health", f"{P}/r/{{token}}", f"{P}/files/{{key}}",
-                 f"{K}/sessions", f"{K}/breeds", f"{K}/bespoke", f"{K}/ops",
+                 f"{K}/sessions", f"{K}/breeds", f"{K}/ops", f"{K}/ops/orders/{{composition_id}}/reprint",
+                 f"{K}/library/{{species}}", f"{K}/library/{{species}}/families", f"{K}/library/{{species}}/parts",
+                 f"{K}/library/{{species}}/patterns", f"{K}/library/{{species}}/files/{{path}}", f"{K}/compositions",
+                 f"{K}/compositions/{{composition_id}}", f"{K}/compositions/{{composition_id}}/export",
+                 f"{K}/compositions/{{composition_id}}/bespoke",
                  f"{S}/auth/login", f"{S}/auth/me", f"{S}/breeds", f"{S}/spec/parse", f"{S}/jobs", f"{S}/jobs/{{job_id}}",
                  f"{S}/jobs/{{job_id}}/events", f"{S}/jobs/{{job_id}}/tweak", f"{S}/jobs/{{job_id}}/fulfil",
                  f"{S}/jobs/{{job_id}}/retry", f"{S}/queue"}

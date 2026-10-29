@@ -15,7 +15,7 @@ make dev            # API + studio and kiosk workers + both SPAs on CPU (GENAI_P
                     #   curator, admin; password in var/.petpop_studio_password)
 make mock           # standalone mock server on :8000 (the frozen contract)
 make test           # Python and web tests
-make gate-0         # acceptance gates 0..6 (3-6 print "SKIPPED (needs a GenAI host)" on the mock profile)
+make gate-0         # acceptance gates 0..7 (3-6 print "SKIPPED (needs a GenAI host)" on the mock profile)
 make smoke-stack    # build the Compose stack here, push one job through it, tear it down
 make regress        # 30-pet regression set -> tests/regression/metrics.md
 ```
@@ -37,9 +37,16 @@ make regress        # 30-pet regression set -> tests/regression/metrics.md
 | `assets/` | proxy base meshes, accessory library, selector tiles, LoRA tooling |
 | `data/` | JSON Schemas, vocab, OpenAPI, breed presets |
 | `fixtures/pets/` | 10-pet fixture pack produced by the pipeline |
+| `fixtures/library/` | proxy library releases (`release-dog-1.tar`, `release-cat-1.tar`) built from the proxy base meshes |
 | `config/genai/` | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`): every model, host and timing |
 | `mac/` | Mac GenAI host kit: setup, launchd units, shape server, tunnel, runbook |
 | `infra/` | Docker Compose (stack + NVIDIA override) and Dockerfiles |
+
+**Library mode (M7).** The kiosk loads a signed release bundle (families, region deltas, shell parts, pattern
+masks) at start, keeps the last two and switches atomically. The Design screen assembles and paints the figurine
+in the browser. Ordering saves a composition JSON (`data/schema/composition.schema.json`, the order record), and
+the kiosk worker exports it with Stage F only: no GenAI host, under 60 s on CPU. Rebuild the proxy releases with
+`python scripts/make_proxy_library.py`. Studio publishes real ones from M8.
 
 The Blender stages run under a Python 3.11 interpreter with the `bpy` wheel (`PETPOP_BPY_PYTHON`,
 default `/opt/bpy/bin/python`). Without it the pipeline falls back to a trimesh stand-in, marked

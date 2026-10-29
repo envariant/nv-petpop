@@ -61,6 +61,8 @@ class Settings:
     embed_worker: bool
     kiosk_bespoke: bool
     studio_users: list[tuple[str, str, str]]
+    release_inbox: list[Path]  # where Studio drops release-<species>-<n>.tar (BRIEF Section 17, Contract 1)
+    seed_proxy_library: bool  # a fresh kiosk also loads the committed proxy releases (fixtures/library/)
     genai: Profile
     quality: dict
 
@@ -91,6 +93,8 @@ def settings() -> Settings:
         embed_worker=os.environ.get("PETPOP_EMBED_WORKER", "0") == "1",
         kiosk_bespoke=os.environ.get("KIOSK_BESPOKE", "0") == "1",
         studio_users=studio_users(var),
+        release_inbox=[Path(p) for p in (os.environ.get("PETPOP_RELEASE_INBOX") or str(var / "releases" / "inbox")).split(os.pathsep) if p],
+        seed_proxy_library=os.environ.get("PETPOP_SEED_PROXY_LIBRARY", "1") == "1",
         genai=genai,
         quality=genai.quality(),
     )

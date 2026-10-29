@@ -26,6 +26,9 @@ x-app: &app
     AWS_DEFAULT_REGION: us-east-1
   volumes:
     - fulfilment:/var/petpop/fulfilment
+    # Library releases (BRIEF Section 17): the API installs them (inbox: /var/petpop/releases/inbox), the kiosk
+    # worker reads the one a composition names.
+    - releases:/var/petpop/releases
   depends_on:
     postgres: { condition: service_healthy }
     redis: { condition: service_healthy }
@@ -97,3 +100,4 @@ volumes:
   pg: {}
   minio: {}
   fulfilment: {}
+  releases: {}

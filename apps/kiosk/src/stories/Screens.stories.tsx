@@ -5,16 +5,25 @@ import { KioskFrame } from '@petpop/ui';
 import { SCREENS } from '../App';
 import { Offline, StaffPanel, StillThere } from '../screens/Overlays';
 import { PhoneResult } from '../screens/Phone';
+import { useDesign, type DesignState } from '../store/design';
 import { useSession, type Screen, type SessionState } from '../store/session';
-import { CORGI, SPEC } from './fixtures';
+import { CORGI, ORDER_READY, SPEC } from './fixtures';
 
-function Hydrate({ state, children }: { state: Partial<SessionState>; children: ReactNode }) {
+/** Session state, plus (for the screens after Design) a composition begun from the library release via MSW. */
+function Hydrate({ state, design, children }: { state: Partial<SessionState>; design?: Partial<DesignState>; children: ReactNode }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    useSession.getState().reset();
-    useSession.getState().hydrate(state);
-    setReady(true);
-  }, [state]);
+    void (async () => {
+      useSession.getState().reset();
+      useSession.getState().hydrate(state);
+      if (design && state.breed) {
+        await useDesign.getState().begin(state.breed);
+        const c = useDesign.getState().composition;
+        useDesign.getState().set({ ...design, composition: c && { ...c, pet_name: 'Biscuit' } });
+      }
+      setReady(true);
+    })();
+  }, [state, design]);
   return ready ? <>{children}</> : null;
 }
 
@@ -26,10 +35,10 @@ const withFrame: Decorator = (Story, ctx) => (
   </div>
 );
 
-function ScreenStory({ screen, state = {} }: { screen: Screen; state?: Partial<SessionState> }) {
+function ScreenStory({ screen, state = {}, design }: { screen: Screen; state?: Partial<SessionState>; design?: Partial<DesignState> }) {
   const Current = SCREENS[screen];
   return (
-    <Hydrate state={{ screen, ...state }}>
+    <Hydrate state={{ screen, ...state }} design={design}>
       <Current />
     </Hydrate>
   );
@@ -45,6 +54,11 @@ export const Attract: Story = { args: { screen: 'attract' } };
 export const Species: Story = { args: { screen: 'species' } };
 export const Breed: Story = { args: { screen: 'breed', state: { species: 'dog' } } };
 export const Design: Story = { args: { screen: 'design', state: chosen } };
+export const DesignMarkings: Story = { args: { screen: 'design', state: chosen, design: { tab: 'patterns' } } };
+export const DesignPaint: Story = { args: { screen: 'design', state: chosen, design: { tab: 'paint' } } };
+export const DesignExtras: Story = { args: { screen: 'design', state: chosen, design: { tab: 'extras' } } };
+export const Name: Story = { args: { screen: 'name', state: chosen, design: {} } };
+export const Order: Story = { args: { screen: 'order', state: chosen, design: { order: ORDER_READY } } };
 export const DesignWithMakeItUnique: Story = { args: { screen: 'design', state: { ...chosen, bespokeEnabled: true } } };
 export const Bespoke: Story = { args: { screen: 'bespoke', state: { ...chosen, bespokeEnabled: true } } };
 export const BespokeAccepted: Story = {

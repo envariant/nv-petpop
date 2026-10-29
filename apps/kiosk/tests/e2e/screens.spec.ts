@@ -32,13 +32,87 @@ test('3 breed search with the on-screen keyboard and the Mixed tile', async ({ p
   await expect(page.getByText('Design your Pembroke Welsh Corgi')).toBeVisible();
 });
 
-test('4 design shows the breed live on the kiosk GPU', async ({ page }) => {
+test('4 design: the library assembler swaps parts live on the kiosk GPU', async ({ page }) => {
   await toDesign(page, 'cat', 'siamese');
-  await expect(page.getByTestId('design-preview').locator('canvas')).toBeVisible();
   await expect(page.getByText('Design your Siamese')).toBeVisible();
+  await expect(page.getByTestId('design-preview').locator('canvas')).toBeVisible();
+  await expect(page.getByTestId('part-tiles').locator('button').first()).toBeVisible();
+  await page.getByTestId('region-ears').tap();
+  const tiles = page.getByTestId('part-tiles').locator('button');
+  const other = page.getByTestId((await tiles.and(page.locator('[aria-pressed=false]')).first().getAttribute('data-testid'))!);
+  await other.tap();
+  await expect(other).toHaveAttribute('aria-pressed', 'true');
+  await expect(tiles.and(page.locator('[aria-pressed=true]'))).toHaveCount(1);
+  await page.getByTestId('region-family').tap();
+  await expect(page.getByTestId('part-tiles').locator('[aria-pressed=true]')).toHaveCount(1);
 });
 
-test('5 bespoke: make it unique is a studio request with a ticket, never a Generating screen', async ({ page }) => {
+test('design tools: pattern layers with a coverage slider and a colour per layer', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('tab-patterns').tap();
+  const layer = page.getByTestId('pattern-tiles').locator('[aria-pressed=false]').first();
+  const id = (await layer.getAttribute('data-testid'))!.replace('pattern-', '');
+  await layer.tap();
+  await expect(page.getByTestId(`layer-${id}`)).toBeVisible();
+  await page.getByTestId(`coverage-${id}`).fill('0.8');
+  await expect(page.getByTestId(`coverage-${id}`)).toHaveValue(/0\.8/);
+  await page.getByTestId(`layer-colour-${id}-black`).tap();
+  await expect(page.getByTestId(`layer-colour-${id}-black`)).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('base-cream').tap();
+  await expect(page.getByTestId('base-cream')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('design tools: tap-to-stamp with symmetry, brush and undo', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('tab-paint').tap();
+  await page.getByTestId('tool-spot-l').tap();
+  const box = (await page.getByTestId('design-preview').boundingBox())!;
+  await page.getByTestId('design-preview').locator('canvas').tap({ position: { x: box.width * 0.42, y: box.height * 0.6 } });
+  await expect(page.getByTestId('stamp-count')).toContainText(/^[12]\//);
+  await page.getByTestId('undo').tap();
+  await expect(page.getByTestId('stamp-count')).toContainText(/^0\//);
+  await page.getByTestId('symmetry').tap();
+  await expect(page.getByTestId('symmetry')).toHaveAttribute('aria-pressed', 'false');
+  await page.getByTestId('tool-brush').tap();
+  await page.getByTestId('design-preview').locator('canvas').tap({ position: { x: box.width * 0.42, y: box.height * 0.6 } });
+  await expect(page.getByTestId('stamp-count')).toContainText(/^1\//);
+});
+
+test('design tools: accessories on sockets, eye and nose colours', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('tab-extras').tap();
+  await page.getByTestId('shell-shell_bandana').tap();
+  await expect(page.getByTestId('shell-shell_bandana')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('shell-shell_collar').tap(); // same socket: replaces the bandana
+  await expect(page.getByTestId('shell-shell_bandana')).toHaveAttribute('aria-pressed', 'false');
+  await page.getByTestId('eye-blue').tap();
+  await expect(page.getByTestId('eye-blue')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('5 name: the on-screen keyboard names the figurine before ordering', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('to-name').tap();
+  await expect(page.locator('[data-screen=name]')).toBeVisible();
+  await typeOnKeyboard(page, 'rex');
+  await expect(page.getByTestId('pet-name')).toContainText('Rex');
+  await page.getByTestId('name-back').tap();
+  await expect(page.locator('[data-screen=design]')).toBeVisible();
+});
+
+test('6 order: Stage F export to a ticket, QR and the printed figurine', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('to-name').tap();
+  await typeOnKeyboard(page, 'rex');
+  await page.getByTestId('key-done').tap();
+  await expect(page.locator('[data-screen=order]')).toBeVisible();
+  await expect(page.getByTestId('order-ticket')).toContainText('PP-');
+  await expect(page.getByTestId('order-qr')).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText('Rex is on the way!')).toBeVisible();
+  await page.getByTestId('order-done').tap();
+  await expect(page.locator('[data-screen=attract]')).toBeVisible();
+});
+
+test('7 bespoke: make it unique is a studio request with a ticket, never a Generating screen', async ({ page }) => {
   await toDesign(page);
   await page.getByTestId('make-unique').tap();
   await expect(page.locator('[data-screen=bespoke]')).toBeVisible();
@@ -86,6 +160,7 @@ test('staff panel opens with five corner taps and shows release and health, no g
   await typeOnKeyboard(page, 'staffpin');
   await page.getByTestId('key-done').tap();
   await expect(page.getByTestId('staff-ops')).toContainText('Library release');
+  await expect(page.getByTestId('ops-release')).toContainText('release-dog-');
   await expect(page.getByRole('button', { name: /retry|generate/i })).toHaveCount(0);
   await page.getByTestId('staff-close').tap();
   await expect(page.getByTestId('staff-panel')).toBeHidden();

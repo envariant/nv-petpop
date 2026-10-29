@@ -4,8 +4,9 @@ mock-server/ and backend/api/ both call `make_app(impl)`, so their OpenAPI docum
 construction and data/schema/openapi.json is the single contract. The contract test then checks that each
 implementation's responses actually conform to it.
 
-Three routers: meta (health, signed files, the public result page), /kiosk (anonymous kiosk session; the
-five-tap ops panel behind the kiosk's staff PIN) and /studio (staff login; roles operator < curator < admin).
+Three routers: meta (health, signed files, the public result page), /kiosk (anonymous kiosk session: the library
+release, compositions and their Stage-F-only export, the five-tap ops panel behind the kiosk's staff PIN) and
+/studio (staff login; roles operator < curator < admin).
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ import json
 import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 from fastapi import APIRouter, Depends, FastAPI, Header, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.openapi.utils import get_openapi
@@ -51,8 +52,18 @@ class ApiImpl(Protocol):
     # kiosk
     async def create_session(self, body: m.SessionCreate) -> m.Session: ...
     async def breeds(self, species: str, q: str | None) -> m.BreedList: ...
-    async def bespoke(self, body: m.BespokeRequest) -> m.BespokeAccepted: ...
     async def kiosk_ops(self) -> m.KioskOps: ...
+    async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder: ...
+    # kiosk library mode (BRIEF Section 16)
+    async def library_release(self, species: str) -> m.LibraryRelease: ...
+    async def library_families(self, species: str) -> m.LibraryFamilies: ...
+    async def library_parts(self, species: str, region: str | None) -> m.LibraryParts: ...
+    async def library_patterns(self, species: str) -> m.LibraryPatterns: ...
+    async def library_file(self, species: str, path: str) -> Response: ...
+    async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus: ...
+    async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus: ...
+    async def export_composition(self, composition_id: str) -> m.ExportAccepted: ...
+    async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted: ...
     # studio
     async def parse(self, req: m.ParseRequest) -> m.ParseResponse: ...
     async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated: ...
@@ -172,16 +183,61 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
     async def kiosk_breeds(species: m.Species = Query(...), q: str | None = Query(None, max_length=40)) -> m.BreedList:
         return await impl.breeds(species, q)
 
-    @kiosk.post("/bespoke", response_model=m.BespokeAccepted, status_code=201, operation_id="kioskBespoke",
-                responses={**ERR, 403: {"model": m.ErrorBody}})
-    async def bespoke(body: m.BespokeRequest) -> m.BespokeAccepted:
-        return await impl.bespoke(body)
+    # library mode: the active release (read-only) and compositions, the order record
+    @kiosk.get("/library/{species}", response_model=m.LibraryRelease, operation_id="kioskLibraryRelease", responses=ERR)
+    async def library_release(species: m.Species) -> m.LibraryRelease:
+        return await impl.library_release(species)
+
+    @kiosk.get("/library/{species}/families", response_model=m.LibraryFamilies, operation_id="kioskLibraryFamilies", responses=ERR)
+    async def library_families(species: m.Species) -> m.LibraryFamilies:
+        return await impl.library_families(species)
+
+    @kiosk.get("/library/{species}/parts", response_model=m.LibraryParts, operation_id="kioskLibraryParts", responses=ERR)
+    async def library_parts(species: m.Species, region: m.Region | Literal["shells"] | None = Query(None)) -> m.LibraryParts:
+        return await impl.library_parts(species, region)
+
+    @kiosk.get("/library/{species}/patterns", response_model=m.LibraryPatterns, operation_id="kioskLibraryPatterns", responses=ERR)
+    async def library_patterns(species: m.Species) -> m.LibraryPatterns:
+        return await impl.library_patterns(species)
+
+    @kiosk.get("/library/{species}/files/{path:path}", operation_id="kioskLibraryFile",
+               responses={200: {"content": {"application/octet-stream": {}}, "description": "A file of the active release"},
+                          404: {"model": m.ErrorBody}})
+    async def library_file(species: m.Species, path: str) -> Response:
+        return await impl.library_file(species, path)
+
+    @kiosk.post("/compositions", response_model=m.CompositionStatus, status_code=201, operation_id="kioskCreateComposition",
+                responses=ERR)
+    async def create_composition(body: m.CompositionCreate, request: Request) -> m.CompositionStatus:
+        return await impl.create_composition(body, _base(request))
+
+    @kiosk.get("/compositions/{composition_id}", response_model=m.CompositionStatus, operation_id="kioskGetComposition",
+               responses=ERR)
+    async def get_composition(composition_id: str, request: Request) -> m.CompositionStatus:
+        return await impl.get_composition(composition_id, _base(request))
+
+    @kiosk.post("/compositions/{composition_id}/export", response_model=m.ExportAccepted, status_code=202,
+                operation_id="kioskExportComposition", responses=ERR)
+    async def export_composition(composition_id: str) -> m.ExportAccepted:
+        return await impl.export_composition(composition_id)
+
+    @kiosk.post("/compositions/{composition_id}/bespoke", response_model=m.BespokeAccepted, status_code=201,
+                operation_id="kioskBespoke", responses={**ERR, 403: {"model": m.ErrorBody}})
+    async def bespoke(composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
+        return await impl.bespoke(composition_id, body)
 
     @kiosk.get("/ops", response_model=m.KioskOps, operation_id="kioskOps", responses={403: {"model": m.ErrorBody}})
     async def kiosk_ops(x_staff_token: str | None = Header(None)) -> m.KioskOps:
         if not x_staff_token or not hmac.compare_digest(x_staff_token, impl.staff_token):
             raise ApiError(403, "staff PIN required")
         return await impl.kiosk_ops()
+
+    @kiosk.post("/ops/orders/{composition_id}/reprint", response_model=m.KioskOrder, operation_id="kioskReprint",
+                responses={**ERR, 403: {"model": m.ErrorBody}})
+    async def kiosk_reprint(composition_id: str, x_staff_token: str | None = Header(None)) -> m.KioskOrder:
+        if not x_staff_token or not hmac.compare_digest(x_staff_token, impl.staff_token):
+            raise ApiError(403, "staff PIN required")
+        return await impl.kiosk_reprint(composition_id)
 
     # ------------------------------------------------------------------ studio (staff login)
     @studio.post("/auth/login", response_model=m.StaffToken, operation_id="studioLogin", responses=AUTH)
@@ -269,8 +325,9 @@ def make_app(impl: ApiImpl, title: str = "PetPop API", lifespan=None) -> FastAPI
 
 # --------------------------------------------------------------------------- OpenAPI document
 
-def _petspec_components() -> dict[str, Any]:
-    raw = json.loads(json.dumps(load_schema("petspec.schema.json")))
+def _schema_components(name: str, file: str) -> dict[str, Any]:
+    """A JSON Schema from data/schema/ as OpenAPI components: <name> plus <name>_<def> for each $defs entry."""
+    raw = json.loads(json.dumps(load_schema(file)))
     defs = raw.pop("$defs", {})
     for k in ("$schema", "$id"):
         raw.pop(k, None)
@@ -278,15 +335,20 @@ def _petspec_components() -> dict[str, Any]:
     def fix(node: Any) -> Any:
         if isinstance(node, dict):
             if "$ref" in node and node["$ref"].startswith("#/$defs/"):
-                node["$ref"] = "#/components/schemas/PetSpec_" + node["$ref"].split("/")[-1]
+                node["$ref"] = f"#/components/schemas/{name}_" + node["$ref"].split("/")[-1]
             return {k: fix(v) for k, v in node.items()}
         if isinstance(node, list):
             return [fix(v) for v in node]
         return node
 
-    comps = {"PetSpec": fix(raw)}
+    comps = {name: fix(raw)}
     for k, v in defs.items():
-        comps[f"PetSpec_{k}"] = fix(v)
+        comps[f"{name}_{k}"] = fix(v)
+    return comps
+
+
+def _petspec_components() -> dict[str, Any]:
+    comps = _schema_components("PetSpec", "petspec.schema.json")
     comps["PetSpecPatch"] = {
         "type": "object",
         "additionalProperties": True,
@@ -314,6 +376,8 @@ def contract_openapi(app: FastAPI) -> dict[str, Any]:
     doc = swap(doc)
     comps = doc.setdefault("components", {}).setdefault("schemas", {})
     comps.update(_petspec_components())
+    comps.update(_schema_components("Composition", "composition.schema.json"))
+    comps.update(_schema_components("ReleaseManifest", "release.schema.json"))
     comps["ProgressEvent"] = swap(m.ProgressEvent.model_json_schema(ref_template="#/components/schemas/{model}"))
     doc["paths"][f"{STUDIO}/jobs/{{job_id}}/events"] = {
         "get": {

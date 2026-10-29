@@ -147,6 +147,15 @@ export function StaffPanel({ onClose }: { onClose: () => void }) {
       setOps(null);
     }
   };
+  const [reprinted, setReprinted] = useState<string | null>(null);
+  const reprint = async (id: string) => {
+    try {
+      await Api.reprint(pin, id);
+      setReprinted(id);
+    } catch {
+      setErr('Reprint failed');
+    }
+  };
   useEffect(() => {
     if (pin) void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,7 +182,7 @@ export function StaffPanel({ onClose }: { onClose: () => void }) {
             <dt className="text-muted">Kiosk</dt>
             <dd>{ops.kiosk_id}</dd>
             <dt className="text-muted">Library release</dt>
-            <dd data-testid="ops-release">{ops.release_version ?? 'none loaded'}</dd>
+            <dd data-testid="ops-release">{Object.values(ops.releases).join(', ') || 'none loaded'}</dd>
             <dt className="text-muted">API</dt>
             <dd>
               {ops.api_version} ({ops.mode})
@@ -184,6 +193,18 @@ export function StaffPanel({ onClose }: { onClose: () => void }) {
             </dd>
             <dt className="text-muted">Make it unique</dt>
             <dd>{ops.bespoke_enabled ? 'on' : 'off'}</dd>
+            <dt className="col-span-2 mt-6 font-display text-4xl font-semibold text-ink">Recent orders</dt>
+            {ops.orders.length === 0 && <dd className="col-span-2 text-muted">No orders yet</dd>}
+            {ops.orders.map((o) => (
+              <dd key={o.composition_id} className="col-span-2 flex items-center justify-between gap-6" data-testid={`ops-order-${o.ticket}`}>
+                <span>
+                  <b>{o.ticket}</b> · {o.pet_name || 'unnamed'} · {o.status}
+                </span>
+                <Button variant="soft" disabled={o.status !== 'ready'} onClick={() => void reprint(o.composition_id)} data-testid={`reprint-${o.ticket}`}>
+                  {reprinted === o.composition_id ? 'Sent ✓' : 'Reprint'}
+                </Button>
+              </dd>
+            ))}
           </dl>
         )}
       </div>

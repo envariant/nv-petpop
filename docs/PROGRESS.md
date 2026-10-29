@@ -38,26 +38,26 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 - [ ] Contract 1, the library release: `data/schema/release.schema.json`, signed `release-<species>-<n>.tar`,
   its own contract test (built in M8, loaded in M7)
-- [ ] Contract 2, the composition: `data/schema/composition.schema.json`, the only input to a library export
+- [x] Contract 2, the composition: `data/schema/composition.schema.json`, the only input to a library export
   (M7)
 
 ## Track B: library mode (Section 16)
 
 ### B1 M7 Kiosk library mode (`make gate-7`; PR)
 
-- [ ] Proxy library built by script from the proxy base meshes: families, region deltas, shell parts, pattern
+- [x] Proxy library built by script from the proxy base meshes: families, region deltas, shell parts, pattern
   layers (signed-distance masks in the UV atlas), packed as a release bundle
-- [ ] Tables `families`, `region_deltas`, `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`
-- [ ] Release loader: load at start, keep the last two releases, switch atomically
-- [ ] Kiosk library API: `GET /kiosk/library/{species}/families`, `/parts?region=`, `/patterns`,
+- [x] Tables `families`, `region_deltas`, `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`
+- [x] Release loader: load at start, keep the last two releases, switch atomically
+- [x] Kiosk library API: `GET /kiosk/library/{species}/families`, `/parts?region=`, `/patterns`,
   `POST /kiosk/compositions`, `POST /kiosk/compositions/{id}/export`, `POST /kiosk/compositions/{id}/bespoke`
-- [ ] Design screen: assembler with live part swap, pattern layers with coverage sliders, colour swatches per
+- [x] Design screen: assembler with live part swap, pattern layers with coverage sliders, colour swatches per
   layer, seam-correct 3D stamps, symmetry, small brush, undo; instant preview (the preview is the final asset)
-- [ ] Name and order straight to Result; print bundle in about a minute
-- [ ] Export: Stage F only on the kiosk queue, layers and stamps re-rendered server-side from the composition
+- [x] Name and order straight to Result; print bundle in about a minute
+- [x] Export: Stage F only on the kiosk queue, layers and stamps re-rendered server-side from the composition
   JSON (print matches screen), deltas and shells applied, fused, base and socket, print and paint checks, under
   60 s on CPU
-- [ ] Gate 7: composition to print bundle under 60 s; stamps cross seams correctly; coverage slider smooth with
+- [x] Gate 7: composition to print bundle under 60 s; stamps cross seams correctly; coverage slider smooth with
   10 layers active; the kiosk completes an order with the GenAI host unreachable
 
 ### B2 M8 Studio (`make gate-8`; PR)

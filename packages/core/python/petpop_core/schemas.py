@@ -27,6 +27,11 @@ def spec_errors(spec: dict[str, Any]) -> list[str]:
             for e in validator("petspec.schema.json").iter_errors(spec)]
 
 
+def composition_errors(composition: dict[str, Any]) -> list[str]:
+    """Errors against data/schema/composition.schema.json (BRIEF Section 16: the order record)."""
+    return [f"{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in validator("composition.schema.json").iter_errors(composition)]
+
+
 def manifest_errors(manifest: dict[str, Any]) -> list[str]:
     return [f"{'.'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
             for e in validator("manifest.schema.json").iter_errors(manifest)]

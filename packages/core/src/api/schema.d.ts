@@ -38,7 +38,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kiosk/bespoke": {
+    "/api/v1/kiosk/breeds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kiosk Breeds */
+        get: operations["kioskListBreeds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/compositions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Composition */
+        post: operations["kioskCreateComposition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/compositions/{composition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Composition */
+        get: operations["kioskGetComposition"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/compositions/{composition_id}/bespoke": {
         parameters: {
             query?: never;
             header?: never;
@@ -55,15 +106,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kiosk/breeds": {
+    "/api/v1/kiosk/compositions/{composition_id}/export": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Kiosk Breeds */
-        get: operations["kioskListBreeds"];
+        get?: never;
+        put?: never;
+        /** Export Composition */
+        post: operations["kioskExportComposition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/library/{species}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Release */
+        get: operations["kioskLibraryRelease"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/library/{species}/families": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Families */
+        get: operations["kioskLibraryFamilies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/library/{species}/files/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library File */
+        get: operations["kioskLibraryFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/library/{species}/parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Parts */
+        get: operations["kioskLibraryParts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/library/{species}/patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Patterns */
+        get: operations["kioskLibraryPatterns"];
         put?: never;
         post?: never;
         delete?: never;
@@ -83,6 +219,23 @@ export interface paths {
         get: operations["kioskOps"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/ops/orders/{composition_id}/reprint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kiosk Reprint */
+        post: operations["kioskReprint"];
         delete?: never;
         options?: never;
         head?: never;
@@ -345,16 +498,16 @@ export interface components {
             /** Ticket */
             ticket: string;
         };
-        /** BespokeRequest */
+        /**
+         * BespokeRequest
+         * @description "Make it unique" from a composition: the studio starts a bespoke job from it (BRIEF Section 17).
+         */
         BespokeRequest: {
             /**
              * Contact
              * @description How to reach the customer when it is ready.
              */
             contact?: string | null;
-            /** Session Id */
-            session_id: string;
-            spec: components["schemas"]["PetSpec"];
         };
         /** Breed */
         Breed: {
@@ -391,10 +544,139 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * Composition
+         * @description What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the species base mesh plus the family delta plus one region delta per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.
+         */
+        Composition: {
+            base_colour: components["schemas"]["Composition_hex"];
+            /** @description Must equal the release's base mesh version. */
+            base_mesh_version: string;
+            /** @description The breed the customer started from (informational). */
+            breed_id?: string;
+            /** @constant */
+            composition_version: "1.0";
+            eye_colour: components["schemas"]["Composition_hex"];
+            family_id: string;
+            /** @description Pattern layers, composited in this order over the base colour. */
+            layers: {
+                colour: components["schemas"]["Composition_hex"];
+                /** @description The mask threshold: the layer covers texels whose mask value is below coverage. */
+                coverage: number;
+                pattern_id: string;
+            }[];
+            nose_colour: components["schemas"]["Composition_hex"];
+            /** @description One region-delta part id per region; a region left out keeps the family's shape. */
+            parts: {
+                ears?: string;
+                head?: string;
+                legs?: string;
+                muzzle?: string;
+                tail?: string;
+            };
+            pet_name?: string;
+            /** @description The library release the ids refer to. */
+            release_version: string;
+            shells: {
+                colour: components["schemas"]["Composition_hex"];
+                part_id: string;
+            }[];
+            /** @enum {unknown} */
+            species: "dog" | "cat";
+            /** @description Spots, patches and brush dabs, painted after the layers in this order. Positions are in base-mesh space (mm), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly. */
+            stamps: {
+                colour: components["schemas"]["Composition_hex"];
+                p: number[];
+                r: number;
+            }[];
+        };
+        /** CompositionCreate */
+        CompositionCreate: {
+            composition: components["schemas"]["Composition"];
+            /** Session Id */
+            session_id: string;
+        };
+        /** CompositionStatus */
+        CompositionStatus: {
+            /** Artefacts */
+            artefacts: components["schemas"]["Artefact"][];
+            composition: components["schemas"]["Composition"];
+            /** Composition Id */
+            composition_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error?: string | null;
+            export: components["schemas"]["ExportStatus"] | null;
+            /** Pet Name */
+            pet_name: string | null;
+            /** Previews */
+            previews: {
+                [key: string]: string;
+            };
+            /** Release Version */
+            release_version: string;
+            /**
+             * Result Url
+             * @description Signed public result page for the QR code (7 days), once ready.
+             */
+            result_url?: string | null;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "exporting" | "ready" | "failed";
+            /**
+             * Ticket
+             * @description Order ticket, issued when the export is requested.
+             */
+            ticket?: string | null;
+        };
+        Composition_hex: string;
         /** ErrorBody */
         ErrorBody: {
             /** Detail */
             detail: unknown;
+        };
+        /** ExportAccepted */
+        ExportAccepted: {
+            /** Composition Id */
+            composition_id: string;
+            /** Job Id */
+            job_id: string;
+            /** Queue Position */
+            queue_position: number;
+            /** Ticket */
+            ticket: string;
+        };
+        /** ExportStatus */
+        ExportStatus: {
+            /** Job Id */
+            job_id: string;
+            /** Message */
+            message: string;
+            /** Pct */
+            pct: number;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "queued" | "A" | "control" | "B" | "C" | "D" | "E" | "F" | "done";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "done" | "failed" | "fulfilled";
         };
         /** FulfilResponse */
         FulfilResponse: {
@@ -483,7 +765,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "pipeline" | "bespoke";
+            kind: "pipeline" | "bespoke" | "export";
             /** Message */
             message: string;
             /** Pct */
@@ -573,8 +855,173 @@ export interface components {
              * @enum {string}
              */
             mode: "mock" | "real";
+            /**
+             * Orders
+             * @description The last 20 orders, newest first.
+             */
+            orders: components["schemas"]["KioskOrder"][];
+            /**
+             * Releases
+             * @description Active library release per species.
+             */
+            releases: {
+                [key: string]: string;
+            };
+        };
+        /** KioskOrder */
+        KioskOrder: {
+            /** Composition Id */
+            composition_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Pet Name */
+            pet_name: string | null;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "exporting" | "ready" | "failed";
+            /** Thumbnail Url */
+            thumbnail_url: string | null;
+            /** Ticket */
+            ticket: string | null;
+        };
+        /** LibraryFamilies */
+        LibraryFamilies: {
+            /** Items */
+            items: components["schemas"]["LibraryFamily"][];
             /** Release Version */
-            release_version: string | null;
+            release_version: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+        };
+        /** LibraryFamily */
+        LibraryFamily: {
+            /** Breeds */
+            breeds: string[];
+            /** Default Parts */
+            default_parts: {
+                [key: string]: string;
+            };
+            /** Delta Url */
+            delta_url: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Tags */
+            tags: string[];
+            /** Thumbnail Url */
+            thumbnail_url: string;
+            /** Version */
+            version: number;
+        };
+        /** LibraryPart */
+        LibraryPart: {
+            /** Default Colour */
+            default_colour?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "delta" | "shell";
+            /** Name */
+            name: string;
+            /**
+             * Region
+             * @description Region of a region-delta part.
+             */
+            region?: ("ears" | "tail" | "muzzle" | "head" | "legs") | null;
+            /**
+             * Socket
+             * @description Socket of a shell part.
+             */
+            socket?: ("neck" | "head" | "face") | null;
+            /** Tags */
+            tags: string[];
+            /** Thumbnail Url */
+            thumbnail_url: string;
+            /**
+             * Url
+             * @description float16 delta (region parts) or GLB (shell parts).
+             */
+            url: string;
+            /** Version */
+            version: number;
+        };
+        /** LibraryParts */
+        LibraryParts: {
+            /** Items */
+            items: components["schemas"]["LibraryPart"][];
+            /** Release Version */
+            release_version: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+        };
+        /** LibraryPattern */
+        LibraryPattern: {
+            /** Channel */
+            channel: number;
+            coverage: components["schemas"]["PatternCoverage"];
+            /** Default Colour */
+            default_colour: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Thumbnail Url */
+            thumbnail_url: string;
+            /** Version */
+            version: number;
+        };
+        /** LibraryPatterns */
+        LibraryPatterns: {
+            /** Items */
+            items: components["schemas"]["LibraryPattern"][];
+            /** Release Version */
+            release_version: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+        };
+        /**
+         * LibraryRelease
+         * @description The active release for a species: its manifest (data/schema/release.schema.json) and where its files are.
+         */
+        LibraryRelease: {
+            /** Base Mesh Version */
+            base_mesh_version: string;
+            /**
+             * Files Url
+             * @description Prefix for the release's files: <files_url><path>.
+             */
+            files_url: string;
+            manifest: components["schemas"]["ReleaseManifest"];
+            /** Release Version */
+            release_version: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
         };
         /** ParseRequest */
         ParseRequest: {
@@ -620,6 +1067,15 @@ export interface components {
             patch: components["schemas"]["PetSpecPatch"];
             /** Personality */
             personality: string[];
+        };
+        /** PatternCoverage */
+        PatternCoverage: {
+            /** Default */
+            default: number;
+            /** Max */
+            max: number;
+            /** Min */
+            min: number;
         };
         /**
          * PetSpec
@@ -761,6 +1217,99 @@ export interface components {
              */
             status: "queued" | "running" | "done" | "failed" | "fulfilled";
         };
+        /**
+         * LibraryRelease
+         * @description manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.
+         */
+        ReleaseManifest: {
+            atlas: {
+                /** @description Mask name -> flat channel index (file index * 4 + channel); includes eye and nose. */
+                channels: {
+                    [key: string]: number;
+                };
+                /** @description RGBA PNGs in the species UV atlas; each channel is one mask. */
+                mask_files: string[];
+                /** @enum {integer} */
+                size: 512 | 1024 | 2048;
+            };
+            base_mesh_version: string;
+            /** @description topology_hash of the base mesh every delta was extracted on; a kiosk refuses a release whose hash differs from its own base mesh. */
+            base_topology: string;
+            /** Format: date-time */
+            created_at: string;
+            created_by: string;
+            families: {
+                breeds: string[];
+                default_parts: {
+                    [key: string]: components["schemas"]["ReleaseManifest_id"];
+                };
+                /** @description float16 (n, 3) full-mesh vertex offsets, little endian. */
+                delta: string;
+                id: components["schemas"]["ReleaseManifest_id"];
+                name: string;
+                source_job?: string | null;
+                tags: string[];
+                thumbnail: string;
+                version: number;
+            }[];
+            files: {
+                bytes: number;
+                path: string;
+                sha256: string;
+            }[];
+            /** @description Path of base.bin: the base mesh the client builds its preview from (positions, triangles, corner UVs, eye and nose masks per vertex). */
+            mesh?: string;
+            notes?: string;
+            number: number;
+            pattern_layers: {
+                /** @description Flat mask channel (see atlas.channels). */
+                channel: number;
+                coverage: {
+                    default: number;
+                    max: number;
+                    min: number;
+                };
+                default_colour: string;
+                id: components["schemas"]["ReleaseManifest_id"];
+                name: string;
+                tags?: string[];
+                thumbnail: string;
+                version: number;
+            }[];
+            region_deltas: {
+                curator_score?: number | null;
+                /** @description float16 (n, 3) vertex offsets, zero outside the region and feathered by the region's vertex-group weights. */
+                delta: string;
+                id: components["schemas"]["ReleaseManifest_id"];
+                name: string;
+                /** @enum {unknown} */
+                region: "ears" | "tail" | "muzzle" | "head" | "legs";
+                source_job?: string | null;
+                tags: string[];
+                thumbnail: string;
+                version: number;
+            }[];
+            /** @constant */
+            release_schema: "1.0";
+            release_version: string;
+            shell_parts: {
+                default_colour: string;
+                id: components["schemas"]["ReleaseManifest_id"];
+                /** @description The accessory-library mesh (collar, bandana, bow, hat, glasses) the export fuses. */
+                kind: string;
+                /** @description GLB of the shell in its socket frame (unit scale, Z up). */
+                mesh: string;
+                name: string;
+                /** @enum {unknown} */
+                socket: "neck" | "head" | "face";
+                tags?: string[];
+                thumbnail: string;
+                version: number;
+            }[];
+            /** @enum {unknown} */
+            species: "dog" | "cat";
+        };
+        ReleaseManifest_id: string;
         /** ResultPage */
         ResultPage: {
             /** Breed Label */
@@ -842,7 +1391,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "pipeline" | "bespoke";
+            kind: "pipeline" | "bespoke" | "export";
             /** Pet Name */
             pet_name: string | null;
             /** Requested By */
@@ -1027,11 +1576,163 @@ export interface operations {
             };
         };
     };
-    kioskBespoke: {
+    kioskListBreeds: {
+        parameters: {
+            query: {
+                species: "dog" | "cat";
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreedList"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskCreateComposition: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompositionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompositionStatus"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskGetComposition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompositionStatus"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskBespoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                composition_id: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -1087,14 +1788,62 @@ export interface operations {
             };
         };
     };
-    kioskListBreeds: {
+    kioskExportComposition: {
         parameters: {
-            query: {
-                species: "dog" | "cat";
-                q?: string | null;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportAccepted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskLibraryRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                species: "dog" | "cat";
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1105,7 +1854,198 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BreedList"];
+                    "application/json": components["schemas"]["LibraryRelease"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskLibraryFamilies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryFamilies"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskLibraryFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                species: "dog" | "cat";
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A file of the active release */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kioskLibraryParts: {
+        parameters: {
+            query?: {
+                region?: ("ears" | "tail" | "muzzle" | "head" | "legs") | "shells" | null;
+            };
+            header?: never;
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryParts"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskLibraryPatterns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryPatterns"];
                 };
             };
             /** @description Not Found */
@@ -1173,6 +2113,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kioskReprint: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-staff-token"?: string | null;
+            };
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KioskOrder"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

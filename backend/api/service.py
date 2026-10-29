@@ -25,11 +25,12 @@ from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch, fill_colour_names
 
 from .bus import make_bus
-from .db import (ArtefactRow, BreedRow, JobRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
+from .fulfilment import copy_bundle
+from .library import KioskLibrary
+from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
                  seed_staff, session_factory, utcnow)
 from .store import make_store
 
-PRINT_BUNDLE = ["figure.3mf", "figure.stl", "albedo.png", "figure_uv.obj", "paint_mask.png", "manifest.json"]
 TERMINAL = {"done", "failed", "fulfilled"}
 POLICY = m.IdlePolicy()
 
@@ -51,6 +52,8 @@ class BackendApi:
         seed_staff(self.db, s.studio_users)
         self.bus = make_bus(s, self.db)
         self.store = make_store(s)
+        self.library = KioskLibrary(s, self.db, self.bus, self.store, self.secret)
+        self.library.load_releases()
 
     # ------------------------------------------------------------------ helpers
     def _url(self, key: str) -> str:
@@ -109,21 +112,25 @@ class BackendApi:
             return m.Session(session_id=row.id, kiosk_id=row.kiosk_id, started_at=aware(row.started_at), idle_policy=POLICY,
                              bespoke_enabled=self.s.kiosk_bespoke)
 
-    async def bespoke(self, body: m.BespokeRequest) -> m.BespokeAccepted:
-        """"Make it unique" (KIOSK_BESPOKE): a one-off studio job; the kiosk shows "we'll message you"."""
+    async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
+        """"Make it unique" (KIOSK_BESPOKE): the composition becomes a studio bespoke job's starting spec; the kiosk
+        shows "we'll message you", never a Generating screen."""
         if not self.s.kiosk_bespoke:
             raise ApiError(403, "bespoke mode is off on this kiosk")
-        spec = self._check_spec(body.spec)
+        session_id, spec, _ = self.library.bespoke_spec(composition_id)
+        spec = self._check_spec(spec)
         with self.db() as db:
-            sess = db.get(SessionRow, body.session_id)
+            sess = db.get(SessionRow, session_id) if session_id else None
             if not sess:
                 raise ApiError(404, "unknown session")
-            if sess.generate_count >= 1:
+            comp = db.get(CompositionRow, composition_id)
+            if sess.generate_count >= 1 or comp.bespoke_job_id:
                 raise ApiError(409, "This session has already asked for a one-off figurine.")
             sess.generate_count += 1
             job = self._new_job(db, spec, queue="studio", kind="bespoke", requested_by=f"kiosk:{sess.kiosk_id}",
                                 session_id=sess.id, contact=body.contact)
             job.ticket = f"PP-{random.randint(1000, 9999)}"
+            comp.bespoke_job_id = job.id
             db.commit()
             return m.BespokeAccepted(request_id=job.id, ticket=job.ticket,
                                      message="We'll message you when your one-off figurine is ready.")
@@ -132,9 +139,38 @@ class BackendApi:
         with self.db() as db:
             counts = dict(db.execute(select(JobRow.status, func.count()).where(JobRow.queue == "kiosk")
                                      .group_by(JobRow.status)).all())
-        return m.KioskOps(api_version=m.API_VERSION, mode=self.mode, kiosk_id=self.s.kiosk_id, release_version=None,
+        return m.KioskOps(api_version=m.API_VERSION, mode=self.mode, kiosk_id=self.s.kiosk_id, releases=self.library.versions(),
                           bespoke_enabled=self.s.kiosk_bespoke, exports_queued=int(counts.get("queued", 0)),
-                          exports_running=int(counts.get("running", 0)))
+                          exports_running=int(counts.get("running", 0)), orders=self.library.orders())
+
+    async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
+        return self.library.reprint(composition_id)
+
+    # ------------------------------------------------------------------ kiosk library mode
+    async def library_release(self, species: str) -> m.LibraryRelease:
+        return self.library.release_info(species)
+
+    async def library_families(self, species: str) -> m.LibraryFamilies:
+        return self.library.families(species)
+
+    async def library_parts(self, species: str, region: str | None) -> m.LibraryParts:
+        return self.library.parts(species, region)
+
+    async def library_patterns(self, species: str) -> m.LibraryPatterns:
+        return self.library.patterns(species)
+
+    async def library_file(self, species: str, path: str) -> Response:
+        data, media = await asyncio.to_thread(self.library.file, species, path)
+        return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+    async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
+        return self.library.create(body, self._public_base(base))
+
+    async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
+        return self.library.status(composition_id, self._public_base(base))
+
+    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
+        return self.library.export(composition_id)
 
     async def breeds(self, species: str, q: str | None) -> m.BreedList:
         with self.db() as db:
@@ -243,14 +279,7 @@ class BackendApi:
             if not job.ticket:
                 job.ticket = f"PP-{random.randint(1000, 9999)}"
             ticket = job.ticket
-            folder = self.s.fulfil_dir / f"{ticket}_{job_id}"
-            folder.mkdir(parents=True, exist_ok=True)
-            files = []
-            for name in PRINT_BUNDLE:
-                key = f"jobs/{job_id}/{name}"
-                if self.store.exists(key):
-                    (folder / name).write_bytes(self.store.get(key))
-                    files.append(name)
+            files = copy_bundle(self.s.fulfil_dir, self.store, job_id, ticket)
             job.status = "fulfilled"
             db.commit()
         return m.FulfilResponse(job_id=job_id, ticket=ticket, files=files)

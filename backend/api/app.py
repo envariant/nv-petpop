@@ -35,9 +35,11 @@ def create_app(embed_worker: bool | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         impl.purge_free_text()
+        impl.library.watch()  # new release bundles in the inbox are picked up within 30 s
         for w in workers:
             w.start_thread()
         yield
+        impl.library.stop()
         for w in workers:
             w.stop()
 

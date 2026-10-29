@@ -101,7 +101,48 @@ class Worker:
         if queue != self.queue or kind not in JOB_KINDS[self.queue]:
             log.error("job %s (%s on %s) is not for the %s worker", job_id, kind, queue, self.queue)
             return self._fail(job_id, "queued", f"{kind} jobs do not run on the {self.queue} queue")
+        if kind == "export":
+            return self.run_export(job_id)
         return self.run_pipeline(job_id)
+
+    def run_export(self, job_id: str) -> str:
+        """A library export (BRIEF Section 16): Stage F only, from the composition JSON; then the print bundle and
+        the composition go to the fulfilment folder under the order's ticket."""
+        from backend.api.fulfilment import copy_bundle
+
+        from .export import run_export
+
+        with self.db() as db:
+            job = db.get(JobRow, job_id)
+            spec = dict(job.pet_spec)
+            ticket = job.ticket
+            job.status, job.started_at, job.attempts = "running", job.started_at or utcnow(), job.attempts + 1
+            db.commit()
+        ctx = StageContext(job_id=job_id, settings=self.s, store=self.store, backends=None,
+                           progress=self._progress(job_id), on_artefact=self._artefact(job_id),
+                           deadline=time.monotonic() + self.s.genai.timeout("F"))
+        on_stage = self._stage(job_id)
+        t0 = time.perf_counter()
+        on_stage("F", "running", 0, None)
+        try:
+            mb = run_export(ctx, job_id, spec["composition"], spec["composition_id"])
+            key = ctx.key("manifest.json")
+            self._artefact(job_id)("manifest.json", "manifest", "F", key, len(self.store.get(key)))
+            on_stage("F", "ok", int((time.perf_counter() - t0) * 1000), None)
+            if ticket:
+                copy_bundle(self.s.fulfil_dir, self.store, job_id, ticket)
+            msg = "Your figurine is ready"
+            self._update(job_id, status="done", stage="done", pct=100, message=msg, finished_at=utcnow(), fallback="none",
+                         fidelity=mb.data["fidelity"], error=None)
+            self.bus.publish(job_id, {"job_id": job_id, "status": "done", "stage": "done", "pct": 100, "message": msg,
+                                      "queue_position": 0, "preview_kind": "glb", "preview_key": ctx.key("figure.glb")})
+            return "done"
+        except Exception as exc:  # noqa: BLE001 - any failure fails the order visibly; staff can reprint or retry
+            log.exception("export %s failed", job_id)
+            on_stage("F", "failed", int((time.perf_counter() - t0) * 1000), None)
+            return self._fail(job_id, "F", str(exc))
+        finally:
+            shutil.rmtree(ctx.tmp, ignore_errors=True)
 
     def run_pipeline(self, job_id: str) -> str:
         with self.db() as db:

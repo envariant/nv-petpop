@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { KioskFrame } from '@petpop/ui';
-import { BespokeScreen, DesignScreen } from './screens/Design';
+import { BespokeScreen, DesignScreen, NameScreen, OrderScreen } from './screens/Design';
 import { AttractScreen, BreedScreen, SpeciesScreen } from './screens/Intro';
 import { Offline, StaffPanel, StillThere, useFiveTap, useIdle, useOnline } from './screens/Overlays';
 import { PhoneResult } from './screens/Phone';
@@ -14,6 +14,8 @@ export const SCREENS: Record<Screen, () => JSX.Element | null> = {
   species: SpeciesScreen,
   breed: BreedScreen,
   design: DesignScreen,
+  name: NameScreen,
+  order: OrderScreen,
   bespoke: BespokeScreen,
 };
 

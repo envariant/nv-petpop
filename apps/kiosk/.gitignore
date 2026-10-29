@@ -6,3 +6,4 @@ dist/
 storybook-static/
 test-results/
 playwright-report/
+public/library/

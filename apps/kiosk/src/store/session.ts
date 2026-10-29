@@ -1,11 +1,13 @@
 // Kiosk session state (Zustand). One session = one visitor; reset() wipes everything (idle or Start over).
-// The kiosk never depends on the GenAI host (BRIEF Section 17): it only talks to the /kiosk routes.
+// The kiosk never depends on the GenAI host (BRIEF Section 17): it only talks to the /kiosk routes. The design
+// itself (library, composition, paint tools, order) lives in store/design.ts.
 import { create } from 'zustand';
 import { ApiFailure, KioskApi, randomSeed, specFromBreed } from '@petpop/core';
-import type { BespokeAccepted, Breed, PetSpec, Species } from '@petpop/core';
+import type { BespokeAccepted, Breed, CompositionBody, PetSpec, Species } from '@petpop/core';
+import { useDesign } from './design';
 
-export type Screen = 'attract' | 'species' | 'breed' | 'design' | 'bespoke';
-export const FLOW: Screen[] = ['attract', 'species', 'breed', 'design'];
+export type Screen = 'attract' | 'species' | 'breed' | 'design' | 'name' | 'order' | 'bespoke';
+export const FLOW: Screen[] = ['attract', 'species', 'breed', 'design', 'name', 'order'];
 
 export interface SessionState {
   screen: Screen;
@@ -59,15 +61,21 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ breed, spec: specFromBreed(species!, breed, randomSeed()), screen: 'design' });
   },
   requestBespoke: async (contact) => {
-    const { sessionId, spec } = get();
-    if (!sessionId || !spec) return;
+    const { sessionId } = get();
+    const composition = useDesign.getState().composition;
+    if (!sessionId || !composition) return;
     set({ error: null });
     try {
-      set({ bespoke: await KioskApi.bespoke(sessionId, spec, contact.trim() || undefined) });
+      // The design goes to the studio as the bespoke job's starting point (BRIEF Section 17).
+      const created = await KioskApi.createComposition(sessionId, composition as CompositionBody);
+      set({ bespoke: await KioskApi.bespoke(created.composition_id, contact.trim() || undefined) });
     } catch (e) {
       set({ error: e instanceof ApiFailure && e.status === 409 ? String(e.detail) : 'Something went wrong. Please ask a member of staff.' });
     }
   },
-  reset: () => set({ ...initial }),
+  reset: () => {
+    useDesign.getState().reset();
+    set({ ...initial });
+  },
   hydrate: (p) => set(p),
 }));

@@ -36,6 +36,8 @@ from backend.core.paths import FIXTURES, ROOT, mock_speed
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch
 
+from .library import MockLibrary
+
 SCRIPTS_DIR = ROOT / "mock-server" / "scripts"
 PRINT_BUNDLE = ["figure.3mf", "figure.stl", "albedo.png", "figure_uv.obj", "paint_mask.png", "manifest.json"]
 STAGE_ORDER = ["queued", "A", "control", "B", "C", "D", "E", "F", "done"]
@@ -114,6 +116,7 @@ class MockApi:
         self.sessions: dict[str, dict[str, Any]] = {}
         self.jobs: dict[str, MockJob] = {}
         self.index = json.loads((FIXTURES / "index.json").read_text())["pets"]
+        self.library = MockLibrary(self.secret)
 
     # ----------------------------------------------------------------- helpers
     def _pick_script(self, spec: dict[str, Any]) -> dict[str, Any]:
@@ -202,24 +205,63 @@ class MockApi:
         return m.Session(session_id=sid, kiosk_id=body.kiosk_id, started_at=utc(time.time()), idle_policy=m.IdlePolicy(),
                          bespoke_enabled=self.bespoke_enabled)
 
-    async def bespoke(self, body: m.BespokeRequest) -> m.BespokeAccepted:
+    async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
         if not self.bespoke_enabled:
             raise ApiError(403, "bespoke mode is off on this kiosk")
-        sess = self.sessions.get(body.session_id)
+        c = self.library.composition(composition_id)
+        sess = self.sessions.get(c.session_id)
         if not sess:
             raise ApiError(404, "unknown session")
-        self._check_spec(body.spec)
-        if sess["bespoke"]:
+        if sess["bespoke"] or c.bespoke_job:
             raise ApiError(409, "This session has already asked for a one-off figurine.")
         sess["bespoke"] += 1
-        job = self._enqueue(body.session_id, f"kiosk:{sess['kiosk_id']}", body.spec, kind="bespoke")
+        spec = self.library.bespoke_spec(c)
+        job = self._enqueue(c.session_id, f"kiosk:{sess['kiosk_id']}", spec, kind="bespoke")
         job.ticket = f"PP-{random.randint(1000, 9999)}"
+        c.bespoke_job = job.job_id
         return m.BespokeAccepted(request_id=job.job_id, ticket=job.ticket,
                                  message="We'll message you when your one-off figurine is ready.")
 
     async def kiosk_ops(self) -> m.KioskOps:
-        return m.KioskOps(api_version=m.API_VERSION, mode="mock", kiosk_id="kiosk-1", release_version=None,
-                          bespoke_enabled=self.bespoke_enabled, exports_queued=0, exports_running=0)
+        now = time.time()
+        states = [c.export_state(now)["status"] for c in self.library.compositions.values()]
+        return m.KioskOps(api_version=m.API_VERSION, mode="mock", kiosk_id="kiosk-1", releases=self.library.versions(),
+                          bespoke_enabled=self.bespoke_enabled, exports_queued=0, exports_running=states.count("exporting"),
+                          orders=self.library.orders())
+
+    async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
+        return self.library.reprint(composition_id)
+
+    # ----------------------------------------------------------------- kiosk library mode
+    async def library_release(self, species: str) -> m.LibraryRelease:
+        return self.library.release_info(species)
+
+    async def library_families(self, species: str) -> m.LibraryFamilies:
+        return self.library.families(species)
+
+    async def library_parts(self, species: str, region: str | None) -> m.LibraryParts:
+        return self.library.parts(species, region)
+
+    async def library_patterns(self, species: str) -> m.LibraryPatterns:
+        return self.library.patterns(species)
+
+    async def library_file(self, species: str, path: str) -> Response:
+        data, media = self.library.release_file(species, path)
+        return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+    async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
+        if body.session_id not in self.sessions:
+            raise ApiError(404, "unknown session")
+        c = self.library.create(body.session_id, body.composition, mock_speed())
+        return self.library.status(c, base)
+
+    async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
+        return self.library.status(self.library.composition(composition_id), base)
+
+    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
+        c = self.library.composition(composition_id)
+        self.library.export(c)
+        return m.ExportAccepted(composition_id=c.id, job_id=f"j_{c.id[2:]}", ticket=c.ticket, queue_position=0)
 
     # ----------------------------------------------------------------- studio
 
@@ -344,6 +386,8 @@ class MockApi:
 
     async def result(self, token: str, base: str) -> m.ResultPage:
         job_id, exp = read_token(self.secret, token)
+        if job_id.startswith("c_"):  # a library order
+            return self.library.result(job_id, exp)
         job = self._job(job_id)
         return m.ResultPage(job_id=job_id, pet_name=job.spec.get("pet_name"), species=job.spec["species"],
                             breed_label=job.spec["breed"]["label"], glb_url=self._url(job, "figure.glb"),
@@ -354,6 +398,9 @@ class MockApi:
         if not check_sig(self.secret, key, exp, sig):
             raise ApiError(403, "bad or expired signature")
         parts = key.split("/", 2)
+        if len(parts) == 3 and parts[0] == "compositions":
+            data, media = self.library.file(key)
+            return Response(data, media_type=media or "application/octet-stream", headers={"Cache-Control": "private, max-age=3600"})
         if len(parts) != 3 or parts[0] != "jobs":
             raise ApiError(404, "unknown file")
         job = self._job(parts[1])

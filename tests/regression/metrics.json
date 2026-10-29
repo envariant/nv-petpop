@@ -15,17 +15,17 @@
   },
   "one_topology": true,
   "iou": 0.9516,
-  "p50_s": 19.5,
-  "max_s": 20.9,
+  "p50_s": 20.5,
+  "max_s": 23.3,
   "paint_mask_pct_mean": 3.77,
   "stage_ms_mean": {
    "A": 6,
-   "control": 2397,
-   "B": 735,
-   "C": 812,
-   "D": 2190,
-   "E": 1188,
-   "F": 12234
+   "control": 2560,
+   "B": 768,
+   "C": 843,
+   "D": 2332,
+   "E": 1214,
+   "F": 12862
   }
  },
  "rows": [
@@ -36,13 +36,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 24,
-    "control": 3046,
-    "B": 733,
-    "C": 805,
-    "D": 2207,
-    "E": 1031,
-    "F": 12589
+    "A": 28,
+    "control": 2975,
+    "B": 664,
+    "C": 778,
+    "D": 2219,
+    "E": 1229,
+    "F": 12452
    },
    "iou": 0.9478,
    "wrap_valid": true,
@@ -52,7 +52,7 @@
    "paint_mask_pct": 4.2,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 20.9
+   "total_s": 20.8
   },
   {
    "id": "dog_labrador",
@@ -62,12 +62,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2325,
-    "B": 728,
-    "C": 797,
-    "D": 2260,
-    "E": 1551,
-    "F": 12474
+    "control": 2827,
+    "B": 748,
+    "C": 799,
+    "D": 2251,
+    "E": 1223,
+    "F": 12507
    },
    "iou": 0.9557,
    "wrap_valid": true,
@@ -77,7 +77,7 @@
    "paint_mask_pct": 4.74,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 20.2
+   "total_s": 20.4
   },
   {
    "id": "dog_german_shepherd",
@@ -87,12 +87,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2709,
-    "B": 747,
-    "C": 861,
-    "D": 2144,
-    "E": 1126,
-    "F": 12226
+    "control": 2495,
+    "B": 768,
+    "C": 828,
+    "D": 2201,
+    "E": 1178,
+    "F": 13574
    },
    "iou": 0.9527,
    "wrap_valid": true,
@@ -102,7 +102,7 @@
    "paint_mask_pct": 3.13,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.8
+   "total_s": 21.1
   },
   {
    "id": "dog_french_bulldog",
@@ -111,13 +111,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 7,
-    "control": 2383,
-    "B": 768,
-    "C": 925,
-    "D": 2351,
-    "E": 1129,
-    "F": 11814
+    "A": 5,
+    "control": 2371,
+    "B": 817,
+    "C": 796,
+    "D": 2291,
+    "E": 1203,
+    "F": 12152
    },
    "iou": 0.9492,
    "wrap_valid": true,
@@ -127,7 +127,7 @@
    "paint_mask_pct": 4.13,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.4
+   "total_s": 19.7
   },
   {
    "id": "dog_pug",
@@ -137,12 +137,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 6,
-    "control": 2209,
-    "B": 740,
-    "C": 815,
-    "D": 2047,
-    "E": 1181,
-    "F": 12183
+    "control": 2583,
+    "B": 727,
+    "C": 876,
+    "D": 2493,
+    "E": 1115,
+    "F": 11810
    },
    "iou": 0.9694,
    "wrap_valid": true,
@@ -152,7 +152,7 @@
    "paint_mask_pct": 5.53,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.2
+   "total_s": 19.6
   },
   {
    "id": "dog_poodle_standard",
@@ -161,13 +161,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2352,
-    "B": 719,
-    "C": 859,
-    "D": 2457,
-    "E": 1293,
-    "F": 12197
+    "A": 7,
+    "control": 2371,
+    "B": 716,
+    "C": 805,
+    "D": 2206,
+    "E": 1195,
+    "F": 12794
    },
    "iou": 0.9623,
    "wrap_valid": true,
@@ -177,7 +177,7 @@
    "paint_mask_pct": 5.47,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.9
+   "total_s": 20.1
   },
   {
    "id": "dog_dachshund",
@@ -186,13 +186,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 6,
-    "control": 2396,
-    "B": 671,
-    "C": 795,
-    "D": 2262,
-    "E": 1124,
-    "F": 12039
+    "A": 5,
+    "control": 2499,
+    "B": 721,
+    "C": 793,
+    "D": 2246,
+    "E": 1205,
+    "F": 12985
    },
    "iou": 0.9563,
    "wrap_valid": true,
@@ -202,7 +202,7 @@
    "paint_mask_pct": 4.15,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.3
+   "total_s": 20.5
   },
   {
    "id": "dog_husky",
@@ -211,13 +211,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 4,
-    "control": 2202,
-    "B": 733,
-    "C": 790,
-    "D": 2127,
-    "E": 1275,
-    "F": 11820
+    "A": 5,
+    "control": 2644,
+    "B": 657,
+    "C": 812,
+    "D": 2221,
+    "E": 1313,
+    "F": 13336
    },
    "iou": 0.9567,
    "wrap_valid": true,
@@ -227,7 +227,7 @@
    "paint_mask_pct": 3.59,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.0
+   "total_s": 21.0
   },
   {
    "id": "dog_shiba_inu",
@@ -236,13 +236,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2651,
-    "B": 741,
-    "C": 783,
-    "D": 2294,
-    "E": 1136,
-    "F": 12036
+    "A": 7,
+    "control": 2577,
+    "B": 751,
+    "C": 836,
+    "D": 2326,
+    "E": 1176,
+    "F": 12425
    },
    "iou": 0.9669,
    "wrap_valid": true,
@@ -252,7 +252,7 @@
    "paint_mask_pct": 2.97,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.7
+   "total_s": 20.1
   },
   {
    "id": "dog_border_collie",
@@ -261,13 +261,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 7,
-    "control": 2407,
-    "B": 745,
-    "C": 816,
-    "D": 2066,
-    "E": 1283,
-    "F": 12359
+    "A": 5,
+    "control": 2607,
+    "B": 770,
+    "C": 857,
+    "D": 2169,
+    "E": 1114,
+    "F": 12664
    },
    "iou": 0.9649,
    "wrap_valid": true,
@@ -277,7 +277,7 @@
    "paint_mask_pct": 3.36,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.7
+   "total_s": 20.2
   },
   {
    "id": "dog_boxer",
@@ -286,13 +286,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 6,
-    "control": 2385,
-    "B": 732,
-    "C": 743,
-    "D": 2114,
-    "E": 1123,
-    "F": 12151
+    "A": 5,
+    "control": 2568,
+    "B": 750,
+    "C": 901,
+    "D": 2324,
+    "E": 1166,
+    "F": 12920
    },
    "iou": 0.9478,
    "wrap_valid": true,
@@ -302,7 +302,7 @@
    "paint_mask_pct": 5.85,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.3
+   "total_s": 20.7
   },
   {
    "id": "dog_dalmatian",
@@ -311,13 +311,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2306,
-    "B": 727,
-    "C": 780,
-    "D": 2281,
-    "E": 1206,
-    "F": 12785
+    "A": 6,
+    "control": 2780,
+    "B": 773,
+    "C": 846,
+    "D": 2445,
+    "E": 1197,
+    "F": 13299
    },
    "iou": 0.9239,
    "wrap_valid": true,
@@ -327,7 +327,7 @@
    "paint_mask_pct": 5.15,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 20.1
+   "total_s": 21.4
   },
   {
    "id": "dog_schnauzer_mini",
@@ -336,13 +336,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 7,
-    "control": 2330,
-    "B": 726,
-    "C": 798,
-    "D": 2187,
-    "E": 1154,
-    "F": 12142
+    "A": 9,
+    "control": 2554,
+    "B": 920,
+    "C": 864,
+    "D": 2353,
+    "E": 1208,
+    "F": 15422
    },
    "iou": 0.9628,
    "wrap_valid": true,
@@ -352,7 +352,7 @@
    "paint_mask_pct": 4.18,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.4
+   "total_s": 23.3
   },
   {
    "id": "dog_greyhound",
@@ -362,12 +362,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2408,
-    "B": 733,
-    "C": 865,
-    "D": 2063,
-    "E": 1136,
-    "F": 13081
+    "control": 2535,
+    "B": 770,
+    "C": 855,
+    "D": 2129,
+    "E": 1200,
+    "F": 12670
    },
    "iou": 0.9585,
    "wrap_valid": true,
@@ -377,7 +377,7 @@
    "paint_mask_pct": 5.28,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 20.3
+   "total_s": 20.2
   },
   {
    "id": "dog_bulldog",
@@ -386,13 +386,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 7,
-    "control": 2317,
-    "B": 759,
-    "C": 826,
-    "D": 2088,
-    "E": 1115,
-    "F": 12001
+    "A": 8,
+    "control": 2486,
+    "B": 709,
+    "C": 869,
+    "D": 2142,
+    "E": 1174,
+    "F": 12150
    },
    "iou": 0.9711,
    "wrap_valid": true,
@@ -402,7 +402,7 @@
    "paint_mask_pct": 5.29,
    "topology": "837de5361ae6d863",
    "uv": "a925f74e10d7acea",
-   "total_s": 19.1
+   "total_s": 19.6
   },
   {
    "id": "cat_domestic_shorthair",
@@ -411,13 +411,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 6,
-    "control": 2367,
-    "B": 761,
-    "C": 824,
-    "D": 2251,
-    "E": 1105,
-    "F": 11802
+    "A": 5,
+    "control": 2290,
+    "B": 715,
+    "C": 795,
+    "D": 2120,
+    "E": 1195,
+    "F": 12120
    },
    "iou": 0.9535,
    "wrap_valid": true,
@@ -427,7 +427,7 @@
    "paint_mask_pct": 3.05,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.1
+   "total_s": 19.3
   },
   {
    "id": "cat_persian",
@@ -437,12 +437,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2412,
-    "B": 682,
-    "C": 808,
-    "D": 2206,
-    "E": 1325,
-    "F": 12356
+    "control": 2482,
+    "B": 748,
+    "C": 868,
+    "D": 2571,
+    "E": 1554,
+    "F": 12577
    },
    "iou": 0.9397,
    "wrap_valid": true,
@@ -452,7 +452,7 @@
    "paint_mask_pct": 3.08,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.8
+   "total_s": 20.8
   },
   {
    "id": "cat_maine_coon",
@@ -462,12 +462,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2504,
-    "B": 761,
-    "C": 824,
-    "D": 2368,
-    "E": 1388,
-    "F": 12329
+    "control": 2491,
+    "B": 1083,
+    "C": 913,
+    "D": 2197,
+    "E": 1319,
+    "F": 12433
    },
    "iou": 0.9419,
    "wrap_valid": true,
@@ -477,7 +477,7 @@
    "paint_mask_pct": 2.53,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 20.2
+   "total_s": 20.5
   },
   {
    "id": "cat_siamese",
@@ -487,12 +487,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2270,
-    "B": 722,
-    "C": 776,
-    "D": 1961,
-    "E": 1118,
-    "F": 12316
+    "control": 2386,
+    "B": 715,
+    "C": 812,
+    "D": 2341,
+    "E": 1086,
+    "F": 12452
    },
    "iou": 0.9418,
    "wrap_valid": true,
@@ -502,7 +502,7 @@
    "paint_mask_pct": 3.02,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.2
+   "total_s": 19.8
   },
   {
    "id": "cat_scottish_fold",
@@ -512,12 +512,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2304,
-    "B": 764,
-    "C": 869,
-    "D": 2132,
-    "E": 1099,
-    "F": 11766
+    "control": 2609,
+    "B": 745,
+    "C": 865,
+    "D": 2354,
+    "E": 1121,
+    "F": 12311
    },
    "iou": 0.9576,
    "wrap_valid": true,
@@ -527,7 +527,7 @@
    "paint_mask_pct": 4.03,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.0
+   "total_s": 20.0
   },
   {
    "id": "cat_bengal",
@@ -536,13 +536,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 7,
-    "control": 2423,
-    "B": 722,
-    "C": 707,
-    "D": 2027,
-    "E": 1173,
-    "F": 11949
+    "A": 8,
+    "control": 2502,
+    "B": 796,
+    "C": 1032,
+    "D": 2401,
+    "E": 1156,
+    "F": 12657
    },
    "iou": 0.9403,
    "wrap_valid": true,
@@ -552,7 +552,7 @@
    "paint_mask_pct": 3.31,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.0
+   "total_s": 20.6
   },
   {
    "id": "cat_sphynx",
@@ -561,13 +561,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 6,
-    "control": 2608,
-    "B": 704,
-    "C": 836,
-    "D": 2132,
-    "E": 1156,
-    "F": 12501
+    "A": 5,
+    "control": 2487,
+    "B": 795,
+    "C": 849,
+    "D": 2677,
+    "E": 1472,
+    "F": 13080
    },
    "iou": 0.9301,
    "wrap_valid": true,
@@ -577,7 +577,7 @@
    "paint_mask_pct": 2.8,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 20.0
+   "total_s": 21.4
   },
   {
    "id": "cat_ragdoll",
@@ -586,13 +586,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2369,
-    "B": 780,
-    "C": 810,
-    "D": 2338,
-    "E": 1183,
-    "F": 11952
+    "A": 7,
+    "control": 2507,
+    "B": 801,
+    "C": 814,
+    "D": 2437,
+    "E": 1251,
+    "F": 13831
    },
    "iou": 0.9549,
    "wrap_valid": true,
@@ -602,7 +602,7 @@
    "paint_mask_pct": 3.07,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.5
+   "total_s": 21.7
   },
   {
    "id": "cat_british_shorthair",
@@ -612,12 +612,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2249,
-    "B": 823,
-    "C": 791,
-    "D": 2290,
-    "E": 1194,
-    "F": 12558
+    "control": 2503,
+    "B": 767,
+    "C": 837,
+    "D": 2637,
+    "E": 1237,
+    "F": 13613
    },
    "iou": 0.9642,
    "wrap_valid": true,
@@ -627,7 +627,7 @@
    "paint_mask_pct": 2.87,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.9
+   "total_s": 21.6
   },
   {
    "id": "cat_tuxedo",
@@ -637,12 +637,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 6,
-    "control": 2244,
-    "B": 790,
-    "C": 793,
-    "D": 2168,
-    "E": 1168,
-    "F": 12047
+    "control": 2523,
+    "B": 847,
+    "C": 840,
+    "D": 2585,
+    "E": 1200,
+    "F": 13159
    },
    "iou": 0.9403,
    "wrap_valid": true,
@@ -652,7 +652,7 @@
    "paint_mask_pct": 2.92,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.2
+   "total_s": 21.2
   },
   {
    "id": "cat_calico",
@@ -662,12 +662,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2344,
-    "B": 730,
-    "C": 832,
-    "D": 2235,
-    "E": 1244,
-    "F": 11593
+    "control": 2760,
+    "B": 779,
+    "C": 931,
+    "D": 2493,
+    "E": 1308,
+    "F": 13184
    },
    "iou": 0.9507,
    "wrap_valid": true,
@@ -677,7 +677,7 @@
    "paint_mask_pct": 3.17,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.0
+   "total_s": 21.5
   },
   {
    "id": "cat_manx",
@@ -687,12 +687,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 5,
-    "control": 2406,
-    "B": 744,
-    "C": 810,
-    "D": 2227,
-    "E": 1128,
-    "F": 12506
+    "control": 2615,
+    "B": 738,
+    "C": 804,
+    "D": 2408,
+    "E": 1141,
+    "F": 12219
    },
    "iou": 0.9321,
    "wrap_valid": true,
@@ -702,7 +702,7 @@
    "paint_mask_pct": 2.97,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.8
+   "total_s": 20.0
   },
   {
    "id": "cat_devon_rex",
@@ -711,13 +711,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2299,
-    "B": 679,
-    "C": 832,
-    "D": 2123,
-    "E": 1129,
-    "F": 12429
+    "A": 9,
+    "control": 2473,
+    "B": 728,
+    "C": 819,
+    "D": 2226,
+    "E": 1144,
+    "F": 13086
    },
    "iou": 0.9449,
    "wrap_valid": true,
@@ -727,7 +727,7 @@
    "paint_mask_pct": 2.82,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.5
+   "total_s": 20.5
   },
   {
    "id": "cat_tabby_orange",
@@ -737,12 +737,12 @@
    "fidelity": "high",
    "stage_ms": {
     "A": 6,
-    "control": 2347,
-    "B": 669,
-    "C": 779,
-    "D": 2203,
-    "E": 1215,
-    "F": 12271
+    "control": 2822,
+    "B": 759,
+    "C": 788,
+    "D": 2256,
+    "E": 1132,
+    "F": 13076
    },
    "iou": 0.9598,
    "wrap_valid": true,
@@ -752,7 +752,7 @@
    "paint_mask_pct": 3.2,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.5
+   "total_s": 20.9
   },
   {
    "id": "cat_norwegian_forest",
@@ -761,13 +761,13 @@
    "fallback": "none",
    "fidelity": "high",
    "stage_ms": {
-    "A": 5,
-    "control": 2347,
-    "B": 726,
-    "C": 815,
-    "D": 2099,
-    "E": 1169,
-    "F": 12752
+    "A": 6,
+    "control": 2492,
+    "B": 773,
+    "C": 825,
+    "D": 2266,
+    "E": 1233,
+    "F": 12919
    },
    "iou": 0.9504,
    "wrap_valid": true,
@@ -777,7 +777,7 @@
    "paint_mask_pct": 3.22,
    "topology": "9ad6ca9a22865e07",
    "uv": "277c6a886ac7c151",
-   "total_s": 19.9
+   "total_s": 20.5
   }
  ]
 }

@@ -4,8 +4,9 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema';
 import type {
-  BespokeAccepted, BreedList, FulfilResponse, Job, JobCreated, KioskOps, ParseResponse, PetSpec, ProgressEvent, ResultPage,
-  Session, Species, StaffQueue, StaffToken, StaffUser,
+  BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
+  KioskOrder, LibraryFamilies, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
+  Species, StaffQueue, StaffToken, StaffUser,
 } from './types';
 
 export const api = createClient<paths>({ baseUrl: typeof window !== 'undefined' ? window.location.origin : 'http://localhost' });
@@ -38,9 +39,26 @@ export const KioskApi = {
     unwrap(await api.POST('/api/v1/kiosk/sessions', { body: { kiosk_id: kioskId } })),
   breeds: async (species: Species, q?: string): Promise<BreedList> =>
     unwrap(await api.GET('/api/v1/kiosk/breeds', { params: { query: { species, q: q || undefined } } })),
-  bespoke: async (sessionId: string, spec: PetSpec, contact?: string): Promise<BespokeAccepted> =>
-    unwrap(await api.POST('/api/v1/kiosk/bespoke', { body: { session_id: sessionId, spec, contact: contact || null } })),
   ops: async (pin: string): Promise<KioskOps> => unwrap(await api.GET('/api/v1/kiosk/ops', { headers: { 'X-Staff-Token': pin } } as never)),
+  reprint: async (pin: string, compositionId: string): Promise<KioskOrder> =>
+    unwrap(await api.POST('/api/v1/kiosk/ops/orders/{composition_id}/reprint', { params: { path: { composition_id: compositionId } }, headers: { 'X-Staff-Token': pin } } as never)),
+  // library mode: the active release and the composition, the order record
+  libraryRelease: async (species: Species): Promise<LibraryRelease> =>
+    unwrap(await api.GET('/api/v1/kiosk/library/{species}', { params: { path: { species } } })),
+  libraryFamilies: async (species: Species): Promise<LibraryFamilies> =>
+    unwrap(await api.GET('/api/v1/kiosk/library/{species}/families', { params: { path: { species } } })),
+  libraryParts: async (species: Species, region?: string): Promise<LibraryParts> =>
+    unwrap(await api.GET('/api/v1/kiosk/library/{species}/parts', { params: { path: { species }, query: { region: region as never } } })),
+  libraryPatterns: async (species: Species): Promise<LibraryPatterns> =>
+    unwrap(await api.GET('/api/v1/kiosk/library/{species}/patterns', { params: { path: { species } } })),
+  createComposition: async (sessionId: string, composition: CompositionBody): Promise<CompositionStatus> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions', { body: { session_id: sessionId, composition } })),
+  composition: async (compositionId: string): Promise<CompositionStatus> =>
+    unwrap(await api.GET('/api/v1/kiosk/compositions/{composition_id}', { params: { path: { composition_id: compositionId } } })),
+  exportComposition: async (compositionId: string): Promise<ExportAccepted> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/export', { params: { path: { composition_id: compositionId } } })),
+  bespoke: async (compositionId: string, contact?: string): Promise<BespokeAccepted> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/bespoke', { params: { path: { composition_id: compositionId } }, body: { contact: contact || null } })),
 };
 
 // ------------------------------------------------------------------ studio: bearer token

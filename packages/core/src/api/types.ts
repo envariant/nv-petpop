@@ -24,3 +24,14 @@ export type KioskOps = S['KioskOps'];
 export type StaffToken = S['StaffToken'];
 export type StaffUser = S['StaffUser'];
 export type Role = StaffUser['role'];
+// Library mode (BRIEF Section 16): Contract 1 (the release) and Contract 2 (the composition).
+export type CompositionBody = S['Composition'];
+export type ReleaseManifestBody = S['ReleaseManifest'];
+export type LibraryRelease = S['LibraryRelease'];
+export type LibraryFamilies = S['LibraryFamilies'];
+export type LibraryParts = S['LibraryParts'];
+export type LibraryPatterns = S['LibraryPatterns'];
+export type CompositionStatus = S['CompositionStatus'];
+export type CompositionState = CompositionStatus['status'];
+export type ExportAccepted = S['ExportAccepted'];
+export type KioskOrder = S['KioskOrder'];
