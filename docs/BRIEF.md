@@ -4,9 +4,9 @@ Oct 28, 2026 · @Nishant Vats
 
 ## 1. Product summary
 
-PetPop is a touch-first kiosk web app that turns a short description of someone's dog or cat into a chibi vinyl-collectible-style 3D figurine: a textured GLB for on-screen preview, a watertight print mesh, and a UV texture atlas for the Escher XYZAC inkjet painter. The user picks a breed, taps through visual selectors for coat, markings, ears, tail, eyes and accessories, adds a free-text brief, and watches the figurine generate in under four minutes.
+PetPop is a touch-first kiosk web app that turns a short description of someone's dog or cat into a chibi vinyl-collectible-style 3D figurine: a textured GLB for on-screen preview, a watertight print mesh, and a UV texture atlas for the Escher XYZAC inkjet painter. It has two modes. Library mode, the default, assembles the figurine from a curated, pre-generated parts library with instant live preview and ready-made pattern tools, so a customer goes from breed to order in a few minutes. Bespoke mode runs the AI pipeline live for a one-off shape and takes a few minutes to generate. Both use the same AI stages; the library just runs them offline, once, under curation (Section 16).
 
-The whole AI stack is self-hosted for the PoC (ComfyUI, Blender headless, a small local LLM) on one 24 GB GPU box, so unit cost is electricity and the pipeline can later move to the kiosk's own hardware or a cloud GPU unchanged.
+The whole AI stack is self-hosted: prototyped on an Apple Silicon Mac and run in production on one 24 GB NVIDIA box, with the backend agnostic to which host produced the output (Section 13), so unit cost is electricity and the pipeline moves between hosts by changing one profile setting.
 
 **PoC scope**
 
@@ -42,6 +42,8 @@ The flow is eight screens, every one finishable by thumb on a 24–32" portrait 
 8. **Result** — the finished figurine on a slow turntable with pinch-zoom, a "Tweak" button back to Build (keeps the seed), a QR code to open the GLB on a phone, and a "Send to print" button that drops the print-and-paint bundle into the fulfilment folder.
 
 Idle for 90 s on any screen after Attract shows a 15 s "Still there?" countdown, then resets and wipes the session. Sessions are limited to three Generate runs to keep the GPU free.
+
+**Customer journey in the shipped product**: the kiosk is library-mode only (Section 17). Screens 4 to 7 above become one Design screen: the breed picks a body and head family and a default parts set from the library; the customer swaps ears, tail, muzzle and accessories from tiles, then paints with the pattern tools (marking layers with coverage sliders, colour swatches, tap-to-stamp patches with symmetry). The preview is the final asset, not a proxy, so there is no Generating screen: Name and order goes straight to Result and the print bundle is ready in about a minute. The generate flow described in steps 4 to 7 is not lost: it becomes the Studio app's Generate workspace, where staff produce library content and run one-off bespoke jobs.
 
 ## 3. Pet description model
 
@@ -248,7 +250,7 @@ ComfyUI runs as its own container exposed only to the worker on port 8188 (`--li
 
 ## 9. Backend architecture
 
-The backend is five containers on one GPU host under Docker Compose with the NVIDIA runtime: `api`, `worker`, `comfyui`, `blender`, `ollama`, plus `postgres`, `redis` and `minio`. The API never touches the GPU; the worker is the only process that calls the three GPU services, one job at a time.
+In production the backend is five containers on one GPU host under Docker Compose with the NVIDIA runtime: `api`, `worker`, `comfyui`, `blender`, `ollama`, plus `postgres`, `redis` and `minio`. During prototyping the three GenAI services run on the Mac behind a tunnel instead (Section 13); nothing below changes. The API never touches the GPU; the worker is the only process that calls the three GenAI services, one job at a time.
 
 &#91;embedded content: backend architecture · services and what calls what\]
 
@@ -338,23 +340,31 @@ Build the mock backend first (M0), then the whole front end against it (M1), the
 
 &#91;embedded content: implementation roadmap - 7 milestones with acceptance gates\]
 
+Two additions since this roadmap was drawn: M2.5 (host-agnostic GenAI profiles, Section 13) sits between M2 and M3 and is done; and the library track M7 to M9 (Section 16) branches after M2.5 and runs in parallel with M3 to M5.
+
 Each gate is a script under `scripts/gates/` that Claude Code runs before moving on, so acceptance is mechanical rather than a judgement call.
 
 **Repository layout** (`nv-petpop/`, monorepo; the product stays PetPop in code and UI)
 
 ```markdown
-apps/kiosk/            React SPA (Vite, TS), kiosk mode, result page, Storybook
+apps/kiosk/            customer SPA: library mode, kiosk mode, result page, Storybook
+apps/studio/           staff SPA: Generate workspace, batches, review grid, parts and pattern editors, publish
+packages/core/         PetSpec, manifest and composition schemas, vocab, breed presets, prompt compiler
+packages/viewer/       three.js viewer, pattern material, delta/morph application, stamp rasteriser (both apps)
+packages/library/      delta extraction, QC metrics, release packer and loader
 mock-server/           standalone OpenAPI mock: scripted jobs, fixture artefacts, no DB
-backend/api/           FastAPI app, routers, schemas, staff auth
-backend/worker/        arq worker, StageRunner, stage_a.py to stage_f.py, backends/{real,mock}/
+backend/api/           FastAPI app: routers kiosk/ and studio/, schemas, auth
+backend/worker/        arq workers on two queues (kiosk, studio), StageRunner, stage_a.py to stage_f.py, backends/{real,mock}/
 backend/prompts/       Jinja templates, compiler.py, vocab loader
-pipelines/comfy/       workflow JSONs (API format), node + model manifests
+pipelines/comfy/       generated workflow JSONs (API format), node + model manifests
 pipelines/blender/     bpy scripts: render_control.py, wrap.py, bake.py, export_print.py, paint_check.py
+config/genai/          mock.yaml, mac-m4pro.yaml, nvidia-24gb.yaml
+mac/                   Mac GenAI host kit: setup, launchd units, tunnel, models
 assets/base/dog/, cat/ base .blend + exported GLB, landmarks.json, morph list
 assets/accessories/    accessory meshes and atlas
 assets/lora/           training-set manifest + Kohya config for petpop_style
 data/breeds/           dog.json, cat.json presets
-data/schema/           petspec.schema.json, manifest.schema.json, vocab.json, openapi.json
+data/schema/           petspec, manifest, composition and release schemas, vocab.json, openapi.json
 fixtures/pets/         10 PetSpecs with mock outputs, shared by mock-server and tests
 infra/                 docker-compose.yml, Dockerfiles, Makefile, .env.example
 scripts/gates/         one executable check per milestone
@@ -367,7 +377,7 @@ tests/regression/      30-pet PetSpec set + expected metrics
 - [ ] Once S1 starts the mock server is frozen; an API change is a versioned OpenAPI bump with the mock, the TypeScript client and the real backend updated in the same commit.
 - [ ] Pin every model weight by URL and SHA256 in `pipelines/comfy/models.yaml`; `make models` downloads and verifies, never ad-hoc downloads.
 - [ ] Every stage function takes `(job_id, spec, manifest)` and returns artefact keys; no stage reads another stage's local files, only MinIO.
-- [ ] ComfyUI workflows are edited in the UI, exported as API JSON and committed with a `meta.version` bump; never hand-edit node ids.
+- [ ] ComfyUI workflows are generated by scripts/make\_comfy\_workflows.py with model names bound from the active profile and committed with a `meta.version` bump; never hand-edit the generated JSON, and meta.validated flips to true only after a run on a live host.
 - [ ] The base meshes are built by hand in Blender from Section 10; Claude Code writes `scripts/check_base_mesh.py` (quad count, vertex groups, landmarks, UV islands, symmetry) and the morph wiring, and flags any spec gap rather than guessing geometry.
 - [ ] The style LoRA is trained once the base meshes exist: `assets/lora/make_training_set.py` renders 150 morphed, coloured variants; training runs on the same GPU box (Kohya, SDXL, 20 epochs) and is gated on a side-by-side with and without LoRA on 10 prompts.
 - [ ] Regression set: `tests/regression/pets.json` holds 30 `PetSpec`s (15 dog, 15 cat, every ear, tail and coat enumeration at least once); `make regress` runs them and writes a metrics table (per-stage time, IoU, wrap validity, print validity, paint-mask %) that the M4 to M6 gates read.
@@ -378,7 +388,7 @@ tests/regression/      30-pet PetSpec set + expected metrics
 
 ## 13. Development without a GPU: GenAI profiles, mock mode and staging
 
-Everything except the three GenAI services runs CPU-only, and those three sit behind adapter interfaces whose implementation, endpoints and models are chosen by one environment variable (`GENAI_PROFILE`, default `mock`; see "GenAI profiles" below), so the whole app, including the kiosk front end and the Blender stages, is built and demoed in a Claude Code cloud session before any GPU exists. The GPU box later swaps the adapters in one at a time with no change to the API, the worker or the SPA.
+Everything except the three GenAI services runs CPU-only, and those three sit behind adapter interfaces whose implementation, endpoints and models are chosen by one environment variable (`GENAI_PROFILE`, default `mock`; see "GenAI profiles" below), so the whole app, including the kiosk front end and the Blender stages, is built and demoed in a Claude Code cloud session before any GPU exists. A GenAI host later swaps the adapters in one at a time with no change to the API, the worker or the SPA.
 
 **Two run modes**
 
@@ -412,7 +422,7 @@ Everything except the three GenAI services runs CPU-only, and those three sit be
 | `mac-m4pro` | Apple Silicon M4 Pro, 24 GB unified, MPS (prototype) | ComfyUI: SDXL fp16 + depth ControlNet + IP-Adapter Plus | Hunyuan3D-2.1 via the MPS fork, octree 192 / 30 steps | projection | one model at a time | 12-16 min, latency gate waived |
 | `nvidia-24gb` | one 24 GB NVIDIA card, CUDA (production) | as above, fp8 UNet allowed | Hunyuan3D-2mv, octree 384 / 50 steps | projection, Hunyuan3D-Paint optional | SDXL stack freed before Stage D | 4-min target enforced |
 
-`TEXTURE_BACKEND` overrides the texture source where the profile allows it. The Mac host runs ComfyUI, a small shape server and Ollama under launchd (`mac/`), behind a bearer-token proxy and a Cloudflare tunnel; the VM reaches them through `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL` and `GENAI_TOKEN` (`docs/HANDOFF.md`). The six ComfyUI workflows are generated by `scripts/make_comfy_workflows.py` with model names bound from the profile and stay `meta.validated: false` until they have run on a live host.
+`TEXTURE_BACKEND` overrides the texture source where the profile allows it. The Mac host runs ComfyUI, a small shape server and Ollama under launchd (`mac/`), behind a bearer-token proxy and a Cloudflare tunnel; the VM reaches them through `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL` and `GENAI_TOKEN` (`docs/HANDOFF.md`). The six ComfyUI workflows are generated by `scripts/make_comfy_workflows.py` with model names bound from the profile and stay `meta.validated: false` until they have run on a live host. Quality thresholds (view consistency, wrap validity, print and paint checks) are the same on every profile; only timings, timeouts, residency rules and optional backends differ, and development can stay on the Mac profile through M6 because moving to production is a swap of endpoints and a re-run of the same gates.
 
 **Staging**
 
@@ -421,14 +431,18 @@ Everything except the three GenAI services runs CPU-only, and those three sit be
 | S0 Contract and mock server | Claude Code cloud | Claude Code alone | OpenAPI, JSON Schemas, fixture pack, `mock-server/` with scripted jobs, MSW handlers, contract test | `make gate-0` |
 | S1 Front end in full | Claude Code cloud, reviewed on the kiosk screen | Claude Code, Nishant reviewing | Every screen against the mock server; three visual directions as Storybook themes; touch walkthroughs; the chosen direction becomes the Section 4 spec | `make gate-1` (automated Playwright walkthrough); 5-person touch review by Nishant |
 | S2 Real backend, parametric path | Claude Code cloud | Claude Code alone | API, worker, SQLite and local store, mock adapters, proxy base meshes, Blender CPU wrap, bake, export, paint check, QR page, staff panel | `make gate-2`; demo on a laptop |
-| M2.5 Host-agnostic GenAI | Claude Code cloud | Claude Code alone | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`), projection texture, the six workflows, `mac/` host kit, Compose stack proven on the mock profile | `make gate-0..2`, `scripts/smoke_stack.sh` |
-| S3 GenAI host bring-up | The Mac first (`GENAI_PROFILE=mac-m4pro`), later the NVIDIA box; the cloud session reaches the host through the tunnel URLs | Nishant + Claude Code | `make -C mac setup`, `make -C mac models` (writes the SHA256 pins), adapters swapped in one at a time with `PETPOP_ADAPTERS`: A, B, C, D | `make gate-3`, `gate-4`, `gate-5` on the profile |
-| S4 Real assets | Blender by hand, LoRA on the GPU box | Nishant | Hand-built base meshes, `petpop_style` LoRA | `check_base_mesh.py`; LoRA side-by-side |
-| S5 Kiosk hardening | Kiosk screen + GPU box | Both | Attract loop, idle wipe, regression set, print and paint of three demo pets | `make gate-6` |
+| M2.5 Host-agnostic GenAI (done) | Claude Code cloud | Claude Code alone | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`), projection texture, the six workflows, `mac/` host kit, Compose stack proven on the mock profile | `make gate-0..2`, `scripts/smoke_stack.sh` |
+| S3 GenAI host bring-up | The Mac first (`GENAI_PROFILE=mac-m4pro`); the cloud session reaches the host through the tunnel URLs | Nishant + Claude Code | `make -C mac setup`, `make -C mac models` (writes the SHA256 pins), adapters swapped in one at a time with `PETPOP_ADAPTERS`: A, B, C, D | `make gate-3`, `gate-4`, `gate-5` on the profile |
+| S4 Real assets | Blender by hand; LoRA on the Mac (slow) or on the NVIDIA box | Nishant | Hand-built base meshes, `petpop_style` LoRA; the base mesh is frozen here, before the library is seeded | `check_base_mesh.py`; LoRA side-by-side |
+| S5 Kiosk hardening on the Mac profile | Kiosk screen + the Mac | Both | Attract loop, idle wipe, regression set (10 pets on the Mac), print and paint of three demo pets | `make gate-6` on `mac-m4pro`, latency target waived |
+| S6 Production host | NVIDIA box, Claude Code over SSH | Nishant + Claude Code | Compose with `comfyui` and `ollama`, pinned weights, the same generated workflows on CUDA, Hunyuan3D-Paint optional; nothing in the app changes except `GENAI_PROFILE=nvidia-24gb` | `make gate-3` to `gate-6` re-run on `nvidia-24gb`, including the 4-minute target; `make regress` on 30 pets |
+| S7 Kiosk library mode (M7) | Claude Code cloud, in parallel with S3 | Claude Code alone | Library schema and API, assembler, pattern tools, instant preview, composition export, against a proxy library from the proxy base meshes (Section 16) | `make gate-7` |
+| S8 Studio: generation workspace and curation (M8) | Code in the cloud session; batches on the Mac profile | Claude Code + Nishant | Batch runner, region-delta extraction, QC, review UI, publish, versioning | `make gate-8` on `mac-m4pro` |
+| S9 Seed library (M9) | The Mac, staff time | Nishant | Every breed preset covered by a family and parts set; a pattern layer per marking enumeration | `make gate-9`; library-mode walkthrough under 3 min |
 
-Milestones M0 to M2.5 and most of M6 need no GenAI host; M3 to M5 are S3 and S4. Gates 3 to 6 print `SKIPPED (needs a GenAI host)` on the mock profile rather than passing, so a cloud session can never report a GenAI milestone as done; on a real profile they probe the profile's services and apply its thresholds (latency only where the profile enforces it).
+Milestones M0 to M2.5, M7 and most of M6 need no GenAI host; M3 to M5 and M8 run against the Mac profile in S3, S4 and S8, and S6 re-runs gates 3 to 6 on the NVIDIA profile. Gates 3 to 6 and 8 print `SKIPPED (needs a GenAI host)` on the mock profile rather than passing, so a cloud session can never report a GenAI milestone as done; on a real profile they probe the profile's services and apply its thresholds (latency only where the profile enforces it).
 
-**What the Claude Code session needs to run unattended**: a `CLAUDE.md` at the repo root stating the default GenAI profile (`GENAI_PROFILE=mock`), the commands (`make dev`, `make mock` for the standalone mock server, `make test`, `make gate-N`), the ownership rule (never hand-edit `assets/base/` or workflow JSONs), and the order of work: S0, then S1, then S2, with the mock server frozen from S1 on. The session starts with `data/schema/openapi.json`, the fixture pack and `mock-server/`; the front end follows from the contract, and the real backend follows from the same contract.
+**What the Claude Code session needs to run unattended**: a `CLAUDE.md` at the repo root stating the default GenAI profile (`GENAI_PROFILE=mock`), the commands (`make dev`, `make mock` for the standalone mock server, `make test`, `make gate-N`), the ownership rule (never hand-edit `assets/base/` or the generated workflow JSONs), and the order of work: S0, then S1, then S2, then M2.5, with the mock server frozen from S1 on; after M2.5, S7 (the library track, Section 16) runs in the cloud session in parallel with S3 on the Mac. The session starts with `data/schema/openapi.json`, the fixture pack and `mock-server/`; the front end follows from the contract, and the real backend follows from the same contract.
 
 ## 14. Risks and open questions
 
@@ -471,10 +485,12 @@ The cloud VM is Ubuntu 24.04 with 4 vCPUs, 16 GB RAM and 30 GB disk, with Python
 **Environment variables**
 
 ```markdown
-PETPOP_MODE=mock
+GENAI_PROFILE=mock
 PETPOP_MOCK_SPEED=0.1
-BASH_DEFAULT_TIMEOUT_MS=600000
+BASH_DEFAULT_TIMEOUT_MS=900000
 BASH_MAX_TIMEOUT_MS=1800000
+# added for S3, once the Mac host is up (tunnel host also goes on the Custom allowlist):
+# GENAI_PROFILE=mac-m4pro  COMFY_URL=...  SHAPE_URL=...  OLLAMA_URL=...  GENAI_TOKEN as a network secret
 ```
 
 **Setup script** (runs as root before Claude starts; every line tolerates failure so the session still boots)
@@ -495,10 +511,13 @@ set -u
 ```markdown
 # PetPop: working rules for Claude Code
 
-Read docs/BRIEF.md first; it is the spec. Section 13 gives the order of work: S0, then S1, then S2.
-Never start GPU work (milestones M3 to M5) in a cloud session.
+Read docs/BRIEF.md first; it is the spec. Section 13 gives the order of work: S0, S1, S2, M2.5, then S3 on
+the Mac profile and S7 (the library track, Section 16) in parallel in this session.
+Never install model stacks (torch, ComfyUI, Hunyuan3D) in a cloud session: GenAI stages run on a remote
+host chosen by GENAI_PROFILE, and the Mac host is set up by Nishant from the scripts in mac/.
 
-Mode: PETPOP_MODE=mock is the default everywhere. Gates 3 to 5 print "SKIPPED (needs GPU)" in mock mode.
+Profiles: GENAI_PROFILE=mock is the default everywhere. The worker never names a model or host; adapters
+read config/genai/<profile>.yaml. Gates 3 to 6 and 8 print "SKIPPED (needs a GenAI host)" on the mock profile.
 Commands: make dev (API + worker + SPA), make mock (standalone mock server), make test, make gate-N, make regress.
 
 Loop: take the next unchecked item in docs/PROGRESS.md, implement it, run make test, run the milestone's
@@ -508,12 +527,14 @@ brief is silent, choose the simplest option that satisfies the gate, record it i
 Git: work on branch poc and push after every green gate. Open one PR per milestone against main, then keep
 working on poc without waiting for review.
 
-Ownership: never hand-edit assets/base/ or the node ids in pipelines/comfy/*.json; generate proxies by script.
+Ownership: never hand-edit assets/base/ or the generated workflow JSONs in pipelines/comfy/ (regenerate them
+with scripts/make_comfy_workflows.py); generate proxies by script. The base mesh is frozen before M9.
 Contract: data/schema/openapi.json is the source of truth; change it only with a version bump that updates
-mock-server, the TypeScript client and the backend in the same commit.
+mock-server, the TypeScript client and the backend in the same commit. manifest.schema.json is the contract
+every GenAI adapter must satisfy, on every profile. A composition JSON is the only input to a library export.
 Front end: every screen has a Storybook story and a Playwright test; gate-1 is the Playwright walkthrough.
 
-Do not: install torch or ComfyUI, download model weights, add paid services, or commit secrets.
+Do not: download model weights, add paid services, or commit secrets.
 ```
 
 **Kickoff prompt** (first message of the session)
@@ -522,7 +543,8 @@ Do not: install torch or ComfyUI, download model weights, add paid services, or 
 Read CLAUDE.md and docs/BRIEF.md in full. Create docs/PROGRESS.md as an ordered checklist of every
 deliverable in Sections 12 and 13 for S0, S1 and S2. Then execute S0 through S2 without stopping:
 implement, test, run the gate, commit, tick, continue. Open a PR for each milestone when its gate passes
-and carry on. When gate-2 passes, write docs/HANDOFF.md listing what the GPU host needs for S3, then stop.
+and carry on. When gate-2 passes, write mac/ (setup scripts and runbook for the Mac GenAI host) and
+docs/HANDOFF.md listing what I must run on the Mac for S3, then stop.
 ```
 
 **While it runs**
@@ -531,3 +553,63 @@ and carry on. When gate-2 passes, write docs/HANDOFF.md listing what the GPU hos
 - Auto mode will not merge the PRs it opens (merging an unreviewed PR is blocked by design), which is why the rules say keep going on `poc`; merge at your own pace.
 - Context fills over a build this size; auto-compaction handles it, and `docs/PROGRESS.md` plus `docs/DECISIONS.md` are the durable memory. If a session expires or stalls, start a new one with the same kickoff prompt minus the "create PROGRESS.md" sentence.
 - After gate-0, S1 and S2 are independent: run them as two sessions on branches `poc-frontend` and `poc-backend`, each told its scope, and merge both into `poc`. A Project at claude.ai/code, where Claude coordinates several sessions itself, does the same with less bookkeeping if it is available on the account.
+
+## 16. Library mode: a pre-generated asset library for a true kiosk experience
+
+Library mode takes AI generation off the kiosk's critical path: staff generate and curate parts in batches, and the kiosk assembles, customises and previews from that library instantly. The template wrap is what makes this cheap. After Stage E every figurine is the base mesh with moved vertices, so a part is a **region delta**: the vertex offsets inside one vertex group (ears, tail, muzzle, head, body, legs) relative to the base mesh, feathered at the group boundary by the weights that already exist. Deltas from different figurines combine on one chassis, a pug's muzzle on a spaniel's head, because the boundary loops are identical, and the live preview applies them as morph targets. Topology never needs refining per part because it is the base mesh's; refinement happens once per base-mesh version and propagates to the whole library.
+
+&#91;embedded content: library mode - offline curation lane, instant kiosk lane, the library between them\]
+
+Extremes a delta cannot express within the vertex budget (very large or very fluffy ears, long plume tails) and all accessories are **shell parts**: separate quad meshes with their own UV islands in the parts atlas that attach at named sockets on the base mesh; the print export's remesh fuses them.
+
+**Library content model**
+
+| Entity | What it holds |
+| --- | --- |
+| Family | A body or head variant as a full-mesh delta on the species base (stocky, slim, long, brachy), with its default parts set and breed tags |
+| Region delta | Vertex offsets for one vertex group, stored as float16 keyed by base-mesh version; metadata: species, region, source job, breed tags, curator score, version |
+| Shell part | Separate mesh with socket id, UV islands in the parts atlas, collision bounds for the paint check |
+| Pattern layer | A greyscale signed-distance mask in the species UV atlas (blaze, socks, chest, mask, saddle, tuxedo, points, tabby, brindle, merle) with default colours and a coverage range |
+| Composition | What a customer assembled: family ids, part ids, pattern layers with coverage and colours, stamps (3D position, radius, colour), pet name; this is the order record and the sole input to export |
+
+**Customer tools (instant, on the kiosk GPU)**: parts tiles per region with live swap; pattern layers toggled with a coverage slider (the signed-distance mask is thresholded in the shader, so markings grow and shrink smoothly instead of snapping between presets); colour swatches per layer; tap-to-stamp spots and patches projected onto the mesh in 3D and rasterised into the atlas per triangle, so a stamp that crosses a UV seam lands correctly; symmetry toggle; a small brush for freehand patches; undo. Everything renders in the existing three.js viewer, and the preview is the final asset.
+
+**Export without AI**: `POST /compositions/{id}/export` runs Stage F only. The worker re-renders the composition's layers and stamps server-side into the 2048 albedo (deterministic from the composition JSON, so the print matches the screen), applies the deltas and shells in Blender, fuses, adds the base and mandrel socket, runs the print and paint checks and writes the usual bundle. Target: under 60 s on CPU.
+
+**Offline curation pipeline** (`apps/studio/`, staff only): a batch is breeds × variants × seeds run through stages A to E on any GenAI profile, overnight on the Mac or faster on NVIDIA. Per figurine the pipeline extracts the region deltas and a full-mesh family delta, computes QC metrics (wrap validity, symmetry error, boundary strain, self-intersection), auto-rejects below thresholds and queues the rest for review. Studio shows a grid of variants with turntables, accept, reject and tag per region, a "fix in Blender" round-trip for hero parts, and publish, which versions the part and regenerates its thumbnail and pattern previews. Studio is the staff generator app described in Section 17; the kiosk only ever sees what Studio publishes.
+
+**Data model and API additions**: tables `families`, `region_deltas`, `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`; endpoints `GET /library/{species}/families`, `GET /library/{species}/parts?region=`, `GET /library/{species}/patterns`, `POST /compositions`, `POST /compositions/{id}/export`, `POST /compositions/{id}/bespoke` (hands the composition to the generated pipeline as its starting spec), plus staff endpoints for batches and review. A base-mesh version bump invalidates every delta, so the base mesh is frozen before M9 and changes only with a library migration.
+
+**Milestones** (none needs a GPU except M8's batch runs)
+
+- M7 Kiosk library mode: library schema and API, the release loader, the Design screen (assembler and pattern tools), instant preview, composition API, Stage-F-only export, built against a proxy library made from the proxy base meshes. Gate: composition to print bundle in under 60 s; stamps cross seams correctly; coverage slider smooth with 10 layers active; the kiosk runs with the GenAI host unreachable.
+- M8 Studio: the Generate workspace rebuilt from the M1 screens as a batch spec builder, batch runner, delta extraction, QC, review grid, parts and pattern editors, publish, versioning, release packer. Gate: 20 generated figurines yield at least 15 published parts sets with no manual mesh edits, and a release bundle loads on a clean kiosk.
+- M9 Seed library through Studio: every breed preset covered by at least one family and parts set; a pattern layer for every marking enumeration. Gate: library-mode walkthrough from attract to order in under 3 minutes; 70 % breed recognisability on library figurines.
+
+Staging: M7 starts as soon as M2.5 is merged and runs in the cloud session against proxy parts (S7, no GenAI host, in parallel with S3); M8 runs its batches on the Mac profile (S8); M9 is staff time on the Mac (S9). The base mesh must be frozen (S4) before M9 seeds the library. Bespoke mode remains as the "Make it unique" path and as the source of new library content, so the two modes share every stage and every gate.
+
+## 17. Two apps, one core: Studio and Kiosk
+
+The generation workflow and the customer workflow are different products with different users, latency needs and dependencies, so they are separate apps on a shared core, joined by exactly two contracts: the library release (Studio to Kiosk) and the composition (Kiosk to fulfilment and, optionally, back to Studio). The property that matters most: the kiosk never depends on the GenAI host. It can run offline from the last release, and a curation batch can never slow a customer down.
+
+|  | PetPop Studio (staff) | PetPop Kiosk (customers) |
+| --- | --- | --- |
+| Purpose | Generate, curate and publish library content; run bespoke jobs on request | Assemble, customise and order in minutes |
+| Users and auth | Staff login, local accounts, roles operator / curator / admin | Anonymous kiosk session, idle wipe, no accounts |
+| Core workflow | Generate workspace (the M1 Build, Brief and Generate screens, reworked as a batch spec builder: breeds × variants × seeds), batch queue, review grid, parts editor, patterns editor, publish, release | Attract, Species, Breed, Design (assembler + pattern tools), Name and order, Result |
+| Depends on | GenAI host on any profile, Blender workers, Postgres, MinIO | A library release bundle, a CPU export worker, its local store |
+| Latency | Minutes per job, batches overnight | Preview under 100 ms, export under 60 s |
+| Deploys | Where the GenAI host is: the Mac now, the NVIDIA box later | On or beside the kiosk screen |
+| Hidden ops panel | n/a | Five-tap panel: release version, health, reprint; no generation controls |
+
+**Shared core** (`packages/`): `core` (PetSpec, manifest, composition and release schemas, vocab, breed presets, prompt compiler), `viewer` (three.js viewer, pattern material, delta and morph application, stamp rasteriser; used by both apps so a part looks the same in the Studio review grid and on the kiosk), `library` (delta extraction, QC metrics, release packer and loader), and the pipeline itself (`StageRunner`, adapters, profiles). Apps import packages; packages never import apps.
+
+**Contract 1, the library release**: `POST /studio/releases` packs every published family, region delta, shell part, pattern layer and thumbnail for one base-mesh version into a signed, versioned bundle (`release-<species>-<n>.tar`: manifest, GLBs, float16 delta arrays, mask PNGs, previews). The kiosk loads a release at start, keeps the last two, switches atomically, and reads nothing else from Studio; drafts and rejected parts never leave Studio. The release schema lives in `data/schema/` beside the others and has its own contract test.
+
+**Contract 2, the composition**: the kiosk's order record (Section 16). `POST /kiosk/compositions/{id}/export` runs Stage F only on the kiosk's CPU worker; compositions are written to the fulfilment folder today and synced to a Studio orders table later. A composition is also the seed for a bespoke job.
+
+**Backend split**: one codebase, two API routers (`/api/v1/kiosk/*`, `/api/v1/studio/*`, separate auth) and two queues (`kiosk`: Stage-F exports and nothing else; `studio`: full pipeline jobs, batches, re-renders), each served by its own worker process so a kiosk export never waits behind a batch. The GenAI host is reachable from the `studio` worker only. Deployment is a config choice: everything on one box for the PoC, Studio beside the GenAI host and Kiosk beside the screen later, with no code change.
+
+**Bespoke mode lives in Studio**: an operator runs "bespoke job from composition" for a customer who wants a one-off shape. The kiosk's "Make it unique" button sits behind `KIOSK_BESPOKE` (off by default in the PoC); when on, it enqueues a `studio` job and shows a "we'll message you when it's ready" path, never a Generating screen.
+
+**What this changes in the milestones**: M7 is the Kiosk's library mode plus the release loader; M8 is Studio, which inherits the M1 screens as its Generate workspace rather than discarding them; M9 seeds the library through Studio. Gate-7 adds one check: the kiosk completes an order with the GenAI host unreachable.
