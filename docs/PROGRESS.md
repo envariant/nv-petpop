@@ -1,91 +1,88 @@
-# PetPop PoC progress (S0 to S2)
+# PetPop PoC progress
 
-Ordered checklist of every S0, S1 and S2 deliverable in BRIEF.md Sections 12 and 13.
-Tick an item only when `make test` and that milestone's gate pass. S3 and later are listed at the end
-for reference only and are never started in a cloud session.
+Regenerated from BRIEF Sections 13, 16 and 17 after M2.5 merged. Three tracks: **A** the platform (two apps on
+one core, Section 17), **B** the library (M7 to M9, Section 16) and **C** the GenAI host (S3 to S6, Section 13).
+Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the Mac host is up), then
+`docs/HANDOFF-M9.md`. Decisions the brief leaves open go in `docs/DECISIONS.md`.
 
-## S0 / M0: contract and mock server (`make gate-0`)
+## Done before this plan
 
-- [x] Repo scaffold: monorepo layout from Section 12, Makefile, pyproject, `.env.example`, `.gitignore`, LICENSES.md
-- [x] `data/schema/petspec.schema.json`: closed enumerations for every PetSpec field (Section 3)
-- [x] `data/schema/vocab.json`: every enumeration value has a prompt phrase and a morph mapping; schema test enforces it
-- [x] `data/schema/manifest.schema.json`: per-job manifest (files, stage, timings, seeds, workflow versions, fidelity)
-- [x] `data/breeds/dog.json` (~60) and `data/breeds/cat.json` (~25) presets with `prompt_hint`, validated against the schema
-- [x] Shared contract models + rule-based Stage A parser over `vocab.json` (merge order preset, taps, patch)
-- [x] Proxy base meshes: `scripts/make_proxy_base.py` (bpy, primitives, QuadriFlow, Smart UV, vertex groups, 14 landmarks, shape keys) and `scripts/check_base_mesh.py` (pulled forward from S2: the fixtures and the live preview need them)
-- [x] Fixture pack: 10 PetSpecs with mock outputs under `fixtures/pets/`, manifests valid against the schema
-- [x] `mock-server/`: standalone FastAPI, no DB/queue/Blender; breeds over real presets, `/spec/parse` with the rule parser, scripted jobs (`mock-server/scripts/*.json`: normal, slow-queue, failed-stage, fallback-figurine)
-- [x] `data/schema/openapi.json` committed from the mock server; drift test
-- [x] TypeScript client generated from the OpenAPI (`apps/kiosk/src/api/`)
-- [x] MSW handlers (`VITE_MOCK=1`) with a timer-driven fake job, covering every OpenAPI path
-- [x] Contract test: every endpoint and every mock script validated against openapi.json, manifests against manifest.schema.json
-- [x] `scripts/gates/gate-0` passes; gates 3 to 5 print `SKIPPED (needs GPU)`; PR for M0
+- [x] S0 / M0 contract and mock server (`make gate-0`), S1 / M1 front end (`make gate-1`), S2 / M2 real backend,
+  parametric path (`make gate-2`): envariant/nv-petpop#1, #2, #3
+- [x] M2.5 host-agnostic GenAI profiles, `mac/` host kit, Compose stack on the mock profile, deterministic Mac
+  setup: envariant/nv-petpop#4
 
-## S1 / M1: front end in full (`make gate-1`)
+## Track A: two apps, one core (Section 17)
 
-- [x] Kiosk shell: Vite + React 18 + TS + Tailwind + Framer Motion + Zustand, 1080x1920 portrait, scaled to the viewport, single origin
-- [x] Screen 1 Attract loop (turntable of six figurines, "Tap to make yours", captions)
-- [x] Screen 2 Species (two tiles, accent colour per species)
-- [x] Screen 3 Breed (searchable grid, on-screen keyboard, "Mixed / not sure", preset pre-fill)
-- [x] Screen 4 Build (all Section 4 selectors as swatches, tiles and chips; live 3D preview with morph targets and procedural material, labelled "preview")
-- [x] Screen 5 Brief (on-screen keyboard, example chips, `/spec/parse`, highlights changed selectors, "for flavour only" fallback)
-- [x] Screen 6 Name and generate (name, summary card, Generate, three-run session cap)
-- [x] Screen 7 Generating (WebSocket progress, real intermediate previews, queue position, failure and fallback states)
-- [x] Screen 8 Result (turntable, pinch zoom, textured/clay toggle, Tweak keeps the seed, QR, Send to print with ticket)
-- [x] Phone result page `/r/:token`
-- [x] Kiosk behaviour: 90 s idle then 15 s "Still there?" then wipe; "Back in a moment" offline overlay with auto-retry; hidden five-tap staff panel
-- [x] Pattern and marking tiles pre-rendered from the base mesh by a build script
-- [x] Storybook: a story for every screen, three visual directions as themes
-- [x] Playwright: a test for every screen plus the full walkthrough (gate-1)
-- [x] `scripts/gates/gate-1` passes; PR for M1 (the 5-person touch review on the kiosk screen is Nishant's step)
+### A1 Refactor, no new features (gates 0 to 2 still pass; PR)
 
-## S2 / M2: real backend, parametric path (`make gate-2`)
+- [x] Python `packages/core` (`petpop_core`: PetSpec, manifest schemas, vocab, breed presets, rule parser, prompt
+  compiler) and `packages/library` (`petpop_library`: base-mesh geometry, accessories, colouring; later delta
+  extraction, QC, release packer and loader); packages never import `backend/` or `apps/`
+- [x] TypeScript workspaces: `packages/core` (generated API client and types, spec helpers), `packages/viewer`
+  (three.js viewer, pattern material, morph application), `packages/ui` (shared kiosk-frame UI kit); apps import
+  packages, packages never import apps
+- [x] API 2.0.0: `/api/v1/kiosk/*` (anonymous kiosk session, five-tap ops panel) and `/api/v1/studio/*` (staff
+  login, roles operator / curator / admin, jobs, parse, queue); mock server, TypeScript client and backend in
+  the same commit
+- [x] Two queues, `kiosk` and `studio`, each with its own worker process; only the studio worker builds GenAI
+  adapters; the kiosk queue runs Stage F only
+- [x] `apps/studio/`: the Build, Brief, Name, Generating and Result screens as the Generate workspace, behind
+  staff login, plus the queue panel; Storybook story and Playwright test per screen
+- [x] `apps/kiosk/`: library-mode only (Attract, Species, Breed, Design); "Make it unique" behind `KIOSK_BESPOKE`
+  (off by default) enqueues a studio job and shows "we'll message you", never a Generating screen
+- [x] `make dev` runs the API, both workers and both SPAs; Compose runs both workers
+- [x] Gates 0, 1 and 2 pass on the new layout; PR for the refactor
 
-- [x] `backend/api`: FastAPI, SQLite via SQLAlchemy (tables from Section 9), every route in openapi.json, signed URLs, SPA served from one origin, Prometheus `/metrics`
-- [x] Queue and events: local cross-process queue and event bus for `make dev`; Redis + arq implementation for `make up`
-- [x] `ArtefactStore`: local folder `var/artefacts/` and MinIO/S3 implementation
-- [x] `backend/worker`: StageRunner, `stage_a.py` to `stage_f.py` taking `(job_id, spec, manifest)`, resumable, per-stage timeouts, one retry, progress events
-- [x] Adapters with `PETPOP_MODE` switch: mock LLM (rule parser), `MockImageBackend`, `MockShapeBackend`; real Ollama and ComfyUI clients behind the same interfaces
-- [x] `backend/prompts`: Jinja templates and `compiler.py` (Section 7), vocabulary only, no raw user text
-- [x] `pipelines/blender/render_control.py`: depth and silhouette renders from five cameras
-- [x] `pipelines/blender/wrap.py`: morph, ICP align, landmark pull, shrinkwrap, corrective smooth, eye inserts, accessories, validation and fallback
-- [x] `pipelines/blender/bake.py`: albedo in the fixed UV layout, per-region colour correction, seam padding
-- [x] `pipelines/blender/export_print.py`: base disc, mandrel socket from `config/mandrel.json`, voxel remesh, decimate, min-wall check, 3MF + STL
-- [x] `pipelines/blender/paint_check.py`: free-space distance along normals, `paint_mask.png`
-- [x] Preview export: Draco GLB, `turntable.mp4`, `manifest.json`
-- [x] Accessory library `assets/accessories/` generated by script
-- [x] Fallbacks and fault injection (`PETPOP_FAIL_STAGE`), IoU confidence check
-- [x] Fulfil (print bundle to the fulfilment folder, ticket), QR result page, staff panel endpoints with token
-- [x] Real backend passes the identical contract test the mock server passes; fixture pack regenerated from the real pipeline
-- [x] Regression set `tests/regression/pets.json` (30 pets) and `make regress` metrics table
-- [x] `infra/`: docker-compose.yml, Dockerfiles, `.env.example`; `pipelines/comfy/` manifests (`models.yaml`, `requirements.txt`)
-- [x] `scripts/gates/gate-2` passes; PR for M2
-- [x] `docs/HANDOFF.md`: what the GPU host needs for S3
-- [x] Extra: LoRA training-set script and Kohya config (`assets/lora/`), per-adapter override `PETPOP_ADAPTERS` for the S3 bring-up
+### A2 Contracts
 
-## M2.5: host-agnostic GenAI (branch `poc`)
+- [ ] Contract 1, the library release: `data/schema/release.schema.json`, signed `release-<species>-<n>.tar`,
+  its own contract test (built in M8, loaded in M7)
+- [x] Contract 2, the composition: `data/schema/composition.schema.json`, the only input to a library export
+  (M7)
 
-- [x] Profile layer: `config/genai/{mock,mac-m4pro,nvidia-24gb}.yaml` + schema; `GENAI_PROFILE` selects; endpoints, model ids, quality, residency, timeouts and expected timings out of code; worker names no model or host (test)
-- [x] Manifest 1.1 records the profile, adapters and model ids with pins; gates 3 to 6 print `SKIPPED (needs a GenAI host)` on mock
-- [x] `mac-m4pro`: ComfyUI MPS (SDXL fp16, depth ControlNet, IP-Adapter Plus), Hunyuan3D-2.1 via the MPS fork on a shape server (octree 256 / 30 steps, later 192), Ollama 7B, one resident model, 8-12 min expected (later 12-16), latency waived
-- [x] `TEXTURE_BACKEND=projection` (Blender) default on every profile; `hy_paint` optional and NVIDIA-only
-- [x] `nvidia-24gb`: Hunyuan3D-2mv 384 / 50, fp8 allowed, `hy_paint` optional, 4-minute target enforced
-- [x] Six ComfyUI workflows authored in API format by script, model names bound from the profile, `meta.validated: false`
-- [x] `mac/`: setup script, launchd units for the three services, `tunnel.sh` (token proxy + Cloudflare), runbook, `make -C mac models` writing SHA256 pins
-- [x] `make up` smoke-tested here on the mock profile without GPU services: Compose, Postgres, Redis/arq, MinIO (`scripts/smoke_stack.sh`); fixes: arq enqueue from the event loop, MinIO image, compose healthchecks
-- [x] Full pipeline on `mac-m4pro` and `nvidia-24gb` against a fake GenAI host (real adapters and workflows)
-- [x] `docs/HANDOFF.md` for the Mac host; `CLAUDE.md` and BRIEF Section 13 updated; PR opened
+## Track B: library mode (Section 16)
 
-### M2.5 follow-up: deterministic Mac setup
+### B1 M7 Kiosk library mode (`make gate-7`; PR)
 
-- [x] Tools pinned with hashes (`mac/tools.lock`: uv, Ollama, Caddy, cloudflared, CPython 3.11.17); no Homebrew
-- [x] Python packages hash-locked for macOS arm64, wheels only, reproducible (`mac/locks/*.txt` from `mac/lock.sh`); `uv pip sync --require-hashes`
-- [x] Tencent's Hunyuan3D-2.1 code pinned to a commit; the fork's `install.sh` (HEAD clone, unpinned packages) no longer run
-- [x] Weight pins committed from Hugging Face metadata (`scripts/models.py --pin --from-hub`, `models.lock.json`); `make -C mac models` fetches and checks every file
-- [x] Ollama model pinned by manifest digest and checked after the pull
-- [x] Shape server fixed to load like the fork (import paths, `backend` + `compat_patches` before torch, local weights only, offline); stub test
-- [x] `mac-m4pro` octree 192 and expected timings from the fork's M4 Pro benchmark (12-16 min per pet)
+- [x] Proxy library built by script from the proxy base meshes: families, region deltas, shell parts, pattern
+  layers (signed-distance masks in the UV atlas), packed as a release bundle
+- [x] Tables `families`, `region_deltas`, `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`
+- [x] Release loader: load at start, keep the last two releases, switch atomically
+- [x] Kiosk library API: `GET /kiosk/library/{species}/families`, `/parts?region=`, `/patterns`,
+  `POST /kiosk/compositions`, `POST /kiosk/compositions/{id}/export`, `POST /kiosk/compositions/{id}/bespoke`
+- [x] Design screen: assembler with live part swap, pattern layers with coverage sliders, colour swatches per
+  layer, seam-correct 3D stamps, symmetry, small brush, undo; instant preview (the preview is the final asset)
+- [x] Name and order straight to Result; print bundle in about a minute
+- [x] Export: Stage F only on the kiosk queue, layers and stamps re-rendered server-side from the composition
+  JSON (print matches screen), deltas and shells applied, fused, base and socket, print and paint checks, under
+  60 s on CPU
+- [x] Gate 7: composition to print bundle under 60 s; stamps cross seams correctly; coverage slider smooth with
+  10 layers active; the kiosk completes an order with the GenAI host unreachable
 
-## Later stages (not started in the cloud)
+### B2 M8 Studio (`make gate-8`; PR)
 
-- S3 GenAI host bring-up on the Mac (gates 3 to 5 with `GENAI_PROFILE=mac-m4pro`), later the NVIDIA box; S4 real assets; S5 kiosk hardening (gate 6)
+- [ ] Generate workspace reworked as a batch spec builder (breeds x variants x seeds)
+- [ ] Batch runner on the studio queue (stages A to E on any profile)
+- [ ] Region-delta and full-mesh family-delta extraction per figurine
+- [ ] QC metrics (wrap validity, symmetry error, boundary strain, self-intersection) with auto-reject thresholds
+- [ ] Review grid with turntables; accept, reject and tag per region; "fix in Blender" round-trip noted
+- [ ] Parts and pattern editors; publish with versioning (thumbnail and pattern previews regenerated)
+- [ ] `POST /studio/releases`: signed release bundle; release contract test
+- [ ] Gate 8 on the mock profile with stand-ins: parts that need a GenAI host print SKIPPED; "a release bundle
+  loads on a clean kiosk"
+
+### B3 M9 Seed the library (S9, staff time on the Mac; needs the frozen base mesh from S4)
+
+- [ ] `docs/HANDOFF-M9.md`: what Nishant does on the Mac to seed the library through Studio
+- [ ] Every breed preset covered by a family and a parts set; a pattern layer per marking enumeration
+- [ ] Gate 9: library walkthrough attract to order under 3 min; 70 % breed recognisability
+
+## Track C: GenAI host (Section 13)
+
+- [ ] S3 Mac bring-up (after Nishant sets `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL`, `GENAI_TOKEN`): gate-3
+  precheck, then `PETPOP_ADAPTERS` swaps A, B, C, D one at a time; gates 3 to 5 one pet at a time in the
+  foreground; studio worker only
+- [ ] S4 real assets: hand-built base meshes (frozen before M9), `petpop_style` LoRA (Nishant)
+- [ ] S5 kiosk hardening on the Mac profile (`make gate-6`)
+- [ ] S6 production host: Compose on the NVIDIA box, gates 3 to 6 on `nvidia-24gb`, `make regress`

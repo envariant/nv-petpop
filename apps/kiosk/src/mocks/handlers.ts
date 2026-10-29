@@ -1,137 +1,101 @@
-// MSW handlers for VITE_MOCK=1: the whole SPA runs with no backend at all (BRIEF Section 13).
-// One handler per OpenAPI path (see HANDLED_PATHS, checked against openapi.json by handlers.test.ts), a
-// timer-driven fake job that replays mock-server/scripts/*.json, and artefacts from the fixture pack
-// served as static files under /fixtures/.
-import { http, HttpResponse, ws } from 'msw';
+// MSW handlers for VITE_MOCK=1: the kiosk runs with no backend at all (BRIEF Section 13). One handler per kiosk
+// and meta path of the OpenAPI document (HANDLED_PATHS, checked against openapi.json by handlers.test.ts). The
+// library comes from the committed proxy releases, unpacked into public/library/ by scripts/sync-assets.mjs.
+import { http, HttpResponse } from 'msw';
 import dogs from '@data/breeds/dog.json';
 import cats from '@data/breeds/cat.json';
-import normal from '@mockscripts/normal.json';
-import slow from '@mockscripts/slow_queue.json';
-import failed from '@mockscripts/failed_stage.json';
-import fallback from '@mockscripts/fallback_figurine.json';
 import fixtureIndex from '@fixtures/pets/index.json';
-import type { Artefact, Breed, Job, PetSpec, ProgressEvent, StaffJob } from '../api/types';
-import { applyPatch } from '../lib/spec';
-import { mockParse } from './parse';
-
-type Step = { stage: string; at_s: number; pct: number; message: string; preview?: string; preview_kind?: string; also?: string[][] };
-type Script = { name: string; trigger_names: string[]; queue_ahead: number; queue_job_s: number; outcome: string; fallback: string; error?: string; steps: Step[] };
-type FileEntry = { name: string; kind: Artefact['kind']; stage: string; bytes: number };
-
-const SCRIPTS: Script[] = [normal, slow, failed, fallback] as Script[];
-const manifests = import.meta.glob('../../../../fixtures/pets/*/manifest.json', { eager: true, import: 'default' }) as Record<string, { files: FileEntry[]; fidelity: 'high' | 'low' }>;
-const PRINT_BUNDLE = ['figure.3mf', 'figure.stl', 'albedo.png', 'figure_uv.obj', 'paint_mask.png', 'manifest.json'];
+import type { Breed, CompositionBody } from '@petpop/core';
+import { assetUrl } from '@petpop/core';
+import type { ReleaseManifest } from '@petpop/viewer';
 
 export const HANDLED_PATHS = [
-  '/api/v1/health', '/api/v1/sessions', '/api/v1/breeds', '/api/v1/spec/parse', '/api/v1/jobs', '/api/v1/jobs/{job_id}',
-  '/api/v1/jobs/{job_id}/events', '/api/v1/jobs/{job_id}/tweak', '/api/v1/jobs/{job_id}/fulfil', '/api/v1/r/{token}',
-  '/api/v1/files/{key}', '/api/v1/staff/queue', '/api/v1/staff/jobs/{job_id}/retry',
+  '/api/v1/health', '/api/v1/r/{token}', '/api/v1/files/{key}', '/api/v1/kiosk/sessions', '/api/v1/kiosk/breeds', '/api/v1/kiosk/ops',
+  '/api/v1/kiosk/ops/orders/{composition_id}/reprint', '/api/v1/kiosk/library/{species}', '/api/v1/kiosk/library/{species}/families',
+  '/api/v1/kiosk/library/{species}/parts', '/api/v1/kiosk/library/{species}/patterns', '/api/v1/kiosk/library/{species}/files/{path}',
+  '/api/v1/kiosk/compositions', '/api/v1/kiosk/compositions/{composition_id}', '/api/v1/kiosk/compositions/{composition_id}/export',
+  '/api/v1/kiosk/compositions/{composition_id}/bespoke',
 ];
 
-const speed = () => Number(import.meta.env.VITE_MOCK_SPEED ?? (globalThis as { __PP_MOCK_SPEED?: number }).__PP_MOCK_SPEED ?? 0.1);
-
-interface FakeJob { id: string; session: string; spec: PetSpec; script: Script; pet: string; created: number; start: number; speed: number; ticket?: string }
-const sessions = new Map<string, { count: number }>();
-const jobs = new Map<string, FakeJob>();
+const API_VERSION = '3.0.0';
+const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();
+const ticket = () => `PP-${1000 + Math.floor(Math.random() * 9000)}`;
+const sessions = new Map<string, { bespoke: number }>();
+interface MockComp { id: string; session_id: string; body: CompositionBody; created: number; exported: number | null; ticket: string | null; bespoke: boolean }
+const compositions = new Map<string, MockComp>();
+const breedDocs = { dog: dogs, cat: cats } as Record<string, { accent: string; breeds: Breed[] }>;
+// ?bespoke=1 turns "Make it unique" on in standalone mode (KIOSK_BESPOKE on a real kiosk).
+const bespokeOn = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('bespoke') === '1';
+const notFound = (detail: string) => HttpResponse.json({ detail }, { status: 404 });
 
-function manifestFor(pet: string) {
-  const key = Object.keys(manifests).find((k) => k.includes(`/pets/${pet}/`));
-  return key ? manifests[key] : { files: [], fidelity: 'low' as const };
+const manifests = new Map<string, Promise<ReleaseManifest>>();
+function manifest(species: string): Promise<ReleaseManifest> {
+  if (!manifests.has(species)) manifests.set(species, fetch(assetUrl(`library/${species}/manifest.json`)).then((r) => r.json()));
+  return manifests.get(species)!;
 }
+const filesUrl = (species: string) => assetUrl(`library/${species}/`);
 
-function pickScript(spec: PetSpec): Script {
-  const name = ((spec as { pet_name?: string }).pet_name ?? '').trim().toLowerCase();
-  return SCRIPTS.find((s) => name && s.trigger_names.includes(name)) ?? SCRIPTS[0];
-}
-
-function pickPet(spec: PetSpec): string {
-  const pets = fixtureIndex.pets.filter((p) => p.species === spec.species);
-  const exact = pets.filter((p) => p.breed === spec.breed.id);
-  const pool = exact.length ? exact : pets;
-  return pool[spec.seed % pool.length].id;
-}
-
-function endOf(j: FakeJob) {
-  return j.start + j.script.steps[j.script.steps.length - 1].at_s * 1000 * j.speed;
-}
-
-function enqueue(session: string, spec: PetSpec, script?: Script): FakeJob {
-  const now = Date.now();
-  const s = script ?? pickScript(spec);
-  const sp = speed();
-  const busy = Math.max(now, ...[...jobs.values()].map(endOf));
-  const job: FakeJob = { id: rid('j'), session, spec, script: s, pet: pickPet(spec), created: now, start: busy + s.queue_ahead * s.queue_job_s * 1000 * sp, speed: sp };
-  jobs.set(job.id, job);
-  return job;
-}
-
-function state(j: FakeJob, now = Date.now()) {
-  if (now < j.start) {
-    const q = j.script.queue_job_s * 1000 * j.speed;
-    return { status: 'queued' as const, stage: 'queued' as const, pct: 0, message: 'Waiting for the studio', queue_position: Math.max(1, q ? Math.floor((j.start - now) / q) + 1 : 1), step: -1 };
-  }
-  let idx = 0;
-  j.script.steps.forEach((s, i) => {
-    if (j.start + s.at_s * 1000 * j.speed <= now) idx = i;
-  });
-  const step = j.script.steps[idx];
-  const last = idx === j.script.steps.length - 1;
-  const status = last ? (j.script.outcome === 'failed' ? 'failed' : j.ticket ? 'fulfilled' : 'done') : 'running';
-  return { status: status as Job['status'], stage: step.stage as Job['stage'], pct: step.pct, message: step.message, queue_position: 0, step: idx };
-}
-
-const url = (j: FakeJob, name: string) => `/fixtures/${j.pet}/${name}`;
-
-function toJob(j: FakeJob): Job {
-  const st = state(j);
-  const steps = j.script.steps.slice(0, st.step + 1);
-  const done = st.status === 'done' || st.status === 'fulfilled';
-  const kinds = new Set(steps.map((s) => s.preview_kind));
-  const reached = (stage: string) =>
-    ({ A: st.step >= 1, control: st.step >= 1, B: kinds.has('concept'), C: kinds.has('view_front'), D: kinds.has('shape'), E: done, F: done })[stage] ?? false;
-  const artefacts: Artefact[] = manifestFor(j.pet)
-    .files.filter((f) => reached(f.stage))
-    .map((f) => ({ name: f.name, kind: f.kind, stage: f.stage, url: url(j, f.name), bytes: f.bytes }));
-  if (done) artefacts.push({ name: 'manifest.json', kind: 'manifest', stage: 'F', url: url(j, 'manifest.json'), bytes: 1 });
-  const previews: Record<string, string> = {};
-  for (const s of steps) {
-    if (s.preview && s.preview_kind) previews[s.preview_kind] = url(j, s.preview);
-    for (const [n, k] of s.also ?? []) previews[k] = url(j, n);
-  }
-  if (done) previews.thumbnail = url(j, 'thumbnail.png');
+function exportState(c: MockComp) {
+  if (c.exported === null) return { status: 'draft' as const, export: null };
+  const t = (Date.now() - c.exported) / EXPORT_MS;
+  const ready = t >= 1;
   return {
-    job_id: j.id, session_id: j.session, status: st.status, stage: st.stage, pct: st.pct, message: st.message, queue_position: st.queue_position,
-    seed: j.spec.seed, species: j.spec.species, pet_name: (j.spec as { pet_name?: string }).pet_name ?? null, created_at: iso(j.created),
-    finished_at: done || st.status === 'failed' ? iso(endOf(j)) : null, error: st.status === 'failed' ? (j.script.error ?? 'failed') : null,
-    fallback: (done ? j.script.fallback : 'none') as Job['fallback'], fidelity: manifestFor(j.pet).fidelity, timings: [], artefacts, previews,
-    result_url: done ? `${location.origin}/r/mock.${j.id}` : null, ticket: j.ticket ?? null, spec: j.spec,
+    status: ready ? ('ready' as const) : ('exporting' as const),
+    export: { job_id: `j_${c.id.slice(2)}`, status: ready ? 'done' : 'running', stage: ready ? 'done' : 'F', pct: ready ? 100 : Math.round(10 + 85 * t), message: ready ? 'Your figurine is ready' : 'Preparing the print file' },
   };
 }
 
-function staffJob(j: FakeJob): StaffJob {
-  const job = toJob(j);
-  return { job_id: j.id, status: job.status, stage: job.stage, pet_name: job.pet_name ?? null, species: job.species, created_at: job.created_at, finished_at: job.finished_at ?? null, fallback: job.fallback, total_ms: null, thumbnail_url: job.previews.thumbnail ?? null, error: job.error ?? null };
+function petFor(c: MockComp) {
+  const same = fixtureIndex.pets.filter((p) => p.species === c.body.species);
+  return (same.find((p) => p.breed === c.body.breed_id) ?? same[0] ?? fixtureIndex.pets[0]).id;
 }
 
-const notFound = (what: string) => HttpResponse.json({ detail: `unknown ${what}` }, { status: 404 });
-const breedDocs = { dog: dogs, cat: cats } as Record<string, { accent: string; breeds: Breed[] }>;
+function compositionStatus(c: MockComp) {
+  const st = exportState(c);
+  const ready = st.status === 'ready';
+  const pet = petFor(c);
+  const f = (name: string) => assetUrl(`fixtures/${pet}/${name}`);
+  return {
+    composition_id: c.id, session_id: c.session_id, status: st.status, pet_name: c.body.pet_name ?? null, species: c.body.species,
+    release_version: c.body.release_version, created_at: iso(c.created), export: st.export, ticket: c.ticket,
+    result_url: ready ? `${location.origin}/r/${c.id}.0.mock` : null,
+    artefacts: ready ? ['figure.3mf', 'figure.stl', 'albedo.png', 'figure.glb', 'thumbnail.png'].map((n) => ({ name: n, kind: n === 'figure.3mf' ? '3mf' : n === 'figure.stl' ? 'stl' : n === 'albedo.png' ? 'albedo' : n === 'figure.glb' ? 'glb' : 'thumbnail', stage: 'F', url: f(n), bytes: 1 })) : [],
+    previews: ready ? { glb: f('figure.glb'), thumbnail: f('thumbnail.png') } : {},
+    error: null, composition: c.body,
+  };
+}
 
-const events = ws.link(/\/api\/v1\/jobs\/[^/]+\/events$/);
+function order(c: MockComp) {
+  const st = compositionStatus(c);
+  return { composition_id: c.id, ticket: c.ticket, pet_name: st.pet_name, species: st.species, status: st.status, created_at: st.created_at, thumbnail_url: st.previews.thumbnail ?? null };
+}
+
+/** The same id checks as petpop_library.composition.check_ids, so standalone mode refuses what the API refuses. */
+function compositionErrors(m: ReleaseManifest, c: CompositionBody): string[] {
+  const errs: string[] = [];
+  if (c.release_version !== m.release_version) errs.push(`release_version: this kiosk serves ${m.release_version}`);
+  if (!m.families.some((f) => f.id === c.family_id)) errs.push(`family_id: unknown ${c.family_id}`);
+  for (const [region, id] of Object.entries(c.parts ?? {})) if (m.region_deltas.find((d) => d.id === id)?.region !== region) errs.push(`parts.${region}: unknown ${id}`);
+  for (const s of c.shells ?? []) if (!m.shell_parts.some((p) => p.id === s.part_id)) errs.push(`shells: unknown ${s.part_id}`);
+  for (const l of c.layers ?? []) if (!m.pattern_layers.some((p) => p.id === l.pattern_id)) errs.push(`layers: unknown ${l.pattern_id}`);
+  if ((c.stamps ?? []).length > 400) errs.push('stamps: at most 400');
+  return errs;
+}
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '1.0.0', server: 'mock-server' })),
-  http.post('/api/v1/sessions', async ({ request }) => {
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: API_VERSION, server: 'mock-server' })),
+  http.post('/api/v1/kiosk/sessions', async ({ request }) => {
     const body = (await request.json().catch(() => ({}))) as { kiosk_id?: string };
     const id = rid('s');
-    sessions.set(id, { count: 0 });
+    sessions.set(id, { bespoke: 0 });
     return HttpResponse.json(
-      { session_id: id, kiosk_id: body.kiosk_id ?? 'kiosk-1', started_at: iso(Date.now()), idle_policy: { idle_seconds: 90, countdown_seconds: 15, max_generations: 3 }, generate_count: 0, generations_left: 3 },
+      { session_id: id, kiosk_id: body.kiosk_id ?? 'kiosk-1', started_at: iso(Date.now()), idle_policy: { idle_seconds: 90, countdown_seconds: 15 }, bespoke_enabled: bespokeOn() },
       { status: 201 },
     );
   }),
-  http.get('/api/v1/breeds', ({ request }) => {
+  http.get('/api/v1/kiosk/breeds', ({ request }) => {
     const u = new URL(request.url);
     const species = u.searchParams.get('species') ?? 'dog';
     const q = (u.searchParams.get('q') ?? '').toLowerCase();
@@ -141,101 +105,90 @@ export const handlers = [
     items = items.sort((a, b) => (a.id === 'mixed' ? 1 : b.id === 'mixed' ? -1 : a.label.localeCompare(b.label)));
     return HttpResponse.json({ species, accent: doc.accent, total: items.length, items });
   }),
-  http.post('/api/v1/spec/parse', async ({ request }) => {
-    const body = (await request.json()) as { current_spec: PetSpec; text: string; tapped_fields?: string[] };
-    return HttpResponse.json(mockParse(body.text, body.current_spec, body.tapped_fields ?? []));
+  // ------------------------------------------------------------------ library
+  http.get('/api/v1/kiosk/library/:species', async ({ params }) => {
+    const sp = String(params.species);
+    if (!breedDocs[sp]) return HttpResponse.json({ detail: 'bad species' }, { status: 422 });
+    const m = await manifest(sp);
+    return HttpResponse.json({ species: sp, release_version: m.release_version, base_mesh_version: m.base_mesh_version, files_url: filesUrl(sp), manifest: m });
   }),
-  http.post('/api/v1/jobs', async ({ request }) => {
-    const body = (await request.json()) as { session_id: string; spec: PetSpec };
-    const s = sessions.get(body.session_id);
-    if (!s) return notFound('session');
-    if (s.count >= 3) return HttpResponse.json({ detail: 'This session has used all of its figurines.' }, { status: 409 });
-    s.count += 1;
-    const j = enqueue(body.session_id, body.spec);
-    const st = state(j);
-    return HttpResponse.json({ job_id: j.id, status: st.status, queue_position: st.queue_position, generations_left: 3 - s.count }, { status: 201 });
+  http.get('/api/v1/kiosk/library/:species/families', async ({ params }) => {
+    const sp = String(params.species);
+    const m = await manifest(sp);
+    const u = filesUrl(sp);
+    return HttpResponse.json({ species: sp, release_version: m.release_version, items: m.families.map((f) => ({ id: f.id, name: f.name, default_parts: f.default_parts, breeds: f.breeds, tags: f.tags, version: f.version, delta_url: u + f.delta, thumbnail_url: u + f.thumbnail })) });
   }),
-  http.get('/api/v1/jobs/:id', ({ params }) => {
-    const j = jobs.get(params.id as string);
-    return j ? HttpResponse.json(toJob(j)) : notFound('job');
+  http.get('/api/v1/kiosk/library/:species/parts', async ({ params, request }) => {
+    const sp = String(params.species);
+    const region = new URL(request.url).searchParams.get('region');
+    const m = await manifest(sp);
+    const u = filesUrl(sp);
+    const items: unknown[] = m.region_deltas.filter((d) => !region || d.region === region).map((d) => ({ id: d.id, name: d.name, kind: 'delta', region: d.region, socket: null, tags: d.tags, version: d.version, url: u + d.delta, thumbnail_url: u + d.thumbnail, default_colour: null }));
+    if (!region || region === 'shells') items.push(...m.shell_parts.map((s) => ({ id: s.id, name: s.name, kind: 'shell', region: null, socket: s.socket, tags: s.tags ?? [], version: s.version, url: u + s.mesh, thumbnail_url: u + s.thumbnail, default_colour: s.default_colour })));
+    return HttpResponse.json({ species: sp, release_version: m.release_version, items });
   }),
-  http.post('/api/v1/jobs/:id/tweak', async ({ params, request }) => {
-    const old = jobs.get(params.id as string);
-    if (!old) return notFound('job');
-    const body = (await request.json()) as { session_id: string; patch: Record<string, unknown> };
-    const s = sessions.get(body.session_id);
-    if (!s) return notFound('session');
-    if (s.count >= 3) return HttpResponse.json({ detail: 'This session has used all of its figurines.' }, { status: 409 });
-    s.count += 1;
-    const { spec } = applyPatch(old.spec, body.patch);
-    const j = enqueue(body.session_id, { ...spec, seed: old.spec.seed });
-    const st = state(j);
-    return HttpResponse.json({ job_id: j.id, status: st.status, queue_position: st.queue_position, generations_left: 3 - s.count }, { status: 201 });
+  http.get('/api/v1/kiosk/library/:species/patterns', async ({ params }) => {
+    const sp = String(params.species);
+    const m = await manifest(sp);
+    const u = filesUrl(sp);
+    return HttpResponse.json({ species: sp, release_version: m.release_version, items: m.pattern_layers.map((p) => ({ id: p.id, name: p.name, channel: p.channel, default_colour: p.default_colour, coverage: p.coverage, version: p.version, thumbnail_url: u + p.thumbnail })) });
   }),
-  http.post('/api/v1/jobs/:id/fulfil', ({ params }) => {
-    const j = jobs.get(params.id as string);
-    if (!j) return notFound('job');
-    if (!['done', 'fulfilled'].includes(state(j).status)) return HttpResponse.json({ detail: 'job is not finished' }, { status: 409 });
-    j.ticket ??= `PP-${1000 + Math.floor(Math.random() * 9000)}`;
-    return HttpResponse.json({ job_id: j.id, ticket: j.ticket, files: PRINT_BUNDLE });
+  http.get('/api/v1/kiosk/library/:species/files/*', async ({ params, request }) => {
+    const path = new URL(request.url).pathname.split('/files/')[1];
+    const r = await fetch(filesUrl(String(params.species)) + path);
+    return r.ok ? new HttpResponse(await r.arrayBuffer(), { headers: { 'Content-Type': r.headers.get('Content-Type') ?? 'application/octet-stream' } }) : notFound('unknown library file');
   }),
-  http.get('/api/v1/r/:token', ({ params }) => {
-    const j = jobs.get(String(params.token).replace(/^mock\./, '')) ?? [...jobs.values()][0];
-    if (!j) {
-      const pet = fixtureIndex.pets[0];
-      return HttpResponse.json({ job_id: pet.job_id, pet_name: pet.pet_name, species: pet.species, breed_label: pet.breed, glb_url: `/fixtures/${pet.id}/figure.glb`, thumbnail_url: `/fixtures/${pet.id}/thumbnail.png`, turntable_url: null, created_at: iso(Date.now()), expires_at: iso(Date.now() + 7 * 864e5) });
-    }
-    return HttpResponse.json({ job_id: j.id, pet_name: (j.spec as { pet_name?: string }).pet_name ?? null, species: j.spec.species, breed_label: j.spec.breed.label, glb_url: url(j, 'figure.glb'), thumbnail_url: url(j, 'thumbnail.png'), turntable_url: null, created_at: iso(j.created), expires_at: iso(j.created + 7 * 864e5) });
+  // ------------------------------------------------------------------ compositions
+  http.post('/api/v1/kiosk/compositions', async ({ request }) => {
+    const body = (await request.json()) as { session_id: string; composition: CompositionBody };
+    if (!sessions.has(body.session_id)) return notFound('unknown session');
+    const errs = compositionErrors(await manifest(body.composition.species), body.composition);
+    if (errs.length) return HttpResponse.json({ detail: { composition: errs } }, { status: 422 });
+    const c: MockComp = { id: rid('c'), session_id: body.session_id, body: body.composition, created: Date.now(), exported: null, ticket: null, bespoke: false };
+    compositions.set(c.id, c);
+    return HttpResponse.json(compositionStatus(c), { status: 201 });
   }),
-  http.get('/api/v1/files/*', () => HttpResponse.json({ detail: 'standalone mode serves artefacts from /fixtures' }, { status: 404 })),
-  http.get('/api/v1/staff/queue', ({ request }) => {
-    if (!request.headers.get('X-Staff-Token')) return HttpResponse.json({ detail: 'staff token required' }, { status: 403 });
-    const all = [...jobs.values()];
-    const sts = all.map((j) => [j, state(j).status] as const);
+  http.get('/api/v1/kiosk/compositions/:id', ({ params }) => {
+    const c = compositions.get(String(params.id));
+    return c ? HttpResponse.json(compositionStatus(c)) : notFound('unknown composition');
+  }),
+  http.post('/api/v1/kiosk/compositions/:id/export', ({ params }) => {
+    const c = compositions.get(String(params.id));
+    if (!c) return notFound('unknown composition');
+    if (c.exported === null) [c.exported, c.ticket] = [Date.now(), ticket()];
+    return HttpResponse.json({ composition_id: c.id, job_id: `j_${c.id.slice(2)}`, ticket: c.ticket, queue_position: 0 }, { status: 202 });
+  }),
+  http.post('/api/v1/kiosk/compositions/:id/bespoke', ({ params }) => {
+    if (!bespokeOn()) return HttpResponse.json({ detail: 'bespoke mode is off on this kiosk' }, { status: 403 });
+    const c = compositions.get(String(params.id));
+    if (!c) return notFound('unknown composition');
+    const s = sessions.get(c.session_id);
+    if (!s) return notFound('unknown session');
+    if (s.bespoke || c.bespoke) return HttpResponse.json({ detail: 'This session has already asked for a one-off figurine.' }, { status: 409 });
+    s.bespoke += 1;
+    c.bespoke = true;
+    return HttpResponse.json({ request_id: rid('j'), ticket: ticket(), message: "We'll message you when your one-off figurine is ready." }, { status: 201 });
+  }),
+  // ------------------------------------------------------------------ ops (five-tap panel)
+  http.get('/api/v1/kiosk/ops', async ({ request }) => {
+    if (!request.headers.get('X-Staff-Token')) return HttpResponse.json({ detail: 'staff PIN required' }, { status: 403 });
+    const [dog, cat] = await Promise.all([manifest('dog'), manifest('cat')]);
+    const comps = [...compositions.values()].filter((c) => c.exported !== null).sort((a, b) => b.created - a.created);
     return HttpResponse.json({
-      mode: 'mock',
-      running: sts.filter(([, s]) => s === 'running').map(([j]) => staffJob(j))[0] ?? null,
-      queued: sts.filter(([, s]) => s === 'queued').map(([j]) => staffJob(j)),
-      recent: sts.filter(([, s]) => ['done', 'failed', 'fulfilled'].includes(s)).map(([j]) => staffJob(j)).reverse().slice(0, 20),
-      gpu: { name: 'mock (no GPU)', temp_c: 41, vram_used_mb: 0, mock: true },
+      api_version: API_VERSION, mode: 'mock', kiosk_id: 'kiosk-1', releases: { dog: dog.release_version, cat: cat.release_version }, bespoke_enabled: bespokeOn(),
+      exports_queued: 0, exports_running: comps.filter((c) => exportState(c).status === 'exporting').length, orders: comps.slice(0, 20).map(order),
     });
   }),
-  http.post('/api/v1/staff/jobs/:id/retry', ({ params, request }) => {
-    if (!request.headers.get('X-Staff-Token')) return HttpResponse.json({ detail: 'staff token required' }, { status: 403 });
-    const old = jobs.get(params.id as string);
-    if (!old) return notFound('job');
-    const j = enqueue(old.session, old.spec, SCRIPTS[0]);
-    const st = state(j);
-    return HttpResponse.json({ job_id: j.id, status: st.status, queue_position: st.queue_position, generations_left: 0 });
+  http.post('/api/v1/kiosk/ops/orders/:id/reprint', ({ params, request }) => {
+    if (!request.headers.get('X-Staff-Token')) return HttpResponse.json({ detail: 'staff PIN required' }, { status: 403 });
+    const c = compositions.get(String(params.id));
+    if (!c) return notFound('unknown composition');
+    if (exportState(c).status !== 'ready') return HttpResponse.json({ detail: 'the order has no finished print bundle yet' }, { status: 409 });
+    return HttpResponse.json(order(c));
   }),
-  events.addEventListener('connection', ({ client }) => {
-    const id = client.url.pathname.split('/').slice(-2)[0];
-    const j = jobs.get(id);
-    if (!j) {
-      client.close(4404, 'unknown job');
-      return;
-    }
-    let sent = -1;
-    let lastQueue = -1;
-    const timer = setInterval(() => {
-      const st = state(j);
-      if (st.step < 0 && st.queue_position !== lastQueue) {
-        lastQueue = st.queue_position;
-        const ev: ProgressEvent = { job_id: j.id, status: 'queued', stage: 'queued', pct: 0, message: st.message, queue_position: st.queue_position, preview_url: null, preview_kind: null };
-        client.send(JSON.stringify(ev));
-      }
-      for (let i = sent + 1; i <= st.step; i++) {
-        const s = j.script.steps[i];
-        const last = i === j.script.steps.length - 1;
-        const ev: ProgressEvent = { job_id: j.id, status: last ? st.status : 'running', stage: s.stage as ProgressEvent['stage'], pct: s.pct, message: s.message, queue_position: 0, preview_url: s.preview ? url(j, s.preview) : null, preview_kind: s.preview_kind ?? null };
-        client.send(JSON.stringify(ev));
-        for (const [n, k] of s.also ?? []) client.send(JSON.stringify({ ...ev, status: 'running', preview_url: url(j, n), preview_kind: k }));
-        sent = i;
-      }
-      if (['done', 'failed', 'fulfilled'].includes(st.status)) {
-        clearInterval(timer);
-        client.close(1000, 'done');
-      }
-    }, 100);
+  http.get('/api/v1/r/:token', () => {
+    const pet = fixtureIndex.pets[0];
+    return HttpResponse.json({ job_id: pet.job_id, pet_name: pet.pet_name, species: pet.species, breed_label: pet.breed, glb_url: assetUrl(`fixtures/${pet.id}/figure.glb`), thumbnail_url: assetUrl(`fixtures/${pet.id}/thumbnail.png`), turntable_url: null, created_at: iso(Date.now()), expires_at: iso(Date.now() + 7 * 864e5) });
   }),
+  http.get('/api/v1/files/*', () => HttpResponse.json({ detail: 'standalone mode serves artefacts from /fixtures' }, { status: 404 })),
 ];

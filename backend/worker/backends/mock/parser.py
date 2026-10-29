@@ -1,4 +1,4 @@
-from backend.core.parser import parse
+from petpop_core.parser import parse
 
 
 class RuleParser:

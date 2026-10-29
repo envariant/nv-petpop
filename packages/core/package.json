@@ -1,0 +1,11 @@
+{
+  "name": "@petpop/core",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Shared core for both apps (BRIEF Section 17): the generated API client and types, PetSpec helpers.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": { "gen:client": "openapi-typescript ../../data/schema/openapi.json -o src/api/schema.d.ts" },
+  "peerDependencies": { "openapi-fetch": "*" }
+}

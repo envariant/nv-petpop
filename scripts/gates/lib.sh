@@ -3,7 +3,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 export GENAI_PROFILE="${GENAI_PROFILE:-mock}"
-export PYTHONPATH="$ROOT:$ROOT/mock-server"
+export PYTHONPATH="$ROOT:$ROOT/mock-server:$ROOT/packages/core/python:$ROOT/packages/library/python"
 PY="${PY:-$ROOT/.venv/bin/python}"
 LOG_DIR="$ROOT/var/gates"
 mkdir -p "$LOG_DIR"

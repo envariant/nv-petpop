@@ -1,7 +1,8 @@
-"""The real backend's implementation of the /api/v1 contract (BRIEF Section 9).
+"""The real backend's implementation of the /api/v1 contract (BRIEF Sections 9 and 17).
 
-The API never touches the GPU: it validates, writes jobs to the database, enqueues them, streams progress
-from the bus and serves artefacts through signed URLs. Mounted on backend.core.contract like the mock.
+The API never touches the GPU: it validates, writes jobs to the database, enqueues them on the kiosk or studio
+queue, streams progress from the bus and serves artefacts through signed URLs. Mounted on
+backend.api.contract like the mock. The kiosk routes never reach the GenAI host.
 """
 from __future__ import annotations
 
@@ -16,18 +17,20 @@ from datetime import UTC, datetime, timedelta
 from fastapi.responses import Response
 from sqlalchemy import func, select
 
-from backend.core import models as m
-from backend.core.breeds import breed_doc
+from backend.api import models as m
+from petpop_core.breeds import breed_doc
 from backend.core.config import Settings
-from backend.core.contract import ApiError, check_sig, make_token, read_token, signed_file_url
-from backend.core.schemas import spec_errors
-from backend.core.spec import apply_patch, fill_colour_names
+from backend.api.contract import ApiError, check_sig, make_token, read_token, signed_file_url
+from petpop_core.schemas import spec_errors
+from petpop_core.spec import apply_patch, fill_colour_names
 
 from .bus import make_bus
-from .db import ArtefactRow, BreedRow, JobRow, SessionRow, StageTimingRow, seed_breeds, session_factory, utcnow
+from .fulfilment import copy_bundle
+from .library import KioskLibrary
+from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
+                 seed_staff, session_factory, utcnow)
 from .store import make_store
 
-PRINT_BUNDLE = ["figure.3mf", "figure.stl", "albedo.png", "figure_uv.obj", "paint_mask.png", "manifest.json"]
 TERMINAL = {"done", "failed", "fulfilled"}
 POLICY = m.IdlePolicy()
 
@@ -46,8 +49,11 @@ class BackendApi:
         self.secret = s.secret
         self.db = session_factory(s.database_url)
         seed_breeds(self.db)
+        seed_staff(self.db, s.studio_users)
         self.bus = make_bus(s, self.db)
         self.store = make_store(s)
+        self.library = KioskLibrary(s, self.db, self.bus, self.store, self.secret)
+        self.library.load_releases()
 
     # ------------------------------------------------------------------ helpers
     def _url(self, key: str) -> str:
@@ -62,20 +68,30 @@ class BackendApi:
     def _queue_position(self, db, job: JobRow) -> int:
         if job.status != "queued":
             return 0
-        ahead = db.scalar(select(func.count()).select_from(JobRow).where(JobRow.status == "queued", JobRow.created_at < job.created_at)) or 0
-        running = db.scalar(select(func.count()).select_from(JobRow).where(JobRow.status == "running")) or 0
+        same = JobRow.queue == job.queue
+        ahead = db.scalar(select(func.count()).select_from(JobRow).where(same, JobRow.status == "queued",
+                                                                         JobRow.created_at < job.created_at)) or 0
+        running = db.scalar(select(func.count()).select_from(JobRow).where(same, JobRow.status == "running")) or 0
         return int(ahead + running + 1) if (ahead + running) else 1
 
-    def _left(self, sess: SessionRow) -> int:
-        return POLICY.max_generations - sess.generate_count
-
-    def _new_job(self, db, session_id: str, spec: dict) -> JobRow:
-        job = JobRow(id="j_" + uuid.uuid4().hex[:12], session_id=session_id, pet_spec=spec, status="queued", stage="queued",
+    def _new_job(self, db, spec: dict, *, queue: str, kind: str, requested_by: str, session_id: str | None = None,
+                 contact: str | None = None) -> JobRow:
+        job = JobRow(id="j_" + uuid.uuid4().hex[:12], queue=queue, kind=kind, session_id=session_id,
+                     requested_by=requested_by, contact=contact, pet_spec=spec, status="queued", stage="queued",
                      seed=int(spec["seed"]), created_at=utcnow())
         db.add(job)
         db.commit()
-        self.bus.enqueue(job.id)
+        self.bus.enqueue(job.id, queue)
         return job
+
+    def _created(self, db, job: JobRow) -> m.JobCreated:
+        return m.JobCreated(job_id=job.id, status="queued", queue_position=self._queue_position(db, job))
+
+    # ------------------------------------------------------------------ studio auth
+    def authenticate(self, username: str, password: str) -> str | None:
+        with self.db() as db:
+            row = db.get(StaffUserRow, username)
+        return row.role if row and check_password(password, row.password_hash) else None
 
     def _check_spec(self, spec: dict) -> dict:
         spec = fill_colour_names(spec)
@@ -94,7 +110,67 @@ class BackendApi:
             db.add(row)
             db.commit()
             return m.Session(session_id=row.id, kiosk_id=row.kiosk_id, started_at=aware(row.started_at), idle_policy=POLICY,
-                             generate_count=0, generations_left=POLICY.max_generations)
+                             bespoke_enabled=self.s.kiosk_bespoke)
+
+    async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
+        """"Make it unique" (KIOSK_BESPOKE): the composition becomes a studio bespoke job's starting spec; the kiosk
+        shows "we'll message you", never a Generating screen."""
+        if not self.s.kiosk_bespoke:
+            raise ApiError(403, "bespoke mode is off on this kiosk")
+        session_id, spec, _ = self.library.bespoke_spec(composition_id)
+        spec = self._check_spec(spec)
+        with self.db() as db:
+            sess = db.get(SessionRow, session_id) if session_id else None
+            if not sess:
+                raise ApiError(404, "unknown session")
+            comp = db.get(CompositionRow, composition_id)
+            if sess.generate_count >= 1 or comp.bespoke_job_id:
+                raise ApiError(409, "This session has already asked for a one-off figurine.")
+            sess.generate_count += 1
+            job = self._new_job(db, spec, queue="studio", kind="bespoke", requested_by=f"kiosk:{sess.kiosk_id}",
+                                session_id=sess.id, contact=body.contact)
+            job.ticket = f"PP-{random.randint(1000, 9999)}"
+            comp.bespoke_job_id = job.id
+            db.commit()
+            return m.BespokeAccepted(request_id=job.id, ticket=job.ticket,
+                                     message="We'll message you when your one-off figurine is ready.")
+
+    async def kiosk_ops(self) -> m.KioskOps:
+        with self.db() as db:
+            counts = dict(db.execute(select(JobRow.status, func.count()).where(JobRow.queue == "kiosk")
+                                     .group_by(JobRow.status)).all())
+        return m.KioskOps(api_version=m.API_VERSION, mode=self.mode, kiosk_id=self.s.kiosk_id, releases=self.library.versions(),
+                          bespoke_enabled=self.s.kiosk_bespoke, exports_queued=int(counts.get("queued", 0)),
+                          exports_running=int(counts.get("running", 0)), orders=self.library.orders())
+
+    async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
+        return self.library.reprint(composition_id)
+
+    # ------------------------------------------------------------------ kiosk library mode
+    async def library_release(self, species: str) -> m.LibraryRelease:
+        return self.library.release_info(species)
+
+    async def library_families(self, species: str) -> m.LibraryFamilies:
+        return self.library.families(species)
+
+    async def library_parts(self, species: str, region: str | None) -> m.LibraryParts:
+        return self.library.parts(species, region)
+
+    async def library_patterns(self, species: str) -> m.LibraryPatterns:
+        return self.library.patterns(species)
+
+    async def library_file(self, species: str, path: str) -> Response:
+        data, media = await asyncio.to_thread(self.library.file, species, path)
+        return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+    async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
+        return self.library.create(body, self._public_base(base))
+
+    async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
+        return self.library.status(composition_id, self._public_base(base))
+
+    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
+        return self.library.export(composition_id)
 
     async def breeds(self, species: str, q: str | None) -> m.BreedList:
         with self.db() as db:
@@ -118,25 +194,18 @@ class BackendApi:
         try:
             r = await asyncio.wait_for(asyncio.to_thread(parser.parse, req.text, req.species, req.current_spec, req.tapped_fields), 3.0)
         except Exception:  # noqa: BLE001 - LLM down or slow: taps alone, brief for flavour only
-            from backend.core.parser import parse as rules
+            from petpop_core.parser import parse as rules
 
             r, llm = rules(req.text, req.species, req.current_spec, req.tapped_fields), False
         return m.ParseResponse(patch=r.patch, changed_fields=r.changed_fields, personality=r.personality,
                                free_text_unmapped=r.free_text_unmapped, parser="llm" if llm else "rules", llm_available=llm,
                                flavour_only=bool(req.text.strip()) and not r.changed_fields, blocked=r.blocked, ms=r.ms)
 
-    async def create_job(self, body: m.JobCreate) -> m.JobCreated:
+    # ------------------------------------------------------------------ studio
+    async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated:
         spec = self._check_spec(body.spec)
         with self.db() as db:
-            sess = db.get(SessionRow, body.session_id)
-            if not sess:
-                raise ApiError(404, "unknown session")
-            if self._left(sess) <= 0:
-                raise ApiError(409, "This session has used all of its figurines.")
-            sess.generate_count += 1
-            job = self._new_job(db, sess.id, spec)
-            return m.JobCreated(job_id=job.id, status="queued", queue_position=self._queue_position(db, job),
-                                generations_left=self._left(sess))
+            return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username))
 
     async def get_job(self, job_id: str, base: str) -> m.Job:
         with self.db() as db:
@@ -157,7 +226,8 @@ class BackendApi:
         done = job.status in ("done", "fulfilled")
         if not done:
             previews.pop("glb", None)
-        return m.Job(job_id=job.id, session_id=job.session_id, status=job.status, stage=job.stage, pct=job.pct, message=job.message,
+        return m.Job(job_id=job.id, kind=job.kind, session_id=job.session_id, requested_by=job.requested_by,
+                     status=job.status, stage=job.stage, pct=job.pct, message=job.message,
                      queue_position=qpos, seed=job.seed, species=job.pet_spec["species"], pet_name=job.pet_spec.get("pet_name"),
                      created_at=aware(job.created_at), finished_at=aware(job.finished_at), error=job.error, fallback=job.fallback,
                      fidelity=job.fidelity, timings=[m.StageTiming(stage=t.stage, status=t.status, ms=t.ms, started_at=aware(t.started_at),
@@ -194,12 +264,12 @@ class BackendApi:
                         return
             await asyncio.sleep(0.25)
 
-    async def tweak(self, job_id: str, req: m.TweakRequest) -> m.JobCreated:
+    async def tweak(self, job_id: str, req: m.TweakRequest, user: m.StaffUser) -> m.JobCreated:
         with self.db() as db:
             old = self._job(db, job_id)
             spec, _ = apply_patch(old.pet_spec, req.patch)
             spec["seed"] = old.seed
-        return await self.create_job(m.JobCreate(session_id=req.session_id, spec=spec))
+        return await self.create_job(m.JobCreate(spec=spec), user)
 
     async def fulfil(self, job_id: str) -> m.FulfilResponse:
         with self.db() as db:
@@ -209,14 +279,7 @@ class BackendApi:
             if not job.ticket:
                 job.ticket = f"PP-{random.randint(1000, 9999)}"
             ticket = job.ticket
-            folder = self.s.fulfil_dir / f"{ticket}_{job_id}"
-            folder.mkdir(parents=True, exist_ok=True)
-            files = []
-            for name in PRINT_BUNDLE:
-                key = f"jobs/{job_id}/{name}"
-                if self.store.exists(key):
-                    (folder / name).write_bytes(self.store.get(key))
-                    files.append(name)
+            files = copy_bundle(self.s.fulfil_dir, self.store, job_id, ticket)
             job.status = "fulfilled"
             db.commit()
         return m.FulfilResponse(job_id=job_id, ticket=ticket, files=files)
@@ -250,26 +313,30 @@ class BackendApi:
     def _staff_job(self, job: JobRow) -> m.StaffJob:
         thumb = f"jobs/{job.id}/thumbnail.png"
         total = int((job.finished_at - job.started_at).total_seconds() * 1000) if job.finished_at and job.started_at else None
-        return m.StaffJob(job_id=job.id, status=job.status, stage=job.stage, pet_name=job.pet_spec.get("pet_name"),
+        return m.StaffJob(job_id=job.id, kind=job.kind, requested_by=job.requested_by, status=job.status, stage=job.stage,
+                          pet_name=job.pet_spec.get("pet_name"),
                           species=job.pet_spec["species"], created_at=aware(job.created_at), finished_at=aware(job.finished_at),
                           fallback=job.fallback, total_ms=total,
                           thumbnail_url=self._url(thumb) if job.status in ("done", "fulfilled") else None, error=job.error)
 
     async def staff_queue(self, base: str) -> m.StaffQueue:
+        studio = JobRow.queue == "studio"
         with self.db() as db:
-            running = db.scalars(select(JobRow).where(JobRow.status == "running")).first()
-            queued = db.scalars(select(JobRow).where(JobRow.status == "queued").order_by(JobRow.created_at)).all()
-            recent = db.scalars(select(JobRow).where(JobRow.status.in_(TERMINAL)).order_by(JobRow.finished_at.desc()).limit(20)).all()
+            running = db.scalars(select(JobRow).where(studio, JobRow.status == "running")).first()
+            queued = db.scalars(select(JobRow).where(studio, JobRow.status == "queued").order_by(JobRow.created_at)).all()
+            recent = db.scalars(select(JobRow).where(studio, JobRow.status.in_(TERMINAL))
+                                .order_by(JobRow.finished_at.desc()).limit(20)).all()
         return m.StaffQueue(mode=self.mode, running=self._staff_job(running) if running else None,
                             queued=[self._staff_job(j) for j in queued], recent=[self._staff_job(j) for j in recent],
                             gpu=gpu_status(self.s))
 
-    async def staff_retry(self, job_id: str) -> m.JobCreated:
-        """Re-run a job's spec as a new job (does not count against the session cap)."""
+    async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated:
+        """Re-run a job's spec as a new studio job of the same kind."""
         with self.db() as db:
             old = self._job(db, job_id)
-            job = self._new_job(db, old.session_id, old.pet_spec)
-            return m.JobCreated(job_id=job.id, status="queued", queue_position=self._queue_position(db, job), generations_left=0)
+            job = self._new_job(db, old.pet_spec, queue=old.queue, kind=old.kind, requested_by=user.username,
+                                session_id=old.session_id, contact=old.contact)
+            return self._created(db, job)
 
     # ------------------------------------------------------------------ housekeeping
     def purge_free_text(self, days: int = 7) -> int:
@@ -278,8 +345,9 @@ class BackendApi:
         n = 0
         with self.db() as db:
             for job in db.scalars(select(JobRow).where(JobRow.created_at < cutoff)).all():
-                if job.pet_spec.get("free_text"):
+                if job.pet_spec.get("free_text") or job.contact:
                     job.pet_spec = {**job.pet_spec, "free_text": ""}
+                    job.contact = None
                     n += 1
             db.commit()
         return n

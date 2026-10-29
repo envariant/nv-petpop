@@ -33,7 +33,7 @@ def depth_material(near: float, far: float):
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base
+    from petpop_library.meshkit import load_base as np_base
 
     reset()
     base = np_base(job["species"])

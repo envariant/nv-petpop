@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Gate 7 (M7, BRIEF Section 16): kiosk library mode. Composition to print bundle in under 60 s; stamps cross seams
+# correctly; the coverage slider is smooth with 10 layers active; the print matches the screen; and (Section 17)
+# the kiosk completes an order with the GenAI host unreachable. Runs on the mock profile: no GenAI host is needed.
+source "$(dirname "$0")/lib.sh"
+echo "gate-7: kiosk library mode"
+GENAI_DOWN="GENAI_PROFILE=mac-m4pro COMFY_URL=http://127.0.0.1:9 SHAPE_URL=http://127.0.0.1:9 OLLAMA_URL=http://127.0.0.1:9 GENAI_TOKEN=unreachable"
+step "stamps cross UV seams correctly; coverage grows smoothly; golden stamp layer" "$PY" -m pytest tests/unit/test_library_paint.py
+step "kiosk stamp rasteriser is byte-identical to the export's (viewer)" bash -c 'cd packages/viewer && npx vitest run && npx tsc -p . --noEmit'
+step "Contract 1 (release bundle) and Contract 2 (composition)" "$PY" -m pytest tests/contract/test_release.py
+step "kiosk library API and Stage-F-only order: mock server AND real backend" "$PY" -m pytest tests/contract -k "library or order or bespoke or openapi or every"
+step "composition to print bundle under 60 s per species, GenAI host unreachable" "$PY" scripts/gate7_export.py
+step "browser: coverage slider smooth with 10 layers; baked screen atlas" bash -c 'cd apps/kiosk && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test tests/gate7'
+step "print matches screen, texel for texel" "$PY" scripts/gate7_print_matches_screen.py apps/kiosk/test-results/gate7
+step "kiosk walkthrough to an ordered figurine, real backend, GenAI host unreachable" bash -c 'cd apps/kiosk && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test tests/e2e/walkthrough.spec.ts'
+echo "GATE 7 PASSED"

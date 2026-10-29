@@ -52,6 +52,52 @@
     "title": "Artefact",
     "type": "object"
    },
+   "BespokeAccepted": {
+    "additionalProperties": false,
+    "properties": {
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "request_id": {
+      "description": "The studio job that will produce the one-off figurine.",
+      "title": "Request Id",
+      "type": "string"
+     },
+     "ticket": {
+      "title": "Ticket",
+      "type": "string"
+     }
+    },
+    "required": [
+     "request_id",
+     "ticket",
+     "message"
+    ],
+    "title": "BespokeAccepted",
+    "type": "object"
+   },
+   "BespokeRequest": {
+    "additionalProperties": false,
+    "description": "\"Make it unique\" from a composition: the studio starts a bespoke job from it (BRIEF Section 17).",
+    "properties": {
+     "contact": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "How to reach the customer when it is ready.",
+      "title": "Contact"
+     }
+    },
+    "title": "BespokeRequest",
+    "type": "object"
+   },
    "Breed": {
     "additionalProperties": false,
     "properties": {
@@ -128,6 +174,329 @@
     "title": "BreedList",
     "type": "object"
    },
+   "Composition": {
+    "additionalProperties": false,
+    "description": "What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the species base mesh plus the family delta plus one region delta per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.",
+    "properties": {
+     "base_colour": {
+      "$ref": "#/components/schemas/Composition_hex"
+     },
+     "base_mesh_version": {
+      "description": "Must equal the release's base mesh version.",
+      "type": "string"
+     },
+     "breed_id": {
+      "description": "The breed the customer started from (informational).",
+      "maxLength": 48,
+      "type": "string"
+     },
+     "composition_version": {
+      "const": "1.0"
+     },
+     "eye_colour": {
+      "$ref": "#/components/schemas/Composition_hex"
+     },
+     "family_id": {
+      "maxLength": 64,
+      "type": "string"
+     },
+     "layers": {
+      "description": "Pattern layers, composited in this order over the base colour.",
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "colour": {
+         "$ref": "#/components/schemas/Composition_hex"
+        },
+        "coverage": {
+         "description": "The mask threshold: the layer covers texels whose mask value is below coverage.",
+         "maximum": 1,
+         "minimum": 0,
+         "type": "number"
+        },
+        "pattern_id": {
+         "maxLength": 64,
+         "type": "string"
+        }
+       },
+       "required": [
+        "pattern_id",
+        "coverage",
+        "colour"
+       ],
+       "type": "object"
+      },
+      "maxItems": 10,
+      "type": "array"
+     },
+     "nose_colour": {
+      "$ref": "#/components/schemas/Composition_hex"
+     },
+     "parts": {
+      "additionalProperties": false,
+      "description": "One region-delta part id per region; a region left out keeps the family's shape.",
+      "properties": {
+       "ears": {
+        "maxLength": 64,
+        "type": "string"
+       },
+       "head": {
+        "maxLength": 64,
+        "type": "string"
+       },
+       "legs": {
+        "maxLength": 64,
+        "type": "string"
+       },
+       "muzzle": {
+        "maxLength": 64,
+        "type": "string"
+       },
+       "tail": {
+        "maxLength": 64,
+        "type": "string"
+       }
+      },
+      "type": "object"
+     },
+     "pet_name": {
+      "maxLength": 24,
+      "type": "string"
+     },
+     "release_version": {
+      "description": "The library release the ids refer to.",
+      "pattern": "^release-(dog|cat)-[0-9]+$",
+      "type": "string"
+     },
+     "shells": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "colour": {
+         "$ref": "#/components/schemas/Composition_hex"
+        },
+        "part_id": {
+         "maxLength": 64,
+         "type": "string"
+        }
+       },
+       "required": [
+        "part_id",
+        "colour"
+       ],
+       "type": "object"
+      },
+      "maxItems": 5,
+      "type": "array"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ]
+     },
+     "stamps": {
+      "description": "Spots, patches and brush dabs, painted after the layers in this order. Positions are in base-mesh space (mm), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly.",
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "colour": {
+         "$ref": "#/components/schemas/Composition_hex"
+        },
+        "p": {
+         "items": {
+          "maximum": 200,
+          "minimum": -200,
+          "type": "number"
+         },
+         "maxItems": 3,
+         "minItems": 3,
+         "type": "array"
+        },
+        "r": {
+         "maximum": 20,
+         "minimum": 0.5,
+         "type": "number"
+        }
+       },
+       "required": [
+        "p",
+        "r",
+        "colour"
+       ],
+       "type": "object"
+      },
+      "maxItems": 400,
+      "type": "array"
+     }
+    },
+    "required": [
+     "composition_version",
+     "species",
+     "release_version",
+     "base_mesh_version",
+     "family_id",
+     "parts",
+     "shells",
+     "base_colour",
+     "layers",
+     "stamps",
+     "eye_colour",
+     "nose_colour"
+    ],
+    "title": "Composition",
+    "type": "object"
+   },
+   "CompositionCreate": {
+    "additionalProperties": false,
+    "properties": {
+     "composition": {
+      "$ref": "#/components/schemas/Composition"
+     },
+     "session_id": {
+      "title": "Session Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "session_id",
+     "composition"
+    ],
+    "title": "CompositionCreate",
+    "type": "object"
+   },
+   "CompositionStatus": {
+    "additionalProperties": false,
+    "properties": {
+     "artefacts": {
+      "items": {
+       "$ref": "#/components/schemas/Artefact"
+      },
+      "title": "Artefacts",
+      "type": "array"
+     },
+     "composition": {
+      "$ref": "#/components/schemas/Composition"
+     },
+     "composition_id": {
+      "title": "Composition Id",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "export": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ExportStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "pet_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pet Name"
+     },
+     "previews": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "title": "Previews",
+      "type": "object"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "result_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Signed public result page for the QR code (7 days), once ready.",
+      "title": "Result Url"
+     },
+     "session_id": {
+      "title": "Session Id",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "draft",
+       "exporting",
+       "ready",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "ticket": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Order ticket, issued when the export is requested.",
+      "title": "Ticket"
+     }
+    },
+    "required": [
+     "composition_id",
+     "session_id",
+     "status",
+     "pet_name",
+     "species",
+     "release_version",
+     "created_at",
+     "export",
+     "artefacts",
+     "previews",
+     "composition"
+    ],
+    "title": "CompositionStatus",
+    "type": "object"
+   },
+   "Composition_hex": {
+    "pattern": "^#[0-9A-Fa-f]{6}$",
+    "type": "string"
+   },
    "ErrorBody": {
     "additionalProperties": false,
     "properties": {
@@ -139,6 +508,87 @@
      "detail"
     ],
     "title": "ErrorBody",
+    "type": "object"
+   },
+   "ExportAccepted": {
+    "additionalProperties": false,
+    "properties": {
+     "composition_id": {
+      "title": "Composition Id",
+      "type": "string"
+     },
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "queue_position": {
+      "title": "Queue Position",
+      "type": "integer"
+     },
+     "ticket": {
+      "title": "Ticket",
+      "type": "string"
+     }
+    },
+    "required": [
+     "composition_id",
+     "job_id",
+     "ticket",
+     "queue_position"
+    ],
+    "title": "ExportAccepted",
+    "type": "object"
+   },
+   "ExportStatus": {
+    "additionalProperties": false,
+    "properties": {
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "pct": {
+      "title": "Pct",
+      "type": "integer"
+     },
+     "stage": {
+      "enum": [
+       "queued",
+       "A",
+       "control",
+       "B",
+       "C",
+       "D",
+       "E",
+       "F",
+       "done"
+      ],
+      "title": "Stage",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "done",
+       "failed",
+       "fulfilled"
+      ],
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "job_id",
+     "status",
+     "stage",
+     "pct",
+     "message"
+    ],
+    "title": "ExportStatus",
     "type": "object"
    },
    "FulfilResponse": {
@@ -274,11 +724,6 @@
       "default": 90,
       "title": "Idle Seconds",
       "type": "integer"
-     },
-     "max_generations": {
-      "default": 3,
-      "title": "Max Generations",
-      "type": "integer"
      }
     },
     "title": "IdlePolicy",
@@ -344,6 +789,15 @@
       "title": "Job Id",
       "type": "string"
      },
+     "kind": {
+      "enum": [
+       "pipeline",
+       "bespoke",
+       "export"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
      "message": {
       "title": "Message",
       "type": "string"
@@ -377,6 +831,11 @@
       "title": "Queue Position",
       "type": "integer"
      },
+     "requested_by": {
+      "description": "Staff username, or kiosk:<kiosk_id> for a bespoke request.",
+      "title": "Requested By",
+      "type": "string"
+     },
      "result_url": {
       "anyOf": [
        {
@@ -394,8 +853,16 @@
       "type": "integer"
      },
      "session_id": {
-      "title": "Session Id",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The kiosk session of a bespoke request; null for studio jobs.",
+      "title": "Session Id"
      },
      "spec": {
       "$ref": "#/components/schemas/PetSpec"
@@ -455,7 +922,8 @@
     },
     "required": [
      "job_id",
-     "session_id",
+     "kind",
+     "requested_by",
      "status",
      "stage",
      "pct",
@@ -477,16 +945,11 @@
    "JobCreate": {
     "additionalProperties": false,
     "properties": {
-     "session_id": {
-      "title": "Session Id",
-      "type": "string"
-     },
      "spec": {
       "$ref": "#/components/schemas/PetSpec"
      }
     },
     "required": [
-     "session_id",
      "spec"
     ],
     "title": "JobCreate",
@@ -495,10 +958,6 @@
    "JobCreated": {
     "additionalProperties": false,
     "properties": {
-     "generations_left": {
-      "title": "Generations Left",
-      "type": "integer"
-     },
      "job_id": {
       "title": "Job Id",
       "type": "string"
@@ -522,10 +981,479 @@
     "required": [
      "job_id",
      "status",
-     "queue_position",
-     "generations_left"
+     "queue_position"
     ],
     "title": "JobCreated",
+    "type": "object"
+   },
+   "KioskOps": {
+    "additionalProperties": false,
+    "description": "The kiosk's five-tap ops panel: release version, health, reprint; no generation controls.",
+    "properties": {
+     "api_version": {
+      "title": "Api Version",
+      "type": "string"
+     },
+     "bespoke_enabled": {
+      "title": "Bespoke Enabled",
+      "type": "boolean"
+     },
+     "exports_queued": {
+      "title": "Exports Queued",
+      "type": "integer"
+     },
+     "exports_running": {
+      "title": "Exports Running",
+      "type": "integer"
+     },
+     "kiosk_id": {
+      "title": "Kiosk Id",
+      "type": "string"
+     },
+     "mode": {
+      "enum": [
+       "mock",
+       "real"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "orders": {
+      "description": "The last 20 orders, newest first.",
+      "items": {
+       "$ref": "#/components/schemas/KioskOrder"
+      },
+      "title": "Orders",
+      "type": "array"
+     },
+     "releases": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "description": "Active library release per species.",
+      "title": "Releases",
+      "type": "object"
+     }
+    },
+    "required": [
+     "api_version",
+     "mode",
+     "kiosk_id",
+     "releases",
+     "bespoke_enabled",
+     "exports_queued",
+     "exports_running",
+     "orders"
+    ],
+    "title": "KioskOps",
+    "type": "object"
+   },
+   "KioskOrder": {
+    "additionalProperties": false,
+    "properties": {
+     "composition_id": {
+      "title": "Composition Id",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "pet_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pet Name"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "draft",
+       "exporting",
+       "ready",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "thumbnail_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Thumbnail Url"
+     },
+     "ticket": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticket"
+     }
+    },
+    "required": [
+     "composition_id",
+     "ticket",
+     "pet_name",
+     "species",
+     "status",
+     "created_at",
+     "thumbnail_url"
+    ],
+    "title": "KioskOrder",
+    "type": "object"
+   },
+   "LibraryFamilies": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/LibraryFamily"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species",
+     "release_version",
+     "items"
+    ],
+    "title": "LibraryFamilies",
+    "type": "object"
+   },
+   "LibraryFamily": {
+    "additionalProperties": false,
+    "properties": {
+     "breeds": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Breeds",
+      "type": "array"
+     },
+     "default_parts": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "title": "Default Parts",
+      "type": "object"
+     },
+     "delta_url": {
+      "title": "Delta Url",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "tags": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+     },
+     "thumbnail_url": {
+      "title": "Thumbnail Url",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "default_parts",
+     "breeds",
+     "tags",
+     "version",
+     "delta_url",
+     "thumbnail_url"
+    ],
+    "title": "LibraryFamily",
+    "type": "object"
+   },
+   "LibraryPart": {
+    "additionalProperties": false,
+    "properties": {
+     "default_colour": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Colour"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "delta",
+       "shell"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "enum": [
+         "ears",
+         "tail",
+         "muzzle",
+         "head",
+         "legs"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Region of a region-delta part.",
+      "title": "Region"
+     },
+     "socket": {
+      "anyOf": [
+       {
+        "enum": [
+         "neck",
+         "head",
+         "face"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Socket of a shell part.",
+      "title": "Socket"
+     },
+     "tags": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+     },
+     "thumbnail_url": {
+      "title": "Thumbnail Url",
+      "type": "string"
+     },
+     "url": {
+      "description": "float16 delta (region parts) or GLB (shell parts).",
+      "title": "Url",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "kind",
+     "tags",
+     "version",
+     "url",
+     "thumbnail_url"
+    ],
+    "title": "LibraryPart",
+    "type": "object"
+   },
+   "LibraryParts": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/LibraryPart"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species",
+     "release_version",
+     "items"
+    ],
+    "title": "LibraryParts",
+    "type": "object"
+   },
+   "LibraryPattern": {
+    "additionalProperties": false,
+    "properties": {
+     "channel": {
+      "title": "Channel",
+      "type": "integer"
+     },
+     "coverage": {
+      "$ref": "#/components/schemas/PatternCoverage"
+     },
+     "default_colour": {
+      "title": "Default Colour",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "thumbnail_url": {
+      "title": "Thumbnail Url",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "channel",
+     "default_colour",
+     "coverage",
+     "version",
+     "thumbnail_url"
+    ],
+    "title": "LibraryPattern",
+    "type": "object"
+   },
+   "LibraryPatterns": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/LibraryPattern"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species",
+     "release_version",
+     "items"
+    ],
+    "title": "LibraryPatterns",
+    "type": "object"
+   },
+   "LibraryRelease": {
+    "additionalProperties": false,
+    "description": "The active release for a species: its manifest (data/schema/release.schema.json) and where its files are.",
+    "properties": {
+     "base_mesh_version": {
+      "title": "Base Mesh Version",
+      "type": "string"
+     },
+     "files_url": {
+      "description": "Prefix for the release's files: <files_url><path>.",
+      "title": "Files Url",
+      "type": "string"
+     },
+     "manifest": {
+      "$ref": "#/components/schemas/ReleaseManifest"
+     },
+     "release_version": {
+      "title": "Release Version",
+      "type": "string"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     }
+    },
+    "required": [
+     "species",
+     "release_version",
+     "base_mesh_version",
+     "files_url",
+     "manifest"
+    ],
+    "title": "LibraryRelease",
     "type": "object"
    },
    "ParseRequest": {
@@ -627,6 +1555,30 @@
      "ms"
     ],
     "title": "ParseResponse",
+    "type": "object"
+   },
+   "PatternCoverage": {
+    "additionalProperties": false,
+    "properties": {
+     "default": {
+      "title": "Default",
+      "type": "number"
+     },
+     "max": {
+      "title": "Max",
+      "type": "number"
+     },
+     "min": {
+      "title": "Min",
+      "type": "number"
+     }
+    },
+    "required": [
+     "min",
+     "max",
+     "default"
+    ],
+    "title": "PatternCoverage",
     "type": "object"
    },
    "PetSpec": {
@@ -1148,6 +2100,384 @@
     "title": "ProgressEvent",
     "type": "object"
    },
+   "ReleaseManifest": {
+    "additionalProperties": false,
+    "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
+    "properties": {
+     "atlas": {
+      "additionalProperties": false,
+      "properties": {
+       "channels": {
+        "additionalProperties": {
+         "minimum": 0,
+         "type": "integer"
+        },
+        "description": "Mask name -> flat channel index (file index * 4 + channel); includes eye and nose.",
+        "type": "object"
+       },
+       "mask_files": {
+        "description": "RGBA PNGs in the species UV atlas; each channel is one mask.",
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "size": {
+        "enum": [
+         512,
+         1024,
+         2048
+        ],
+        "type": "integer"
+       }
+      },
+      "required": [
+       "size",
+       "mask_files",
+       "channels"
+      ],
+      "type": "object"
+     },
+     "base_mesh_version": {
+      "type": "string"
+     },
+     "base_topology": {
+      "description": "topology_hash of the base mesh every delta was extracted on; a kiosk refuses a release whose hash differs from its own base mesh.",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "created_by": {
+      "type": "string"
+     },
+     "families": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "breeds": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "default_parts": {
+         "additionalProperties": {
+          "$ref": "#/components/schemas/ReleaseManifest_id"
+         },
+         "type": "object"
+        },
+        "delta": {
+         "description": "float16 (n, 3) full-mesh vertex offsets, little endian.",
+         "type": "string"
+        },
+        "id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "name": {
+         "type": "string"
+        },
+        "source_job": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "tags": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "thumbnail": {
+         "type": "string"
+        },
+        "version": {
+         "minimum": 1,
+         "type": "integer"
+        }
+       },
+       "required": [
+        "id",
+        "name",
+        "delta",
+        "default_parts",
+        "breeds",
+        "tags",
+        "version",
+        "thumbnail"
+       ],
+       "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+     },
+     "files": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "bytes": {
+         "minimum": 0,
+         "type": "integer"
+        },
+        "path": {
+         "pattern": "^[a-z0-9_./-]+$",
+         "type": "string"
+        },
+        "sha256": {
+         "pattern": "^[0-9a-f]{64}$",
+         "type": "string"
+        }
+       },
+       "required": [
+        "path",
+        "bytes",
+        "sha256"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "mesh": {
+      "description": "Path of base.bin: the base mesh the client builds its preview from (positions, triangles, corner UVs, eye and nose masks per vertex).",
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     },
+     "number": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "pattern_layers": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "channel": {
+         "description": "Flat mask channel (see atlas.channels).",
+         "minimum": 0,
+         "type": "integer"
+        },
+        "coverage": {
+         "additionalProperties": false,
+         "properties": {
+          "default": {
+           "maximum": 1,
+           "minimum": 0,
+           "type": "number"
+          },
+          "max": {
+           "maximum": 1,
+           "minimum": 0,
+           "type": "number"
+          },
+          "min": {
+           "maximum": 1,
+           "minimum": 0,
+           "type": "number"
+          }
+         },
+         "required": [
+          "min",
+          "max",
+          "default"
+         ],
+         "type": "object"
+        },
+        "default_colour": {
+         "pattern": "^#[0-9A-Fa-f]{6}$",
+         "type": "string"
+        },
+        "id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "name": {
+         "type": "string"
+        },
+        "tags": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "thumbnail": {
+         "type": "string"
+        },
+        "version": {
+         "minimum": 1,
+         "type": "integer"
+        }
+       },
+       "required": [
+        "id",
+        "name",
+        "channel",
+        "default_colour",
+        "coverage",
+        "version",
+        "thumbnail"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "region_deltas": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "curator_score": {
+         "type": [
+          "number",
+          "null"
+         ]
+        },
+        "delta": {
+         "description": "float16 (n, 3) vertex offsets, zero outside the region and feathered by the region's vertex-group weights.",
+         "type": "string"
+        },
+        "id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "name": {
+         "type": "string"
+        },
+        "region": {
+         "enum": [
+          "ears",
+          "tail",
+          "muzzle",
+          "head",
+          "legs"
+         ]
+        },
+        "source_job": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "tags": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "thumbnail": {
+         "type": "string"
+        },
+        "version": {
+         "minimum": 1,
+         "type": "integer"
+        }
+       },
+       "required": [
+        "id",
+        "name",
+        "region",
+        "delta",
+        "tags",
+        "version",
+        "thumbnail"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "release_schema": {
+      "const": "1.0"
+     },
+     "release_version": {
+      "pattern": "^release-(dog|cat)-[0-9]+$",
+      "type": "string"
+     },
+     "shell_parts": {
+      "items": {
+       "additionalProperties": false,
+       "properties": {
+        "default_colour": {
+         "pattern": "^#[0-9A-Fa-f]{6}$",
+         "type": "string"
+        },
+        "id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "kind": {
+         "description": "The accessory-library mesh (collar, bandana, bow, hat, glasses) the export fuses.",
+         "type": "string"
+        },
+        "mesh": {
+         "description": "GLB of the shell in its socket frame (unit scale, Z up).",
+         "type": "string"
+        },
+        "name": {
+         "type": "string"
+        },
+        "socket": {
+         "enum": [
+          "neck",
+          "head",
+          "face"
+         ]
+        },
+        "tags": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "thumbnail": {
+         "type": "string"
+        },
+        "version": {
+         "minimum": 1,
+         "type": "integer"
+        }
+       },
+       "required": [
+        "id",
+        "name",
+        "socket",
+        "kind",
+        "mesh",
+        "default_colour",
+        "version",
+        "thumbnail"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ]
+     }
+    },
+    "required": [
+     "release_schema",
+     "release_version",
+     "species",
+     "number",
+     "base_mesh_version",
+     "base_topology",
+     "atlas",
+     "created_at",
+     "created_by",
+     "families",
+     "region_deltas",
+     "shell_parts",
+     "pattern_layers",
+     "files"
+    ],
+    "title": "LibraryRelease",
+    "type": "object"
+   },
+   "ReleaseManifest_id": {
+    "pattern": "^[a-z0-9_]{1,64}$",
+    "type": "string"
+   },
    "ResultPage": {
     "additionalProperties": false,
     "properties": {
@@ -1231,14 +2561,12 @@
    },
    "Session": {
     "additionalProperties": false,
+    "description": "An anonymous kiosk session (no accounts); wiped on idle.",
     "properties": {
-     "generate_count": {
-      "title": "Generate Count",
-      "type": "integer"
-     },
-     "generations_left": {
-      "title": "Generations Left",
-      "type": "integer"
+     "bespoke_enabled": {
+      "description": "KIOSK_BESPOKE: whether the kiosk offers \"Make it unique\".",
+      "title": "Bespoke Enabled",
+      "type": "boolean"
      },
      "idle_policy": {
       "$ref": "#/components/schemas/IdlePolicy"
@@ -1262,8 +2590,7 @@
      "kiosk_id",
      "started_at",
      "idle_policy",
-     "generate_count",
-     "generations_left"
+     "bespoke_enabled"
     ],
     "title": "Session",
     "type": "object"
@@ -1326,6 +2653,15 @@
       "title": "Job Id",
       "type": "string"
      },
+     "kind": {
+      "enum": [
+       "pipeline",
+       "bespoke",
+       "export"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
      "pet_name": {
       "anyOf": [
        {
@@ -1336,6 +2672,10 @@
        }
       ],
       "title": "Pet Name"
+     },
+     "requested_by": {
+      "title": "Requested By",
+      "type": "string"
      },
      "species": {
       "enum": [
@@ -1396,6 +2736,8 @@
     },
     "required": [
      "job_id",
+     "kind",
+     "requested_by",
      "status",
      "stage",
      "pet_name",
@@ -1408,6 +2750,27 @@
      "error"
     ],
     "title": "StaffJob",
+    "type": "object"
+   },
+   "StaffLogin": {
+    "additionalProperties": false,
+    "properties": {
+     "password": {
+      "maxLength": 200,
+      "title": "Password",
+      "type": "string"
+     },
+     "username": {
+      "maxLength": 40,
+      "title": "Username",
+      "type": "string"
+     }
+    },
+    "required": [
+     "username",
+     "password"
+    ],
+    "title": "StaffLogin",
     "type": "object"
    },
    "StaffQueue": {
@@ -1457,6 +2820,55 @@
      "gpu"
     ],
     "title": "StaffQueue",
+    "type": "object"
+   },
+   "StaffToken": {
+    "additionalProperties": false,
+    "properties": {
+     "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+     },
+     "token": {
+      "description": "Bearer token for the /studio routes (Authorization: Bearer <token>).",
+      "title": "Token",
+      "type": "string"
+     },
+     "user": {
+      "$ref": "#/components/schemas/StaffUser"
+     }
+    },
+    "required": [
+     "token",
+     "user",
+     "expires_at"
+    ],
+    "title": "StaffToken",
+    "type": "object"
+   },
+   "StaffUser": {
+    "additionalProperties": false,
+    "properties": {
+     "role": {
+      "enum": [
+       "operator",
+       "curator",
+       "admin"
+      ],
+      "title": "Role",
+      "type": "string"
+     },
+     "username": {
+      "title": "Username",
+      "type": "string"
+     }
+    },
+    "required": [
+     "username",
+     "role"
+    ],
+    "title": "StaffUser",
     "type": "object"
    },
    "StageTiming": {
@@ -1519,14 +2931,9 @@
     "properties": {
      "patch": {
       "$ref": "#/components/schemas/PetSpecPatch"
-     },
-     "session_id": {
-      "title": "Session Id",
-      "type": "string"
      }
     },
     "required": [
-     "session_id",
      "patch"
     ],
     "title": "TweakRequest",
@@ -1575,95 +2982,12 @@
   }
  },
  "info": {
-  "description": "PetPop kiosk API (BRIEF Section 9). Source of truth: data/schema/openapi.json.",
+  "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "1.0.0"
+  "version": "3.0.0"
  },
  "openapi": "3.1.0",
  "paths": {
-  "/api/v1/breeds": {
-   "get": {
-    "operationId": "listBreeds",
-    "parameters": [
-     {
-      "in": "query",
-      "name": "species",
-      "required": true,
-      "schema": {
-       "enum": [
-        "dog",
-        "cat"
-       ],
-       "title": "Species",
-       "type": "string"
-      }
-     },
-     {
-      "in": "query",
-      "name": "q",
-      "required": false,
-      "schema": {
-       "anyOf": [
-        {
-         "maxLength": 40,
-         "type": "string"
-        },
-        {
-         "type": "null"
-        }
-       ],
-       "title": "Q"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/BreedList"
-        }
-       }
-      },
-      "description": "Successful Response"
-     },
-     "404": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Not Found"
-     },
-     "409": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Conflict"
-     },
-     "422": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Unprocessable Entity"
-     }
-    },
-    "summary": "Breeds",
-    "tags": [
-     "kiosk"
-    ]
-   }
-  },
   "/api/v1/files/{key}": {
    "get": {
     "operationId": "getFile",
@@ -1764,14 +3088,97 @@
     ]
    }
   },
-  "/api/v1/jobs": {
+  "/api/v1/kiosk/breeds": {
+   "get": {
+    "operationId": "kioskListBreeds",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maxLength": 40,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BreedList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Kiosk Breeds",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/compositions": {
    "post": {
-    "operationId": "createJob",
+    "operationId": "kioskCreateComposition",
     "requestBody": {
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/JobCreate"
+        "$ref": "#/components/schemas/CompositionCreate"
        }
       }
      },
@@ -1782,7 +3189,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/JobCreated"
+         "$ref": "#/components/schemas/CompositionStatus"
         }
        }
       },
@@ -1819,22 +3226,22 @@
       "description": "Unprocessable Entity"
      }
     },
-    "summary": "Create Job",
+    "summary": "Create Composition",
     "tags": [
-     "jobs"
+     "kiosk"
     ]
    }
   },
-  "/api/v1/jobs/{job_id}": {
+  "/api/v1/kiosk/compositions/{composition_id}": {
    "get": {
-    "operationId": "getJob",
+    "operationId": "kioskGetComposition",
     "parameters": [
      {
       "in": "path",
-      "name": "job_id",
+      "name": "composition_id",
       "required": true,
       "schema": {
-       "title": "Job Id",
+       "title": "Composition Id",
        "type": "string"
       }
      }
@@ -1844,7 +3251,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/Job"
+         "$ref": "#/components/schemas/CompositionStatus"
         }
        }
       },
@@ -1881,117 +3288,22 @@
       "description": "Unprocessable Entity"
      }
     },
-    "summary": "Get Job",
+    "summary": "Get Composition",
     "tags": [
-     "jobs"
+     "kiosk"
     ]
    }
   },
-  "/api/v1/jobs/{job_id}/events": {
-   "get": {
-    "description": "WebSocket. Each text frame is a ProgressEvent JSON; the server closes after the job reaches done, failed or fulfilled. Close code 4404 means unknown job.",
-    "operationId": "jobEvents",
-    "parameters": [
-     {
-      "in": "path",
-      "name": "job_id",
-      "required": true,
-      "schema": {
-       "type": "string"
-      }
-     }
-    ],
-    "responses": {
-     "101": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ProgressEvent"
-        }
-       }
-      },
-      "description": "Switching protocols"
-     }
-    },
-    "summary": "WebSocket progress stream",
-    "tags": [
-     "jobs"
-    ],
-    "x-websocket": true
-   }
-  },
-  "/api/v1/jobs/{job_id}/fulfil": {
+  "/api/v1/kiosk/compositions/{composition_id}/bespoke": {
    "post": {
-    "operationId": "fulfilJob",
+    "operationId": "kioskBespoke",
     "parameters": [
      {
       "in": "path",
-      "name": "job_id",
+      "name": "composition_id",
       "required": true,
       "schema": {
-       "title": "Job Id",
-       "type": "string"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/FulfilResponse"
-        }
-       }
-      },
-      "description": "Successful Response"
-     },
-     "404": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Not Found"
-     },
-     "409": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Conflict"
-     },
-     "422": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Unprocessable Entity"
-     }
-    },
-    "summary": "Fulfil",
-    "tags": [
-     "jobs"
-    ]
-   }
-  },
-  "/api/v1/jobs/{job_id}/tweak": {
-   "post": {
-    "operationId": "tweakJob",
-    "parameters": [
-     {
-      "in": "path",
-      "name": "job_id",
-      "required": true,
-      "schema": {
-       "title": "Job Id",
+       "title": "Composition Id",
        "type": "string"
       }
      }
@@ -2000,7 +3312,7 @@
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/TweakRequest"
+        "$ref": "#/components/schemas/BespokeRequest"
        }
       }
      },
@@ -2011,7 +3323,79 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/JobCreated"
+         "$ref": "#/components/schemas/BespokeAccepted"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Bespoke",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/compositions/{composition_id}/export": {
+   "post": {
+    "operationId": "kioskExportComposition",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "composition_id",
+      "required": true,
+      "schema": {
+       "title": "Composition Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ExportAccepted"
         }
        }
       },
@@ -2048,9 +3432,552 @@
       "description": "Unprocessable Entity"
      }
     },
-    "summary": "Tweak",
+    "summary": "Export Composition",
     "tags": [
-     "jobs"
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/library/{species}": {
+   "get": {
+    "operationId": "kioskLibraryRelease",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryRelease"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Library Release",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/library/{species}/families": {
+   "get": {
+    "operationId": "kioskLibraryFamilies",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryFamilies"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Library Families",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/library/{species}/files/{path}": {
+   "get": {
+    "operationId": "kioskLibraryFile",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "path",
+      "required": true,
+      "schema": {
+       "title": "Path",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       },
+       "application/octet-stream": {}
+      },
+      "description": "A file of the active release"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Library File",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/library/{species}/parts": {
+   "get": {
+    "operationId": "kioskLibraryParts",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "region",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "ears",
+          "tail",
+          "muzzle",
+          "head",
+          "legs"
+         ],
+         "type": "string"
+        },
+        {
+         "const": "shells",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Region"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryParts"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Library Parts",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/library/{species}/patterns": {
+   "get": {
+    "operationId": "kioskLibraryPatterns",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LibraryPatterns"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Library Patterns",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/ops": {
+   "get": {
+    "operationId": "kioskOps",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "x-staff-token",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Staff-Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KioskOps"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Kiosk Ops",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/ops/orders/{composition_id}/reprint": {
+   "post": {
+    "operationId": "kioskReprint",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "composition_id",
+      "required": true,
+      "schema": {
+       "title": "Composition Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "x-staff-token",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Staff-Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KioskOrder"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Kiosk Reprint",
+    "tags": [
+     "kiosk"
+    ]
+   }
+  },
+  "/api/v1/kiosk/sessions": {
+   "post": {
+    "operationId": "kioskCreateSession",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SessionCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Session"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Session",
+    "tags": [
+     "kiosk"
     ]
    }
   },
@@ -2116,29 +4043,49 @@
     ]
    }
   },
-  "/api/v1/sessions": {
+  "/api/v1/studio/auth/login": {
    "post": {
-    "operationId": "createSession",
+    "operationId": "studioLogin",
     "requestBody": {
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/SessionCreate"
+        "$ref": "#/components/schemas/StaffLogin"
        }
       }
      },
      "required": true
     },
     "responses": {
-     "201": {
+     "200": {
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/Session"
+         "$ref": "#/components/schemas/StaffToken"
         }
        }
       },
       "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
      },
      "422": {
       "content": {
@@ -2151,15 +4098,832 @@
       "description": "Validation Error"
      }
     },
-    "summary": "Create Session",
+    "summary": "Login",
     "tags": [
-     "kiosk"
+     "studio"
     ]
    }
   },
-  "/api/v1/spec/parse": {
+  "/api/v1/studio/auth/me": {
+   "get": {
+    "operationId": "studioMe",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StaffUser"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Me",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/breeds": {
+   "get": {
+    "operationId": "studioListBreeds",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maxLength": 40,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BreedList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Studio Breeds",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/jobs": {
    "post": {
-    "operationId": "parseSpec",
+    "operationId": "studioCreateJob",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/JobCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobCreated"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Create Job",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/jobs/{job_id}": {
+   "get": {
+    "operationId": "studioGetJob",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Job"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Get Job",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/jobs/{job_id}/events": {
+   "get": {
+    "description": "WebSocket. Each text frame is a ProgressEvent JSON; the server closes after the job reaches done, failed or fulfilled. Browsers cannot send headers on a WebSocket, so the staff token goes in the `token` query parameter. Close code 4401 means no valid token, 4404 unknown job.",
+    "operationId": "studioJobEvents",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "token",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "101": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProgressEvent"
+        }
+       }
+      },
+      "description": "Switching protocols"
+     }
+    },
+    "summary": "WebSocket progress stream",
+    "tags": [
+     "studio"
+    ],
+    "x-websocket": true
+   }
+  },
+  "/api/v1/studio/jobs/{job_id}/fulfil": {
+   "post": {
+    "operationId": "studioFulfilJob",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FulfilResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Fulfil",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/jobs/{job_id}/retry": {
+   "post": {
+    "operationId": "studioRetryJob",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobCreated"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Retry",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/jobs/{job_id}/tweak": {
+   "post": {
+    "operationId": "studioTweakJob",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TweakRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobCreated"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Tweak",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/queue": {
+   "get": {
+    "operationId": "studioQueue",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StaffQueue"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Queue",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/spec/parse": {
+   "post": {
+    "operationId": "studioParseSpec",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
     "requestBody": {
      "content": {
       "application/json": {
@@ -2180,6 +4944,26 @@
        }
       },
       "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
      },
      "404": {
       "content": {
@@ -2214,144 +4998,7 @@
     },
     "summary": "Parse",
     "tags": [
-     "kiosk"
-    ]
-   }
-  },
-  "/api/v1/staff/jobs/{job_id}/retry": {
-   "post": {
-    "operationId": "staffRetry",
-    "parameters": [
-     {
-      "in": "path",
-      "name": "job_id",
-      "required": true,
-      "schema": {
-       "title": "Job Id",
-       "type": "string"
-      }
-     },
-     {
-      "in": "header",
-      "name": "x-staff-token",
-      "required": false,
-      "schema": {
-       "anyOf": [
-        {
-         "type": "string"
-        },
-        {
-         "type": "null"
-        }
-       ],
-       "title": "X-Staff-Token"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/JobCreated"
-        }
-       }
-      },
-      "description": "Successful Response"
-     },
-     "403": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Forbidden"
-     },
-     "404": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Not Found"
-     },
-     "422": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/HTTPValidationError"
-        }
-       }
-      },
-      "description": "Validation Error"
-     }
-    },
-    "summary": "Staff Retry",
-    "tags": [
-     "staff"
-    ]
-   }
-  },
-  "/api/v1/staff/queue": {
-   "get": {
-    "operationId": "staffQueue",
-    "parameters": [
-     {
-      "in": "header",
-      "name": "x-staff-token",
-      "required": false,
-      "schema": {
-       "anyOf": [
-        {
-         "type": "string"
-        },
-        {
-         "type": "null"
-        }
-       ],
-       "title": "X-Staff-Token"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/StaffQueue"
-        }
-       }
-      },
-      "description": "Successful Response"
-     },
-     "403": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/ErrorBody"
-        }
-       }
-      },
-      "description": "Forbidden"
-     },
-     "422": {
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/HTTPValidationError"
-        }
-       }
-      },
-      "description": "Validation Error"
-     }
-    },
-    "summary": "Staff Queue",
-    "tags": [
-     "staff"
+     "studio"
     ]
    }
   }

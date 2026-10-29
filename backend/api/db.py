@@ -29,7 +29,11 @@ class SessionRow(Base):
 class JobRow(Base):
     __tablename__ = "jobs"
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
-    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
+    queue: Mapped[str] = mapped_column(String(8), default="studio", index=True)  # kiosk | studio (BRIEF Section 17)
+    kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export
+    session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
+    requested_by: Mapped[str] = mapped_column(String(48), default="")
+    contact: Mapped[str | None] = mapped_column(String(80), nullable=True)
     pet_spec: Mapped[dict[str, Any]] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(16), default="queued", index=True)  # queued/running/done/failed/fulfilled
     stage: Mapped[str] = mapped_column(String(16), default="queued")
@@ -44,6 +48,14 @@ class JobRow(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     ticket: Mapped[str | None] = mapped_column(String(16), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class StaffUserRow(Base):
+    """Studio staff accounts (local, BRIEF Section 17): roles operator / curator / admin."""
+    __tablename__ = "staff_users"
+    username: Mapped[str] = mapped_column(String(40), primary_key=True)
+    role: Mapped[str] = mapped_column(String(12))
+    password_hash: Mapped[str] = mapped_column(String(200))
 
 
 class ArtefactRow(Base):
@@ -87,6 +99,85 @@ class EventRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+# --------------------------------------------------------------------------- library mode (BRIEF Section 16)
+# The Studio's library: every item is versioned and keyed by base-mesh version; only published items are packed
+# into a release. The kiosk never reads these tables: it reads its installed release bundles and writes only
+# compositions (the order record).
+
+class _LibraryItem:
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    species: Mapped[str] = mapped_column(String(8), index=True)
+    base_mesh_version: Mapped[str] = mapped_column(String(32))
+    name: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(12), default="draft", index=True)  # draft/accepted/rejected/published
+    tags: Mapped[list[str]] = mapped_column(JSON, default=list)
+    files: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)  # role -> object key (delta, mesh, mask, thumbnail)
+    meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    batch_id: Mapped[str | None] = mapped_column(ForeignKey("curation_batches.id"), nullable=True)
+    source_job: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class CurationBatchRow(Base):
+    """A Studio batch: breeds x variants x seeds through stages A to E (M8)."""
+    __tablename__ = "curation_batches"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    species: Mapped[str] = mapped_column(String(8))
+    spec: Mapped[dict[str, Any]] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(12), default="queued")  # queued/running/review/done
+    created_by: Mapped[str] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class FamilyRow(_LibraryItem, Base):
+    """A body or head variant: a full-mesh delta with its default parts set and breed tags."""
+    __tablename__ = "families"
+    default_parts: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
+    breeds: Mapped[list[str]] = mapped_column(JSON, default=list)
+
+
+class RegionDeltaRow(_LibraryItem, Base):
+    """Vertex offsets for one vertex group (float16), with QC metrics and the curator's score."""
+    __tablename__ = "region_deltas"
+    region: Mapped[str] = mapped_column(String(12), index=True)
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+
+class ShellPartRow(_LibraryItem, Base):
+    """A separate mesh on a named socket (accessories, extreme ears and tails)."""
+    __tablename__ = "shell_parts"
+    socket: Mapped[str] = mapped_column(String(12))
+    kind: Mapped[str] = mapped_column(String(24))
+    default_colour: Mapped[str] = mapped_column(String(7))
+
+
+class PatternLayerRow(_LibraryItem, Base):
+    """A signed-distance mask channel in the species UV atlas, with default colour and coverage range."""
+    __tablename__ = "pattern_layers"
+    default_colour: Mapped[str] = mapped_column(String(7))
+    coverage: Mapped[dict[str, float]] = mapped_column(JSON)
+
+
+class CompositionRow(Base):
+    """Contract 2: what a customer assembled (data/schema/composition.schema.json). The order record and the only
+    input to a library export."""
+    __tablename__ = "compositions"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
+    species: Mapped[str] = mapped_column(String(8))
+    release_version: Mapped[str] = mapped_column(String(32))
+    pet_name: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    body: Mapped[dict[str, Any]] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(12), default="draft")  # draft/exporting (export state is the job's)
+    job_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    bespoke_job_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    ticket: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    reprints: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
 _engines: dict[str, Engine] = {}
 
 
@@ -115,7 +206,7 @@ def session_factory(url: str):
 
 
 def seed_breeds(factory) -> None:
-    from backend.core.breeds import all_breeds
+    from petpop_core.breeds import all_breeds
 
     with factory() as db:
         if db.query(BreedRow).count():
@@ -124,4 +215,34 @@ def seed_breeds(factory) -> None:
             for b in all_breeds(species):
                 db.add(BreedRow(id=b["id"], species=species, label=b["label"], preset=b["preset"],
                                 prompt_hint=b["prompt_hint"]))
+        db.commit()
+
+
+# --------------------------------------------------------------------------- staff accounts
+
+def hash_password(password: str, salt: bytes | None = None) -> str:
+    import hashlib
+    import os
+
+    salt = salt or os.urandom(16)
+    digest = hashlib.scrypt(password.encode(), salt=salt, n=2 ** 14, r=8, p=1)
+    return f"scrypt${salt.hex()}${digest.hex()}"
+
+
+def check_password(password: str, stored: str) -> bool:
+    import hmac
+
+    try:
+        algo, salt, _ = stored.split("$")
+    except ValueError:
+        return False
+    return algo == "scrypt" and hmac.compare_digest(hash_password(password, bytes.fromhex(salt)), stored)
+
+
+def seed_staff(factory, users: list[tuple[str, str, str]]) -> None:
+    """Create the configured staff accounts that do not exist yet (username, role, password)."""
+    with factory() as db:
+        for username, role, password in users:
+            if not db.get(StaffUserRow, username):
+                db.add(StaffUserRow(username=username, role=role, password_hash=hash_password(password)))
         db.commit()

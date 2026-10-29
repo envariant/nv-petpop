@@ -1,7 +1,7 @@
-# Override for GENAI_PROFILE=nvidia-24gb: ComfyUI and Ollama on this box's GPU, Cycles on CUDA in the worker.
+# Override for GENAI_PROFILE=nvidia-24gb: ComfyUI and Ollama on this box's GPU, Cycles on CUDA in the studio worker.
 #   docker compose -f infra/docker-compose.yml -f infra/docker-compose.nvidia.yml up -d   (make up does this)
 services:
-  worker:
+  worker-studio:
     deploy:
       resources:
         reservations:
@@ -9,7 +9,7 @@ services:
 
   comfyui:
     build: { context: .., dockerfile: infra/Dockerfile.comfyui }
-    expose: ["8188"]                # reachable by the worker only
+    expose: ["8188"]                # reachable by the studio worker only
     command: ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--disable-auto-launch",
               "--extra-model-paths-config", "/opt/ComfyUI/extra_model_paths.yaml", "--fp8_e4m3fn-unet"]
     volumes:

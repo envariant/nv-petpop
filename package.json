@@ -1,0 +1,10 @@
+{
+  "name": "petpop",
+  "private": true,
+  "version": "0.2.0",
+  "description": "PetPop monorepo (BRIEF Sections 12 and 17): two apps on one core. Apps import packages; packages never import apps.",
+  "workspaces": ["packages/core", "packages/viewer", "packages/ui", "apps/kiosk", "apps/studio"],
+  "scripts": {
+    "gen:client": "npm run -s gen:client -w @petpop/core"
+  }
+}

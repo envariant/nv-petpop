@@ -2,10 +2,10 @@
   "name": "@petpop/kiosk",
   "private": true,
   "version": "0.1.0",
+  "description": "PetPop Kiosk: the customer app (library mode, BRIEF Sections 16 and 17)",
   "type": "module",
   "scripts": {
     "sync-assets": "node scripts/sync-assets.mjs",
-    "gen:client": "openapi-typescript ../../data/schema/openapi.json -o src/api/schema.d.ts",
     "predev": "npm run sync-assets",
     "dev": "vite",
     "dev:mock": "npm run sync-assets && VITE_MOCK=1 vite",
@@ -20,6 +20,9 @@
   "dependencies": {
     "@fontsource/fredoka": "^5.0.0",
     "@fontsource/inter": "^5.0.0",
+    "@petpop/core": "0.2.0",
+    "@petpop/ui": "0.2.0",
+    "@petpop/viewer": "0.2.0",
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.0",
     "framer-motion": "^11.11.0",
@@ -50,6 +53,8 @@
     "vitest": "^2.1.0"
   },
   "msw": {
-    "workerDirectory": ["public"]
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

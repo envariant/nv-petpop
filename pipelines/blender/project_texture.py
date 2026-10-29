@@ -17,12 +17,13 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (ROOT / "packages" / "library" / "python", ROOT / "packages" / "core" / "python", ROOT):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from backend.core.accessories import placed  # noqa: E402
-from backend.core.colouring import vertex_colours  # noqa: E402
-from backend.core.meshkit import CENTRE_Z_DEFAULT, EXTENT_DEFAULT, VIEWS, dilate, raster_uv, render, view_matrix  # noqa: E402
+from petpop_library.accessories import placed  # noqa: E402
+from petpop_library.colouring import vertex_colours  # noqa: E402
+from petpop_library.meshkit import CENTRE_Z_DEFAULT, EXTENT_DEFAULT, VIEWS, dilate, raster_uv, render, view_matrix  # noqa: E402
 
 RENDER_PX = 512
 
@@ -114,7 +115,7 @@ def main(job: dict) -> dict:
 
     from PIL import Image
 
-    from backend.core.meshkit import load_base
+    from petpop_library.meshkit import load_base
 
     spec = json.loads(Path(job["spec"]).read_text())
     base = load_base(spec["species"])

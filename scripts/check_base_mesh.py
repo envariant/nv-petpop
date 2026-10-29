@@ -17,10 +17,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
-from backend.core.meshkit import load_base, raster_uv  # noqa: E402
+from petpop_library.meshkit import load_base, raster_uv  # noqa: E402
 from backend.core.paths import BASE_DIR  # noqa: E402
-from backend.core.vocab import vocab  # noqa: E402
+from petpop_core.vocab import vocab  # noqa: E402
 
 GROUPS = ["head", "muzzle", "ear_L", "ear_R", "body", "leg_FL", "leg_FR", "leg_BL", "leg_BR", "tail", "base"]
 LANDMARKS = ["nose_tip", "eye_L", "eye_R", "ear_tip_L", "ear_tip_R", "ear_base_L", "ear_base_R", "chin",

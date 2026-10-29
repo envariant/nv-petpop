@@ -1,27 +1,50 @@
-"""arq entry point for the GPU host (REDIS_URL set): `arq backend.worker.arq_worker.WorkerSettings`."""
+"""arq entry points for Compose (REDIS_URL set), one worker process per queue (BRIEF Section 17):
+
+    arq backend.worker.arq_worker.StudioWorkerSettings   # full pipeline; the only one that reaches the GenAI host
+    arq backend.worker.arq_worker.KioskWorkerSettings    # Stage-F-only exports
+"""
 from __future__ import annotations
 
 import asyncio
 import os
 
+from backend.api.bus import arq_queue
+
 from .service import Worker
 
-_worker: Worker | None = None
+_workers: dict[str, Worker] = {}
 
 
-async def run_job(ctx, job_id: str) -> str:
-    global _worker
-    _worker = _worker or Worker()
-    return await asyncio.to_thread(_worker.run_job, job_id)
+def _runner(queue: str):
+    async def run_job(ctx, job_id: str) -> str:
+        if queue not in _workers:
+            _workers[queue] = Worker(queue=queue)
+        return await asyncio.to_thread(_workers[queue].run_job, job_id)
+
+    return run_job
 
 
-class WorkerSettings:
-    functions = [run_job]
+try:
+    from arq.connections import RedisSettings
+    from arq.worker import func
+
+    _redis = RedisSettings.from_dsn(os.environ["REDIS_URL"]) if os.environ.get("REDIS_URL") else None
+except ImportError:  # arq is only installed for the Compose stack
+    func = None
+    _redis = None
+
+
+class StudioWorkerSettings:
+    queue_name = arq_queue("studio")
+    functions = [func(_runner("studio"), name="run_job")] if func else []
     max_jobs = 1  # one job at a time per GPU
-    job_timeout = 900
-    try:
-        from arq.connections import RedisSettings
+    job_timeout = 3600
+    redis_settings = _redis
 
-        redis_settings = RedisSettings.from_dsn(os.environ["REDIS_URL"]) if os.environ.get("REDIS_URL") else None
-    except ImportError:  # arq is only installed on the GPU host
-        pass
+
+class KioskWorkerSettings:
+    queue_name = arq_queue("kiosk")
+    functions = [func(_runner("kiosk"), name="run_job")] if func else []
+    max_jobs = 1
+    job_timeout = 300
+    redis_settings = _redis

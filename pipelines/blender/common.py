@@ -15,8 +15,9 @@ import bpy  # noqa: I001
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (ROOT / "packages" / "library" / "python", ROOT / "packages" / "core" / "python", ROOT):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
 EXTENT_MM = 110.0
 CENTRE_Z = 45.0
@@ -168,7 +169,7 @@ def load_accessory(kind: str):
     return obj
 
 
-from backend.core.accessories import accessory_anchors  # noqa: E402  (shared with the numpy mock shape)
+from petpop_library.accessories import accessory_anchors  # noqa: E402  (shared with the numpy mock shape)
 
 
 def add_accessories(accessories: list[dict], co: np.ndarray, landmarks: dict[str, int], shell: np.ndarray) -> list:

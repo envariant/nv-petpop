@@ -7,8 +7,8 @@ step "contract test against the mock server" env PETPOP_MOCK_SPEED=0 "$PY" -m py
 step "mock scripts reach every kiosk state" "$PY" -m pytest mock-server/tests
 step "openapi.json matches the contract router" "$PY" scripts/export_openapi.py --check
 step "base meshes pass check_base_mesh" "$PY" scripts/check_base_mesh.py
-step "TypeScript client generated from openapi.json" bash -c 'cd apps/kiosk && npx openapi-typescript ../../data/schema/openapi.json -o /tmp/pp-schema.d.ts >/dev/null && diff -q /tmp/pp-schema.d.ts src/api/schema.d.ts'
-step "MSW handlers cover every path; client typechecks" bash -c 'cd apps/kiosk && npx vitest run && npx tsc -b --noEmit'
+step "TypeScript client generated from openapi.json" bash -c 'npx openapi-typescript data/schema/openapi.json -o /tmp/pp-schema.d.ts >/dev/null && diff -q /tmp/pp-schema.d.ts packages/core/src/api/schema.d.ts'
+step "MSW handlers cover every path (kiosk + studio); both apps typecheck" bash -c 'for a in kiosk studio; do (cd apps/$a && npx vitest run && npx tsc -b --noEmit) || exit 1; done'
 step "mock server boots and answers" bash -c '
   "$0" -m mock_server --port 8765 & pid=$!
   trap "kill $pid" EXIT

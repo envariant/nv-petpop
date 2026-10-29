@@ -2,11 +2,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import fixtureIndex from '@fixtures/pets/index.json';
-import { Api } from '../api/client';
-import type { Breed, Species } from '../api/types';
-import { GlbFigure } from '../components/Figure3D';
-import { Keyboard, TextDisplay } from '../components/Keyboard';
-import { Tile, Title } from '../components/ui';
+import { KioskApi as Api } from '@petpop/core';
+import type { Breed, Species } from '@petpop/core';
+import { GlbFigure } from '@petpop/viewer';
+import { Keyboard, TextDisplay } from '@petpop/ui';
+import { Tile, Title } from '@petpop/ui';
 import { useSession } from '../store/session';
 
 const SHOWCASE = fixtureIndex.pets.slice(0, 6);

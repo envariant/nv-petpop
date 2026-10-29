@@ -18,6 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
 STAGES = ["A", "control", "B", "C", "D", "E", "F"]
 # Gate thresholds: robustness checks are fixed; IoU and latency come from the GenAI profile's `gates` and

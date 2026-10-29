@@ -1,10 +1,13 @@
 """Standalone PetPop mock server (BRIEF Section 13, "Mock server, built first").
 
-No database, queue or Blender. Implements the committed OpenAPI exactly via backend.core.contract:
+No database, queue or Blender. Implements the committed OpenAPI exactly via backend.api.contract:
 breed search over the real preset files, /spec/parse with the rule-based parser, and jobs that follow a
 script from mock-server/scripts/*.json using artefacts from the fixture pack.
 
-Script selection: header-free so the kiosk can reach every state by pet name. A pet named after one of a
+Studio logins (mock only, no real data): operator, curator and admin, password PETPOP_STUDIO_PASSWORD
+(default "petpop-dev"). The kiosk's "Make it unique" path is on when KIOSK_BESPOKE=1.
+
+Script selection: header-free so the studio can reach every state by pet name. A pet named after one of a
 script's `trigger_names` (case-insensitive: "Slowpoke", "Oops", "Plan B") runs that script; otherwise
 MOCK_SCRIPT (default "normal"). Timings are the script's real seconds x PETPOP_MOCK_SPEED.
 """
@@ -25,13 +28,15 @@ from typing import Any
 
 from fastapi.responses import Response
 
-from backend.core import models as m
-from backend.core.breeds import breed_doc, search
-from backend.core.contract import ApiError, check_sig, make_app, make_token, read_token, signed_file_url
-from backend.core.parser import parse
+from backend.api import models as m
+from petpop_core.breeds import breed_doc, search
+from backend.api.contract import ApiError, check_sig, make_app, make_token, read_token, signed_file_url
+from petpop_core.parser import parse
 from backend.core.paths import FIXTURES, ROOT, mock_speed
-from backend.core.schemas import spec_errors
-from backend.core.spec import apply_patch
+from petpop_core.schemas import spec_errors
+from petpop_core.spec import apply_patch
+
+from .library import MockLibrary
 
 SCRIPTS_DIR = ROOT / "mock-server" / "scripts"
 PRINT_BUNDLE = ["figure.3mf", "figure.stl", "albedo.png", "figure_uv.obj", "paint_mask.png", "manifest.json"]
@@ -49,7 +54,9 @@ def utc(ts: float) -> datetime:
 @dataclass
 class MockJob:
     job_id: str
-    session_id: str
+    session_id: str | None
+    requested_by: str
+    kind: str
     spec: dict[str, Any]
     script: dict[str, Any]
     pet: str
@@ -57,6 +64,7 @@ class MockJob:
     start: float  # when the script's t=0 happens (after the queue)
     speed: float
     ticket: str | None = None
+    fulfilled: bool = False
     manifest: dict[str, Any] = field(default_factory=dict)
 
     def scaled(self, s: float) -> float:
@@ -87,7 +95,7 @@ class MockJob:
         if last and self.script["outcome"] == "failed":
             status = "failed"
         elif last:
-            status = "fulfilled" if self.ticket else "done"
+            status = "fulfilled" if self.fulfilled else "done"
         else:
             status = "running"
         return {"status": status, "stage": step["stage"] if status != "failed" else step["stage"],
@@ -101,11 +109,14 @@ class MockApi:
     def __init__(self) -> None:
         self.staff_token = os.environ.get("PETPOP_STAFF_TOKEN", "dev-staff-token")
         self.secret = os.environ.get("PETPOP_SECRET") or secrets.token_hex(16)
+        self.studio_password = os.environ.get("PETPOP_STUDIO_PASSWORD", "petpop-dev")
+        self.bespoke_enabled = os.environ.get("KIOSK_BESPOKE", "0") == "1"
         self.scripts = load_scripts()
         self.default_script = os.environ.get("MOCK_SCRIPT", "normal")
         self.sessions: dict[str, dict[str, Any]] = {}
         self.jobs: dict[str, MockJob] = {}
         self.index = json.loads((FIXTURES / "index.json").read_text())["pets"]
+        self.library = MockLibrary(self.secret)
 
     # ----------------------------------------------------------------- helpers
     def _pick_script(self, spec: dict[str, Any]) -> dict[str, Any]:
@@ -133,13 +144,15 @@ class MockApi:
     def _url(self, job: MockJob, name: str, base: str = "") -> str:
         return signed_file_url(self.secret, f"jobs/{job.job_id}/{name}", base=base)
 
-    def _enqueue(self, session_id: str, spec: dict[str, Any], script: dict[str, Any] | None = None) -> MockJob:
+    def _enqueue(self, session_id: str | None, requested_by: str, spec: dict[str, Any], script: dict[str, Any] | None = None,
+                 kind: str = "pipeline") -> MockJob:
         now = time.time()
         speed = mock_speed()
         script = script or self._pick_script(spec)
         busy_until = max([j.end() for j in self.jobs.values()] + [now])  # one GPU: jobs run back to back
         start = max(now, busy_until) + script.get("queue_ahead", 0) * script.get("queue_job_s", 0) * speed
-        job = MockJob(job_id="j_" + uuid.uuid4().hex[:12], session_id=session_id, spec=spec, script=script,
+        job = MockJob(job_id="j_" + uuid.uuid4().hex[:12], session_id=session_id, requested_by=requested_by, kind=kind,
+                      spec=spec, script=script,
                       pet=self._pick_pet(spec), created=now, start=start, speed=speed)
         job.manifest = self._fixture_manifest(job.pet)
         self.jobs[job.job_id] = job
@@ -176,17 +189,81 @@ class MockApi:
                 return f["kind"], f["stage"], f["bytes"]
         raise KeyError(name)
 
-    def _session_left(self, session_id: str) -> int:
-        s = self.sessions[session_id]
-        return s["policy"].max_generations - s["count"]
+    def _created(self, job: MockJob) -> m.JobCreated:
+        st = job.state(time.time())
+        return m.JobCreated(job_id=job.job_id, status=st["status"], queue_position=st["queue_position"])
 
-    # ----------------------------------------------------------------- API
+    # ----------------------------------------------------------------- auth
+    def authenticate(self, username: str, password: str) -> str | None:
+        roles = {"operator": "operator", "curator": "curator", "admin": "admin"}
+        return roles.get(username) if secrets.compare_digest(password, self.studio_password) else None
+
+    # ----------------------------------------------------------------- kiosk
     async def create_session(self, body: m.SessionCreate) -> m.Session:
         sid = "s_" + uuid.uuid4().hex[:12]
-        policy = m.IdlePolicy()
-        self.sessions[sid] = {"kiosk_id": body.kiosk_id, "started": time.time(), "count": 0, "policy": policy}
-        return m.Session(session_id=sid, kiosk_id=body.kiosk_id, started_at=utc(time.time()), idle_policy=policy,
-                         generate_count=0, generations_left=policy.max_generations)
+        self.sessions[sid] = {"kiosk_id": body.kiosk_id, "started": time.time(), "bespoke": 0}
+        return m.Session(session_id=sid, kiosk_id=body.kiosk_id, started_at=utc(time.time()), idle_policy=m.IdlePolicy(),
+                         bespoke_enabled=self.bespoke_enabled)
+
+    async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
+        if not self.bespoke_enabled:
+            raise ApiError(403, "bespoke mode is off on this kiosk")
+        c = self.library.composition(composition_id)
+        sess = self.sessions.get(c.session_id)
+        if not sess:
+            raise ApiError(404, "unknown session")
+        if sess["bespoke"] or c.bespoke_job:
+            raise ApiError(409, "This session has already asked for a one-off figurine.")
+        sess["bespoke"] += 1
+        spec = self.library.bespoke_spec(c)
+        job = self._enqueue(c.session_id, f"kiosk:{sess['kiosk_id']}", spec, kind="bespoke")
+        job.ticket = f"PP-{random.randint(1000, 9999)}"
+        c.bespoke_job = job.job_id
+        return m.BespokeAccepted(request_id=job.job_id, ticket=job.ticket,
+                                 message="We'll message you when your one-off figurine is ready.")
+
+    async def kiosk_ops(self) -> m.KioskOps:
+        now = time.time()
+        states = [c.export_state(now)["status"] for c in self.library.compositions.values()]
+        return m.KioskOps(api_version=m.API_VERSION, mode="mock", kiosk_id="kiosk-1", releases=self.library.versions(),
+                          bespoke_enabled=self.bespoke_enabled, exports_queued=0, exports_running=states.count("exporting"),
+                          orders=self.library.orders())
+
+    async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
+        return self.library.reprint(composition_id)
+
+    # ----------------------------------------------------------------- kiosk library mode
+    async def library_release(self, species: str) -> m.LibraryRelease:
+        return self.library.release_info(species)
+
+    async def library_families(self, species: str) -> m.LibraryFamilies:
+        return self.library.families(species)
+
+    async def library_parts(self, species: str, region: str | None) -> m.LibraryParts:
+        return self.library.parts(species, region)
+
+    async def library_patterns(self, species: str) -> m.LibraryPatterns:
+        return self.library.patterns(species)
+
+    async def library_file(self, species: str, path: str) -> Response:
+        data, media = self.library.release_file(species, path)
+        return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+    async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
+        if body.session_id not in self.sessions:
+            raise ApiError(404, "unknown session")
+        c = self.library.create(body.session_id, body.composition, mock_speed())
+        return self.library.status(c, base)
+
+    async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
+        return self.library.status(self.library.composition(composition_id), base)
+
+    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
+        c = self.library.composition(composition_id)
+        self.library.export(c)
+        return m.ExportAccepted(composition_id=c.id, job_id=f"j_{c.id[2:]}", ticket=c.ticket, queue_position=0)
+
+    # ----------------------------------------------------------------- studio
 
     async def breeds(self, species: str, q: str | None) -> m.BreedList:
         items = search(species, q)
@@ -205,17 +282,9 @@ class MockApi:
         if errs:
             raise ApiError(422, {"spec": errs})
 
-    async def create_job(self, body: m.JobCreate) -> m.JobCreated:
-        if body.session_id not in self.sessions:
-            raise ApiError(404, "unknown session")
+    async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated:
         self._check_spec(body.spec)
-        if self._session_left(body.session_id) <= 0:
-            raise ApiError(409, "This session has used all of its figurines.")
-        self.sessions[body.session_id]["count"] += 1
-        job = self._enqueue(body.session_id, body.spec)
-        st = job.state(time.time())
-        return m.JobCreated(job_id=job.job_id, status=st["status"], queue_position=st["queue_position"],
-                            generations_left=self._session_left(body.session_id))
+        return self._created(self._enqueue(None, user.username, body.spec))
 
     async def get_job(self, job_id: str, base: str) -> m.Job:
         job = self._job(job_id)
@@ -255,14 +324,16 @@ class MockApi:
                                          ended_at=utc(job.start + job.scaled(end)) if finished else None))
         done = st["status"] in ("done", "fulfilled")
         result_url = f"{base}/r/{make_token(self.secret, job.job_id)}" if done else None
-        return m.Job(job_id=job.job_id, session_id=job.session_id, status=st["status"], stage=st["stage"],
+        ticket = job.ticket if st["status"] == "fulfilled" or job.kind == "bespoke" else None
+        return m.Job(job_id=job.job_id, kind=job.kind, session_id=job.session_id, requested_by=job.requested_by,
+                     status=st["status"], stage=st["stage"],
                      pct=st["pct"], message=st["message"], queue_position=st["queue_position"],
                      seed=job.spec["seed"], species=job.spec["species"], pet_name=job.spec.get("pet_name"),
                      created_at=utc(job.created), finished_at=utc(job.end()) if done or st["status"] == "failed"
                      else None, error=job.script.get("error") if st["status"] == "failed" else None,
                      fallback=job.script.get("fallback", "none") if done else "none",
                      fidelity=job.manifest.get("fidelity", "low"), timings=timings, artefacts=artefacts,
-                     previews=previews, result_url=result_url, ticket=job.ticket, spec=job.spec)
+                     previews=previews, result_url=result_url, ticket=ticket, spec=job.spec)
 
     async def job_events(self, job_id: str, base: str) -> AsyncIterator[m.ProgressEvent]:
         job = self._job(job_id)
@@ -297,11 +368,11 @@ class MockApi:
                 return
             await asyncio.sleep(0.1)
 
-    async def tweak(self, job_id: str, req: m.TweakRequest) -> m.JobCreated:
+    async def tweak(self, job_id: str, req: m.TweakRequest, user: m.StaffUser) -> m.JobCreated:
         old = self._job(job_id)
         spec, _ = apply_patch(old.spec, req.patch)
         spec["seed"] = old.spec["seed"]
-        return await self.create_job(m.JobCreate(session_id=req.session_id, spec=spec))
+        return await self.create_job(m.JobCreate(spec=spec), user)
 
     async def fulfil(self, job_id: str) -> m.FulfilResponse:
         job = self._job(job_id)
@@ -310,10 +381,13 @@ class MockApi:
             raise ApiError(409, "job is not finished")
         if not job.ticket:
             job.ticket = f"PP-{random.randint(1000, 9999)}"
+        job.fulfilled = True
         return m.FulfilResponse(job_id=job_id, ticket=job.ticket, files=PRINT_BUNDLE)
 
     async def result(self, token: str, base: str) -> m.ResultPage:
         job_id, exp = read_token(self.secret, token)
+        if job_id.startswith("c_"):  # a library order
+            return self.library.result(job_id, exp)
         job = self._job(job_id)
         return m.ResultPage(job_id=job_id, pet_name=job.spec.get("pet_name"), species=job.spec["species"],
                             breed_label=job.spec["breed"]["label"], glb_url=self._url(job, "figure.glb"),
@@ -324,6 +398,9 @@ class MockApi:
         if not check_sig(self.secret, key, exp, sig):
             raise ApiError(403, "bad or expired signature")
         parts = key.split("/", 2)
+        if len(parts) == 3 and parts[0] == "compositions":
+            data, media = self.library.file(key)
+            return Response(data, media_type=media or "application/octet-stream", headers={"Cache-Control": "private, max-age=3600"})
         if len(parts) != 3 or parts[0] != "jobs":
             raise ApiError(404, "unknown file")
         job = self._job(parts[1])
@@ -341,7 +418,7 @@ class MockApi:
     def _staff_job(self, job: MockJob) -> m.StaffJob:
         st = job.state(time.time())
         done = st["status"] in ("done", "fulfilled", "failed")
-        return m.StaffJob(job_id=job.job_id, status=st["status"], stage=st["stage"],
+        return m.StaffJob(job_id=job.job_id, kind=job.kind, requested_by=job.requested_by, status=st["status"], stage=st["stage"],
                           pet_name=job.spec.get("pet_name"), species=job.spec["species"],
                           created_at=utc(job.created), finished_at=utc(job.end()) if done else None,
                           fallback=job.script.get("fallback", "none"),
@@ -359,12 +436,9 @@ class MockApi:
         return m.StaffQueue(mode="mock", running=running, queued=queued, recent=recent,
                             gpu=m.GpuStatus(name="mock (no GPU)", temp_c=41.0, vram_used_mb=0, mock=True))
 
-    async def staff_retry(self, job_id: str) -> m.JobCreated:
+    async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated:
         old = self._job(job_id)
-        job = self._enqueue(old.session_id, old.spec, self.scripts["normal"])
-        st = job.state(time.time())
-        return m.JobCreated(job_id=job.job_id, status=st["status"], queue_position=st["queue_position"],
-                            generations_left=self._session_left(old.session_id))
+        return self._created(self._enqueue(old.session_id, user.username, old.spec, self.scripts["normal"], kind=old.kind))
 
 
 def create_app():

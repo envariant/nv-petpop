@@ -14,8 +14,8 @@ for d in sorted(pathlib.Path("fixtures/pets").iterdir()):
         m = json.loads((d / "manifest.json").read_text())
         assert m["fidelity"] == "high" and m["metrics"]["print_watertight"], d.name
         assert any(s["stage"] == "control" for s in m["stages"]), d.name'
-step "SPA build served by the API" bash -c 'cd apps/kiosk && npm run -s build'
-step "backend process: one origin, QR page, fulfil folder, staff, metrics" "$PY" -m pytest tests/server
+step "SPA builds served by the API (kiosk at /, studio at /studio/)" bash -c 'for a in kiosk studio; do (cd apps/$a && npm run -s build) || exit 1; done'
+step "backend process: one origin, QR page, fulfil folder, studio queue, kiosk ops, metrics" "$PY" -m pytest tests/server
 step "regression set (30 pets) meets the gate-2 thresholds" "$PY" scripts/regress.py --gate 2 --quality test
-step "Playwright walkthrough against the real backend" bash -c 'cd apps/kiosk && PP_BACKEND=real npx playwright test tests/e2e/walkthrough.spec.ts'
+step "Playwright walkthroughs against the real backend (kiosk, studio)" bash -c 'for a in kiosk studio; do (cd apps/$a && PP_BACKEND=real npx playwright test tests/e2e/walkthrough.spec.ts) || exit 1; done'
 echo "GATE 2 PASSED"
