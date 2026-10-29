@@ -1,6 +1,6 @@
 """Prompt compiler (BRIEF Section 7): vocabulary only, never the raw brief, never a trademark."""
-from backend.core.spec import apply_patch, default_spec
-from backend.prompts.compiler import compile_prompts
+from petpop_core.spec import apply_patch, default_spec
+from petpop_core.prompts.compiler import compile_prompts
 
 
 def test_prompts_use_vocabulary_not_free_text():
@@ -19,7 +19,7 @@ def test_prompts_use_vocabulary_not_free_text():
 
 
 def test_every_breed_compiles():
-    from backend.core.breeds import all_breeds
+    from petpop_core.breeds import all_breeds
 
     for species in ("dog", "cat"):
         for b in all_breeds(species):

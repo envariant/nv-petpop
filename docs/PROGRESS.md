@@ -16,23 +16,23 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 ### A1 Refactor, no new features (gates 0 to 2 still pass; PR)
 
-- [ ] Python `packages/core` (`petpop_core`: PetSpec, manifest schemas, vocab, breed presets, rule parser, prompt
+- [x] Python `packages/core` (`petpop_core`: PetSpec, manifest schemas, vocab, breed presets, rule parser, prompt
   compiler) and `packages/library` (`petpop_library`: base-mesh geometry, accessories, colouring; later delta
   extraction, QC, release packer and loader); packages never import `backend/` or `apps/`
-- [ ] TypeScript workspaces: `packages/core` (generated API client and types, spec helpers), `packages/viewer`
+- [x] TypeScript workspaces: `packages/core` (generated API client and types, spec helpers), `packages/viewer`
   (three.js viewer, pattern material, morph application), `packages/ui` (shared kiosk-frame UI kit); apps import
   packages, packages never import apps
-- [ ] API 2.0.0: `/api/v1/kiosk/*` (anonymous kiosk session, five-tap ops panel) and `/api/v1/studio/*` (staff
+- [x] API 2.0.0: `/api/v1/kiosk/*` (anonymous kiosk session, five-tap ops panel) and `/api/v1/studio/*` (staff
   login, roles operator / curator / admin, jobs, parse, queue); mock server, TypeScript client and backend in
   the same commit
-- [ ] Two queues, `kiosk` and `studio`, each with its own worker process; only the studio worker builds GenAI
+- [x] Two queues, `kiosk` and `studio`, each with its own worker process; only the studio worker builds GenAI
   adapters; the kiosk queue runs Stage F only
-- [ ] `apps/studio/`: the Build, Brief, Name, Generating and Result screens as the Generate workspace, behind
+- [x] `apps/studio/`: the Build, Brief, Name, Generating and Result screens as the Generate workspace, behind
   staff login, plus the queue panel; Storybook story and Playwright test per screen
-- [ ] `apps/kiosk/`: library-mode only (Attract, Species, Breed, Design); "Make it unique" behind `KIOSK_BESPOKE`
+- [x] `apps/kiosk/`: library-mode only (Attract, Species, Breed, Design); "Make it unique" behind `KIOSK_BESPOKE`
   (off by default) enqueues a studio job and shows "we'll message you", never a Generating screen
-- [ ] `make dev` runs the API, both workers and both SPAs; Compose runs both workers
-- [ ] Gates 0, 1 and 2 pass on the new layout; PR for the refactor
+- [x] `make dev` runs the API, both workers and both SPAs; Compose runs both workers
+- [x] Gates 0, 1 and 2 pass on the new layout; PR for the refactor
 
 ### A2 Contracts
 

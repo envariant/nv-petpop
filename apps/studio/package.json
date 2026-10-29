@@ -1,0 +1,60 @@
+{
+  "name": "@petpop/studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PetPop Studio: the staff app (generate, curate, publish; BRIEF Section 17)",
+  "type": "module",
+  "scripts": {
+    "sync-assets": "node scripts/sync-assets.mjs",
+    "predev": "npm run sync-assets",
+    "dev": "vite",
+    "dev:mock": "npm run sync-assets && VITE_MOCK=1 vite",
+    "prebuild": "npm run sync-assets",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o storybook-static --quiet"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.0.0",
+    "@fontsource/inter": "^5.0.0",
+    "@petpop/core": "0.2.0",
+    "@petpop/ui": "0.2.0",
+    "@petpop/viewer": "0.2.0",
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.0",
+    "framer-motion": "^11.11.0",
+    "openapi-fetch": "^0.13.0",
+    "qrcode.react": "^4.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@storybook/addon-essentials": "^8.4.0",
+    "@storybook/react": "^8.4.0",
+    "@storybook/react-vite": "^8.4.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.20",
+    "msw": "^2.6.0",
+    "openapi-typescript": "^7.4.0",
+    "postcss": "^8.4.47",
+    "storybook": "^8.4.0",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

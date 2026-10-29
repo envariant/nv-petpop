@@ -13,7 +13,7 @@ from common import ROOT, add_accessories, load_base, reset, set_coords
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base
+    from petpop_library.meshkit import load_base as np_base
 
     standoff = json.loads((ROOT / "config" / "mandrel.json").read_text())["paint_head_standoff_mm"]
     reset()

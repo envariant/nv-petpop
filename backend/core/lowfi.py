@@ -12,8 +12,8 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from .colouring import vertex_colours
-from .meshkit import VIEWS, BaseMesh, depth_png16, dilate, raster_uv, render, silhouette_iou
+from petpop_library.colouring import vertex_colours
+from petpop_library.meshkit import VIEWS, BaseMesh, depth_png16, dilate, raster_uv, render, silhouette_iou
 from .paths import CONFIG
 
 CAMERAS = {"concept_front": 0.0, **VIEWS}

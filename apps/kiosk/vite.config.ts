@@ -5,8 +5,11 @@ import { fileURLToPath, URL } from 'node:url';
 const apiTarget = process.env.VITE_API_TARGET ?? 'http://127.0.0.1:8000';
 
 export default defineConfig({
+  base: '/',
   plugins: [react()],
   resolve: {
+    // One copy of React and three across the app and the workspace packages.
+    dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'],
     alias: {
       '@data': fileURLToPath(new URL('../../data', import.meta.url)),
       '@fixtures': fileURLToPath(new URL('../../fixtures', import.meta.url)),
@@ -22,7 +25,7 @@ export default defineConfig({
       '/api': { target: apiTarget, ws: true, changeOrigin: false },
     },
   },
-  preview: { port: 4173, host: '127.0.0.1', proxy: { '/api': { target: apiTarget, ws: true } } },
+  preview: { port: 7173, host: '127.0.0.1', proxy: { '/api': { target: apiTarget, ws: true } } },
   build: { outDir: 'dist', chunkSizeWarningLimit: 2000 },
   test: { environment: 'node', include: ['src/**/*.test.ts'] },
 } as never);

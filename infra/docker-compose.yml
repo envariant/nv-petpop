@@ -1,5 +1,5 @@
 # PetPop stack (make up). Host-agnostic: the GenAI services are wherever GENAI_PROFILE says
-# (config/genai/<profile>.yaml); this file runs the API, the worker (arq) and their state stores.
+# (config/genai/<profile>.yaml); this file runs the API, the studio and kiosk workers (arq) and their state stores.
 #   GENAI_PROFILE=mock          everything here, GenAI stand-ins on CPU (smoke-tested in the cloud VM)
 #   GENAI_PROFILE=mac-m4pro     GenAI on the Mac, reached through COMFY_URL / SHAPE_URL / OLLAMA_URL
 #   GENAI_PROFILE=nvidia-24gb   add infra/docker-compose.nvidia.yml (ComfyUI + Ollama on the local GPU)
@@ -41,9 +41,16 @@ services:
       retries: 30
     restart: unless-stopped
 
-  worker:
+  # Two queues, two workers (BRIEF Section 17): a kiosk export never waits behind a studio batch, and only
+  # worker-studio reaches the GenAI host.
+  worker-studio:
     <<: *app
-    command: ["arq", "backend.worker.arq_worker.WorkerSettings"]
+    command: ["arq", "backend.worker.arq_worker.StudioWorkerSettings"]
+    restart: unless-stopped
+
+  worker-kiosk:
+    <<: *app
+    command: ["arq", "backend.worker.arq_worker.KioskWorkerSettings"]
     restart: unless-stopped
 
   postgres:

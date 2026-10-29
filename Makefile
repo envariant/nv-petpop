@@ -4,20 +4,21 @@ export GENAI_PROFILE ?= mock
 export PETPOP_MOCK_SPEED ?= 0.1
 PY ?= .venv/bin/python
 KIOSK := apps/kiosk
-export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server
+STUDIO := apps/studio
+export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
-.PHONY: help setup dev mock api worker kiosk test test-py test-web openapi client proxies fixtures tiles \
+.PHONY: help setup dev mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
         regress up down smoke-stack workflows models gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 clean
 
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
-setup: ## create .venv, install Python and kiosk dependencies
+setup: ## create .venv, install Python and the npm workspaces (packages/*, apps/kiosk, apps/studio)
 	uv venv .venv --python 3.12 -q || python3 -m venv .venv
 	uv pip install --python $(PY) -q -e '.[dev]' || $(PY) -m pip install -e '.[dev]'
-	cd $(KIOSK) && npm install --no-audit --no-fund
+	npm install --no-audit --no-fund
 
-dev: ## API + worker + SPA (no Docker): http://127.0.0.1:5173
+dev: ## API + studio and kiosk workers + both SPAs (no Docker): kiosk :5173, studio :5174/studio/
 	scripts/dev.sh
 
 mock: ## standalone mock server on :8000 (frozen contract)
@@ -26,11 +27,14 @@ mock: ## standalone mock server on :8000 (frozen contract)
 api: ## backend API only on :8000
 	$(PY) -m backend.api
 
-worker: ## worker only
-	$(PY) -m backend.worker
+worker: ## studio worker only (QUEUE=kiosk for the kiosk worker)
+	$(PY) -m backend.worker --queue $${QUEUE:-studio}
 
-kiosk: ## SPA dev server on :5173 (proxies /api to :8000); VITE_MOCK=1 for no backend at all
+kiosk: ## kiosk SPA dev server on :5173 (proxies /api to :8000); VITE_MOCK=1 for no backend at all
 	cd $(KIOSK) && npm run dev
+
+studio: ## studio SPA dev server on :5174/studio/ (proxies /api to :8000)
+	cd $(STUDIO) && npm run dev
 
 test: test-py test-web ## all fast tests
 
@@ -38,14 +42,14 @@ test-py:
 	PETPOP_MOCK_SPEED=0 $(PY) -m pytest
 
 test-web:
-	cd $(KIOSK) && npx vitest run && npx tsc -b --noEmit
+	for a in $(KIOSK) $(STUDIO); do (cd $$a && npx vitest run && npx tsc -b --noEmit) || exit 1; done
 
-openapi: ## regenerate data/schema/openapi.json and the TypeScript client
+openapi: ## regenerate data/schema/openapi.json and the TypeScript client (packages/core)
 	$(PY) scripts/export_openapi.py
-	cd $(KIOSK) && npm run -s gen:client
+	npm run -s gen:client
 
 client:
-	cd $(KIOSK) && npm run -s gen:client
+	npm run -s gen:client
 
 proxies: ## rebuild the proxy base meshes (bpy)
 	$(PY) scripts/make_proxy_base.py
@@ -83,4 +87,4 @@ gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6: ## run acceptance gate N
 	scripts/gates/$@
 
 clean:
-	rm -rf var $(KIOSK)/dist $(KIOSK)/storybook-static $(KIOSK)/test-results
+	rm -rf var $(KIOSK)/dist $(KIOSK)/storybook-static $(KIOSK)/test-results $(STUDIO)/dist $(STUDIO)/storybook-static $(STUDIO)/test-results

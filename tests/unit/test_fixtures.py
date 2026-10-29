@@ -3,7 +3,7 @@ import hashlib
 import json
 
 from backend.core.paths import FIXTURES
-from backend.core.schemas import manifest_errors, spec_errors
+from petpop_core.schemas import manifest_errors, spec_errors
 
 
 def test_fixture_pack():
