@@ -29,7 +29,11 @@ class SessionRow(Base):
 class JobRow(Base):
     __tablename__ = "jobs"
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
-    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
+    queue: Mapped[str] = mapped_column(String(8), default="studio", index=True)  # kiosk | studio (BRIEF Section 17)
+    kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export
+    session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
+    requested_by: Mapped[str] = mapped_column(String(48), default="")
+    contact: Mapped[str | None] = mapped_column(String(80), nullable=True)
     pet_spec: Mapped[dict[str, Any]] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(16), default="queued", index=True)  # queued/running/done/failed/fulfilled
     stage: Mapped[str] = mapped_column(String(16), default="queued")
@@ -44,6 +48,14 @@ class JobRow(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     ticket: Mapped[str | None] = mapped_column(String(16), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class StaffUserRow(Base):
+    """Studio staff accounts (local, BRIEF Section 17): roles operator / curator / admin."""
+    __tablename__ = "staff_users"
+    username: Mapped[str] = mapped_column(String(40), primary_key=True)
+    role: Mapped[str] = mapped_column(String(12))
+    password_hash: Mapped[str] = mapped_column(String(200))
 
 
 class ArtefactRow(Base):
@@ -115,7 +127,7 @@ def session_factory(url: str):
 
 
 def seed_breeds(factory) -> None:
-    from backend.core.breeds import all_breeds
+    from petpop_core.breeds import all_breeds
 
     with factory() as db:
         if db.query(BreedRow).count():
@@ -124,4 +136,34 @@ def seed_breeds(factory) -> None:
             for b in all_breeds(species):
                 db.add(BreedRow(id=b["id"], species=species, label=b["label"], preset=b["preset"],
                                 prompt_hint=b["prompt_hint"]))
+        db.commit()
+
+
+# --------------------------------------------------------------------------- staff accounts
+
+def hash_password(password: str, salt: bytes | None = None) -> str:
+    import hashlib
+    import os
+
+    salt = salt or os.urandom(16)
+    digest = hashlib.scrypt(password.encode(), salt=salt, n=2 ** 14, r=8, p=1)
+    return f"scrypt${salt.hex()}${digest.hex()}"
+
+
+def check_password(password: str, stored: str) -> bool:
+    import hmac
+
+    try:
+        algo, salt, _ = stored.split("$")
+    except ValueError:
+        return False
+    return algo == "scrypt" and hmac.compare_digest(hash_password(password, bytes.fromhex(salt)), stored)
+
+
+def seed_staff(factory, users: list[tuple[str, str, str]]) -> None:
+    """Create the configured staff accounts that do not exist yet (username, role, password)."""
+    with factory() as db:
+        for username, role, password in users:
+            if not db.get(StaffUserRow, username):
+                db.add(StaffUserRow(username=username, role=role, password_hash=hash_password(password)))
         db.commit()

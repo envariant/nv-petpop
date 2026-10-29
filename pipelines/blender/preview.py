@@ -10,7 +10,7 @@ from common import activate, add_accessories, assign_material, image_material, l
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base
+    from petpop_library.meshkit import load_base as np_base
 
     q = job["quality"]
     reset()

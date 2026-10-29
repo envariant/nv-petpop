@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './styles.css';
+import '@petpop/ui/styles.css';
 
 async function boot() {
   if (import.meta.env.VITE_MOCK === '1') {

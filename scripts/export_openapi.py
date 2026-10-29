@@ -14,7 +14,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "mock-server")]
 
 from mock_server.app import create_app  # noqa: E402
 
-from backend.core.contract import openapi_text  # noqa: E402
+from backend.api.contract import openapi_text  # noqa: E402
 
 TARGET = ROOT / "data/schema/openapi.json"
 

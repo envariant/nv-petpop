@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // CLAUDE.md: every screen has a Storybook story and a Playwright test.
-const SCREENS = ['attract', 'species', 'breed', 'build', 'brief', 'name', 'generating', 'result'];
-const STORY_NAMES: Record<string, string> = { attract: 'Attract', species: 'Species', breed: 'Breed', build: 'Build', brief: 'Brief', name: 'NameAndGenerate', generating: 'GeneratingViews', result: 'Result' };
+const SCREENS = ['attract', 'species', 'breed', 'design', 'bespoke'];
+const STORY_NAMES: Record<string, string> = { attract: 'Attract', species: 'Species', breed: 'Breed', design: 'Design', bespoke: 'Bespoke' };
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
-describe('screen coverage', () => {
+describe('kiosk screen coverage', () => {
   it('every screen has a story', () => {
     const stories = read('./Screens.stories.tsx');
     for (const s of SCREENS) expect(stories).toMatch(new RegExp(`export const ${STORY_NAMES[s]}: Story = \\{ args: \\{ screen: '${s}'`));

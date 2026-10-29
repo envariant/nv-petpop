@@ -6,9 +6,9 @@ from backend.core import lowfi
 import numpy as np
 import trimesh
 
-from backend.core.accessories import placed
-from backend.core.meshkit import load_base
-from backend.core.vocab import morph_weights
+from petpop_library.accessories import placed
+from petpop_library.meshkit import load_base
+from petpop_core.vocab import morph_weights
 
 from ..base import ShapeResult
 from .pacing import Pace

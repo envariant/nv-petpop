@@ -8,6 +8,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
 const root = join(app, '../..');
 const pub = join(app, 'public');
+// npm workspaces hoist dependencies to the repo root; resolve them from here wherever they live.
+const pkg = (name) => [join(app, 'node_modules', name), join(root, 'node_modules', name)].find((d) => existsSync(d));
 
 for (const species of ['dog', 'cat']) {
   const src = join(root, 'assets/base', species);
@@ -19,8 +21,8 @@ for (const species of ['dog', 'cat']) {
 }
 const tiles = join(root, 'assets/tiles');
 if (existsSync(tiles)) cpSync(tiles, join(pub, 'assets/tiles'), { recursive: true });
-cpSync(join(app, 'node_modules/three/examples/jsm/libs/draco/gltf'), join(pub, 'draco'), { recursive: true });
-cpSync(join(app, 'node_modules/msw/lib/mockServiceWorker.js'), join(pub, 'mockServiceWorker.js'));
+cpSync(join(pkg('three'), 'examples/jsm/libs/draco/gltf'), join(pub, 'draco'), { recursive: true });
+cpSync(join(pkg('msw'), 'lib/mockServiceWorker.js'), join(pub, 'mockServiceWorker.js'));
 const fx = join(root, 'fixtures/pets');
 if (existsSync(fx)) {
   mkdirSync(join(pub, 'fixtures'), { recursive: true });

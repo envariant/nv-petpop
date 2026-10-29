@@ -1,0 +1,11 @@
+{
+  "name": "@petpop/ui",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Shared touch UI kit for both apps: frame, tiles, swatches, chips, on-screen keyboard, theme CSS.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": { ".": "./src/index.ts", "./styles.css": "./src/styles.css" },
+  "peerDependencies": { "framer-motion": "*", "react": "*" }
+}

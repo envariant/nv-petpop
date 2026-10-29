@@ -193,7 +193,7 @@ def wrap_once(job, base, obj, morphed, target, tgt_pts, ev, smoothing):
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base, write_obj
+    from petpop_library.meshkit import load_base as np_base, write_obj
 
     reset()
     base = np_base(job["species"])

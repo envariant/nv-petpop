@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from jsonschema import Draft202012Validator
 
-from backend.core.breeds import all_breeds
-from backend.core.schemas import enum_slots, load_schema
-from backend.core.spec import default_spec
-from backend.core.vocab import morph_weights, vocab
+from petpop_core.breeds import all_breeds
+from petpop_core.schemas import enum_slots, load_schema
+from petpop_core.spec import default_spec
+from petpop_core.vocab import morph_weights, vocab
 
 
 def test_schemas_are_valid_json_schema():

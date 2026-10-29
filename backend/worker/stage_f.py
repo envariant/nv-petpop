@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image
 
 from backend.core import lowfi
-from backend.core.meshkit import dilate, load_base, raster_uv, to_trimesh, write_obj
+from petpop_library.meshkit import dilate, load_base, raster_uv, to_trimesh, write_obj
 
 from . import blender
 from .backends.mock.pacing import Pace
@@ -87,7 +87,7 @@ def run(job_id, spec, manifest, *, ctx) -> list[str]:
             mask_img, _ = lowfi.paint_check(base, coords, int(q["mask_px"]))
             flags = None
             glb = to_trimesh(base, coords, texture=Image.open(io.BytesIO(albedo_png)), yup=True).export(file_type="glb")
-            from backend.core.colouring import vertex_colours
+            from petpop_library.colouring import vertex_colours
 
             thumb = lowfi.png_bytes(lowfi.flat_render(base, coords, vertex_colours(base, spec, coords), 25, 256, False))
             metrics.update(print_tris=int(len(pm.faces)), print_height_mm=round(float(pm.extents[2]), 2),

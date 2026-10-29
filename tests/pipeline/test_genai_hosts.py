@@ -13,8 +13,8 @@ import uvicorn
 
 from backend.api.store import LocalStore
 from backend.core.config import settings
-from backend.core.schemas import manifest_errors
-from backend.core.spec import default_spec
+from petpop_core.schemas import manifest_errors
+from petpop_core.spec import default_spec
 from backend.worker.backends.real.ollama import OllamaParser
 from backend.worker.local_run import run_pipeline
 from tests.fakes.genai_host import FakeHost
