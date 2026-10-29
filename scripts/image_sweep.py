@@ -37,13 +37,17 @@ BREEDS = "dog:golden_retriever,dog:dachshund,dog:french_bulldog,dog:border_colli
 WHITE_BG = ", isolated on a pure white seamless background"
 VIEWS = ("front", "left", "back", "right")
 
-# Concept variants. init: start from the proxy's flat-colour render (img2img) at this denoise, else an empty latent.
+# Concept variants. init: start from the proxy's flat-colour render (img2img) at this denoise, ("white", d) for a plain
+# white canvas at denoise d (biases the background to white), else an empty latent.
 # depth: ControlNet (strength, end_percent) from the proxy's depth, or None. style_ref: IP-Adapter on --refs.
 CONCEPT = {
     "c1_current": dict(init=0.7, depth=(0.7, 1.0), style_ref=None, white=False),
     "c2_weak_depth": dict(init=None, depth=(0.35, 0.35), style_ref=None, white=True),
     "c3_txt2img": dict(init=None, depth=None, style_ref=None, white=True),
     "c4_style_ref": dict(init=None, depth=None, style_ref=("style transfer", 0.6), white=True),
+    "c5_style_light_wc": dict(init=("white", 0.92), depth=None, style_ref=("style transfer", 0.4), white=True),
+    "c6_style_precise_wc": dict(init=("white", 0.92), depth=None, style_ref=("style transfer precise", 0.5), white=True),
+    "c7_txt2img_wc": dict(init=("white", 0.92), depth=None, style_ref=None, white=True),
 }
 # View variants: ControlNet (strength, end_percent) from the proxy's depth per view; IP-Adapter (type, weight) on the concept.
 VIEW_VARIANTS = {
@@ -74,6 +78,9 @@ def control_images(species: str, spec: dict, px: int) -> dict[str, bytes]:
         out.update({f"{cam}_depth": r["depth"] for cam, r in lowfi.control_renders(base, co, px).items()})
     front = lowfi.flat_render(base, co, vertex_colours(base, spec, co), 0.0, px, False)
     out["flat_front"] = lowfi.png_bytes(front)
+    buf = io.BytesIO()
+    Image.new("RGB", (px, px), "white").save(buf, format="PNG")
+    out["white"] = buf.getvalue()
     return out
 
 
@@ -122,7 +129,9 @@ def concept_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[st
               "depth_image": ctrl["concept_front_depth"], "init_image": ctrl["flat_front"],
               "controlnet_strength": (v["depth"] or (0.7, 1.0))[0], "width": px, "height": px, "seed": seed,
               "steps": prm["concept_steps"], "cfg": prm["cfg"], "sampler": prm["sampler"], "scheduler": prm["scheduler"],
-              "denoise": v["init"] or 1.0}
+              "denoise": (v["init"][1] if isinstance(v["init"], tuple) else v["init"]) or 1.0}
+    if isinstance(v["init"], tuple):
+        values["init_image"] = ctrl["white"]
     g = c.fill(graph, meta, values)
     ks = meta["inputs"]["seed"][0]
     sampler = g[ks]["inputs"]
@@ -234,7 +243,7 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=101)
     ap.add_argument("--px", type=int, default=1024)
     ap.add_argument("--refs", help="folder of style reference images (c4_style_ref)")
-    ap.add_argument("--concepts", default=",".join(CONCEPT))
+    ap.add_argument("--concepts", default="c1_current,c2_weak_depth,c3_txt2img,c4_style_ref")
     ap.add_argument("--views-from", default="c4_style_ref", help="concept variant the view sweep starts from")
     ap.add_argument("--lora", help="LoRA file name on the host (default: the profile's image.models.lora)")
     ap.add_argument("--lora-strength", type=float)
