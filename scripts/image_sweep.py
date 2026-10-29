@@ -216,7 +216,33 @@ def submit(c: ComfyClient, g: dict, timeout: float = 1200) -> tuple[dict[str, by
     if r.status_code != 200:
         raise ComfyError(f"/prompt rejected: {r.text[:800]}")
     pid, t0 = r.json()["prompt_id"], time.monotonic()
-    while time.monotonic() - t0 < timeout:
+    # the timeout runs from when the host starts the prompt, not from queueing behind others
+    try:
+        return _wait(c, g, pid, t0, timeout)
+    except BaseException:
+        cancel(c, pid)
+        raise
+
+
+def cancel(c: ComfyClient, pid: str) -> None:
+    """Take an abandoned prompt off the host: drop it from the queue, or interrupt it if it is running."""
+    try:
+        q = get(c, "/queue").json()
+        if any(it[1] == pid for it in q.get("queue_running", [])):
+            c.http.post(f"{c.url}/interrupt")
+        else:
+            c.http.post(f"{c.url}/queue", json={"delete": [pid]})
+    except Exception:  # noqa: BLE001 - best effort; the host may be unreachable
+        pass
+
+
+def _wait(c: ComfyClient, g: dict, pid: str, t0: float, timeout: float) -> tuple[dict[str, bytes], float]:
+    started = None
+    while started is None or time.monotonic() - started < timeout:
+        if started is None:
+            q = get(c, "/queue").json()
+            if not any(it[1] == pid for it in q.get("queue_pending", [])):
+                started = time.monotonic()
         h = get(c, f"/history/{pid}").json()
         if pid in h:
             entry = h[pid]
@@ -228,7 +254,7 @@ def submit(c: ComfyClient, g: dict, timeout: float = 1200) -> tuple[dict[str, by
                     v = get(c, "/view", params={"filename": im["filename"], "subfolder": im.get("subfolder", ""),
                                                             "type": im.get("type", "output")})
                     out[g[node]["inputs"].get("filename_prefix", node)] = v.content
-            return out, time.monotonic() - t0
+            return out, time.monotonic() - (started or t0)
         time.sleep(2)
     raise ComfyError(f"timed out after {timeout:.0f} s")
 
