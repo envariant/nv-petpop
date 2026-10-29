@@ -187,13 +187,28 @@ def prune(g: dict) -> dict:
             del g[k]
 
 
+def get(c: ComfyClient, path: str, **kw):
+    """GET through the tunnel, riding out a dropped connection (a quick tunnel drops one now and then)."""
+    import httpx
+
+    for attempt in range(6):
+        try:
+            r = c.http.get(f"{c.url}{path}", **kw)
+            r.raise_for_status()
+            return r
+        except (httpx.TransportError, httpx.HTTPStatusError):
+            if attempt == 5:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
 def submit(c: ComfyClient, g: dict, timeout: float = 1200) -> tuple[dict[str, bytes], float]:
     r = c.http.post(f"{c.url}/prompt", json={"prompt": g, "client_id": c.client_id})
     if r.status_code != 200:
         raise ComfyError(f"/prompt rejected: {r.text[:800]}")
     pid, t0 = r.json()["prompt_id"], time.monotonic()
     while time.monotonic() - t0 < timeout:
-        h = c.http.get(f"{c.url}/history/{pid}").json()
+        h = get(c, f"/history/{pid}").json()
         if pid in h:
             entry = h[pid]
             if entry.get("status", {}).get("status_str") == "error":
@@ -201,7 +216,7 @@ def submit(c: ComfyClient, g: dict, timeout: float = 1200) -> tuple[dict[str, by
             out = {}
             for node, res in entry.get("outputs", {}).items():
                 for im in res.get("images", []):
-                    v = c.http.get(f"{c.url}/view", params={"filename": im["filename"], "subfolder": im.get("subfolder", ""),
+                    v = get(c, "/view", params={"filename": im["filename"], "subfolder": im.get("subfolder", ""),
                                                             "type": im.get("type", "output")})
                     out[g[node]["inputs"].get("filename_prefix", node)] = v.content
             return out, time.monotonic() - t0
@@ -244,6 +259,7 @@ def main() -> int:
     ap.add_argument("--px", type=int, default=1024)
     ap.add_argument("--refs", help="folder of style reference images (c4_style_ref)")
     ap.add_argument("--concepts", default="c1_current,c2_weak_depth,c3_txt2img,c4_style_ref")
+    ap.add_argument("--view-variants", default=",".join(VIEW_VARIANTS))
     ap.add_argument("--views-from", default="c4_style_ref", help="concept variant the view sweep starts from")
     ap.add_argument("--lora", help="LoRA file name on the host (default: the profile's image.models.lora)")
     ap.add_argument("--lora-strength", type=float)
@@ -295,7 +311,7 @@ def main() -> int:
                 found = [d / f"{breed}__{args.views_from}.png" for d in (out, out.parent)]
                 src = concept_png.get(args.views_from) or next(f for f in found if f.exists()).read_bytes()
                 cref = c.upload(f"sweep_{breed}_concept.png", src)
-                for name, v in VIEW_VARIANTS.items():
+                for name, v in ((k, VIEW_VARIANTS[k]) for k in args.view_variants.split(",")):
                     try:
                         imgs, dt = submit(c, views_graph(c, p, v, prompts, ctrl, cref, lora, args.seed, args.px))
                         row = [("concept", src)]
