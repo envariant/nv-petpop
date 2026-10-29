@@ -8,9 +8,9 @@ from typing import Any
 
 import httpx
 
-from backend.core.parser import ParseResult, parse as rule_parse
-from backend.core.schemas import load_schema, spec_errors
-from backend.core.spec import apply_patch, flatten, is_tapped, set_path
+from petpop_core.parser import ParseResult, parse as rule_parse
+from petpop_core.schemas import load_schema, spec_errors
+from petpop_core.spec import apply_patch, flatten, is_tapped, set_path
 
 SYSTEM = """You convert a pet owner's description into a JSON patch for a PetSpec object.
 Return only JSON matching the provided schema. Rules:

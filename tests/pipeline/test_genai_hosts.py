@@ -13,8 +13,8 @@ import uvicorn
 
 from backend.api.store import LocalStore
 from backend.core.config import settings
-from backend.core.schemas import manifest_errors
-from backend.core.spec import default_spec
+from petpop_core.schemas import manifest_errors
+from petpop_core.spec import default_spec
 from backend.worker.backends.real.ollama import OllamaParser
 from backend.worker.local_run import run_pipeline
 from tests.fakes.genai_host import FakeHost
@@ -81,6 +81,11 @@ def test_mac_m4pro_profile(env, host, tmp_path):
     assert all(e["json"]["unload_models"] for e in frees) and len(frees) >= 2
     shape = next(e for e in host.log if e["path"] == "/shape/v1/shape#params")["json"]
     assert shape["octree_resolution"] == 192 and shape["steps"] == 30 and shape["unload_after"] is True
+    # The mesh is a job that is polled (the tunnel cuts off any request after ~100 s): submit, poll, download.
+    shape_paths = [e["path"] for e in host.log if e["path"].startswith("/shape/v1/shape/")]
+    assert any(p.endswith("/mesh") for p in shape_paths) and sum(not p.endswith("/mesh") for p in shape_paths) >= 2
+    slowest = max((e for e in host.log if "seconds" in e), key=lambda e: e["seconds"])
+    assert slowest["seconds"] < 30, f"{slowest['path']} took {slowest['seconds']:.0f} s through the tunnel"
     concept = next(e for e in host.log if e["path"] == "/comfy/prompt")["json"]["prompt"]
     ckpt = next(n for n in concept.values() if n["class_type"] == "CheckpointLoaderSimple")
     assert ckpt["inputs"]["ckpt_name"] == "sd_xl_base_1.0.safetensors"  # the model name came from the profile

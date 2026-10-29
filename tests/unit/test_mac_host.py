@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import time
 import re
 import sys
 import types
@@ -209,8 +210,19 @@ def test_shape_server_follows_the_fork_and_stays_offline(server):
     assert r.status_code == 503 and "make -C mac models" in r.json()["detail"]
 
     (models / "hf" / "tencent" / "Hunyuan3D-2.1" / "hunyuan3d-dit-v2-1" / "config.yaml").write_text("model: {}\n")
+    # A mesh is a job: the POST answers at once (the tunnel cuts requests off after ~100 s), then it is polled.
     r = client.post("/v1/shape", data={"params": json.dumps(params)}, files={"view_front": ("f.png", _png(), "image/png")})
-    assert r.status_code == 200 and r.content[:4] == b"glTF"
+    assert r.status_code == 202 and r.json()["status"] in ("queued", "running")
+    job_id = r.json()["job_id"]
+    for _ in range(200):
+        st = client.get(f"/v1/shape/{job_id}").json()
+        if st["status"] in ("done", "failed"):
+            break
+        time.sleep(0.02)
+    assert st["status"] == "done", st
+    r = client.get(f"/v1/shape/{job_id}/mesh")
+    assert r.status_code == 200 and r.content[:4] == b"glTF" and r.headers["x-engine"] == "hunyuan3d-2.1-mps"
+    assert client.get("/v1/shape/nope").status_code == 404
     load, call = sys.modules["hy3dshape.pipelines"].CALLS
     assert load["model_path"] == str(models / "hf" / "tencent" / "Hunyuan3D-2.1")
     assert (load["subfolder"], load["device"], load["variant"], load["use_safetensors"]) == ("hunyuan3d-dit-v2-1", "mps", "fp16", False)
@@ -218,3 +230,9 @@ def test_shape_server_follows_the_fork_and_stays_offline(server):
     assert call == {"steps": 30, "guidance": 5.0, "octree": 192, "seed": 41}
     assert ("scheduler_patch",) in events
     assert mod._pipe is None, "unload_after must drop the model (one resident model at a time)"
+    # /v1/free never waits for a running mesh: it answers now and unloads afterwards.
+    with mod._lock:
+        t0 = time.perf_counter()
+        assert client.post("/v1/free").json() == {"status": "after current job"}
+        assert time.perf_counter() - t0 < 1.0
+    assert client.post("/v1/free").json() == {"status": "freed"}

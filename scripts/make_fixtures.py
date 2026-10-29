@@ -17,15 +17,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
 from backend.core import lowfi  # noqa: E402
-from backend.core.colouring import vertex_colours  # noqa: E402
-from backend.core.manifest import ManifestBuilder  # noqa: E402
-from backend.core.meshkit import load_base, to_trimesh, write_obj  # noqa: E402
+from petpop_library.colouring import vertex_colours  # noqa: E402
+from petpop_core.manifest import ManifestBuilder  # noqa: E402
+from petpop_library.meshkit import load_base, to_trimesh, write_obj  # noqa: E402
 from backend.core.paths import FIXTURES  # noqa: E402
-from backend.core.schemas import spec_errors  # noqa: E402
-from backend.core.spec import apply_patch, default_spec, fill_colour_names  # noqa: E402
-from backend.core.vocab import morph_weights  # noqa: E402
+from petpop_core.schemas import spec_errors  # noqa: E402
+from petpop_core.spec import apply_patch, default_spec, fill_colour_names  # noqa: E402
+from petpop_core.vocab import morph_weights  # noqa: E402
 
 PETS = [
     ("biscuit", "dog", "corgi_pembroke", "Biscuit", 918273,

@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Gate 1 (S1/M1): the whole front end against the mock server. The Playwright walkthrough is the gate;
-# the per-screen tests, stories and builds must also be green.
+# Gate 1 (S1/M1): both front ends (kiosk and studio, BRIEF Section 17) against the mock server. The Playwright
+# walkthroughs are the gate; the per-screen tests, stories and builds must also be green.
 source "$(dirname "$0")/lib.sh"
 echo "gate-1: front end in full"
-step "web unit tests (MSW coverage, screen coverage) and typecheck" bash -c 'cd apps/kiosk && npx vitest run && npx tsc -b --noEmit'
-step "openapi.json and TypeScript client unchanged since S0 freeze" bash -c '"$0" scripts/export_openapi.py --check && cd apps/kiosk && npx openapi-typescript ../../data/schema/openapi.json -o /tmp/pp-schema.d.ts >/dev/null && diff -q /tmp/pp-schema.d.ts src/api/schema.d.ts' "$PY"
-step "production SPA build" bash -c 'cd apps/kiosk && npm run -s build'
-step "Storybook builds (a story per screen, three directions)" bash -c 'cd apps/kiosk && npm run -s build-storybook'
-step "Playwright: per-screen tests" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/screens.spec.ts'
-step "Playwright: touch walkthrough (gate-1)" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/walkthrough.spec.ts'
+step "web unit tests (MSW coverage, screen coverage, stamp rasteriser) and typecheck, viewer and both apps" bash -c '(cd packages/viewer && npx vitest run && npx tsc -p . --noEmit) && for a in kiosk studio; do (cd apps/$a && npx vitest run && npx tsc -b --noEmit) || exit 1; done'
+step "openapi.json and the TypeScript client match the contract router" bash -c '"$0" scripts/export_openapi.py --check && npx openapi-typescript data/schema/openapi.json -o /tmp/pp-schema.d.ts >/dev/null && diff -q /tmp/pp-schema.d.ts packages/core/src/api/schema.d.ts' "$PY"
+step "packages never import apps or the backend" bash -c '! grep -rnE "^import .*(/apps/|@petpop/(kiosk|studio))" packages/*/src && ! grep -rnE "^(from|import) (backend|mock_server)" packages/*/python'
+step "production SPA builds (kiosk, studio)" bash -c 'for a in kiosk studio; do (cd apps/$a && npm run -s build) || exit 1; done'
+step "Storybook builds (a story per screen, three directions), both apps" bash -c 'for a in kiosk studio; do (cd apps/$a && npm run -s build-storybook) || exit 1; done'
+step "Playwright: per-screen tests (kiosk)" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/screens.spec.ts'
+step "Playwright: per-screen tests (studio)" bash -c 'cd apps/studio && npx playwright test tests/e2e/screens.spec.ts'
+step "Playwright: touch walkthrough (gate-1, kiosk)" bash -c 'cd apps/kiosk && npx playwright test tests/e2e/walkthrough.spec.ts'
+step "Playwright: touch walkthrough (gate-1, studio)" bash -c 'cd apps/studio && npx playwright test tests/e2e/walkthrough.spec.ts'
 echo "GATE 1 PASSED"

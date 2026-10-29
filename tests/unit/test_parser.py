@@ -1,6 +1,6 @@
-from backend.core.parser import parse
-from backend.core.spec import apply_patch, default_spec
-from backend.core.schemas import spec_errors
+from petpop_core.parser import parse
+from petpop_core.spec import apply_patch, default_spec
+from petpop_core.schemas import spec_errors
 
 
 def test_brief_example():

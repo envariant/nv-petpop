@@ -9,9 +9,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
-from backend.core.schemas import spec_errors  # noqa: E402
-from backend.core.spec import apply_patch, default_spec, fill_colour_names  # noqa: E402
+from petpop_core.schemas import spec_errors  # noqa: E402
+from petpop_core.spec import apply_patch, default_spec, fill_colour_names  # noqa: E402
 
 DOGS = [
     ("corgi_pembroke", {}), ("labrador", {}), ("german_shepherd", {}), ("french_bulldog", {}), ("pug", {}),

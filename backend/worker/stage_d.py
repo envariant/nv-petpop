@@ -9,7 +9,7 @@ import json
 
 import numpy as np
 
-from backend.core.meshkit import VIEWS, render
+from petpop_library.meshkit import VIEWS, render
 
 from .context import StageFailed
 from .imaging import alpha_of, matte_square

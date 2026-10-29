@@ -86,51 +86,79 @@ make -C mac check
 ```
 
 `check` probes ComfyUI `/system_stats`, the shape server `/health` and Ollama `/api/tags` locally. Logs are
-in `~/petpop-genai/logs/` (`make -C mac logs`). The first shape request loads Hunyuan3D-2.1, which is slow.
+in `~/petpop-genai/logs/` (`make -C mac logs`). The first shape job loads Hunyuan3D-2.1, which is slow; the
+shape server's `/health` shows `busy: true` while a mesh is being made.
 
 ## 4. Open the tunnel and give the VM the URLs
+
+The VM reaches the Mac through a Cloudflare tunnel: `cloudflared` (installed by `setup.sh`, pinned in
+`mac/tools.lock`, at `~/petpop-genai/bin/cloudflared`) makes an outbound connection to Cloudflare, so there is no
+port forwarding. Pick one of two kinds; the named tunnel is the one to use if you want the URLs set once.
+
+**Named tunnel: stable hostname (recommended).** It needs a free Cloudflare account and a domain whose DNS is on
+Cloudflare (its nameservers point to Cloudflare). Do this once, any time after `make -C mac setup`:
+
+1. Log in. A browser opens to authorise your account and pick the domain; this writes `~/.cloudflared/cert.pem`.
+
+   ```bash
+   ~/petpop-genai/bin/cloudflared tunnel login
+   ```
+
+2. Create the tunnel. Its credentials go to `~/.cloudflared/<tunnel id>.json`; keep that file private and never
+   commit it.
+
+   ```bash
+   ~/petpop-genai/bin/cloudflared tunnel create petpop
+   ```
+
+3. Point a hostname at it (this creates the DNS record in Cloudflare):
+
+   ```bash
+   ~/petpop-genai/bin/cloudflared tunnel route dns petpop genai.example.com
+   ```
+
+4. Make it the default: add these two lines to `~/petpop-genai/genai.env`, which `tunnel.sh` reads on every start.
+
+   ```
+   CF_TUNNEL=petpop
+   CF_HOSTNAME=genai.example.com
+   ```
+
+**Quick tunnel: no account.** Without `CF_TUNNEL` and `CF_HOSTNAME`, `tunnel.sh` asks Cloudflare's free quick
+tunnel service for a random `https://<words>.trycloudflare.com` hostname. Nothing to sign up for, but the hostname
+changes every time `tunnel.sh` starts (so the three URLs in the cloud environment must be updated each time) and
+Cloudflare offers quick tunnels for testing only.
+
+Then, either way:
 
 ```bash
 make -C mac tunnel
 ```
 
 This runs `mac/tunnel.sh`. It starts Caddy on 127.0.0.1:8787, which answers 401 to any request without
-`Authorization: Bearer $GENAI_TOKEN`, and a Cloudflare tunnel to it. It checks all three services through
-the tunnel, then prints:
+`Authorization: Bearer $GENAI_TOKEN`, and the tunnel to it. It checks all three services through the tunnel,
+then prints:
 
 ```
 GENAI_PROFILE=mac-m4pro
-COMFY_URL=https://<words>.trycloudflare.com/comfy
-SHAPE_URL=https://<words>.trycloudflare.com/shape
-OLLAMA_URL=https://<words>.trycloudflare.com/ollama
+COMFY_URL=https://<tunnel host>/comfy
+SHAPE_URL=https://<tunnel host>/shape
+OLLAMA_URL=https://<tunnel host>/ollama
 GENAI_TOKEN=<value of GENAI_TOKEN in ~/petpop-genai/genai.env>
 ```
 
 Put these five values in the cloud environment: environment settings, Edit, Environment variables. Copy
 `GENAI_TOKEN` from `~/petpop-genai/genai.env`; never paste it into a chat. Then start a new session, which
-picks the variables up.
+picks the variables up. The tunnel serves only while `make -C mac tunnel` runs (it is not a launchd service).
 
-A quick tunnel gets a new random hostname every time `tunnel.sh` starts. For a stable hostname, create a
-named tunnel once (needs a Cloudflare account and a domain):
-
-```bash
-~/petpop-genai/bin/cloudflared tunnel login
-```
-
-```bash
-~/petpop-genai/bin/cloudflared tunnel create petpop
-```
-
-```bash
-~/petpop-genai/bin/cloudflared tunnel route dns petpop genai.example.com
-```
-
-```bash
-CF_TUNNEL=petpop CF_HOSTNAME=genai.example.com mac/tunnel.sh
-```
-
-If the environment's network access is Limited, add the tunnel host (`trycloudflare.com` or your hostname)
+If the environment's network access is Limited, add the tunnel host (your hostname, or `trycloudflare.com`)
 under Allowed domains.
+
+**Why no request waits on a model.** Cloudflare ends any request whose answer takes longer than about 100 s
+(HTTP 524). ComfyUI work is already a queued prompt that the worker polls, and the shape server works the same
+way: `POST /v1/shape` queues a mesh and answers at once with a job id, the worker polls `GET /v1/shape/<id>`
+every few seconds, then downloads `GET /v1/shape/<id>/mesh`. A mesh can take its six minutes without any one
+request lasting more than a second.
 
 ## 5. Day to day
 

@@ -1,10 +1,10 @@
-// Kiosk behaviour: idle "Still there?" countdown, "Back in a moment" offline overlay, hidden staff panel.
+// Kiosk behaviour: idle "Still there?" countdown, "Back in a moment" offline overlay, the five-tap ops panel.
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
-import { Api } from '../api/client';
-import type { StaffQueue } from '../api/types';
-import { Keyboard, TextDisplay } from '../components/Keyboard';
-import { Button } from '../components/ui';
+import { KioskApi as Api } from '@petpop/core';
+import type { KioskOps } from '@petpop/core';
+import { Keyboard, TextDisplay } from '@petpop/ui';
+import { Button } from '@petpop/ui';
 import { useSession } from '../store/session';
 
 const Backdrop = ({ children, testId }: { children: React.ReactNode; testId: string }) => (
@@ -41,7 +41,7 @@ export function useIdle(): { countdown: number | null; dismiss: () => void } {
     setCountdown(null);
   }, [screen]);
   useEffect(() => {
-    if (screen === 'attract' || screen === 'generating') return;
+    if (screen === 'attract') return;
     const t = setInterval(() => {
       const idle = (Date.now() - last.current) / 1000;
       if (idle >= idleSeconds + countdownSeconds) {
@@ -122,19 +122,20 @@ export function useFiveTap(onOpen: () => void) {
   };
 }
 
+/** The five-tap ops panel (BRIEF Section 17): release version, health, reprint; no generation controls. */
 export function StaffPanel({ onClose }: { onClose: () => void }) {
-  const [token, setToken] = useState(() => {
+  const [pin, setPin] = useState(() => {
     try {
       return localStorage.getItem('pp-staff-token') ?? '';
     } catch {
       return '';
     }
   });
-  const [q, setQ] = useState<StaffQueue | null>(null);
+  const [ops, setOps] = useState<KioskOps | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const load = async (t = token) => {
+  const load = async (t = pin) => {
     try {
-      setQ(await Api.staffQueue(t));
+      setOps(await Api.ops(t));
       setErr(null);
       try {
         localStorage.setItem('pp-staff-token', t);
@@ -142,70 +143,69 @@ export function StaffPanel({ onClose }: { onClose: () => void }) {
         /* storage may be blocked */
       }
     } catch {
-      setErr('Token not accepted');
-      setQ(null);
+      setErr('PIN not accepted');
+      setOps(null);
+    }
+  };
+  const [reprinted, setReprinted] = useState<string | null>(null);
+  const reprint = async (id: string) => {
+    try {
+      await Api.reprint(pin, id);
+      setReprinted(id);
+    } catch {
+      setErr('Reprint failed');
     }
   };
   useEffect(() => {
-    if (token) void load();
+    if (pin) void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <Backdrop testId="staff-panel">
       <div className="max-h-full w-full overflow-y-auto rounded-tile bg-paper p-12 shadow-soft">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="font-display text-5xl font-semibold">Staff</h2>
+          <h2 className="font-display text-5xl font-semibold">Kiosk</h2>
           <Button variant="soft" onClick={onClose} data-testid="staff-close">
             Close
           </Button>
         </div>
-        {!q ? (
+        {!ops ? (
           <div>
-            <TextDisplay value={token.replace(/./g, '•')} placeholder="Staff token" testId="staff-token" />
+            <TextDisplay value={pin.replace(/./g, '•')} placeholder="Staff PIN" testId="staff-token" />
             {err && <p className="my-4 text-2xl text-accent2">{err}</p>}
             <div className="mt-6">
-              <Keyboard value={token} onChange={setToken} onDone={() => void load()} doneLabel="Open" compact capitalize={false} />
+              <Keyboard value={pin} onChange={setPin} onDone={() => void load()} doneLabel="Open" compact capitalize={false} />
             </div>
           </div>
         ) : (
-          <div className="text-2xl" data-testid="staff-queue">
-            <p className="mb-4">
-              Mode <b>{q.mode}</b> · GPU <b>{q.gpu.name}</b> · {q.gpu.temp_c ?? '–'} °C · running {q.running ? q.running.pet_name : 'nothing'} · {q.queued.length} queued
-            </p>
-            <table className="w-full text-left">
-              <thead className="text-muted">
-                <tr>
-                  <th />
-                  <th>Pet</th>
-                  <th>Status</th>
-                  <th>Fallback</th>
-                  <th>Time</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {q.recent.map((j) => (
-                  <tr key={j.job_id} className="border-t border-line">
-                    <td>{j.thumbnail_url && <img src={j.thumbnail_url} alt="" className="h-16 w-16 object-contain" />}</td>
-                    <td>{j.pet_name}</td>
-                    <td>{j.status}</td>
-                    <td>{j.fallback}</td>
-                    <td>{j.total_ms ? `${Math.round(j.total_ms / 1000)} s` : '–'}</td>
-                    <td className="flex gap-2 py-2">
-                      <Button variant="soft" className="!px-4 !py-2 !text-xl" onClick={() => void Api.staffRetry(j.job_id, token).then(() => load())}>
-                        Retry
-                      </Button>
-                      {(j.status === 'done' || j.status === 'fulfilled') && (
-                        <Button variant="soft" className="!px-4 !py-2 !text-xl" onClick={() => void Api.fulfil(j.job_id).then(() => load())}>
-                          Reprint
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <dl className="grid grid-cols-2 gap-y-4 text-3xl" data-testid="staff-ops">
+            <dt className="text-muted">Kiosk</dt>
+            <dd>{ops.kiosk_id}</dd>
+            <dt className="text-muted">Library release</dt>
+            <dd data-testid="ops-release">{Object.values(ops.releases).join(', ') || 'none loaded'}</dd>
+            <dt className="text-muted">API</dt>
+            <dd>
+              {ops.api_version} ({ops.mode})
+            </dd>
+            <dt className="text-muted">Exports</dt>
+            <dd>
+              {ops.exports_running} running · {ops.exports_queued} queued
+            </dd>
+            <dt className="text-muted">Make it unique</dt>
+            <dd>{ops.bespoke_enabled ? 'on' : 'off'}</dd>
+            <dt className="col-span-2 mt-6 font-display text-4xl font-semibold text-ink">Recent orders</dt>
+            {ops.orders.length === 0 && <dd className="col-span-2 text-muted">No orders yet</dd>}
+            {ops.orders.map((o) => (
+              <dd key={o.composition_id} className="col-span-2 flex items-center justify-between gap-6" data-testid={`ops-order-${o.ticket}`}>
+                <span>
+                  <b>{o.ticket}</b> · {o.pet_name || 'unnamed'} · {o.status}
+                </span>
+                <Button variant="soft" disabled={o.status !== 'ready'} onClick={() => void reprint(o.composition_id)} data-testid={`reprint-${o.ticket}`}>
+                  {reprinted === o.composition_id ? 'Sent ✓' : 'Reprint'}
+                </Button>
+              </dd>
+            ))}
+          </dl>
         )}
       </div>
     </Backdrop>

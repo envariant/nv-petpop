@@ -9,7 +9,7 @@ VIEWS = {"front": 0.0, "left": 90.0, "back": 180.0, "right": 270.0}
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base
+    from petpop_library.meshkit import load_base as np_base
 
     reset()
     base = np_base(job["species"])

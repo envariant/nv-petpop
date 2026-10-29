@@ -76,7 +76,7 @@ def min_wall(obj, samples: int = 2000) -> float:
 
 
 def main(job: dict) -> dict:
-    from backend.core.meshkit import load_base as np_base
+    from petpop_library.meshkit import load_base as np_base
 
     cfg = json.loads((ROOT / "config" / "mandrel.json").read_text())
     q = job["quality"]

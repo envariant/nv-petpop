@@ -5,7 +5,11 @@ to end without a GPU. It is a protocol stand-in, not a model:
 - ComfyUI: /upload/image, /prompt, /history/<id>, /view, /free, /system_stats. A SaveImage output is a "render"
   of the depth image that feeds it upstream (subject shaded on white); a SaveGLB output is the visual hull of
   the view images that feed it; the texture graph returns a flat albedo.
-- Shape server: /health, /v1/shape (visual hull of the uploaded views), /v1/free.
+- Shape server: /health, /v1/shape (a job: the visual hull of the uploaded views), /v1/shape/<id> (reports
+  "running" on the first poll, then "done"), /v1/shape/<id>/mesh, /v1/free.
+
+Every request's duration is logged (`seconds`), so tests can check that nothing waits anywhere near the ~100 s a
+Cloudflare tunnel allows.
 - Ollama: /api/tags, /api/chat (a fixed, schema-valid patch).
 
     python -m tests.fakes.genai_host --port 8787 --token devtoken   # then point COMFY_URL etc. at it
@@ -16,6 +20,7 @@ import argparse
 import io
 import json
 import threading
+import time
 import uuid
 from typing import Any
 
@@ -33,6 +38,7 @@ class FakeHost:
         self.uploads: dict[str, bytes] = {}
         self.outputs: dict[str, bytes] = {}
         self.history: dict[str, Any] = {}
+        self.shape_jobs: dict[str, dict[str, Any]] = {}
         self.log: list[dict[str, Any]] = []
         self.lock = threading.Lock()
         self.app = self._build()
@@ -147,7 +153,10 @@ class FakeHost:
                 entry["json"] = json.loads(body)
             with host.lock:
                 host.log.append(entry)
-            return await call_next(request)
+            t0 = time.perf_counter()
+            response = await call_next(request)
+            entry["seconds"] = time.perf_counter() - t0
+            return response
 
         # ComfyUI ------------------------------------------------------------------
         @app.get("/comfy/system_stats")
@@ -184,7 +193,7 @@ class FakeHost:
         def shape_health():
             return {"status": "ok", "engine": "fake-visual-hull", "loaded": False}
 
-        @app.post("/shape/v1/shape")
+        @app.post("/shape/v1/shape", status_code=202)
         async def shape(params: str = Form("{}"), view_front: UploadFile = File(...), view_left: UploadFile | None = File(None),
                         view_back: UploadFile | None = File(None), view_right: UploadFile | None = File(None)):
             with host.lock:
@@ -193,7 +202,24 @@ class FakeHost:
             for k, f in (("left", view_left), ("back", view_back), ("right", view_right)):
                 if f is not None:
                     views[k] = await f.read()
-            return Response(host.visual_hull(views), media_type="model/gltf-binary", headers={"x-engine": "fake-visual-hull"})
+            job_id = uuid.uuid4().hex[:16]
+            host.shape_jobs[job_id] = {"polls": 0, "glb": host.visual_hull(views)}
+            return {"job_id": job_id, "status": "queued", "position": 1}
+
+        @app.get("/shape/v1/shape/{job_id}")
+        def shape_status(job_id: str):
+            job = host.shape_jobs.get(job_id)
+            if job is None:
+                return JSONResponse({"detail": "unknown shape job"}, status_code=404)
+            job["polls"] += 1
+            return {"job_id": job_id, "status": "running" if job["polls"] < 2 else "done", "error": None, "seconds": 1.0, "position": 0}
+
+        @app.get("/shape/v1/shape/{job_id}/mesh")
+        def shape_mesh(job_id: str):
+            job = host.shape_jobs.get(job_id)
+            if job is None or job["polls"] < 2:
+                return JSONResponse({"detail": "not done"}, status_code=409 if job else 404)
+            return Response(job["glb"], media_type="model/gltf-binary", headers={"x-engine": "fake-visual-hull"})
 
         @app.post("/shape/v1/free")
         def shape_free():

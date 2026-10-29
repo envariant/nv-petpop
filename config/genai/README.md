@@ -2,7 +2,7 @@
 
 One YAML file per GenAI host. `GENAI_PROFILE` selects one (default `mock`), and it is the only place that
 names a model, a host, a quality preset, a residency rule, a stage timeout or an expected timing. The
-worker reads it through `backend/core/genai.py`. `tests/unit/test_host_agnostic.py` fails if the worker
+studio worker reads it through `backend/core/genai.py` (the kiosk worker never does). `tests/unit/test_host_agnostic.py` fails if the worker
 code names a model, host, port or workflow file.
 
 | Key | Meaning |

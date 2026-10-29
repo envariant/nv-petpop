@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 from backend.core import lowfi
-from backend.core.meshkit import load_base
+from petpop_library.meshkit import load_base
 from backend.core.paths import PIPELINES
 from backend.worker import blender
 

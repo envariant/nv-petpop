@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Gate 8 (M8, BRIEF Section 16): Studio. Batches through the pipeline, delta extraction, QC with auto-reject,
+# review, the parts and pattern editors, publish with versioning, and signed releases; "a release bundle loads on
+# a clean kiosk". On the mock profile the figurines come from the stand-in adapters; the yield criterion (20
+# generated figurines give at least 15 published parts sets) needs a GenAI host and prints SKIPPED.
+source "$(dirname "$0")/lib.sh"
+echo "gate-8: studio curation and releases"
+step "delta extraction recomposes figurines; QC metrics and auto-reject calibrated" "$PY" -m pytest tests/unit/test_library_curation.py
+step "Contract 1 (release bundle) on the proxy releases" "$PY" -m pytest tests/contract/test_release.py
+step "studio library API, batch to kiosk release: mock server AND real backend" "$PY" -m pytest tests/contract/test_studio_library.py
+step "Playwright: batch builder, review grid, editors, releases (studio)" bash -c 'cd apps/studio && npx playwright test tests/e2e/screens.spec.ts -g "8 generate|9 review|10 library|11 releases"'
+step "a release bundle loads on a clean kiosk and exports a composition of new parts" "$PY" scripts/gate8_clean_kiosk.py
+step "Playwright: curation walkthrough against the real backend (studio)" bash -c 'cd apps/studio && PP_BACKEND=real npx playwright test tests/gate8'
+if [ "$GENAI_PROFILE" = "mock" ]; then
+  echo "  [SKIPPED] 20 generated figurines yield at least 15 published parts sets (needs a GenAI host)"
+else
+  step "20 generated figurines yield at least 15 published parts sets ($GENAI_PROFILE)" "$PY" scripts/gate8_yield.py
+fi
+echo "GATE 8 PASSED"

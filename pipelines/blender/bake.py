@@ -14,11 +14,12 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (ROOT / "packages" / "library" / "python", ROOT / "packages" / "core" / "python", ROOT):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from backend.core.colouring import NOSE_HEX, rgb, vertex_colours  # noqa: E402
-from backend.core.meshkit import BaseMesh, dilate, raster_uv  # noqa: E402
+from petpop_library.colouring import NOSE_HEX, rgb, vertex_colours  # noqa: E402
+from petpop_library.meshkit import BaseMesh, dilate, raster_uv  # noqa: E402
 
 
 def coverage(base: BaseMesh, size: int) -> np.ndarray:

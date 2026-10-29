@@ -1,4 +1,5 @@
-"""FastAPI app: the /api/v1 contract, the built SPA from the same origin, and Prometheus /metrics."""
+"""FastAPI app: the /api/v1 contract, both built SPAs from the same origin (kiosk at /, studio at /studio/), and
+Prometheus /metrics."""
 from __future__ import annotations
 
 import logging
@@ -12,32 +13,35 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import func, select
 
 from backend.core.config import settings
-from backend.core.contract import make_app
+from backend.api.contract import make_app
 from backend.core.paths import ROOT
 
 from .db import JobRow, StageTimingRow
 from .service import BackendApi
 
 SPA = ROOT / "apps" / "kiosk" / "dist"
+STUDIO_SPA = ROOT / "apps" / "studio" / "dist"
 
 
 def create_app(embed_worker: bool | None = None) -> FastAPI:
     s = settings()
     impl = BackendApi(s)
-    worker = None
+    workers = []
     if embed_worker if embed_worker is not None else s.embed_worker:
-        from backend.worker.service import Worker
+        from backend.worker.service import Worker  # dev and tests: both queues' workers in-process
 
-        worker = Worker(s)
+        workers = [Worker(s, queue="studio"), Worker(s, queue="kiosk")]
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         impl.purge_free_text()
-        if worker:
-            worker.start_thread()
+        impl.library.watch()  # new release bundles in the inbox are picked up within 30 s
+        for w in workers:
+            w.start_thread()
         yield
-        if worker:
-            worker.stop()
+        impl.library.stop()
+        for w in workers:
+            w.stop()
 
     app = make_app(impl, title="PetPop API", lifespan=lifespan)
     app.state.impl = impl
@@ -61,6 +65,9 @@ def create_app(embed_worker: bool | None = None) -> FastAPI:
         lines += ["# TYPE petpop_http_requests_total counter", f"petpop_http_requests_total {stats['requests']}",
                   "# TYPE petpop_uptime_seconds gauge", f"petpop_uptime_seconds {time.time() - stats['started']:.0f}"]
         return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
+
+    if STUDIO_SPA.exists():
+        app.mount("/studio", StaticFiles(directory=STUDIO_SPA, html=True), name="studio-spa")
 
     if SPA.exists():
         app.mount("/assets", StaticFiles(directory=SPA / "assets"), name="spa-assets")

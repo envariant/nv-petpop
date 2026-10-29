@@ -3,9 +3,9 @@ the numpy renderer stands in when bpy is missing (fidelity low)."""
 from __future__ import annotations
 
 from backend.core import lowfi
-from backend.core.colouring import vertex_colours
-from backend.core.meshkit import load_base
-from backend.core.vocab import morph_weights
+from petpop_library.colouring import vertex_colours
+from petpop_library.meshkit import load_base
+from petpop_core.vocab import morph_weights
 from backend.worker import blender
 from backend.worker.imaging import matte_square
 

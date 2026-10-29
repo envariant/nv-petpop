@@ -1,7 +1,7 @@
 import json
 
 from backend.core.paths import ROOT
-from backend.core.schemas import enum_slots, spec_errors
+from petpop_core.schemas import enum_slots, spec_errors
 
 
 def test_regression_set_covers_every_ear_tail_and_coat_value():

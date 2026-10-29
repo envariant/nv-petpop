@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/react';
 import { setupWorker } from 'msw/browser';
-import '../src/styles.css';
+import '@petpop/ui/styles.css';
 import { handlers } from '../src/mocks/handlers';
 
 let worker: Promise<unknown> | null = null;
