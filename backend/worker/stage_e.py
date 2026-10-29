@@ -8,8 +8,8 @@ import json
 import numpy as np
 
 from backend.core import lowfi
-from backend.core.meshkit import load_base, write_obj
-from backend.core.vocab import morph_weights
+from petpop_library.meshkit import load_base, write_obj
+from petpop_core.vocab import morph_weights
 
 from . import blender
 from .backends.mock.pacing import Pace

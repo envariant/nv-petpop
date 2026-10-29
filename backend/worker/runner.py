@@ -19,8 +19,8 @@ from typing import Any
 
 import numpy as np
 
-from backend.core.manifest import ManifestBuilder, now_iso
-from backend.core.meshkit import load_base
+from petpop_core.manifest import ManifestBuilder, now_iso
+from petpop_library.meshkit import load_base
 from backend.core.paths import BASE_DIR
 
 from . import control, stage_a, stage_b, stage_c, stage_d, stage_e, stage_f

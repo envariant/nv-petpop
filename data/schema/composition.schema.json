@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/composition.schema.json",
+  "title": "Composition",
+  "description": "What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the species base mesh plus the family delta plus one region delta per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["composition_version", "species", "release_version", "base_mesh_version", "family_id", "parts", "shells", "base_colour", "layers", "stamps", "eye_colour", "nose_colour"],
+  "properties": {
+    "composition_version": {"const": "1.0"},
+    "species": {"enum": ["dog", "cat"]},
+    "release_version": {"type": "string", "pattern": "^release-(dog|cat)-[0-9]+$", "description": "The library release the ids refer to."},
+    "base_mesh_version": {"type": "string", "description": "Must equal the release's base mesh version."},
+    "pet_name": {"type": "string", "maxLength": 24},
+    "breed_id": {"type": "string", "maxLength": 48, "description": "The breed the customer started from (informational)."},
+    "family_id": {"type": "string", "maxLength": 64},
+    "parts": {
+      "type": "object",
+      "description": "One region-delta part id per region; a region left out keeps the family's shape.",
+      "additionalProperties": false,
+      "properties": {
+        "ears": {"type": "string", "maxLength": 64},
+        "tail": {"type": "string", "maxLength": 64},
+        "muzzle": {"type": "string", "maxLength": 64},
+        "head": {"type": "string", "maxLength": 64},
+        "legs": {"type": "string", "maxLength": 64}
+      }
+    },
+    "shells": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["part_id", "colour"],
+        "properties": {
+          "part_id": {"type": "string", "maxLength": 64},
+          "colour": {"$ref": "#/$defs/hex"}
+        }
+      }
+    },
+    "base_colour": {"$ref": "#/$defs/hex"},
+    "layers": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "Pattern layers, composited in this order over the base colour.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pattern_id", "coverage", "colour"],
+        "properties": {
+          "pattern_id": {"type": "string", "maxLength": 64},
+          "coverage": {"type": "number", "minimum": 0, "maximum": 1, "description": "The mask threshold: the layer covers texels whose mask value is below coverage."},
+          "colour": {"$ref": "#/$defs/hex"}
+        }
+      }
+    },
+    "stamps": {
+      "type": "array",
+      "maxItems": 400,
+      "description": "Spots, patches and brush dabs, painted after the layers in this order. Positions are in base-mesh space (mm), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["p", "r", "colour"],
+        "properties": {
+          "p": {"type": "array", "items": {"type": "number", "minimum": -200, "maximum": 200}, "minItems": 3, "maxItems": 3},
+          "r": {"type": "number", "minimum": 0.5, "maximum": 20},
+          "colour": {"$ref": "#/$defs/hex"}
+        }
+      }
+    },
+    "eye_colour": {"$ref": "#/$defs/hex"},
+    "nose_colour": {"$ref": "#/$defs/hex"}
+  },
+  "$defs": {
+    "hex": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"}
+  }
+}

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.config import Settings
-from backend.core.manifest import ManifestBuilder
+from petpop_core.manifest import ManifestBuilder
 
 
 class StageFailed(RuntimeError):

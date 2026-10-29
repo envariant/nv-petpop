@@ -15,13 +15,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
-from backend.core.breeds import all_breeds  # noqa: E402
-from backend.core.meshkit import load_base  # noqa: E402
+from petpop_core.breeds import all_breeds  # noqa: E402
+from petpop_library.meshkit import load_base  # noqa: E402
 from backend.core.paths import PIPELINES, bpy_python  # noqa: E402
-from backend.core.spec import default_spec  # noqa: E402
-from backend.core.vocab import morph_weights  # noqa: E402
-from backend.prompts.compiler import compile_prompts  # noqa: E402
+from petpop_core.spec import default_spec  # noqa: E402
+from petpop_core.vocab import morph_weights  # noqa: E402
+from petpop_core.prompts.compiler import compile_prompts  # noqa: E402
 from backend.worker import blender  # noqa: E402
 
 sys.path.insert(0, str(PIPELINES / "blender"))

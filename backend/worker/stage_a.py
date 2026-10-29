@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import json
 
-from backend.core.schemas import spec_errors
-from backend.core.spec import fill_colour_names
-from backend.core.vocab import morph_weights, vocab
-from backend.prompts.compiler import compile_prompts
+from petpop_core.schemas import spec_errors
+from petpop_core.spec import fill_colour_names
+from petpop_core.vocab import morph_weights, vocab
+from petpop_core.prompts.compiler import compile_prompts
 
 from .backends.mock.pacing import Pace
 from .context import StageFailed

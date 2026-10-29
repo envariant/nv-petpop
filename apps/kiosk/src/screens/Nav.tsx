@@ -1,4 +1,4 @@
-import { Button } from '../components/ui';
+import { Button } from '@petpop/ui';
 
 export function NavBar({ back, next, nextLabel = 'Next', nextDisabled, extra }: { back?: () => void; next?: () => void; nextLabel?: string; nextDisabled?: boolean; extra?: React.ReactNode }) {
   return (

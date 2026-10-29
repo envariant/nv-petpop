@@ -1,0 +1,10 @@
+{
+  "name": "@petpop/viewer",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "three.js viewer for both apps: base mesh, morph and delta application, pattern material (BRIEF Section 17).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": { "@petpop/core": "*", "@react-three/drei": "*", "@react-three/fiber": "*", "react": "*", "three": "*" }
+}

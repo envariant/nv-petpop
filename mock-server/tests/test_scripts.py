@@ -1,4 +1,5 @@
-"""Every mock script drives the kiosk into the state it promises (slow queue, failed stage, fallback)."""
+"""Every mock script drives the studio Generate workspace into the state it promises (slow queue, failed stage,
+fallback)."""
 from __future__ import annotations
 
 import json
@@ -14,24 +15,27 @@ sys.path[:0] = [str(ROOT), str(ROOT / "mock-server")]
 
 from mock_server.app import create_app, load_scripts  # noqa: E402
 
-from backend.core.spec import default_spec  # noqa: E402
+from petpop_core.spec import default_spec  # noqa: E402
 
-P = "/api/v1"
+P = "/api/v1/studio"
 
 
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setenv("PETPOP_MOCK_SPEED", "0.01")
+    monkeypatch.setenv("PETPOP_STUDIO_PASSWORD", "test-studio")
     with TestClient(create_app()) as c:
+        token = c.post(f"{P}/auth/login", json={"username": "operator", "password": "test-studio"}).json()["token"]
+        c.headers["Authorization"] = f"Bearer {token}"
+        c.token = token
         yield c
 
 
 def run(client, name: str) -> tuple[list[dict], dict]:
-    sid = client.post(f"{P}/sessions", json={}).json()["session_id"]
     spec = default_spec("dog", "beagle", seed=11, pet_name=name)
-    job = client.post(f"{P}/jobs", json={"session_id": sid, "spec": spec}).json()
+    job = client.post(f"{P}/jobs", json={"spec": spec}).json()
     events = []
-    with client.websocket_connect(f"{P}/jobs/{job['job_id']}/events") as ws:
+    with client.websocket_connect(f"{P}/jobs/{job['job_id']}/events?token={client.token}") as ws:
         while True:
             ev = json.loads(ws.receive_text())
             events.append(ev)
@@ -80,9 +84,8 @@ def test_fallback_figurine(client):
 
 
 def test_queue_serialises_jobs(client):
-    sid = client.post(f"{P}/sessions", json={}).json()["session_id"]
     spec = default_spec("cat", "persian", seed=2, pet_name="Fluff")
-    a = client.post(f"{P}/jobs", json={"session_id": sid, "spec": spec}).json()
-    b = client.post(f"{P}/jobs", json={"session_id": sid, "spec": spec}).json()
+    a = client.post(f"{P}/jobs", json={"spec": spec}).json()
+    b = client.post(f"{P}/jobs", json={"spec": spec}).json()
     assert a["queue_position"] == 0 and b["status"] == "queued" and b["queue_position"] >= 1
     time.sleep(0.05)

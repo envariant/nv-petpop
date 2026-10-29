@@ -1,23 +1,15 @@
 // Story and test data built from the fixture pack (fixtures/pets/biscuit).
 import biscuit from '@fixtures/pets/biscuit/spec.json';
-import manifest from '@fixtures/pets/biscuit/manifest.json';
-import type { Artefact, Breed, Job, PetSpec } from '../api/types';
+import type { Breed, CompositionStatus, PetSpec } from '@petpop/core';
 import dogs from '@data/breeds/dog.json';
 
 export const SPEC = biscuit as unknown as PetSpec;
 export const CORGI = (dogs.breeds as unknown as Breed[]).find((b) => b.id === 'corgi_pembroke')!;
-const f = (name: string) => `/fixtures/biscuit/${name}`;
-const artefacts = (manifest.files as { name: string; kind: Artefact['kind']; stage: string; bytes: number }[]).map((x) => ({ ...x, url: f(x.name) }));
 
-export function job(status: Job['status'], extra: Partial<Job> = {}): Job {
-  const done = status === 'done' || status === 'fulfilled';
-  return {
-    job_id: 'j_story', session_id: 's_story', status, stage: done ? 'done' : status === 'queued' ? 'queued' : 'C', pct: done ? 100 : 45, message: done ? 'Your figurine is ready' : 'Four views ready',
-    queue_position: status === 'queued' ? 2 : 0, seed: SPEC.seed, species: 'dog', pet_name: 'Biscuit', created_at: new Date().toISOString(), finished_at: null,
-    error: status === 'failed' ? 'Stage D (shape) timed out after 150 s' : null, fallback: 'none', fidelity: 'low', timings: [], artefacts: done ? artefacts : [],
-    previews: done ? { concept: f('concept.png'), glb: f('figure.glb'), thumbnail: f('thumbnail.png') } : {}, result_url: done ? 'http://localhost/r/demo' : null, ticket: null, spec: SPEC,
-    ...extra,
-  };
-}
-
-export const VIEW_PREVIEWS = { concept: f('concept.png'), view_front: f('views/front.png'), view_left: f('views/left.png'), view_back: f('views/back.png'), view_right: f('views/right.png') };
+/** A finished library order (the Order screen once Stage F is done), with the fixture pack's figurine. */
+export const ORDER_READY = {
+  composition_id: 'c_story', session_id: 's_story', status: 'ready', pet_name: 'Biscuit', species: 'dog', release_version: 'release-dog-1',
+  created_at: '2026-10-29T10:00:00Z', ticket: 'PP-4821', result_url: 'http://kiosk.local/r/c_story.0.mock',
+  export: { job_id: 'j_story', status: 'done', stage: 'done', pct: 100, message: 'Your figurine is ready' },
+  artefacts: [], previews: { glb: '/fixtures/biscuit/figure.glb', thumbnail: '/fixtures/biscuit/thumbnail.png' }, error: null, composition: {},
+} as unknown as CompositionStatus;

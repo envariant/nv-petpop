@@ -11,7 +11,12 @@ import time
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+_HERE = Path(__file__).resolve().parent
+_ROOT = _HERE.parents[1]
+# This folder, the repo root and the shared Python packages (bpy runs without the backend's PYTHONPATH).
+for _p in (_ROOT / "packages" / "library" / "python", _ROOT / "packages" / "core" / "python", _ROOT, _HERE):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
 
 def main() -> int:

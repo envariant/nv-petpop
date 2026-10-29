@@ -7,10 +7,10 @@ import json
 import sys
 
 from backend.core import lowfi
-from backend.core.colouring import vertex_colours
-from backend.core.meshkit import load_base
+from petpop_library.colouring import vertex_colours
+from petpop_library.meshkit import load_base
 from backend.core.paths import PIPELINES
-from backend.core.vocab import morph_weights
+from petpop_core.vocab import morph_weights
 
 from . import blender
 from .backends.mock.pacing import Pace

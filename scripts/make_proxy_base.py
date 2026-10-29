@@ -19,8 +19,9 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
-from backend.core.meshkit import dilate, load_base, raster_uv  # noqa: E402
+from petpop_library.meshkit import dilate, load_base, raster_uv  # noqa: E402
 from backend.core.paths import BASE_DIR, bpy_python  # noqa: E402
 
 MASK_SIZE = 1024
