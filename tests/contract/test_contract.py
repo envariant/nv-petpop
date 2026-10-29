@@ -51,7 +51,12 @@ def test_openapi_matches_committed(client):
 
 def test_health(client):
     body = check(f"{P}/health", "get", client.get(f"{P}/health"))
-    assert body["mode"] == "mock"
+    if client.impl_name == "mock":
+        assert body["mode"] == "mock"
+    else:  # the backend reports its GenAI profile's mode: mock by default, real on a GenAI host (gates 3 to 6)
+        from backend.core.config import settings
+
+        assert body["mode"] == settings().mode
 
 
 def test_breeds(client):

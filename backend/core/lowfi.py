@@ -35,7 +35,7 @@ def control_renders(base: BaseMesh, co: np.ndarray, size: int = 512) -> dict[str
     out = {}
     for cam, az in CAMERAS.items():
         r = render(co, tris, az, size)
-        depth = Image.fromarray(depth_png16(r["depth"]), mode="I;16")
+        depth = Image.fromarray(depth_png16(r["depth"]))  # uint16 -> I;16; Pillow 13 rejects mode= here
         alpha = Image.fromarray((r["alpha"] * 255).astype(np.uint8), "L")
         out[cam] = {"depth": png_bytes(depth), "alpha": png_bytes(alpha)}
     return out

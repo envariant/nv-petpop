@@ -6,5 +6,5 @@ skip_without_genai_host 6
 echo "gate-6: kiosk hardening run: regression set on the GenAI host (needs the kiosk screen for the touch review) (GenAI profile $GENAI_PROFILE)"
 step "GenAI services reachable" "$PY" scripts/genai_check.py
 step "contract test against the backend on this profile" env PETPOP_QUALITY="${PETPOP_QUALITY:-test}" "$PY" -m pytest tests/contract -k backend
-step "regression set meets the gate-6 thresholds of this profile" "$PY" scripts/regress.py --gate 6
+step "regression set meets the gate-6 thresholds of this profile" "$PY" scripts/regress.py --gate 6 ${PETPOP_REGRESS_LIMIT:+--limit "$PETPOP_REGRESS_LIMIT"}
 echo "GATE 6 PASSED"

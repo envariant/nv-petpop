@@ -6,5 +6,5 @@ skip_without_genai_host 4
 echo "gate-4: shape (stage D) with the silhouette IoU gate (GenAI profile $GENAI_PROFILE)"
 step "GenAI services reachable" "$PY" scripts/genai_check.py
 step "contract test against the backend on this profile" env PETPOP_QUALITY="${PETPOP_QUALITY:-test}" "$PY" -m pytest tests/contract -k backend
-step "regression set meets the gate-4 thresholds of this profile" "$PY" scripts/regress.py --gate 4
+step "regression set meets the gate-4 thresholds of this profile" "$PY" scripts/regress.py --gate 4 ${PETPOP_REGRESS_LIMIT:+--limit "$PETPOP_REGRESS_LIMIT"}
 echo "GATE 4 PASSED"

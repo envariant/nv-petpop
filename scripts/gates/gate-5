@@ -6,5 +6,5 @@ skip_without_genai_host 5
 echo "gate-5: texture and the full GenAI pipeline (latency enforced only where the profile enforces it) (GenAI profile $GENAI_PROFILE)"
 step "GenAI services reachable" "$PY" scripts/genai_check.py
 step "contract test against the backend on this profile" env PETPOP_QUALITY="${PETPOP_QUALITY:-test}" "$PY" -m pytest tests/contract -k backend
-step "regression set meets the gate-5 thresholds of this profile" "$PY" scripts/regress.py --gate 5
+step "regression set meets the gate-5 thresholds of this profile" "$PY" scripts/regress.py --gate 5 ${PETPOP_REGRESS_LIMIT:+--limit "$PETPOP_REGRESS_LIMIT"}
 echo "GATE 5 PASSED"
