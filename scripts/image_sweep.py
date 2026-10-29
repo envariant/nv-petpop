@@ -27,10 +27,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from backend.core.genai import Profile  # noqa: E402
-from backend.core.meshkit import load_base  # noqa: E402
-from backend.core.spec import default_spec  # noqa: E402
-from backend.core.vocab import morph_weights  # noqa: E402
-from backend.prompts.compiler import compile_prompts  # noqa: E402
+from petpop_library.meshkit import load_base  # noqa: E402
+from petpop_core.spec import default_spec  # noqa: E402
+from petpop_core.vocab import morph_weights  # noqa: E402
+from petpop_core.prompts.compiler import compile_prompts  # noqa: E402
 from backend.worker.backends.real.comfy import ComfyClient, ComfyError  # noqa: E402
 
 BREEDS = "dog:golden_retriever,dog:dachshund,dog:french_bulldog,dog:border_collie"
@@ -72,7 +72,7 @@ VIEW_VARIANTS = {
 def control_images(species: str, spec: dict, px: int) -> dict[str, bytes]:
     """Depth for the five cameras and the flat front render of the morphed proxy, as the control stage makes them."""
     from backend.core import lowfi
-    from backend.core.colouring import vertex_colours
+    from petpop_library.colouring import vertex_colours
     from backend.core.config import settings
     from backend.worker import blender
 
@@ -227,7 +227,7 @@ def mesh_preview(glb: bytes, px: int = 256) -> list[tuple[str, bytes]]:
     """Shaded grey renders of a mesh from front, left, back and right (CPU z-buffer, no Blender)."""
     import trimesh
 
-    from backend.core.meshkit import CENTRE_Z_DEFAULT, EXTENT_DEFAULT, render
+    from petpop_library.meshkit import CENTRE_Z_DEFAULT, EXTENT_DEFAULT, render
 
     m = trimesh.load(io.BytesIO(glb), file_type="glb", force="mesh")
     v = np.asarray(m.vertices, dtype=np.float64)
