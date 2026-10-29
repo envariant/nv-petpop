@@ -203,7 +203,16 @@ def get(c: ComfyClient, path: str, **kw):
 
 
 def submit(c: ComfyClient, g: dict, timeout: float = 1200) -> tuple[dict[str, bytes], float]:
-    r = c.http.post(f"{c.url}/prompt", json={"prompt": g, "client_id": c.client_id})
+    import httpx
+
+    for attempt in range(4):  # a dropped connection may re-queue a prompt once; harmless for a sweep
+        try:
+            r = c.http.post(f"{c.url}/prompt", json={"prompt": g, "client_id": c.client_id})
+            break
+        except httpx.TransportError:
+            if attempt == 3:
+                raise
+            time.sleep(10 * (attempt + 1))
     if r.status_code != 200:
         raise ComfyError(f"/prompt rejected: {r.text[:800]}")
     pid, t0 = r.json()["prompt_id"], time.monotonic()
