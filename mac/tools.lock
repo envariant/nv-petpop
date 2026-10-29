@@ -1,0 +1,11 @@
+# Command-line tools mac/setup.sh installs into $PETPOP_GENAI/bin, each pinned to an exact release and checked
+# against its hash before it is unpacked. No Homebrew: the only prerequisite is the Xcode Command Line Tools
+# (git, curl, shasum, tar, unzip, openssl). Checked 2026-10-28.
+#
+# name         version    hash                                                                                                                                url
+uv             0.13.1     sha256:cfa719fbbd23f26713394dea2692b7f146aa1b5713ce5e776e878701214ea52c                                                            https://files.pythonhosted.org/packages/3b/31/fad7fd2ac81954d02d33765bf8535eb320fcc2d71f2603a5c1ba0b13b8ef/uv-0.13.1-py3-none-macosx_11_0_arm64.whl
+ollama         0.40.12    sha256:1d1b4c2cf40d2a239f9b08a77384830800a8542c744a55f47247f9baf85b55d2                                                            https://github.com/ollama/ollama/releases/download/v0.40.12/ollama-darwin.tgz
+caddy          2.11.7     sha512:68f592df8f0ec058fbdb9b137b64e9a0aa792d28c06e1e3b9ec12d0e7fb371683a54e73ef6d8e6d0dd70dc6b941a5b5d5b73faedd3f89de119ad2eb78bdc668e  https://github.com/caddyserver/caddy/releases/download/v2.11.7/caddy_2.11.7_mac_arm64.tar.gz
+cloudflared    2026.10.5  sha256:184c7d4f5f977348243a6d7ca8f6cf6073b9b2746cfe8c1fe15aa59e9a522bf0                                                            https://github.com/cloudflare/cloudflared/releases/download/2026.10.5/cloudflared-darwin-arm64.tgz
+# Python for every venv, installed by the uv above (uv checks the build against the hash it ships with).
+python         3.11.17    uv                                                                                                                                  -

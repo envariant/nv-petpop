@@ -1,110 +1,146 @@
-# Handoff: what the GPU host needs for S3
+# Handoff: S3 on a remote GenAI host (Mac first)
 
-S0 to S2 are done and gated in the cloud (`make gate-0`, `gate-1`, `gate-2` all pass). The latest
-regression table is in `tests/regression/metrics.md` (mock mode: 30/30 complete, all watertight, all wraps
-valid, one topology per species). The whole product runs on
-CPU in mock mode: kiosk, API, worker, Blender wrap/bake/export/paint check, fixtures and the regression
-set. S3 swaps the three GPU services in behind the existing adapters, so the API, worker stages and SPA do
-not change. This page lists what that needs, in order.
+Since M2.5 the backend is host-agnostic. Everything about a GenAI host (endpoints, model ids, quality,
+residency, stage timeouts, expected timings) lives in `config/genai/<profile>.yaml`, selected by
+`GENAI_PROFILE`. The worker never names a model or a host, and a test enforces that.
 
-## 1. Hardware and OS
+| Profile | Where the GenAI runs | Shape model | Texture | Latency |
+| --- | --- | --- | --- | --- |
+| `mock` (default) | nowhere: CPU stand-ins in the VM | morphed base mesh + noise | projection | n/a |
+| `mac-m4pro` | Apple Silicon M4 Pro 24 GB, MPS, via tunnel | Hunyuan3D-2.1 (MPS fork), octree 192 / 30 steps | projection | waived (12 to 16 min) |
+| `nvidia-24gb` | 24 GB NVIDIA box, CUDA | Hunyuan3D-2mv, octree 384 / 50 steps | projection, `hy_paint` optional | 4 min enforced |
 
-- 1x 24 GB NVIDIA GPU (RTX 4090 or L4 class), 16-core CPU, 64 GB RAM, 500 GB NVMe (BRIEF Section 9).
-- Ubuntu 22.04/24.04, a recent NVIDIA driver, Docker Engine with Compose v2, and the NVIDIA Container
-  Toolkit (`docker run --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi` must work).
-- Outbound HTTPS to huggingface.co, github.com, registry.ollama.ai and Docker Hub during setup only.
-- A LAN address for the kiosk thin client and phones (QR links): set `PETPOP_PUBLIC_URL`.
+The PetPop backend (API, worker, Blender wrap/bake/export) keeps running in the cloud VM. Only ComfyUI, the
+shape server and Ollama run on the Mac.
 
-## 2. Secrets and configuration (`.env`, never committed)
+## What you run, in order
 
-Copy `.env.example` to `.env` and fill:
+### On the Mac (details and troubleshooting in [mac/RUNBOOK.md](../mac/RUNBOOK.md))
 
-| Variable | Notes |
+1. Clone the repo, then check out `poc`:
+
+   ```bash
+   git clone https://github.com/envariant/nv-petpop && cd nv-petpop && git checkout poc
+   ```
+
+2. Install the Xcode Command Line Tools if the Mac lacks them (`xcode-select --install`). Nothing else is
+   needed beforehand; there is no Homebrew step.
+
+3. Install the pinned tools, Python, venvs and code, pull the Ollama model, write the secrets file, and load the
+   three launchd units. Every download is checked against a hash committed in this repo:
+
+   ```bash
+   make -C mac setup
+   ```
+
+4. Fetch about 20.5 GB of weights. Each file must match the SHA256 in `pipelines/comfy/models.lock.json`, or
+   it is deleted and the command fails. The pins are already committed, so there is nothing to commit after:
+
+   ```bash
+   make -C mac models
+   ```
+
+5. Start the services and probe them locally:
+
+   ```bash
+   make -C mac start && make -C mac check
+   ```
+
+6. Open the tunnel. This starts the token-checking proxy and the Cloudflare tunnel, and prints the URLs:
+
+   ```bash
+   make -C mac tunnel
+   ```
+
+### Getting the tunnel URL into the cloud VM
+
+`mac/tunnel.sh` prints five values. Set them as environment variables in the cloud environment
+(environment settings, then Edit, then Environment variables), then start a new session:
+
+| Variable | Value |
 | --- | --- |
-| `PETPOP_MODE=real` | switches all four adapters to the GPU services |
-| `PETPOP_SECRET` | 32+ random bytes; signs artefact URLs and the 7-day result links |
-| `PETPOP_STAFF_TOKEN` | staff panel token (LAN only) |
-| `POSTGRES_PASSWORD`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | for the postgres and minio containers |
-| `PETPOP_PUBLIC_URL` | e.g. `http://192.168.1.20:8000`, used in QR links |
-| `PETPOP_FULFIL_DIR` | the folder the print station watches (bind-mount it into `api`) |
-| `PETPOP_MODELS` | weights root, default `/srv/models` (read-only mount) |
-| `PETPOP_COMFY_RESTART_CMD` | optional, e.g. `docker restart petpop-comfyui-1`, used by the 30 s watchdog |
+| `GENAI_PROFILE` | `mac-m4pro` |
+| `COMFY_URL` | `https://<tunnel host>/comfy` |
+| `SHAPE_URL` | `https://<tunnel host>/shape` |
+| `OLLAMA_URL` | `https://<tunnel host>/ollama` |
+| `GENAI_TOKEN` | the value in `~/petpop-genai/genai.env` on the Mac (copy it; never paste it into a chat) |
 
-## 3. Pins that must be filled in on the box (S3 work, then committed)
+The adapters read these through the profile (`config/genai/mac-m4pro.yaml` names `COMFY_URL`, `SHAPE_URL`
+and `OLLAMA_URL` as the env vars for its services) and send `Authorization: Bearer $GENAI_TOKEN` on every
+call. The proxy on the Mac answers 401 without it.
 
-1. **ComfyUI commit**: `ARG COMFY_COMMIT` in `infra/Dockerfile.comfyui`.
-2. **Custom node packs**: the commit column in `pipelines/comfy/requirements.txt` (Hunyuan3DWrapper,
-   IPAdapter_plus, controlnet_aux, BiRefNet, MVAdapter). `install_nodes.sh` refuses unpinned entries.
-3. **Model weights**: `sha256` for every entry in `pipelines/comfy/models.yaml`. Also check each URL
-   against its model card. The URLs are best guesses from the brief and the Hugging Face layouts I know,
-   and none were downloaded here. `make models` refuses entries without a hash and verifies every file.
-4. **Ollama**: `docker compose exec ollama ollama pull qwen2.5:7b-instruct-q4_K_M`.
-5. **Licences**: read the Tencent Hunyuan community licence terms before any commercial use (`LICENSES.md`).
+A quick tunnel's hostname changes every time `tunnel.sh` restarts, so the three URLs must be updated each
+time. A named tunnel (`CF_TUNNEL` / `CF_HOSTNAME`, see the runbook) gives a stable hostname you set once. If
+the environment's network access is Limited, add the tunnel host (`trycloudflare.com` or your hostname) to
+Allowed domains. This VM reached `trycloudflare.com` on 2026-10-28.
 
-## 4. The six ComfyUI workflows (do not exist yet)
+### Back in the cloud session (S3, driven by Claude Code)
 
-Build them in the ComfyUI editor, export in API format to `pipelines/comfy/`, and add `"meta": {"version": "1"}`.
-The worker fills inputs **by node title**, so each workflow must expose exactly the titled inputs and
-outputs in `pipelines/comfy/README.md`. In summary: `01_concept_front.json` (B),
-`02_views_ipadapter.json` and `02b_views_mvadapter.json` (C), `03_shape_hy2mv.json` (D),
-`03b_shape_hy21_single.json` (D fallback) and `04_texture_hy_paint.json` (texture). The adapters that
-call them are in `backend/worker/backends/real/comfy.py`. They are written against the brief but have
-never run against a live ComfyUI, so expect to adjust output parsing (`/history` keys for GLB outputs)
-and the `normalise_glb` axis handling on first contact.
+1. `python scripts/genai_check.py`: all three services return OK through the tunnel.
+2. Bring the stages up one at a time with `PETPOP_ADAPTERS` forcing the rest to mock. The order and each
+   step's check:
+   - Stage A: `/spec/parse` answers in under 3 s on Ollama.
+   - Stage B: `PETPOP_ADAPTERS=shape=mock` keeps D on the mock.
+   - Stage C: the four views.
+   - Stage D: the shape server, and calibrate the 0.85 IoU threshold for single-view shapes.
+3. Run the pipeline in the VM with `make dev`, or `make regress` for the 30-pet set, with
+   `GENAI_PROFILE=mac-m4pro`. Use `make dev` rather than `make up` here: the VM's TLS-inspecting proxy is
+   trusted by host processes but not by containers.
+4. Gates 3 to 6 run on the profile: `make gate-3` ... `make gate-6`. On `mac-m4pro` gate 5 waives the latency
+   target, and the regression set takes 6 to 8 hours (30 x 12 to 16 min). Run it overnight, or use
+   `--limit` to subset.
+5. When a workflow first runs cleanly, set `validated: true` (with the date and host) in
+   `scripts/make_comfy_workflows.py`, then run `make workflows`.
 
-Depth and silhouette inputs already exist. The `control` stage renders 16-bit depth for the five cameras
-from the morphed base mesh, and the worker uploads them through `/upload/image`.
+## What is ready and what is not
 
-## 5. Bring-up order (one adapter at a time)
+**Proven in the VM**
+- `make up` on the mock profile builds and runs api, worker on arq, Postgres, Redis and MinIO.
+  `scripts/smoke_stack.sh` pushes one job through all of them and tears them down.
+- The full pipeline ran on `mac-m4pro` and `nvidia-24gb` against a fake GenAI host
+  (`tests/pipeline/test_genai_hosts.py`). That covers the real ComfyUI, shape-server and Ollama adapters,
+  the generated workflows, the residency rules, the bearer token, and the manifest's `genai` block.
+- The Mac proxy config passes `caddy validate`. A live check gave 401 without the token, 200 with it, and
+  404 for unknown paths.
 
-`PETPOP_ADAPTERS` overrides single adapters, so the rest stay on their mocks. You can also run from the
-cloud session with `COMFY_URL` and `OLLAMA_URL` tunnelled to the box.
+**Not yet run anywhere**
+- **Real models.** None has executed. All six workflows are `meta.validated: false`.
+- **Workflow node definitions.** Node class and input names were checked against each pack's source at the
+  pinned commit. The output handling (`/history` keys, especially SaveGLB's `3d` list) is from source too,
+  but unverified.
+- **Mac scripts.** `mac/setup.sh` and the launchd units are written for macOS and were not executed (the VM is
+  Linux). The plists parse and the shell scripts pass `bash -n`.
+- **Shape server.** `mac/shape_server/server.py` now loads the model the way the fork's own app does: the
+  fork's `backend` and `compat_patches` before torch, Tencent's code from `$HY3D_DIR/Hunyuan3D-2.1`, the
+  fp16 `.ckpt` from the local weights only. `tests/unit/test_mac_host.py` checks that wiring against stubs;
+  the real model has not run.
+- **The hy3dmlx MLX port.** Its weights are on Hugging Face (`AgenticVibes/hy3dmlx-shape-v2.1`), but its
+  loader code (`github.com/AgenticVibes/hy3dmlx`) is not public and it is not on PyPI. Its published timings
+  (12.9 s per step on an M3 Ultra) are also slower than the MPS fork's (7.6 s per step on an M4 Pro), so the
+  profile keeps the fork. Another engine can be added under `shape.server` in the profile.
 
-1. `make up` and `make models`. Then `curl $COMFY_URL/system_stats` and `curl $OLLAMA_URL/api/tags`.
-2. Stage A: `PETPOP_ADAPTERS=parser=real`. `/spec/parse` must answer in under 3 s, and it falls back to the rules parser if Ollama is down.
-3. Stage B: `PETPOP_ADAPTERS=parser=real,image=real`. Run only the concept graph first (Stage C keeps using the mock until `02_*` exists).
-4. Stage C: add the views graph, then compare IP-Adapter against MV-Adapter on the 30-pet set by Stage D confidence.
-5. Stage D: `shape=real`. Confirm `/free` with `unload_models` runs between C and D (it is in `ComfyShapeBackend.multiview`), calibrate the 0.85 IoU threshold, and exercise the single-view fallback.
-6. Texture: `texture=real` (Hunyuan3D-Paint on the wrapped OBJ with the fixed UVs). Per-region colour correction runs automatically in real mode.
-7. All real: `PETPOP_MODE=real` with no overrides.
+**Pins (the Mac setup is deterministic)**
+- **Weights:** every file's SHA256 is committed (`models.yaml` + `models.lock.json`), written from Hugging
+  Face's metadata at each pinned revision without downloading anything. Only the untrained S4 LoRA is `TODO`.
+- **Code:** ComfyUI, IP-Adapter Plus, the MPS fork and Tencent's Hunyuan3D-2.1 are pinned to commits.
+- **Python packages:** every package in the three Mac venvs is `==`-pinned with hashes, wheels only
+  (`mac/locks/`, regenerated reproducibly by `mac/lock.sh`).
+- **Tools and Python:** uv, Ollama, Caddy, cloudflared and CPython 3.11.17 are pinned releases with hashes
+  (`mac/tools.lock`).
+- **Ollama model:** the manifest digest is pinned and checked after the pull.
+- The fork's `install.sh` is not used: it clones Tencent's repo at HEAD and installs unpinned packages.
 
-## 6. Gates 3 to 5
+**Still open from earlier stages**
+- **Proxy base meshes and LoRA.** The base meshes are proxies and the style LoRA is untrained (S4).
+- **NSFW classifier.** Not built.
+- **VRAM peak column.** `stage_timings.vram_peak_mb` exists but is never filled.
+- **Mandrel dimensions.** Still placeholders.
+- **Kiosk hardening.** S5 work, not started.
+- **Hunyuan3D licence.** It is not granted in the EU, the UK or South Korea; check before any commercial use.
 
-In mock mode these print `SKIPPED (needs GPU)`. With `PETPOP_MODE=real` each one checks service health,
-runs the contract test against the backend with the real adapters (`tests/contract -k backend`), and runs
-`scripts/regress.py --gate N`. The thresholds are in `GATES` in `scripts/regress.py`. Gate 4 adds mean
-IoU >= 0.85. Gate 5 adds p50 <= 150 s and max <= 240 s per job on a warm GPU.
+## Later: the NVIDIA box
 
-Use `PETPOP_PROFILE=full` (the default in real mode) for the brief's resolutions: 1024/768 px, 2048 albedo,
-0.15 mm voxels and 250 k print tris. Stage timeouts are the brief's values in real mode
-(A 10, B 60, C 90, D 150, E 90, F 120 s). The Blender stages (wrap, print remesh, turntable) run in the
-worker container on CUDA. Time them first: the 0.15 mm voxel remesh is the most likely stage to blow
-F's 120 s budget.
-
-## 7. Known gaps to close in S3 and S4
-
-- **Base meshes are proxies** (`assets/base/*/`, built by `scripts/make_proxy_base.py`). S4 replaces them
-  with the hand-built meshes from Section 10, then: `scripts/check_base_mesh.py --strict`, `make tiles`,
-  `make fixtures`. Spec gap to settle: the cat morph list (DECISIONS 6).
-- **Style LoRA** (`petpop_style`): `assets/lora/make_training_set.py` and `kohya_petpop_style.toml` are
-  ready but were not run. Run them on the real meshes in S4.
-- **NSFW classifier** on concepts (Section 11) is not implemented. Add it to Stage B on the GPU host
-  (a false positive just regenerates).
-- **VRAM peak** per stage (`stage_timings.vram_peak_mb`) has a column but is not filled. Read it from
-  ComfyUI `/system_stats` around each call.
-- **Real adapters are untested**: `comfy.py`, `ollama.py` and the `RedisBus`/arq and `S3Store` paths
-  have never run. `make dev` uses SQLite, the local store and the local bus.
-- **Mandrel geometry** in `config/mandrel.json` is a placeholder until the painter fixture is measured
-  (Section 14).
-- **Kiosk hardening** (S5): Chromium `--kiosk` launch, the browser/API restart watchdog and the 5-person
-  touch review are not done. The visual direction (candy, studio or toybox) is still to be picked.
-
-## 8. Useful commands
-
-```bash
-make up                         # compose stack (api, worker, comfyui, ollama, postgres, redis, minio)
-make models                     # pinned weights + SHA256 verification
-make gate-3                     # then gate-4, gate-5 (real mode)
-make regress                    # 30-pet metrics table -> tests/regression/metrics.md
-PETPOP_FAIL_STAGE=D make regress  # fallbacks by fault injection
-```
+`GENAI_PROFILE=nvidia-24gb make up` adds `infra/docker-compose.nvidia.yml`, which brings ComfyUI (with the
+Hunyuan3D wrapper and MV-Adapter node packs) and Ollama up on the local GPU and reserves the GPU for the
+worker. Fetch its weights with `make models GENAI_PROFILE=nvidia-24gb` (checked against the same lock), then run
+gates 3 to 6 with the 4-minute target enforced. To opt in to Hunyuan3D-Paint, set `TEXTURE_BACKEND=hy_paint`.

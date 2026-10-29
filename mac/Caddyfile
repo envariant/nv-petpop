@@ -1,0 +1,28 @@
+# Authenticating reverse proxy in front of the three Mac GenAI services (started by mac/tunnel.sh).
+# Every request needs `Authorization: Bearer $GENAI_TOKEN`; the tunnel exposes only this port.
+# `route` keeps the directives in written order, so the token check always runs first.
+{
+	admin off
+	auto_https off
+}
+
+:{$PETPOP_PROXY_PORT:8787} {
+	bind 127.0.0.1
+	route {
+		@unauthorised not header Authorization "Bearer {$GENAI_TOKEN}"
+		respond @unauthorised "unauthorised" 401
+
+		handle_path /comfy/* {
+			reverse_proxy 127.0.0.1:8188
+		}
+		handle_path /shape/* {
+			reverse_proxy 127.0.0.1:8190
+		}
+		handle_path /ollama/* {
+			reverse_proxy 127.0.0.1:11434 {
+				header_up Host 127.0.0.1:11434
+			}
+		}
+		respond "not found" 404
+	}
+}

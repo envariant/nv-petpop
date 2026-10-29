@@ -1,4 +1,4 @@
-"""Stage A on the GPU host: Qwen2.5-7B-Instruct through Ollama with JSON output constrained to the
+"""Stage A on a GenAI host: the profile's instruct LLM through Ollama with JSON output constrained to the
 PetSpec schema (BRIEF Sections 6.1 and 7). Falls back to the rule parser if Ollama is unavailable; the UI
 then says the brief was used "for flavour only"."""
 from __future__ import annotations
@@ -26,13 +26,18 @@ Return only JSON matching the provided schema. Rules:
 class OllamaParser:
     name = "llm"
 
-    def __init__(self, url: str, model: str) -> None:
-        self.url = url.rstrip("/")
-        self.model = model
+    def __init__(self, profile) -> None:
+        cfg = profile["parser"]
+        self.url = profile.url(cfg["service"])
+        self.model = cfg["model"]
+        self.timeout = float(cfg["timeout_s"])
+        self.temperature = float(cfg.get("temperature", 0))
+        self.keep_alive = profile["residency"].get("ollama_keep_alive_s")
+        self.headers = profile.auth_headers()
 
     def available(self) -> bool:
         try:
-            return httpx.get(f"{self.url}/api/tags", timeout=2).status_code == 200
+            return httpx.get(f"{self.url}/api/tags", headers=self.headers, timeout=2).status_code == 200
         except httpx.HTTPError:
             return False
 
@@ -42,11 +47,12 @@ class OllamaParser:
         schema = load_schema("petspec.schema.json")
         body = {
             "model": self.model, "stream": False, "format": {**schema, "required": []},
-            "options": {"temperature": 0, "num_predict": 512},
+            "options": {"temperature": self.temperature, "num_predict": 512},
+            **({"keep_alive": self.keep_alive} if self.keep_alive is not None else {}),
             "messages": [{"role": "system", "content": SYSTEM},
                          {"role": "user", "content": json.dumps({"species": species, "current_spec": current, "text": text})}],
         }
-        r = httpx.post(f"{self.url}/api/chat", json=body, timeout=8)
+        r = httpx.post(f"{self.url}/api/chat", json=body, headers=self.headers, timeout=self.timeout + 5)
         r.raise_for_status()
         raw = json.loads(r.json()["message"]["content"])
         unmapped = str(raw.pop("free_text_unmapped", ""))[:300]

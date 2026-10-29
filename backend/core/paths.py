@@ -18,8 +18,10 @@ VAR = Path(os.environ.get("PETPOP_VAR", ROOT / "var"))
 
 
 def mode() -> str:
-    """PETPOP_MODE: 'mock' (default, CPU only) or 'real' (GPU host)."""
-    return os.environ.get("PETPOP_MODE", "mock")
+    """'mock' or 'real', from the GenAI profile (GENAI_PROFILE, default mock)."""
+    from .genai import Profile
+
+    return Profile().mode
 
 
 def mock_speed() -> float:

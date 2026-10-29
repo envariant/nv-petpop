@@ -63,6 +63,29 @@ for reference only and are never started in a cloud session.
 - [x] `docs/HANDOFF.md`: what the GPU host needs for S3
 - [x] Extra: LoRA training-set script and Kohya config (`assets/lora/`), per-adapter override `PETPOP_ADAPTERS` for the S3 bring-up
 
+## M2.5: host-agnostic GenAI (branch `poc`)
+
+- [x] Profile layer: `config/genai/{mock,mac-m4pro,nvidia-24gb}.yaml` + schema; `GENAI_PROFILE` selects; endpoints, model ids, quality, residency, timeouts and expected timings out of code; worker names no model or host (test)
+- [x] Manifest 1.1 records the profile, adapters and model ids with pins; gates 3 to 6 print `SKIPPED (needs a GenAI host)` on mock
+- [x] `mac-m4pro`: ComfyUI MPS (SDXL fp16, depth ControlNet, IP-Adapter Plus), Hunyuan3D-2.1 via the MPS fork on a shape server (octree 256 / 30 steps, later 192), Ollama 7B, one resident model, 8-12 min expected (later 12-16), latency waived
+- [x] `TEXTURE_BACKEND=projection` (Blender) default on every profile; `hy_paint` optional and NVIDIA-only
+- [x] `nvidia-24gb`: Hunyuan3D-2mv 384 / 50, fp8 allowed, `hy_paint` optional, 4-minute target enforced
+- [x] Six ComfyUI workflows authored in API format by script, model names bound from the profile, `meta.validated: false`
+- [x] `mac/`: setup script, launchd units for the three services, `tunnel.sh` (token proxy + Cloudflare), runbook, `make -C mac models` writing SHA256 pins
+- [x] `make up` smoke-tested here on the mock profile without GPU services: Compose, Postgres, Redis/arq, MinIO (`scripts/smoke_stack.sh`); fixes: arq enqueue from the event loop, MinIO image, compose healthchecks
+- [x] Full pipeline on `mac-m4pro` and `nvidia-24gb` against a fake GenAI host (real adapters and workflows)
+- [x] `docs/HANDOFF.md` for the Mac host; `CLAUDE.md` and BRIEF Section 13 updated; PR opened
+
+### M2.5 follow-up: deterministic Mac setup
+
+- [x] Tools pinned with hashes (`mac/tools.lock`: uv, Ollama, Caddy, cloudflared, CPython 3.11.17); no Homebrew
+- [x] Python packages hash-locked for macOS arm64, wheels only, reproducible (`mac/locks/*.txt` from `mac/lock.sh`); `uv pip sync --require-hashes`
+- [x] Tencent's Hunyuan3D-2.1 code pinned to a commit; the fork's `install.sh` (HEAD clone, unpinned packages) no longer run
+- [x] Weight pins committed from Hugging Face metadata (`scripts/models.py --pin --from-hub`, `models.lock.json`); `make -C mac models` fetches and checks every file
+- [x] Ollama model pinned by manifest digest and checked after the pull
+- [x] Shape server fixed to load like the fork (import paths, `backend` + `compat_patches` before torch, local weights only, offline); stub test
+- [x] `mac-m4pro` octree 192 and expected timings from the fork's M4 Pro benchmark (12-16 min per pet)
+
 ## Later stages (not started in the cloud)
 
-- S3 GPU host bring-up (gates 3 to 5), S4 real assets, S5 kiosk hardening (gate 6)
+- S3 GenAI host bring-up on the Mac (gates 3 to 5 with `GENAI_PROFILE=mac-m4pro`), later the NVIDIA box; S4 real assets; S5 kiosk hardening (gate 6)

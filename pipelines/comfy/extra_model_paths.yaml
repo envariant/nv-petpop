@@ -1,5 +1,5 @@
 petpop:
-  base_path: /opt/ComfyUI/models
+  base_path: /srv/models
   checkpoints: checkpoints
   loras: loras
   controlnet: controlnet

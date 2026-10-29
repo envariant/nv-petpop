@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Gate 4 (S3): Hunyuan3D shape (stage D) with the IoU gate. Runs only on the GPU host (PETPOP_MODE=real).
+# Gate 4: shape (stage D) with the silhouette IoU gate.
+# Runs against the GenAI host named by GENAI_PROFILE (config/genai/<profile>.yaml); skipped on the mock profile.
 source "$(dirname "$0")/lib.sh"
-skip_without_gpu 4
-echo "gate-4: Hunyuan3D shape (stage D) with the IoU gate"
-step "GPU services reachable" bash -c 'curl -fsS "${COMFY_URL:?COMFY_URL}/system_stats" && curl -fsS "${OLLAMA_URL:?OLLAMA_URL}/api/tags"'
-step "contract test against the real backend (real adapters)" env PETPOP_GATE=4 "$PY" -m pytest tests/contract -k backend
-step "regression metrics meet gate 4 thresholds" "$PY" scripts/regress.py --gate 4
+skip_without_genai_host 4
+echo "gate-4: shape (stage D) with the silhouette IoU gate (GenAI profile $GENAI_PROFILE)"
+step "GenAI services reachable" "$PY" scripts/genai_check.py
+step "contract test against the backend on this profile" env PETPOP_QUALITY="${PETPOP_QUALITY:-test}" "$PY" -m pytest tests/contract -k backend
+step "regression set meets the gate-4 thresholds of this profile" "$PY" scripts/regress.py --gate 4
 echo "GATE 4 PASSED"

@@ -20,23 +20,28 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 STAGES = ["A", "control", "B", "C", "D", "E", "F"]
-# Gate thresholds. Gate 2 (mock, parametric path) checks robustness; 4 to 6 add the AI-quality targets.
-GATES = {
-    2: dict(completed=1.0, watertight=1.0, wrap_valid=0.8, min_wall=0.9, one_topology=True),
-    4: dict(completed=1.0, watertight=1.0, wrap_valid=0.8, min_wall=0.9, one_topology=True, iou=0.85),
-    5: dict(completed=1.0, watertight=1.0, wrap_valid=0.8, min_wall=0.9, one_topology=True, iou=0.85, p50_s=150, max_s=240),
-    6: dict(completed=1.0, watertight=1.0, wrap_valid=0.8, min_wall=0.9, one_topology=True, iou=0.85, p50_s=150, max_s=240),
-}
+# Gate thresholds: robustness checks are fixed; IoU and latency come from the GenAI profile's `gates` and
+# `latency` blocks (latency is skipped where the profile waives it, e.g. mac-m4pro).
+BASE = dict(completed=1.0, watertight=1.0, wrap_valid=0.8, min_wall=0.9, one_topology=True)
+
+
+def gate_thresholds(gate: int, profile) -> dict:
+    t = dict(BASE)
+    if gate >= 4:
+        t["iou"] = profile["gates"]["iou_min"]
+    if gate >= 5 and profile["latency"]["enforce"]:
+        t.update(p50_s=profile["gates"]["p50_s"], max_s=profile["gates"]["max_s"])
+    return t
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--gate", type=int, default=0)
-    ap.add_argument("--profile", default=os.environ.get("PETPOP_PROFILE"))
+    ap.add_argument("--quality", default=os.environ.get("PETPOP_QUALITY"))
     args = ap.parse_args()
-    if args.profile:
-        os.environ["PETPOP_PROFILE"] = args.profile
+    if args.quality:
+        os.environ["PETPOP_QUALITY"] = args.quality
     os.environ.setdefault("PETPOP_MOCK_SPEED", "0")
     from backend.api.store import LocalStore
     from backend.core.config import settings
@@ -72,13 +77,15 @@ def main() -> int:
                   flush=True)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    summary = summarise(rows, s.mode, s.profile)
+    summary = summarise(rows, s.mode, f"{s.profile}/{s.quality['preset']}")
     out = ROOT / "tests/regression"
     (out / "metrics.json").write_text(json.dumps({"summary": summary, "rows": rows}, indent=1) + "\n")
     (out / "metrics.md").write_text(markdown(summary, rows))
     print(json.dumps(summary, indent=1))
     if args.gate:
-        return check(summary, GATES[args.gate])
+        if args.gate >= 5 and not s.genai["latency"]["enforce"]:
+            print(f"  [WAIVED] latency target on profile {s.profile}")
+        return check(summary, gate_thresholds(args.gate, s.genai))
     return 0
 
 

@@ -1,9 +1,10 @@
-# Custom node packs, pinned by commit (fill the commits on the GPU host in S3, then rebuild the image).
-# name                         repo                                                     commit
-ComfyUI-Hunyuan3DWrapper      https://github.com/kijai/ComfyUI-Hunyuan3DWrapper         REPLACE_WITH_COMMIT
-ComfyUI_IPAdapter_plus        https://github.com/cubiq/ComfyUI_IPAdapter_plus           REPLACE_WITH_COMMIT
-comfyui_controlnet_aux        https://github.com/Fannovel16/comfyui_controlnet_aux      REPLACE_WITH_COMMIT
-ComfyUI-BiRefNet              https://github.com/viperyl/ComfyUI-BiRefNet               REPLACE_WITH_COMMIT
-ComfyUI-MVAdapter             https://github.com/huanngzh/ComfyUI-MVAdapter             REPLACE_WITH_COMMIT
-# dev only, not in the production image
-# ComfyUI-Manager             https://github.com/ltdrdata/ComfyUI-Manager               REPLACE_WITH_COMMIT
+# ComfyUI and its custom node packs, pinned by commit (HEADs resolved 2026-10-28; not yet run on a host).
+# name                         repo                                                     commit                                    hosts
+ComfyUI                       https://github.com/comfyanonymous/ComfyUI                79cf64c21a1dba50749945ba9fe2e3a692f45438  mac-m4pro,nvidia-24gb
+ComfyUI_IPAdapter_plus        https://github.com/cubiq/ComfyUI_IPAdapter_plus          a0f451a5113cf9becb0847b92884cb10cbdec0ef  mac-m4pro,nvidia-24gb
+ComfyUI-Hunyuan3DWrapper      https://github.com/kijai/ComfyUI-Hunyuan3DWrapper        2609efa38f6a98292476f714839b7c1e5f9b699a  nvidia-24gb
+ComfyUI-MVAdapter             https://github.com/huanngzh/ComfyUI-MVAdapter            9d6d8afeff135d81a31f16dde5291d8b40dbb0a4  nvidia-24gb
+# Shape on the Mac runs outside ComfyUI (mac/shape_server) on this MPS fork of Hunyuan3D-2.1, with Tencent's code
+# checked out inside it (the fork's install.sh would clone that at HEAD; mac/setup.sh pins it instead):
+hunyuan3d-2.1-mac             https://github.com/VladimirTalyzin/hunyuan3d-2.1-mac     6f4b63bd6419406f40291bca23a7c849bcaae2a3  mac-m4pro
+Hunyuan3D-2.1                 https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1         82920d643c0dc2f7bfd7255f45f62d386edfe60c  mac-m4pro

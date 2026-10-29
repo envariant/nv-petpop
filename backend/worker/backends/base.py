@@ -1,7 +1,9 @@
-"""Adapter interfaces for the three GPU services (BRIEF Section 13). PETPOP_MODE picks mock or real
-implementations; the stages, API and SPA never know which one runs."""
+"""Adapter interfaces for the GenAI stages (BRIEF Section 13). The GenAI profile (GENAI_PROFILE) picks the
+backend for each adapter and supplies every model id, host and parameter; the stages, API and SPA never
+know which one runs. PETPOP_ADAPTERS can force single adapters back to mock during a host bring-up."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -10,7 +12,7 @@ import numpy as np
 
 @dataclass
 class ShapeResult:
-    glb: bytes                  # Y-up GLB of the generated shape (90 mm, front -Y before export)
+    glb: bytes                  # Y-up GLB of the generated shape (height and orientation normalised)
     co: np.ndarray | None       # Z-up vertex positions when the backend knows them (mock), for the IoU check
     tris: np.ndarray | None
     backend: str
@@ -48,31 +50,56 @@ class Backends:
 
 
 def make_backends(settings) -> Backends:
-    """PETPOP_MODE picks mock or real for all four adapters; PETPOP_ADAPTERS overrides them one by one for
-    the S3 bring-up order (B, then C, D, texture), e.g. PETPOP_ADAPTERS=image=real,parser=real."""
-    import os
-
-    choice = {k: settings.mode for k in ("parser", "image", "shape", "texture")}
+    profile = settings.genai
+    forced = {}
     for item in filter(None, os.environ.get("PETPOP_ADAPTERS", "").split(",")):
         k, _, v = item.partition("=")
-        if k.strip() in choice and v.strip() in ("mock", "real"):
-            choice[k.strip()] = v.strip()
-    client = None
-    if "real" in (choice["image"], choice["shape"], choice["texture"]):
+        forced[k.strip()] = v.strip()
+
+    def kind(adapter: str) -> str:
+        if forced.get(adapter) == "mock":
+            return "mock" if adapter != "parser" else "rules"
+        return profile[adapter]["backend"]
+
+    clients: dict[str, Any] = {}
+
+    def comfy():
         from .real.comfy import ComfyClient
 
-        client = ComfyClient(settings.comfy_url)
+        if "comfy" not in clients:
+            clients["comfy"] = ComfyClient(profile)
+        return clients["comfy"]
 
-    def pick(kind: str):
-        if choice[kind] == "real":
-            from .real import comfy, ollama
+    parser_kind, image_kind, shape_kind = kind("parser"), kind("image"), kind("shape")
+    if parser_kind == "ollama":
+        from .real.ollama import OllamaParser
 
-            return {"parser": lambda: ollama.OllamaParser(settings.ollama_url, settings.ollama_model),
-                    "image": lambda: comfy.ComfyImageBackend(client), "shape": lambda: comfy.ComfyShapeBackend(client),
-                    "texture": lambda: comfy.ComfyTextureBackend(client)}[kind]()
-        from .mock import image, parser, shape, texture
+        parser = OllamaParser(profile)
+    else:
+        from .mock.parser import RuleParser
 
-        return {"parser": parser.RuleParser, "image": image.MockImageBackend, "shape": shape.MockShapeBackend,
-                "texture": texture.MockTextureBackend}[kind]()
+        parser = RuleParser()
+    if image_kind == "comfy":
+        from .real.comfy import ComfyImageBackend
 
-    return Backends(pick("parser"), pick("image"), pick("shape"), pick("texture"))
+        image = ComfyImageBackend(comfy(), profile)
+    else:
+        from .mock.image import MockImageBackend
+
+        image = MockImageBackend()
+    if shape_kind == "comfy":
+        from .real.comfy import ComfyShapeBackend
+
+        shape = ComfyShapeBackend(comfy(), profile)
+    elif shape_kind == "http":
+        from .real.shape_http import HttpShapeBackend
+
+        shape = HttpShapeBackend(profile)
+    else:
+        from .mock.shape import MockShapeBackend
+
+        shape = MockShapeBackend(profile)
+    from .texture import make_texture
+
+    texture = make_texture(profile, comfy if profile["texture"]["backend"] == "hy_paint" else None)
+    return Backends(parser, image, shape, texture)

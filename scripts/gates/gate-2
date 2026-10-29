@@ -16,6 +16,6 @@ for d in sorted(pathlib.Path("fixtures/pets").iterdir()):
         assert any(s["stage"] == "control" for s in m["stages"]), d.name'
 step "SPA build served by the API" bash -c 'cd apps/kiosk && npm run -s build'
 step "backend process: one origin, QR page, fulfil folder, staff, metrics" "$PY" -m pytest tests/server
-step "regression set (30 pets) meets the gate-2 thresholds" "$PY" scripts/regress.py --gate 2 --profile test
+step "regression set (30 pets) meets the gate-2 thresholds" "$PY" scripts/regress.py --gate 2 --quality test
 step "Playwright walkthrough against the real backend" bash -c 'cd apps/kiosk && PP_BACKEND=real npx playwright test tests/e2e/walkthrough.spec.ts'
 echo "GATE 2 PASSED"

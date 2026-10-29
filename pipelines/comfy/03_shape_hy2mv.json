@@ -1,0 +1,295 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "D",
+  "node_packs": [
+   "core"
+  ],
+  "inputs": {
+   "model": [
+    "1",
+    "ckpt_name"
+   ],
+   "view_front": [
+    "2",
+    "image"
+   ],
+   "view_left": [
+    "4",
+    "image"
+   ],
+   "view_back": [
+    "6",
+    "image"
+   ],
+   "view_right": [
+    "8",
+    "image"
+   ],
+   "latent_resolution": [
+    "11",
+    "resolution"
+   ],
+   "seed": [
+    "12",
+    "seed"
+   ],
+   "steps": [
+    "12",
+    "steps"
+   ],
+   "guidance": [
+    "12",
+    "cfg"
+   ],
+   "num_chunks": [
+    "13",
+    "num_chunks"
+   ],
+   "octree_resolution": [
+    "13",
+    "octree_resolution"
+   ],
+   "threshold": [
+    "14",
+    "threshold"
+   ]
+  },
+  "outputs": {
+   "shape": "15"
+  },
+  "optional_nodes": {},
+  "required": [
+   "model",
+   "seed",
+   "view_front",
+   "view_left",
+   "view_back",
+   "view_right"
+  ],
+  "notes": "ComfyUI core Hunyuan3D-2mv nodes (comfy_extras/nodes_hunyuan3d.py)."
+ },
+ "1": {
+  "class_type": "ImageOnlyCheckpointLoader",
+  "inputs": {
+   "ckpt_name": ""
+  },
+  "_meta": {
+   "title": "hunyuan3d-2mv"
+  }
+ },
+ "2": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "view front"
+  }
+ },
+ "3": {
+  "class_type": "CLIPVisionEncode",
+  "inputs": {
+   "clip_vision": [
+    "1",
+    1
+   ],
+   "image": [
+    "2",
+    0
+   ],
+   "crop": "none"
+  },
+  "_meta": {
+   "title": "encode front"
+  }
+ },
+ "4": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "view left"
+  }
+ },
+ "5": {
+  "class_type": "CLIPVisionEncode",
+  "inputs": {
+   "clip_vision": [
+    "1",
+    1
+   ],
+   "image": [
+    "4",
+    0
+   ],
+   "crop": "none"
+  },
+  "_meta": {
+   "title": "encode left"
+  }
+ },
+ "6": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "view back"
+  }
+ },
+ "7": {
+  "class_type": "CLIPVisionEncode",
+  "inputs": {
+   "clip_vision": [
+    "1",
+    1
+   ],
+   "image": [
+    "6",
+    0
+   ],
+   "crop": "none"
+  },
+  "_meta": {
+   "title": "encode back"
+  }
+ },
+ "8": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "view right"
+  }
+ },
+ "9": {
+  "class_type": "CLIPVisionEncode",
+  "inputs": {
+   "clip_vision": [
+    "1",
+    1
+   ],
+   "image": [
+    "8",
+    0
+   ],
+   "crop": "none"
+  },
+  "_meta": {
+   "title": "encode right"
+  }
+ },
+ "10": {
+  "class_type": "Hunyuan3Dv2ConditioningMultiView",
+  "inputs": {
+   "front": [
+    "3",
+    0
+   ],
+   "left": [
+    "5",
+    0
+   ],
+   "back": [
+    "7",
+    0
+   ],
+   "right": [
+    "9",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "multi-view conditioning"
+  }
+ },
+ "11": {
+  "class_type": "EmptyLatentHunyuan3Dv2",
+  "inputs": {
+   "batch_size": 1,
+   "resolution": 3072
+  },
+  "_meta": {
+   "title": "latent"
+  }
+ },
+ "12": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "positive": [
+    "10",
+    0
+   ],
+   "negative": [
+    "10",
+    1
+   ],
+   "latent_image": [
+    "11",
+    0
+   ],
+   "sampler_name": "euler",
+   "scheduler": "normal",
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 50,
+   "cfg": 5.5
+  },
+  "_meta": {
+   "title": "sampler"
+  }
+ },
+ "13": {
+  "class_type": "VAEDecodeHunyuan3D",
+  "inputs": {
+   "samples": [
+    "12",
+    0
+   ],
+   "vae": [
+    "1",
+    2
+   ],
+   "num_chunks": 8000,
+   "octree_resolution": 384
+  },
+  "_meta": {
+   "title": "decode voxels"
+  }
+ },
+ "14": {
+  "class_type": "VoxelToMeshBasic",
+  "inputs": {
+   "voxel": [
+    "13",
+    0
+   ],
+   "threshold": 0.6
+  },
+  "_meta": {
+   "title": "voxels to mesh"
+  }
+ },
+ "15": {
+  "class_type": "SaveGLB",
+  "inputs": {
+   "mesh": [
+    "14",
+    0
+   ],
+   "filename_prefix": "petpop/shape"
+  },
+  "_meta": {
+   "title": "shape"
+  }
+ }
+}

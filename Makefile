@@ -1,13 +1,13 @@
-# PetPop PoC. PETPOP_MODE=mock is the default everywhere (BRIEF Section 13).
+# PetPop PoC. GENAI_PROFILE=mock is the default everywhere (config/genai/<profile>.yaml; BRIEF Section 13).
 SHELL := /bin/bash
-export PETPOP_MODE ?= mock
+export GENAI_PROFILE ?= mock
 export PETPOP_MOCK_SPEED ?= 0.1
 PY ?= .venv/bin/python
 KIOSK := apps/kiosk
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server
 
 .PHONY: help setup dev mock api worker kiosk test test-py test-web openapi client proxies fixtures tiles \
-        regress up down models gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 clean
+        regress up down smoke-stack workflows models gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 clean
 
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -54,20 +54,30 @@ proxies: ## rebuild the proxy base meshes (bpy)
 fixtures: ## rebuild the fixture pack from the mock-mode pipeline
 	$(PY) scripts/make_fixtures.py
 
+workflows: ## regenerate the six ComfyUI workflow JSONs (node ids are generated, never hand-edited)
+	$(PY) scripts/make_comfy_workflows.py
+
 tiles: ## re-render pattern and marking tiles from the base mesh
 	$(PY) scripts/make_tiles.py
 
 regress: ## run the 30-pet regression set and write tests/regression/metrics.md
 	$(PY) scripts/regress.py
 
-up: ## GPU host: full Docker Compose stack
-	docker compose -f infra/docker-compose.yml --env-file .env up -d --build
+COMPOSE_FILES := -f infra/docker-compose.yml $(if $(filter nvidia-24gb,$(GENAI_PROFILE)),-f infra/docker-compose.nvidia.yml)
+ENV_FILE ?= .env
+COMPOSE := PETPOP_ENV_FILE=../$(ENV_FILE) docker compose $(COMPOSE_FILES) --env-file $(ENV_FILE)
+
+up: ## Docker Compose stack for GENAI_PROFILE (api, worker/arq, postgres, redis, minio [+ comfyui, ollama on nvidia])
+	$(COMPOSE) up -d --build --wait
 
 down:
-	docker compose -f infra/docker-compose.yml --env-file .env down
+	$(COMPOSE) down
 
-models: ## GPU host: download pinned weights and verify SHA256
-	$(PY) scripts/models.py --dest $${PETPOP_MODELS:-/srv/models}
+smoke-stack: ## build and run the stack here on the mock profile, push one job through it, tear it down
+	scripts/smoke_stack.sh
+
+models: ## NVIDIA host: fetch the pinned weights, each checked against models.lock.json (the Mac: make -C mac models)
+	$(PY) scripts/models.py --fetch --dest $${PETPOP_MODELS:-/srv/models} --profile $(GENAI_PROFILE)
 
 gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6: ## run acceptance gate N
 	scripts/gates/$@

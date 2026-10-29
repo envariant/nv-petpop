@@ -15,7 +15,10 @@ from .pacing import Pace
 
 
 class MockShapeBackend:
-    name = "mock-shape"
+    name = "mock"
+
+    def __init__(self, profile) -> None:
+        self.cfg = profile["shape"]
 
     def _shape(self, spec, seed: int, scale: float) -> ShapeResult:
         base = load_base(spec["species"])
@@ -34,4 +37,5 @@ class MockShapeBackend:
 
     def single_view(self, ctx, spec, front):
         with Pace("D"):
-            return self._shape(spec, int(spec["seed"]) + 1, 0.6)
+            fb = self.cfg.get("fallback", {})
+            return self._shape(spec, int(spec["seed"]) + int(fb.get("seed_offset", 1)), float(fb.get("noise_scale", 0.6)))

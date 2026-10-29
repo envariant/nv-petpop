@@ -62,16 +62,33 @@ class RedisBus:
         self.r = redis.Redis.from_url(url)
 
     def enqueue(self, job_id: str) -> None:
+        """Enqueue on arq. Called from inside the API's event loop, so the arq client runs on its own thread."""
         import asyncio
+        import threading
 
         from arq import create_pool  # noqa: PLC0415
         from arq.connections import RedisSettings  # noqa: PLC0415
 
         async def go() -> None:
             pool = await create_pool(RedisSettings.from_dsn(self.url))
-            await pool.enqueue_job("run_job", job_id, _job_id=job_id)
+            try:
+                await pool.enqueue_job("run_job", job_id, _job_id=job_id)
+            finally:
+                await pool.aclose()
 
-        asyncio.run(go())
+        err: list[BaseException] = []
+
+        def runner() -> None:
+            try:
+                asyncio.run(go())
+            except BaseException as exc:  # noqa: BLE001 - re-raised on the caller's thread
+                err.append(exc)
+
+        t = threading.Thread(target=runner, name="arq-enqueue")
+        t.start()
+        t.join(30)
+        if err:
+            raise err[0]
 
     def claim(self) -> str | None:
         return None  # arq delivers jobs to backend.worker.arq_worker.run_job

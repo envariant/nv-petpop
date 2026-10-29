@@ -1,0 +1,34 @@
+# Override for GENAI_PROFILE=nvidia-24gb: ComfyUI and Ollama on this box's GPU, Cycles on CUDA in the worker.
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.nvidia.yml up -d   (make up does this)
+services:
+  worker:
+    deploy:
+      resources:
+        reservations:
+          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
+
+  comfyui:
+    build: { context: .., dockerfile: infra/Dockerfile.comfyui }
+    expose: ["8188"]                # reachable by the worker only
+    command: ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--disable-auto-launch",
+              "--extra-model-paths-config", "/opt/ComfyUI/extra_model_paths.yaml", "--fp8_e4m3fn-unet"]
+    volumes:
+      - ${PETPOP_MODELS:-/srv/models}:/srv/models:ro
+      - ../pipelines/comfy/extra_model_paths.yaml:/opt/ComfyUI/extra_model_paths.yaml:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
+
+  ollama:
+    image: ollama/ollama:0.4.7
+    expose: ["11434"]
+    environment: { OLLAMA_KEEP_ALIVE: "0", OLLAMA_MAX_LOADED_MODELS: "1" }
+    volumes:
+      - ${PETPOP_MODELS:-/srv/models}/ollama:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]

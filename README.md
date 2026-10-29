@@ -2,15 +2,17 @@
 
 Touch-first kiosk that turns a description of a dog or cat into a chibi vinyl-collectible-style figurine:
 a textured GLB preview, a watertight print mesh and a fixed-layout UV atlas for the inkjet painter.
-The spec is [docs/BRIEF.md](docs/BRIEF.md). Progress is tracked in [docs/PROGRESS.md](docs/PROGRESS.md),
+The spec is [docs/BRIEF.md](docs/BRIEF.md). The GenAI stages run on a remote host chosen by `GENAI_PROFILE`
+(see [config/genai/](config/genai/README.md) and [docs/HANDOFF.md](docs/HANDOFF.md)). Progress is tracked in [docs/PROGRESS.md](docs/PROGRESS.md),
 choices in [docs/DECISIONS.md](docs/DECISIONS.md), and the GPU bring-up in [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ```bash
 make setup          # .venv (Python 3.12) + kiosk npm install
-make dev            # API + worker + SPA on CPU (PETPOP_MODE=mock): http://127.0.0.1:5173
+make dev            # API + worker + SPA on CPU (GENAI_PROFILE=mock): http://127.0.0.1:5173
 make mock           # standalone mock server on :8000 (the frozen contract)
 make test           # Python and web tests
-make gate-0         # acceptance gates 0..6 (3-5 print "SKIPPED (needs GPU)" in mock mode)
+make gate-0         # acceptance gates 0..6 (3-6 print "SKIPPED (needs a GenAI host)" on the mock profile)
+make smoke-stack    # build the Compose stack here, push one job through it, tear it down
 make regress        # 30-pet regression set -> tests/regression/metrics.md
 ```
 
@@ -27,7 +29,9 @@ make regress        # 30-pet regression set -> tests/regression/metrics.md
 | `assets/` | proxy base meshes, accessory library, selector tiles, LoRA tooling |
 | `data/` | JSON Schemas, vocab, OpenAPI, breed presets |
 | `fixtures/pets/` | 10-pet fixture pack produced by the pipeline |
-| `infra/` | Docker Compose and Dockerfiles for the GPU host |
+| `config/genai/` | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`): every model, host and timing |
+| `mac/` | Mac GenAI host kit: setup, launchd units, shape server, tunnel, runbook |
+| `infra/` | Docker Compose (stack + NVIDIA override) and Dockerfiles |
 
 The Blender stages run under a Python 3.11 interpreter with the `bpy` wheel (`PETPOP_BPY_PYTHON`,
 default `/opt/bpy/bin/python`). Without it the pipeline falls back to a trimesh stand-in, marked

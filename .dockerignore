@@ -1,0 +1,17 @@
+.git
+.venv
+var
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+apps/kiosk/dist
+apps/kiosk/storybook-static
+apps/kiosk/test-results
+apps/kiosk/playwright-report
+apps/kiosk/public/assets
+apps/kiosk/public/draco
+apps/kiosk/public/fixtures
+apps/kiosk/public/mockServiceWorker.js
+tests/regression/metrics.*
+*.blend1
+.env

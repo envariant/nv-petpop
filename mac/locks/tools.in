@@ -1,0 +1,4 @@
+# Tools venv on the Mac: scripts/models.py (weights) and scripts/genai_check.py (service probes).
+httpx
+pyyaml
+jsonschema

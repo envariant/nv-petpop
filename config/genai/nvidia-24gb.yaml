@@ -1,0 +1,80 @@
+# GenAI profile: nvidia-24gb. Production GenAI host: one 24 GB NVIDIA card (RTX 4090 / L4 class), CUDA.
+# ComfyUI runs SDXL, IP-Adapter and Hunyuan3D-2mv; Ollama runs the 7B parser. BRIEF Sections 6 and 8.
+profile: nvidia-24gb
+version: 1
+description: Production NVIDIA box. Hunyuan3D-2mv at octree 384 / 50 steps, 4-minute target enforced.
+host: {kind: nvidia, accelerator: cuda, memory_gb: 24}
+mode: real
+
+quality:
+  default: full
+  presets:
+    full: {concept_px: 1024, view_px: 768, control_px: 512, samples: 16, albedo_px: 2048, voxel_mm: 0.15, print_tris: 250000, turntable_frames: 36, turntable_px: 512, mask_px: 2048}
+    test: {concept_px: 768, view_px: 512, control_px: 512, samples: 4, albedo_px: 1024, voxel_mm: 0.5, print_tris: 60000, turntable_frames: 8, turntable_px: 128, mask_px: 1024}
+
+timeouts_s: {A: 10, control: 30, B: 60, C: 90, D: 150, E: 90, F: 120}
+expected_s: {A: 2, control: 3, B: 25, C: 45, D: 60, E: 15, F: 40, total: [150, 240]}
+latency: {target_s: 240, enforce: true}
+
+residency:
+  max_resident_models: 2              # SDXL stack (~11 GB) never co-resides with Hunyuan3D-2mv (~14 GB)
+  free_comfy_after_call: false
+  free_comfy_before: [D]              # POST /free {unload_models} before Stage D (Section 8 VRAM plan)
+  ollama_keep_alive_s: 0              # the LLM is out of VRAM during image stages
+  shape_unload_after_call: false
+
+services:
+  comfy:  {env: COMFY_URL,  default: "http://comfyui:8188"}
+  ollama: {env: OLLAMA_URL, default: "http://ollama:11434"}
+  auth_token_env: GENAI_TOKEN
+  comfy_args: ["--fp8_e4m3fn-unet"]   # fp8 UNet allowed when VRAM is tight (Section 14)
+
+parser:
+  backend: ollama
+  service: ollama
+  model: qwen2.5:7b-instruct-q4_K_M
+  timeout_s: 3
+  temperature: 0
+
+image:
+  backend: comfy
+  service: comfy
+  workflows: {concept: 01_concept_front.json, views: 02_views_ipadapter.json, views_alt: 02b_views_mvadapter.json}
+  models:
+    checkpoint: sd_xl_base_1.0.safetensors
+    vae: sdxl_vae_fp16_fix.safetensors
+    controlnet_depth: controlnet-depth-sdxl-1.0.fp16.safetensors
+    ipadapter: ip-adapter-plus_sdxl_vit-h.safetensors
+    clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
+    lora: null
+    mvadapter: mvadapter_i2mv_sdxl.safetensors
+  params: {concept_steps: 30, view_steps: 30, cfg: 6.0, sampler: dpmpp_2m, scheduler: karras, controlnet_strength: 0.7, init_denoise: 0.7, ipadapter_weight: 0.7, lora_strength: 0.8}
+  precision: {unet: fp16, vae: fp16, fp8_allowed: true}
+  matting: {method: white_key, threshold: 236}
+
+shape:
+  backend: comfy
+  service: comfy
+  views: [front, left, back, right]
+  workflows: {multiview: 03_shape_hy2mv.json, single_view: 03b_shape_hy21_single.json}
+  models:
+    multiview: hunyuan3d-dit-v2-mv.fp16.safetensors
+    single_view: hunyuan3d-dit-v2-1.fp16.ckpt
+  params: {octree_resolution: 384, steps: 50, guidance: 5.5, num_chunks: 8000, latent_resolution: 3072, threshold: 0.6}
+  fallback: {seed_offset: 1, params: {octree_resolution: 384, steps: 50, guidance: 5.0}}
+  orientation: {yaw_deg: 0}
+  height_mm: 90
+  max_tris: 300000
+  iou_min: 0.85
+
+texture:
+  backend: projection                 # default everywhere; TEXTURE_BACKEND=hy_paint opts in
+  allowed: [projection, flat, hy_paint]
+  projection: {view_weight_power: 2.0, seam_pad_px: 2, colour_correct: true}
+  hy_paint:
+    service: comfy
+    workflow: 04_texture_hy_paint.json
+    model: hunyuan3d-paint-v2-0
+    params: {view_size: 512, steps: 30, render_size: 1024}
+
+gates: {iou_min: 0.85, p50_s: 150, max_s: 240}

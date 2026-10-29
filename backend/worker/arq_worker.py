@@ -22,6 +22,6 @@ class WorkerSettings:
     try:
         from arq.connections import RedisSettings
 
-        redis_settings = RedisSettings.from_dsn(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
+        redis_settings = RedisSettings.from_dsn(os.environ["REDIS_URL"]) if os.environ.get("REDIS_URL") else None
     except ImportError:  # arq is only installed on the GPU host
         pass

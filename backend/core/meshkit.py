@@ -138,6 +138,8 @@ def dilate(img: np.ndarray, cov: np.ndarray, px: int) -> np.ndarray:
 # --------------------------------------------------------------------------- orthographic renderer
 
 VIEWS = {"front": 0.0, "left": 90.0, "back": 180.0, "right": 270.0}
+EXTENT_DEFAULT = 110.0   # orthographic view width in mm (same framing as the Blender cameras)
+CENTRE_Z_DEFAULT = 45.0
 
 
 def view_matrix(azimuth_deg: float) -> np.ndarray:
@@ -150,7 +152,7 @@ def view_matrix(azimuth_deg: float) -> np.ndarray:
 
 
 def render(co: np.ndarray, tris: np.ndarray, azimuth: float, size: int, colours: np.ndarray | None = None,
-           extent: float = 110.0, centre_z: float = 45.0, light=(0.4, 0.6, 0.7)) -> dict[str, np.ndarray]:
+           extent: float = EXTENT_DEFAULT, centre_z: float = CENTRE_Z_DEFAULT, light=(0.4, 0.6, 0.7)) -> dict[str, np.ndarray]:
     """Z-buffer render. Returns depth (camera distance, inf = empty), alpha and an RGB image if colours given."""
     m = view_matrix(azimuth)
     p = (co - np.array([0, 0, centre_z])) @ m.T

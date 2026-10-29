@@ -18,9 +18,10 @@ def now_iso() -> str:
 
 class ManifestBuilder:
     def __init__(self, job_id: str, spec: dict[str, Any], mode: str, fidelity: str = "high",
-                 base_mesh_version: str = "proxy-1.0", workflows: dict[str, str] | None = None) -> None:
+                 base_mesh_version: str = "proxy-1.0", workflows: dict[str, str] | None = None,
+                 genai: dict[str, Any] | None = None) -> None:
         self.data: dict[str, Any] = {
-            "manifest_version": "1.0",
+            "manifest_version": "1.1",
             "job_id": job_id,
             "species": spec["species"],
             "pet_name": spec.get("pet_name", ""),
@@ -37,6 +38,7 @@ class ManifestBuilder:
                 "base_mesh": base_mesh_version,
                 "workflows": workflows or {},
             },
+            "genai": genai or {"profile": "unknown"},
             "seeds": {"job": int(spec["seed"])},
             "stages": [],
             "files": [],

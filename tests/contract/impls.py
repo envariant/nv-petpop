@@ -19,7 +19,7 @@ def mock_client() -> Iterator[TestClient]:
 
 @contextmanager
 def backend_client() -> Iterator[TestClient]:
-    os.environ.setdefault("PETPOP_PROFILE", "test")
+    os.environ.setdefault("PETPOP_QUALITY", "test")
     from backend.api.app import create_app
 
     app = create_app(embed_worker=True)

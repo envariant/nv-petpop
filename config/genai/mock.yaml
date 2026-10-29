@@ -1,0 +1,42 @@
+# GenAI profile: mock (default). Everything runs on CPU in this VM; no GenAI host is contacted.
+# Selected with GENAI_PROFILE=mock. Schema: data/schema/genai-profile.schema.json.
+profile: mock
+version: 1
+description: CPU-only stand-ins for every GenAI stage; Blender stages run for real on CPU.
+host: {kind: cpu, accelerator: none, memory_gb: null}
+mode: mock
+
+quality:
+  default: dev
+  presets:
+    dev:     {concept_px: 512, view_px: 384, control_px: 384, samples: 8, albedo_px: 1024, voxel_mm: 0.35, print_tris: 150000, turntable_frames: 36, turntable_px: 256, mask_px: 1024}
+    fixture: {concept_px: 512, view_px: 384, control_px: 256, samples: 8, albedo_px: 1024, voxel_mm: 0.45, print_tris: 30000, turntable_frames: 36, turntable_px: 256, mask_px: 1024}
+    test:    {concept_px: 192, view_px: 160, control_px: 160, samples: 2, albedo_px: 512, voxel_mm: 0.8, print_tris: 60000, turntable_frames: 8, turntable_px: 96, mask_px: 512}
+
+# Hard per-stage timeouts (s). CPU budgets: the brief's GPU timeouts x 6 (Blender runs on CPU here).
+timeouts_s: {A: 60, control: 180, B: 360, C: 540, D: 900, E: 540, F: 720}
+# Mock pacing: each mock stage sleeps PETPOP_MOCK_SPEED x these reference seconds (the brief's timeouts).
+pacing_reference_s: {A: 10, control: 10, B: 60, C: 90, D: 150, E: 90, F: 120}
+expected_s: {A: 0.1, control: 8, B: 2, C: 3, D: 6, E: 3, F: 25, total: [30, 90]}
+latency: {target_s: null, enforce: false}
+
+residency: {max_resident_models: null, free_comfy_after_call: false, ollama_keep_alive_s: null, shape_unload_after_call: false}
+
+services: {}
+
+parser: {backend: rules, timeout_s: 3}
+image:
+  backend: mock
+  matting: {method: alpha, threshold: 8}
+shape:
+  backend: mock
+  views: [front, left, back, right]
+  fallback: {seed_offset: 1, noise_scale: 0.6}
+  iou_min: 0.85
+  height_mm: 90
+texture:
+  backend: projection        # TEXTURE_BACKEND overrides: projection | flat | hy_paint
+  allowed: [projection, flat]
+  projection: {view_weight_power: 2.0, seam_pad_px: 2, colour_correct: true}
+
+gates: {iou_min: 0.85, p50_s: null, max_s: null}

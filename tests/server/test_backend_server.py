@@ -31,7 +31,7 @@ def server(tmp_path_factory):
     var = tmp_path_factory.mktemp("var")
     port = free_port()
     env = {**os.environ, "PYTHONPATH": f"{ROOT}:{ROOT / 'mock-server'}", "PETPOP_VAR": str(var), "PETPOP_EMBED_WORKER": "1",
-           "PETPOP_PROFILE": "test", "PETPOP_MOCK_SPEED": "0", "PETPOP_STAFF_TOKEN": "staff-smoke",
+           "PETPOP_QUALITY": "test", "PETPOP_MOCK_SPEED": "0", "PETPOP_STAFF_TOKEN": "staff-smoke",
            "PETPOP_FULFIL_DIR": str(var / "fulfilment")}
     proc = subprocess.Popen([sys.executable, "-m", "backend.api", "--port", str(port)], env=env, cwd=ROOT,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

@@ -5,9 +5,9 @@
   "description": "jobs/{job_id}/manifest.json: every file a job wrote, its stage, timings and the seeds and versions used (BRIEF Section 6.6).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["manifest_version", "job_id", "species", "seed", "mode", "fidelity", "fallback", "created_at", "versions", "seeds", "stages", "files", "metrics"],
+  "required": ["manifest_version", "job_id", "species", "seed", "mode", "fidelity", "fallback", "created_at", "versions", "genai", "seeds", "stages", "files", "metrics"],
   "properties": {
-    "manifest_version": { "const": "1.0" },
+    "manifest_version": { "const": "1.1" },
     "job_id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
     "species": { "enum": ["dog", "cat"] },
     "pet_name": { "type": "string" },
@@ -27,6 +27,26 @@
         "vocab": { "type": "string" },
         "base_mesh": { "type": "string" },
         "workflows": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "genai": {
+      "type": "object",
+      "description": "The GenAI profile the job ran on and every model id (with pins) it could use (1.1).",
+      "additionalProperties": false,
+      "required": ["profile", "profile_version", "profile_sha", "host", "accelerator", "adapters", "models", "model_pins", "quality"],
+      "properties": {
+        "profile": { "type": "string" },
+        "profile_version": { "type": "integer" },
+        "profile_sha": { "type": "string" },
+        "host": { "type": "string" },
+        "accelerator": { "type": "string" },
+        "adapters": {
+          "type": "object", "additionalProperties": false, "required": ["parser", "image", "shape", "texture"],
+          "properties": { "parser": { "type": "string" }, "image": { "type": "string" }, "shape": { "type": "string" }, "texture": { "type": "string" } }
+        },
+        "models": { "type": "object", "additionalProperties": { "type": "string" } },
+        "model_pins": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } },
+        "quality": { "type": "string" }
       }
     },
     "seeds": {

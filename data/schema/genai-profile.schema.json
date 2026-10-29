@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/genai-profile.schema.json",
+  "title": "GenAIProfile",
+  "description": "config/genai/<profile>.yaml: every endpoint, model id, quality setting, residency rule, timeout and expected timing for one GenAI host. The worker reads these; it never names a model or host itself.",
+  "type": "object",
+  "required": ["profile", "version", "description", "host", "mode", "quality", "timeouts_s", "expected_s", "latency", "residency", "services", "parser", "image", "shape", "texture", "gates"],
+  "properties": {
+    "profile": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "version": {"type": "integer", "minimum": 1},
+    "description": {"type": "string"},
+    "host": {"type": "object", "required": ["kind", "accelerator"], "properties": {"kind": {"enum": ["cpu", "apple-silicon", "nvidia"]}, "accelerator": {"enum": ["none", "mps", "cuda"]}, "memory_gb": {"type": ["number", "null"]}}},
+    "mode": {"enum": ["mock", "real"]},
+    "quality": {
+      "type": "object", "required": ["default", "presets"],
+      "properties": {
+        "default": {"type": "string"},
+        "presets": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/quality"}}
+      }
+    },
+    "timeouts_s": {"$ref": "#/$defs/stage_seconds"},
+    "pacing_reference_s": {"$ref": "#/$defs/stage_seconds"},
+    "expected_s": {
+      "type": "object", "required": ["A", "control", "B", "C", "D", "E", "F", "total"],
+      "properties": {"total": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
+      "additionalProperties": {"type": "number"}
+    },
+    "latency": {"type": "object", "required": ["target_s", "enforce"], "properties": {"target_s": {"type": ["number", "null"]}, "enforce": {"type": "boolean"}}},
+    "residency": {
+      "type": "object",
+      "properties": {
+        "max_resident_models": {"type": ["integer", "null"]},
+        "free_comfy_after_call": {"type": "boolean"},
+        "free_comfy_before": {"type": "array", "items": {"$ref": "#/$defs/stage"}},
+        "ollama_keep_alive_s": {"type": ["integer", "null"]},
+        "shape_unload_after_call": {"type": "boolean"}
+      }
+    },
+    "services": {
+      "type": "object",
+      "properties": {
+        "auth_token_env": {"type": "string"},
+        "comfy_args": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {"type": "object", "required": ["env", "default"], "properties": {"env": {"type": "string", "pattern": "^[A-Z_]+$"}, "default": {"type": "string"}}},
+          {"type": "string"}, {"type": "array"}
+        ]
+      }
+    },
+    "parser": {"type": "object", "required": ["backend", "timeout_s"], "properties": {"backend": {"enum": ["rules", "ollama"]}, "service": {"type": "string"}, "model": {"type": "string"}}},
+    "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key"]}}}}},
+    "shape": {"type": "object", "required": ["backend", "views", "iou_min", "height_mm"], "properties": {"backend": {"enum": ["mock", "comfy", "http"]}, "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}, "minItems": 1}, "iou_min": {"type": "number"}}},
+    "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint"]}}}},
+    "gates": {"type": "object", "required": ["iou_min", "p50_s", "max_s"]}
+  },
+  "$defs": {
+    "stage": {"enum": ["A", "control", "B", "C", "D", "E", "F"]},
+    "stage_seconds": {"type": "object", "required": ["A", "control", "B", "C", "D", "E", "F"], "additionalProperties": {"type": "number", "exclusiveMinimum": 0}},
+    "quality": {
+      "type": "object",
+      "required": ["concept_px", "view_px", "control_px", "samples", "albedo_px", "voxel_mm", "print_tris", "turntable_frames", "turntable_px", "mask_px"],
+      "additionalProperties": {"type": "number"}
+    }
+  }
+}

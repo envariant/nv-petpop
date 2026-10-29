@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Gate 6 (S5): kiosk hardening on the kiosk screen with the GPU box (attract loop, idle wipe, regression set,
-# print and paint of three demo pets). Not runnable in a cloud session.
+# Gate 6: kiosk hardening run: regression set on the GenAI host (needs the kiosk screen for the touch review).
+# Runs against the GenAI host named by GENAI_PROFILE (config/genai/<profile>.yaml); skipped on the mock profile.
 source "$(dirname "$0")/lib.sh"
-if [ "$PETPOP_MODE" = "mock" ]; then echo "gate-6: SKIPPED (needs GPU and the kiosk screen)"; exit 0; fi
-step "regression set on real models" "$PY" scripts/regress.py --gate 6
+skip_without_genai_host 6
+echo "gate-6: kiosk hardening run: regression set on the GenAI host (needs the kiosk screen for the touch review) (GenAI profile $GENAI_PROFILE)"
+step "GenAI services reachable" "$PY" scripts/genai_check.py
+step "contract test against the backend on this profile" env PETPOP_QUALITY="${PETPOP_QUALITY:-test}" "$PY" -m pytest tests/contract -k backend
+step "regression set meets the gate-6 thresholds of this profile" "$PY" scripts/regress.py --gate 6
 echo "GATE 6 PASSED"
