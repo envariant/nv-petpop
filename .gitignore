@@ -12,3 +12,4 @@ var/
 *.blend1
 /tmp/
 *.tsbuildinfo
+*.egg-info/
