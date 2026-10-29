@@ -2,7 +2,8 @@
 SHELL := /bin/bash
 REPO := $(abspath ..)
 PETPOP_GENAI ?= $(HOME)/petpop-genai
-PETPOP_MODELS ?= $(HOME)/petpop-models
+# Model root: the environment, else PETPOP_MODELS in genai.env (edit it there to move the weights), else ~/petpop-models.
+PETPOP_MODELS ?= $(or $(shell sed -n 's/^PETPOP_MODELS=//p' $(PETPOP_GENAI)/genai.env 2>/dev/null | tail -n 1),$(HOME)/petpop-models)
 TOOLS_PY := $(PETPOP_GENAI)/venvs/tools/bin/python
 export GENAI_PROFILE := mac-m4pro
 

@@ -160,6 +160,21 @@ make -C mac restart && make -C mac check
 Nothing changes in the tunnel. The VM then drives both through `scripts/image_sweep.py --stage mv` and
 `--stage shape`. The pipeline itself does not use them yet.
 
+### Moving the weights to another disk
+
+The model root is `PETPOP_MODELS` in `~/petpop-genai/genai.env` (default `~/petpop-models`; no spaces in the
+path). Setup and `make -C mac models/verify` read it from there; ComfyUI, the shape server and the
+`ComfyUI/petpop-models` link get it when setup re-renders them.
+
+```bash
+make -C mac stop
+mv ~/petpop-models /Volumes/Fast/petpop-models   # or copy, then delete the old folder once verify passes
+# edit ~/petpop-genai/genai.env: PETPOP_MODELS=/Volumes/Fast/petpop-models
+make -C mac setup && make -C mac verify && make -C mac start
+```
+
+An external disk must be mounted before you log in, or the services start without their weights.
+
 ## Troubleshooting
 
 - **Black or NaN images from SDXL.** The profile uses the fp16-fix VAE (`sdxl_vae_fp16_fix.safetensors`).

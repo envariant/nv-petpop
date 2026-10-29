@@ -18,7 +18,13 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 PETPOP_GENAI="${PETPOP_GENAI:-$HOME/petpop-genai}"
+# Model root: the environment, else PETPOP_MODELS in genai.env (edit it there to move the weights), else ~/petpop-models.
+if [ -z "${PETPOP_MODELS:-}" ] && [ -f "$PETPOP_GENAI/genai.env" ]; then
+  PETPOP_MODELS="$(sed -n 's/^PETPOP_MODELS=//p' "$PETPOP_GENAI/genai.env" | tail -n 1)"
+fi
 PETPOP_MODELS="${PETPOP_MODELS:-$HOME/petpop-models}"
+PETPOP_MODELS="${PETPOP_MODELS/#\~/$HOME}"
+case "$PETPOP_MODELS" in *" "*) echo "setup: PETPOP_MODELS must not contain spaces: $PETPOP_MODELS" >&2; exit 1 ;; esac
 PINS="$REPO/pipelines/comfy/requirements.txt"
 TOOLS="$REPO/mac/tools.lock"
 OPT="$PETPOP_GENAI/opt"
@@ -153,7 +159,11 @@ PETPOP_PROXY_PORT=8787
 ENV
   )
 fi
-echo "GENAI_TOKEN is in $PETPOP_GENAI/genai.env (chmod 600)"
+if ! grep -qx "PETPOP_MODELS=$PETPOP_MODELS" "$PETPOP_GENAI/genai.env"; then   # keep the file in step with this run
+  { grep -v '^PETPOP_MODELS=' "$PETPOP_GENAI/genai.env"; echo "PETPOP_MODELS=$PETPOP_MODELS"; } > "$PETPOP_GENAI/genai.env.tmp"
+  chmod 600 "$PETPOP_GENAI/genai.env.tmp" && mv "$PETPOP_GENAI/genai.env.tmp" "$PETPOP_GENAI/genai.env"
+fi
+echo "GENAI_TOKEN is in $PETPOP_GENAI/genai.env (chmod 600); weights in $PETPOP_MODELS"
 
 say "launchd units"
 mkdir -p "$HOME/Library/LaunchAgents"
