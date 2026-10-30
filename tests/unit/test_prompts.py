@@ -16,6 +16,9 @@ def test_prompts_use_vocabulary_not_free_text():
     assert "upright pointed ears" in p["positive"] and "red collar" in p["positive"] and "cheeky grin" in p["positive"]
     assert p["views"]["back"].endswith("back view, from behind, tail visible")
     assert "  " not in p["positive"] and ",," not in p["positive"]
+    # sharp throughout (decision 99): focus words in the first CLIP chunk, blur cues only in the negative
+    assert "entire figure in sharp focus" in p["positive"].split(",")[1] + p["positive"].split(",")[2]
+    assert "depth of field" not in p["positive"] and "shallow depth of field" in p["negative"]
 
 
 def test_every_breed_compiles():

@@ -1,3 +1,4 @@
 realistic fur, photorealistic, hair strands, text, watermark, logo, multiple animals,
 cropped, out of frame, cast shadow, floor, props, blurry, deformed, extra limbs,
-open mouth with teeth, human, clothing beyond accessories, dramatic lighting
+open mouth with teeth, human, clothing beyond accessories, dramatic lighting,
+bokeh, depth of field, shallow depth of field, tilt-shift, macro photo, out of focus, soft focus, background blur

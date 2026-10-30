@@ -1,4 +1,4 @@
-petpop_style, a chibi vinyl collectible figurine of a {{ breed.label }} {{ species }},
+petpop_style, a chibi vinyl collectible figurine of a {{ breed.label }} {{ species }}, entire figure in sharp focus,
 sitting pose, oversized round head, small compact body, short stubby legs,
 {{ coat.length }} {{ coat.texture }} fur simplified into smooth sculpted shapes,
 {{ colour.base.name }} coat{% if colour.secondary %} with {{ colour.secondary.name }} {{ colour.pattern | words }}{% endif %},
@@ -6,5 +6,6 @@ sitting pose, oversized round head, small compact body, short stubby legs,
 large glossy {{ eyes.colour }} bead eyes, {{ nose.colour }} nose,
 {% for a in accessories %}{{ a.colour_name }} {{ a.type }}, {% endfor %}
 {{ breed.prompt_hint }}, {{ personality | expression_words }},
-matte vinyl material, soft studio lighting, product photo, front view, orthographic,
+matte vinyl material, soft studio lighting, product photo, f/16, deep focus, crisp detail from front to back,
+front view, orthographic,
 centred, full body, plain white background, no shadow
