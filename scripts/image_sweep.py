@@ -48,6 +48,12 @@ CONCEPT = {
     "c5_style_light_wc": dict(init=("white", 0.92), depth=None, style_ref=("style transfer", 0.4), white=True),
     "c6_style_precise_wc": dict(init=("white", 0.92), depth=None, style_ref=("style transfer precise", 0.5), white=True),
     "c7_txt2img_wc": dict(init=("white", 0.92), depth=None, style_ref=None, white=True),
+    # Three-quarter concepts (camera at the pet's front left, azimuth 45) to show the form the front view hides;
+    # MV-Adapter then takes them with --mv-ref-azimuth 45. c9 pins the angle with weak depth from the proxy at 45.
+    "c8_three_quarter": dict(init=None, depth=None, style_ref=None, white=True,
+                             view="three-quarter view from the front left, body turned to the left"),
+    "c9_three_quarter_depth": dict(init=None, depth=(0.35, 0.35), style_ref=None, white=True, depth_cam="q45",
+                                   view="three-quarter view from the front left, body turned to the left"),
 }
 # MV-Adapter (workflow 02b) on the Mac: diffusers folders by path under ComfyUI's petpop-models symlink (mac/setup.sh).
 # Experimental; these move into the profile once the path is integrated.
@@ -89,6 +95,10 @@ def control_images(species: str, spec: dict, px: int) -> dict[str, bytes]:
         out.update({f"{cam}_depth": Path(p).read_bytes() for cam, p in res["depth"].items()})
     else:
         out.update({f"{cam}_depth": r["depth"] for cam, r in lowfi.control_renders(base, co, px).items()})
+    from petpop_library.meshkit import render
+
+    q45 = render(co, base.tri_verts, 45.0, px)  # the three-quarter camera (pet's front left), CPU depth
+    out["q45_depth"] = lowfi.png_bytes(Image.fromarray(lowfi.depth_png16(q45["depth"])))
     front = lowfi.flat_render(base, co, vertex_colours(base, spec, co), 0.0, px, False)
     out["flat_front"] = lowfi.png_bytes(front)
     buf = io.BytesIO()
@@ -136,10 +146,12 @@ def concept_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[st
     graph, meta = c.load(p["workflows"]["concept"])
     m, prm = p["models"], p["params"]
     pos = strip_trigger(prompts["positive"]) if not lora else prompts["positive"]
+    if v.get("view"):
+        pos = pos.replace(", front view,", f", {v['view']},")
     values = {"checkpoint": m["checkpoint"], "vae": m["vae"], "controlnet": m["controlnet_depth"],
               "lora": lora[0] if lora else None, "lora_strength": lora[1] if lora else None,
               "positive": pos + (WHITE_BG if v["white"] else ""), "negative": prompts["negative"],
-              "depth_image": ctrl["concept_front_depth"], "init_image": ctrl["flat_front"],
+              "depth_image": ctrl[f"{v.get('depth_cam', 'concept_front')}_depth"], "init_image": ctrl["flat_front"],
               "controlnet_strength": (v["depth"] or (0.7, 1.0))[0], "width": px, "height": px, "seed": seed,
               "steps": prm["concept_steps"], "cfg": prm["cfg"], "sampler": prm["sampler"], "scheduler": prm["scheduler"],
               "denoise": (v["init"][1] if isinstance(v["init"], tuple) else v["init"]) or 1.0}
@@ -207,12 +219,21 @@ def views_graph(c: ComfyClient, p: dict, v: dict, prompts: dict, ctrl: dict[str,
     return prune(g)
 
 
-def mv_graph(c: ComfyClient, p: dict, prompts: dict, concept: str, seed: int, px: int, steps: int, cfg: float) -> dict:
+def mv_graph(c: ComfyClient, p: dict, prompts: dict, concept: str, seed: int, px: int, steps: int, cfg: float,
+             ref_azimuth: float = 0.0) -> dict:
+    """MV-Adapter takes its reference as azimuth 0 (the node has no reference camera). For a reference at the pet's
+    `ref_azimuth`, the targets are offset so the four outputs still land on the pet's front, left, back and right
+    (MV-Adapter's azimuth 90 is the pet's left, decision 96); ComfyUI takes a literal list as {"__value__": [...]}."""
     graph, meta = c.load(p["workflows"].get("views_alt", "02b_views_mvadapter.json"))
     base = strip_trigger(prompts["positive"]).replace(", front view", "")
     values = {**MV, "concept_image": concept, "positive": base + WHITE_BG, "negative": prompts["negative"],
               "width": px, "height": px, "steps": steps, "cfg": cfg, "seed": seed}
-    return c.fill(graph, meta, values)
+    g = c.fill(graph, meta, values)
+    if ref_azimuth:
+        sampler = next(n for n in g.values() if n["class_type"] == "DiffusersMVSampler")
+        sampler["inputs"]["azimuth_degrees"] = {"__value__": [round((t - ref_azimuth) % 360) for t in (0, 90, 180, 270)]}
+        g = prune(g)
+    return g
 
 
 def shape_graph(c: ComfyClient, views: dict[str, str], variant: dict, seed: int, octree: int,
@@ -458,6 +479,8 @@ def main() -> int:
     ap.add_argument("--mv-steps", type=int, default=30)
     ap.add_argument("--mv-cfg", type=float, default=3.0)
     ap.add_argument("--mv-px", type=int, default=768)
+    ap.add_argument("--mv-ref-azimuth", type=float, default=0.0,
+                    help="--stage mv: the concept's camera azimuth on the pet (45 for c8/c9 three-quarter concepts)")
     ap.add_argument("--shape", default="full", help="Hunyuan3D-2mv variant(s) for --stage shape: full,turbo")
     ap.add_argument("--octree", type=int, default=256)
     ap.add_argument("--matte", choices=["profile", "border", "birefnet"], default="profile",
@@ -526,7 +549,8 @@ def main() -> int:
                 src = next(f for f in found if f.exists()).read_bytes()
                 cref = c.upload(f"sweep_{breed}_concept.png", src)
                 try:
-                    imgs, dt = submit(c, mv_graph(c, p, prompts, cref, args.seed, args.mv_px, args.mv_steps, args.mv_cfg), timeout=3600)
+                    imgs, dt = submit(c, mv_graph(c, p, prompts, cref, args.seed, args.mv_px, args.mv_steps, args.mv_cfg,
+                                                  args.mv_ref_azimuth), timeout=3600)
                     pngs = [next(b for k, b in imgs.items() if k.endswith(f"mv_{view}")) for view in VIEWS]
                     for view, png in zip(VIEWS, pngs):
                         (out / f"{breed}__mv__{view}.png").write_bytes(png)
