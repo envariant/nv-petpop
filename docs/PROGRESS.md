@@ -119,6 +119,8 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
     grey-reference rerun of C to F: much better views (docs/s3/15 to 18)
   - [x] Mark each workflow that has run cleanly on the Mac `validated: true` (`VALIDATED` in
     `scripts/make_comfy_workflows.py`): 01, 02 (2026-10-29), 01b, 02b, 03, 05 (2026-10-30); 03b and 04 are NVIDIA-only
+  - [x] Single view from a 3/4 vs a front concept (decision 107, docs/s3/19): mixed on two pets; it follows
+    whether the concept shows the tail. Open: "tail visible" prompt test on five pets; no whiskers for cats
   - [ ] Stages E and F now limit the figurine (docs/s3/16, 18): the raw 2mv or 2.1 shape is good, but the wrap onto
     the base topology rounds the head and the four-view projection onto the wrapped mesh ghosts the face (doubled
     eyes and nose) and smears colour. Next: project onto the raw shape and transfer to the base UVs, or weight each
