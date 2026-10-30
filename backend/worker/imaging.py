@@ -1,4 +1,4 @@
-"""Image helpers: alpha matting and re-centring (what BiRefNet + crop/pad do on the GPU host)."""
+"""Image helpers: alpha matting and re-centring (local keys, or the mask from the host's background removal)."""
 from __future__ import annotations
 
 import io
@@ -56,3 +56,30 @@ def matte(png: bytes, cfg: dict, size: int) -> bytes:
         Image.fromarray(np.dstack([rgb, alpha]), "RGBA").save(buf, format="PNG")
         png = buf.getvalue()
     return matte_square(png, size)
+
+
+def apply_mask(png: bytes, mask_png: bytes, size: int) -> bytes:
+    """Use a background-removal mask (white = subject) as the image's alpha, keep the largest subject (stray specks
+    would widen the crop), then re-centre like matte_square."""
+    from scipy import ndimage
+
+    rgb = Image.open(io.BytesIO(png)).convert("RGB")
+    a = np.asarray(Image.open(io.BytesIO(mask_png)).convert("L").resize(rgb.size, Image.BILINEAR)).astype(np.float32)
+    fg = a > 127
+    lab, n = ndimage.label(fg)
+    if n > 1:
+        keep = lab == (1 + int(np.argmax(ndimage.sum(fg, lab, range(1, n + 1)))))
+        a[~ndimage.binary_dilation(keep, iterations=2)] = 0
+    a[a < 16] = 0
+    buf = io.BytesIO()
+    Image.fromarray(np.dstack([np.asarray(rgb), a.astype(np.uint8)]), "RGBA").save(buf, format="PNG")
+    return matte_square(buf.getvalue(), size)
+
+
+def on_white(png: bytes) -> bytes:
+    """An RGBA image flattened onto white (a matted concept as a reference image)."""
+    img = Image.open(io.BytesIO(png)).convert("RGBA")
+    out = Image.alpha_composite(Image.new("RGBA", img.size, (255, 255, 255, 255)), img).convert("RGB")
+    buf = io.BytesIO()
+    out.save(buf, format="PNG")
+    return buf.getvalue()

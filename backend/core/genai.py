@@ -118,6 +118,8 @@ class Profile:
             models["shape"] = d["shape"]["model"]
         for k, v in (d["shape"].get("models") or {}).items():
             models[f"shape.{k}"] = v
+        if (d["shape"].get("fallback") or {}).get("model"):
+            models["shape.fallback"] = d["shape"]["fallback"]["model"]
         if d["texture"]["backend"] == "hy_paint":
             models["texture"] = d["texture"]["hy_paint"]["model"]
         return {

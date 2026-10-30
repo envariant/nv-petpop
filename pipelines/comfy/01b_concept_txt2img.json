@@ -1,0 +1,230 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "B",
+  "node_packs": [
+   "core"
+  ],
+  "inputs": {
+   "checkpoint": [
+    "1",
+    "ckpt_name"
+   ],
+   "lora": [
+    "2",
+    "lora_name"
+   ],
+   "lora_strength": [
+    [
+     "2",
+     "strength_model"
+    ],
+    [
+     "2",
+     "strength_clip"
+    ]
+   ],
+   "vae": [
+    "3",
+    "vae_name"
+   ],
+   "positive": [
+    "4",
+    "text"
+   ],
+   "negative": [
+    "5",
+    "text"
+   ],
+   "width": [
+    "6",
+    "width"
+   ],
+   "height": [
+    "6",
+    "height"
+   ],
+   "seed": [
+    "7",
+    "seed"
+   ],
+   "steps": [
+    "7",
+    "steps"
+   ],
+   "cfg": [
+    "7",
+    "cfg"
+   ],
+   "sampler": [
+    "7",
+    "sampler_name"
+   ],
+   "scheduler": [
+    "7",
+    "scheduler"
+   ]
+  },
+  "outputs": {
+   "concept": "9"
+  },
+  "optional_nodes": {
+   "lora": {
+    "node": "2",
+    "bypass": {
+     "0": [
+      "1",
+      0
+     ],
+     "1": [
+      "1",
+      1
+     ]
+    }
+   }
+  },
+  "required": [
+   "checkpoint",
+   "vae",
+   "positive",
+   "negative",
+   "seed"
+  ],
+  "notes": "SDXL + optional style LoRA, plain txt2img from an empty latent (no proxy-mesh control). The background is removed by the matte workflow."
+ },
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": ""
+  },
+  "_meta": {
+   "title": "checkpoint"
+  }
+ },
+ "2": {
+  "class_type": "LoraLoader",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "clip": [
+    "1",
+    1
+   ],
+   "lora_name": "",
+   "strength_model": 0.8,
+   "strength_clip": 0.8
+  },
+  "_meta": {
+   "title": "style lora"
+  }
+ },
+ "3": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": ""
+  },
+  "_meta": {
+   "title": "vae"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "positive"
+  }
+ },
+ "5": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    1
+   ],
+   "text": ""
+  },
+  "_meta": {
+   "title": "negative"
+  }
+ },
+ "6": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "batch_size": 1,
+   "width": 1024,
+   "height": 1024
+  },
+  "_meta": {
+   "title": "latent"
+  }
+ },
+ "7": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "2",
+    0
+   ],
+   "positive": [
+    "4",
+    0
+   ],
+   "negative": [
+    "5",
+    0
+   ],
+   "latent_image": [
+    "6",
+    0
+   ],
+   "denoise": 1.0,
+   "seed": 0,
+   "steps": 25,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras"
+  },
+  "_meta": {
+   "title": "sampler"
+  }
+ },
+ "8": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "7",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "decode"
+  }
+ },
+ "9": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "8",
+    0
+   ],
+   "filename_prefix": "petpop/concept"
+  },
+  "_meta": {
+   "title": "concept"
+  }
+ }
+}

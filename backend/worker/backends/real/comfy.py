@@ -2,7 +2,7 @@
 model names, parameters and residency rules; the workflow JSON's `meta.inputs` / `meta.outputs` say which
 node input or output each named value maps to, so node ids never appear in code.
 
-Not yet run against a live ComfyUI (see each workflow's meta.validated).
+Each workflow's meta.validated says whether it has run cleanly on a live host.
 """
 from __future__ import annotations
 
@@ -139,47 +139,80 @@ def _version(ctx, workflow: str, meta: dict[str, Any]) -> None:
 
 
 class ComfyImageBackend:
+    """Stages B and C. Which graph runs is the profile's choice (image.workflows); what to send it follows from the
+    workflow's own meta.inputs, so a txt2img concept gets no control images and an MV-Adapter views graph gets the
+    concept as its reference instead of per-view depth."""
     name = "comfy"
 
     def __init__(self, client: ComfyClient, profile) -> None:
         self.c = client
         self.cfg = profile["image"]
 
+    def _positive(self, text: str) -> str:
+        """Without a style LoRA its trigger word is noise: drop it (the S3 sweeps ran without it)."""
+        trigger = self.cfg.get("lora_trigger")
+        if trigger and not self.cfg["models"].get("lora") and text.startswith(f"{trigger}, "):
+            return text[len(trigger) + 2:]
+        return text
+
     def _common(self, spec, prompts) -> dict[str, Any]:
         m, p = self.cfg["models"], self.cfg["params"]
         return {"negative": prompts["negative"], "seed": int(spec["seed"]), "cfg": p["cfg"], "sampler": p["sampler"],
-                "scheduler": p["scheduler"], "checkpoint": m["checkpoint"], "vae": m["vae"], "controlnet": m["controlnet_depth"],
-                "controlnet_strength": p["controlnet_strength"], "lora": m.get("lora"),
+                "scheduler": p["scheduler"], "checkpoint": m["checkpoint"], "vae": m["vae"], "controlnet": m.get("controlnet_depth"),
+                "controlnet_strength": p.get("controlnet_strength"), "lora": m.get("lora"),
                 "lora_strength": p.get("lora_strength", 0.8) if m.get("lora") else None}
 
-    def concept(self, ctx, spec, prompts, control):
-        from backend.worker.imaging import matte
+    def _matte(self, ctx, png: bytes, name: str, size: int) -> bytes:
+        """The profile's matting: 'birefnet' runs the matte workflow on the host and applies its mask here;
+        'alpha' and 'white_key' are local (backend/worker/imaging.py)."""
+        from backend.worker.imaging import apply_mask, matte
 
+        cfg = self.cfg["matting"]
+        if cfg.get("method") != "birefnet":
+            return matte(png, cfg, size)
+        wf = self.cfg["workflows"]["matte"]
+        out, meta = self.c.run(wf, {"image": self.c.upload(f"{ctx.job_id}_{name}_raw.png", png),
+                                    "bg_model": self.cfg["models"]["bg_removal"]}, timeout=ctx.remaining())
+        _version(ctx, wf, meta)
+        return apply_mask(png, out["mask"][0], size)
+
+    def concept(self, ctx, spec, prompts, control):
         wf = self.cfg["workflows"]["concept"]
+        _, meta = self.c.load(wf)
         size = int(ctx.quality["concept_px"])
-        values = {**self._common(spec, prompts), "positive": prompts["positive"], "steps": self.cfg["params"]["concept_steps"],
-                  "denoise": self.cfg["params"]["init_denoise"], "width": size, "height": size,
-                  "depth_image": self.c.upload(f"{ctx.job_id}_concept_depth.png", control["concept_front_depth"]),
-                  "init_image": self.c.upload(f"{ctx.job_id}_flat_front.png", control["flat_front"])}
+        values = {**self._common(spec, prompts), "positive": self._positive(prompts["positive"]),
+                  "steps": self.cfg["params"]["concept_steps"], "width": size, "height": size}
+        if "depth_image" in meta["inputs"]:  # proxy-controlled concept (img2img init + depth ControlNet)
+            values.update(denoise=self.cfg["params"]["init_denoise"],
+                          depth_image=self.c.upload(f"{ctx.job_id}_concept_depth.png", control["concept_front_depth"]),
+                          init_image=self.c.upload(f"{ctx.job_id}_flat_front.png", control["flat_front"]))
         out, meta = self.c.run(wf, values, timeout=ctx.remaining())
         _version(ctx, wf, meta)
-        return matte(out["concept"][0], self.cfg["matting"], size)
+        return self._matte(ctx, out["concept"][0], "concept", size)
 
     def views(self, ctx, spec, prompts, control, concept):
-        from backend.worker.imaging import matte
+        from backend.worker.imaging import on_white
 
         wf = self.cfg["workflows"]["views"]
+        _, meta = self.c.load(wf)
         size = int(ctx.quality["view_px"])
         m, p = self.cfg["models"], self.cfg["params"]
-        values = {**self._common(spec, prompts), "steps": p["view_steps"], "width": size, "height": size,
-                  "ipadapter": m["ipadapter"], "clip_vision": m["clip_vision"], "ipadapter_weight": p["ipadapter_weight"],
-                  "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", concept)}
-        for v in ("front", "left", "back", "right"):
-            values[f"depth_{v}"] = self.c.upload(f"{ctx.job_id}_{v}_depth.png", control[f"{v}_depth"])
-            values[f"positive_{v}"] = prompts["views"][v]
+        if "mv_base" in meta["inputs"]:  # multi-view diffusion from the concept alone (MV-Adapter)
+            values = {"mv_base": m["mv_base"], "mv_vae": m["mv_vae"], "mv_adapter_repo": m["mv_adapter_repo"],
+                      "mvadapter": m["mvadapter"], "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", on_white(concept)),
+                      "positive": self._positive(prompts["positive"]).replace(", front view", ""),
+                      "negative": prompts["negative"], "width": size, "height": size, "steps": p["mv_steps"],
+                      "cfg": p["mv_cfg"], "seed": int(spec["seed"])}
+        else:  # per-view SDXL: depth ControlNet per view + IP-Adapter on the concept
+            values = {**self._common(spec, prompts), "steps": p["view_steps"], "width": size, "height": size,
+                      "ipadapter": m["ipadapter"], "clip_vision": m["clip_vision"], "ipadapter_weight": p["ipadapter_weight"],
+                      "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", concept)}
+            for v in ("front", "left", "back", "right"):
+                values[f"depth_{v}"] = self.c.upload(f"{ctx.job_id}_{v}_depth.png", control[f"{v}_depth"])
+                values[f"positive_{v}"] = self._positive(prompts["views"][v])
         out, meta = self.c.run(wf, values, timeout=ctx.remaining())
         _version(ctx, wf, meta)
-        return {v: matte(out[f"view_{v}"][0], self.cfg["matting"], size) for v in ("front", "left", "back", "right")}
+        return {v: self._matte(ctx, out[f"view_{v}"][0], f"view_{v}", size) for v in ("front", "left", "back", "right")}
 
 
 class ComfyShapeBackend:
@@ -198,7 +231,7 @@ class ComfyShapeBackend:
         wf = self.cfg["workflows"][kind]
         values = {"model": self.cfg["models"][kind], "seed": seed, "steps": params["steps"], "guidance": params["guidance"],
                   "octree_resolution": params["octree_resolution"]}
-        for k in ("num_chunks", "latent_resolution", "threshold"):
+        for k in ("num_chunks", "latent_resolution", "threshold", "sampler", "scheduler", "mesh_algorithm"):
             if k in self.cfg["params"]:
                 values[k] = self.cfg["params"][k]
         for v, data in images.items():

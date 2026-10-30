@@ -17,10 +17,10 @@ from .runner import StageRunner
 log = logging.getLogger("petpop.worker")
 
 
-def run_pipeline(job_id: str, spec: dict[str, Any], store, s=None, progress=None):
+def run_pipeline(job_id: str, spec: dict[str, Any], store, s=None, progress=None, kind: str = "pipeline"):
     s = s or settings()
     ctx = StageContext(job_id=job_id, settings=s, store=store, backends=make_backends(s),
-                       progress=progress or (lambda *a, **k: None))
+                       progress=progress or (lambda *a, **k: None), kind=kind)
     try:
         return StageRunner(ctx, spec).run()
     finally:

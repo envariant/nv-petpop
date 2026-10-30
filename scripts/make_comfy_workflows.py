@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Author the six ComfyUI workflows (API format) in pipelines/comfy/ (M2.5).
+"""Author the ComfyUI workflows (API format) in pipelines/comfy/ (M2.5).
 
 Node ids are generated here, never hand-edited. Workflows carry no model names or tunables: every value the
 GenAI profile supplies (model files, prompts, seeds, steps, sizes, strengths) is bound by name in
 `meta.inputs` -> [node_id, input] and filled by backend/worker/backends/real/comfy.py at run time. Outputs
-are bound by name in `meta.outputs`. All six are `meta.validated: false` until they have run on a live host;
+are bound by name in `meta.outputs`. Each is `meta.validated: false` until it has run on a live host (VALIDATED);
 node class and input names were checked against the node packs' source at the commits in requirements.txt.
 
     python scripts/make_comfy_workflows.py
@@ -17,6 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "pipelines" / "comfy"
 VIEWS = ["front", "left", "back", "right"]
+# Workflows that have run cleanly on a live host (meta.validated): file -> where and when.
+VALIDATED = {
+    "01_concept_front.json": "mac-m4pro 2026-10-29",
+    "02_views_ipadapter.json": "mac-m4pro 2026-10-29",
+    "02b_views_mvadapter.json": "mac-m4pro 2026-10-30",
+    "03_shape_hy2mv.json": "mac-m4pro 2026-10-30",
+}
 
 
 class Graph:
@@ -93,6 +100,47 @@ def concept() -> dict:
     return g.doc("1", "B", ["core"], "SDXL + optional style LoRA + depth ControlNet + img2img init from the flat-colour "
                  "base-mesh render (init weight 0.3 => denoise 0.7). Background is keyed by the worker.",
                  ["checkpoint", "vae", "controlnet", "positive", "negative", "depth_image", "init_image", "seed"])
+
+
+def concept_txt2img() -> dict:
+    """Plain txt2img (S3 setting c3, decision 86): no proxy init, no depth; the background is removed afterwards."""
+    g = Graph()
+    ckpt = g.add("CheckpointLoaderSimple", "checkpoint")
+    g.bind("checkpoint", ckpt, "ckpt_name", "")
+    lora = g.add("LoraLoader", "style lora", model=[ckpt, 0], clip=[ckpt, 1])
+    g.bind("lora", lora, "lora_name", "")
+    g.bind("lora_strength", lora, "strength_model", 0.8)
+    g.bind("lora_strength", lora, "strength_clip", 0.8)
+    g.optional["lora"] = {"node": lora, "bypass": {"0": [ckpt, 0], "1": [ckpt, 1]}}
+    vae = g.add("VAELoader", "vae")
+    g.bind("vae", vae, "vae_name", "")
+    pos = g.add("CLIPTextEncode", "positive", clip=[lora, 1])
+    g.bind("positive", pos, "text", "")
+    neg = g.add("CLIPTextEncode", "negative", clip=[lora, 1])
+    g.bind("negative", neg, "text", "")
+    latent = g.add("EmptyLatentImage", "latent", batch_size=1)
+    g.bind("width", latent, "width", 1024)
+    g.bind("height", latent, "height", 1024)
+    k = sampler(g, "sampler", [lora, 0], [pos, 0], [neg, 0], [latent, 0], denoise_bound=False)
+    dec = g.add("VAEDecode", "decode", samples=[k, 0], vae=[vae, 0])
+    g.outputs["concept"] = g.add("SaveImage", "concept", images=[dec, 0], filename_prefix="petpop/concept")
+    return g.doc("1", "B", ["core"], "SDXL + optional style LoRA, plain txt2img from an empty latent (no proxy-mesh "
+                 "control). The background is removed by the matte workflow.",
+                 ["checkpoint", "vae", "positive", "negative", "seed"])
+
+
+def matte_birefnet() -> dict:
+    """Foreground mask from ComfyUI core's background removal (BiRefNet, decision 98); the worker applies it."""
+    g = Graph()
+    img = g.add("LoadImage", "image")
+    g.bind("image", img, "image", "")
+    model = g.add("LoadBackgroundRemovalModel", "background removal model")
+    g.bind("bg_model", model, "bg_removal_name", "")
+    mask = g.add("RemoveBackground", "remove background", bg_removal_model=[model, 0], image=[img, 0])
+    as_image = g.add("MaskToImage", "mask as image", mask=[mask, 0])
+    g.outputs["mask"] = g.add("SaveImage", "mask", images=[as_image, 0], filename_prefix="petpop/mask")
+    return g.doc("1", "B/C (matting)", ["core"], "Foreground mask of one image; the worker turns it into alpha and "
+                 "re-centres the subject.", ["image", "bg_model"])
 
 
 def views_ipadapter() -> dict:
@@ -237,10 +285,13 @@ def texture_hy_paint() -> dict:
 
 
 def main() -> None:
-    files = {"01_concept_front.json": concept(), "02_views_ipadapter.json": views_ipadapter(),
-             "02b_views_mvadapter.json": views_mvadapter(), "03_shape_hy2mv.json": shape_hy2mv(),
-             "03b_shape_hy21_single.json": shape_hy21_single(), "04_texture_hy_paint.json": texture_hy_paint()}
+    files = {"01_concept_front.json": concept(), "01b_concept_txt2img.json": concept_txt2img(),
+             "02_views_ipadapter.json": views_ipadapter(), "02b_views_mvadapter.json": views_mvadapter(),
+             "03_shape_hy2mv.json": shape_hy2mv(), "03b_shape_hy21_single.json": shape_hy21_single(),
+             "04_texture_hy_paint.json": texture_hy_paint(), "05_matte_birefnet.json": matte_birefnet()}
     for name, doc in files.items():
+        if name in VALIDATED:
+            doc["meta"]["validated"], doc["meta"]["validated_against"] = True, VALIDATED[name]
         (OUT / name).write_text(json.dumps(doc, indent=1) + "\n")
         print(f"pipelines/comfy/{name}: {len(doc) - 1} nodes, inputs {len(doc['meta']['inputs'])}")
 

@@ -3,8 +3,10 @@ behind the same bearer-token check as mac/Caddyfile, to run the real adapters an
 to end without a GPU. It is a protocol stand-in, not a model:
 
 - ComfyUI: /upload/image, /prompt, /history/<id>, /view, /free, /system_stats. A SaveImage output is a "render"
-  of the depth image that feeds it upstream (subject shaded on white); a SaveGLB output is the visual hull of
-  the view images that feed it; the texture graph returns a flat albedo.
+  of the depth image that feeds it upstream (subject shaded on white); a txt2img concept or an MV-Adapter view is
+  an ellipse "figure" on a grey backdrop (wider from the side, as a body is deeper than wide); a background
+  removal graph returns the mask of what differs from the border; a SaveGLB output is the visual hull of the view
+  images that feed it; the texture graph returns a flat albedo.
 - Shape server: /health, /v1/shape (a job: the visual hull of the uploaded views), /v1/shape/<id> (reports
   "running" on the first poll, then "done"), /v1/shape/<id>/mesh, /v1/free.
 
@@ -57,6 +59,28 @@ class FakeHost:
             img = img.resize((size, size))
         buf = io.BytesIO()
         img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    @staticmethod
+    def figure(view: str, size: int) -> bytes:
+        """A stand-in subject on a grey backdrop: an ellipse, wider from the side than from the front."""
+        from PIL import ImageDraw
+
+        img = Image.new("RGB", (size, size), (150, 150, 150))
+        half_w = size * (0.30 if view in ("left", "right") else 0.22)
+        ImageDraw.Draw(img).ellipse([size / 2 - half_w, size * 0.12, size / 2 + half_w, size * 0.88], fill=(200, 140, 80))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    @staticmethod
+    def mask_of(png: bytes) -> bytes:
+        """Background removal: white where the image differs from its border colour."""
+        a = np.asarray(Image.open(io.BytesIO(png)).convert("RGB")).astype(np.int16)
+        edge = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
+        fg = np.abs(a - np.median(edge, axis=0)).max(axis=2) > 30
+        buf = io.BytesIO()
+        Image.fromarray((fg * 255).astype(np.uint8), "L").save(buf, format="PNG")
         return buf.getvalue()
 
     @staticmethod
@@ -121,7 +145,16 @@ class FakeHost:
             if ct not in ("SaveImage", "SaveGLB"):
                 continue
             loads = [graph[i]["inputs"]["image"] for i in self.upstream(graph, nid, "LoadImage")]
-            if ct == "SaveImage" and any("depth" in name for name in loads):
+            mv = self.upstream(graph, nid, "DiffusersMVSampler")
+            if ct == "SaveImage" and self.upstream(graph, nid, "RemoveBackground"):
+                data, key = self.mask_of(self.uploads[loads[0]]), "images"
+            elif ct == "SaveImage" and mv:
+                index = next(graph[i]["inputs"]["batch_index"] for i in self.upstream(graph, nid, "ImageFromBatch"))
+                data, key = self.figure(VIEW_NAMES[index], int(graph[mv[0]]["inputs"]["width"])), "images"
+            elif ct == "SaveImage" and not loads and self.upstream(graph, nid, "EmptyLatentImage"):  # txt2img concept
+                latent = self.upstream(graph, nid, "EmptyLatentImage")[0]
+                data, key = self.figure("front", int(graph[latent]["inputs"]["width"])), "images"
+            elif ct == "SaveImage" and any("depth" in name for name in loads):
                 depth = next(n for n in loads if "depth" in n)
                 width = next((graph[i]["inputs"]["width"] for i in self.upstream(graph, nid, "ImageScale")), None)
                 width = width or next((graph[i]["inputs"]["width"] for i in self.upstream(graph, nid, "EmptyLatentImage")), None)

@@ -1,10 +1,12 @@
 # GenAI profile: mac-m4pro. Prototype GenAI host: Apple Silicon M4 Pro, 24 GB unified memory, PyTorch MPS.
-# ComfyUI (SDXL fp16 + ControlNet depth + IP-Adapter Plus), a Hunyuan3D-2.1 shape server on the MPS fork,
-# and Ollama run natively on the Mac (see mac/). The VM reaches them through mac/tunnel.sh.
-# Only one model is resident at a time: every call unloads after itself. Latency target waived (12-16 min).
+# ComfyUI (SDXL txt2img concept, MV-Adapter views, BiRefNet matting, Hunyuan3D-2mv shape), a Hunyuan3D-2.1
+# shape server on the MPS fork (single-view fallback and the fast path) and Ollama run natively on the Mac
+# (see mac/). The VM reaches them through mac/tunnel.sh. One resident model at a time: every call unloads after
+# itself. Library path about 30 min per pet, fast path (bespoke jobs) about 15 min; no latency target.
+# Settings measured in the S3 sweeps (docs/s3, decisions 86 to 102).
 profile: mac-m4pro
-version: 2
-description: Apple Silicon prototype host. All GenAI on MPS, one resident model at a time, 12-16 min per pet.
+version: 3
+description: Apple Silicon prototype host. All GenAI on MPS, one resident model at a time; library path ~30 min, fast path ~15 min per pet.
 host: {kind: apple-silicon, accelerator: mps, memory_gb: 24}
 mode: real
 
@@ -14,9 +16,10 @@ quality:
     mac: {concept_px: 1024, view_px: 768, control_px: 512, samples: 16, albedo_px: 2048, voxel_mm: 0.25, print_tris: 250000, turntable_frames: 36, turntable_px: 512, mask_px: 2048}
     test: {concept_px: 768, view_px: 512, control_px: 512, samples: 4, albedo_px: 1024, voxel_mm: 0.5, print_tris: 60000, turntable_frames: 8, turntable_px: 128, mask_px: 1024}
 
-timeouts_s: {A: 15, control: 120, B: 300, C: 600, D: 900, E: 240, F: 480}
-# D from the MPS fork's M4 Pro benchmark (30 steps x 7.6 s + mesh extraction at octree 192, ~345 s in all).
-expected_s: {A: 4, control: 10, B: 90, C: 240, D: 360, E: 30, F: 90, total: [720, 960]}
+timeouts_s: {A: 15, control: 120, B: 300, C: 900, D: 1800, E: 240, F: 480}
+# Measured on the Mac 2026-10-30: concept 80-125 s, MV-Adapter 280-630 s plus five BiRefNet mattes, 2mv full at
+# octree 256 1191-1347 s (the fast path's Hunyuan3D-2.1 single view: about 345 s).
+expected_s: {A: 4, control: 10, B: 110, C: 360, D: 1250, E: 30, F: 90, total: [1700, 2300]}
 latency: {target_s: null, enforce: false}   # waived on the prototype host
 
 residency:
@@ -42,7 +45,10 @@ parser:
 image:
   backend: comfy
   service: comfy
-  workflows: {concept: 01_concept_front.json, views: 02_views_ipadapter.json}
+  # Concept: plain txt2img (decision 86). Views: MV-Adapter from the concept (decisions 88, 95, 96, 102).
+  # The per-view graph (02_views_ipadapter.json, with ipadapter/clip_vision/controlnet_depth) still runs if named here.
+  workflows: {concept: 01b_concept_txt2img.json, views: 02b_views_mvadapter.json, matte: 05_matte_birefnet.json}
+  lora_trigger: petpop_style                    # dropped from the prompt while lora is null
   models:
     checkpoint: sd_xl_base_1.0.safetensors
     vae: sdxl_vae_fp16_fix.safetensors          # fp16-safe VAE (the SDXL VAE produces NaNs in fp16 on MPS)
@@ -50,19 +56,32 @@ image:
     ipadapter: ip-adapter-plus_sdxl_vit-h.safetensors
     clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
     lora: null                                   # petpop_style_v1.safetensors once trained (S4)
-  params: {concept_steps: 25, view_steps: 25, cfg: 6.0, sampler: dpmpp_2m, scheduler: karras, controlnet_strength: 0.7, init_denoise: 0.7, ipadapter_weight: 0.7, lora_strength: 0.8}
+    # MV-Adapter loads diffusers folders by path, relative to ComfyUI's directory (mac/setup.sh links petpop-models)
+    mv_base: petpop-models/diffusers/stable-diffusion-xl-base-1.0
+    mv_vae: petpop-models/diffusers/sdxl-vae-fp16-fix
+    mv_adapter_repo: petpop-models/hf/huanngzh/mv-adapter
+    mvadapter: mvadapter_i2mv_sdxl.safetensors
+    bg_removal: birefnet.safetensors             # ComfyUI core background removal (decision 98)
+  params: {concept_steps: 25, view_steps: 25, cfg: 6.0, sampler: dpmpp_2m, scheduler: karras, controlnet_strength: 0.7, init_denoise: 0.7, ipadapter_weight: 0.7, lora_strength: 0.8, mv_steps: 30, mv_cfg: 3.0}
   precision: {unet: fp16, vae: fp16}
-  matting: {method: white_key, threshold: 236}
+  matting: {method: birefnet}
 
 shape:
-  backend: http
-  service: shape
-  views: [front]                     # Hunyuan3D-2.1 is a single-image model
-  model: tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1
-  # Octree 192: the fork's measured M4 Pro setting. 256 costs ~2.4x the voxels (~+2.5 min) for detail that stage E
-  # (wrap onto the base topology) smooths away.
-  params: {octree_resolution: 192, steps: 30, guidance: 5.0, num_chunks: 8000}
-  fallback: {seed_offset: 1, params: {octree_resolution: 192, steps: 30, guidance: 7.5}}
+  # Hunyuan3D-2mv full through ComfyUI's core nodes on the four views (decisions 89, 98, 101: surface-net meshing,
+  # turbo not adopted), octree 256 as measured. The single-view fallback, and the whole of the fast path, is
+  # Hunyuan3D-2.1 on the shape server at the fork's measured octree 192.
+  backend: comfy
+  service: comfy
+  views: [front, left, back, right]
+  workflows: {multiview: 03_shape_hy2mv.json}
+  models: {multiview: hunyuan3d-dit-v2-mv.fp16.safetensors}
+  params: {octree_resolution: 256, steps: 50, guidance: 5.5, num_chunks: 8000, latent_resolution: 3072, threshold: 0.6, sampler: euler, scheduler: normal, mesh_algorithm: surface net}
+  fallback:
+    backend: http
+    service: shape
+    model: tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1
+    seed_offset: 1
+    params: {octree_resolution: 192, steps: 30, guidance: 7.5, num_chunks: 8000}
   orientation: {yaw_deg: 0}
   height_mm: 90
   max_tris: 300000
@@ -90,6 +109,13 @@ embed:
   device: mps
   dtype: float16
   wait_s: 30                         # wait this long for a running mesh, then answer 409
+
+# Library quality by default; the kiosk's bespoke jobs take the fast path (single-view shape, about 15 min).
+paths:
+  default: library
+  by_kind: {bespoke: fast}
+  library: {shape: multiview}
+  fast: {shape: single_view}
 
 texture:
   backend: projection                # Blender camera projection of the four views; Hunyuan3D-Paint is NVIDIA-only

@@ -29,6 +29,14 @@ class StageContext:
     tmp: Path = field(default_factory=lambda: Path(tempfile.mkdtemp(prefix="pp-job-")))
     deadline: float = 0.0
     state: dict[str, Any] = field(default_factory=dict)
+    kind: str = "pipeline"  # pipeline | bespoke | batch: picks the profile's path (paths.by_kind)
+
+    @property
+    def path(self) -> dict[str, Any]:
+        """The profile's path for this job: library quality by default, a faster one for some job kinds."""
+        paths = self.settings.genai.get("paths") or {}
+        name = (paths.get("by_kind") or {}).get(self.kind, paths.get("default", "library"))
+        return {"name": name, **(paths.get(name) or {})}
 
     @property
     def quality(self) -> dict[str, Any]:

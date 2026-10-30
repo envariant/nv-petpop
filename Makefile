@@ -58,7 +58,7 @@ proxies: ## rebuild the proxy base meshes (bpy)
 fixtures: ## rebuild the fixture pack from the mock-mode pipeline
 	$(PY) scripts/make_fixtures.py
 
-workflows: ## regenerate the six ComfyUI workflow JSONs (node ids are generated, never hand-edited)
+workflows: ## regenerate the ComfyUI workflow JSONs (node ids are generated, never hand-edited)
 	$(PY) scripts/make_comfy_workflows.py
 
 tiles: ## re-render pattern and marking tiles from the base mesh

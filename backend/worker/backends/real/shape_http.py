@@ -33,9 +33,9 @@ class ShapeServiceError(RuntimeError):
 class HttpShapeBackend:
     name = "http"
 
-    def __init__(self, profile) -> None:
+    def __init__(self, profile, cfg: dict | None = None) -> None:
         self.profile = profile
-        self.cfg = profile["shape"]
+        self.cfg = cfg or profile["shape"]  # cfg: the profile's shape.fallback when this serves only the single view
         self.url = profile.url(self.cfg["service"])
         self.headers = profile.auth_headers()
 

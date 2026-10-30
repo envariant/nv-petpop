@@ -62,35 +62,67 @@ def test_auth_is_required(host):
     assert httpx.get(f"{host.base}/comfy/system_stats", headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 200
 
 
+def classes(graph: dict) -> set[str]:
+    return {n["class_type"] for n in graph.values()}
+
+
 def test_mac_m4pro_profile(env, host, tmp_path):
+    """The library path: txt2img concept, BiRefNet mattes, MV-Adapter views, Hunyuan3D-2mv through ComfyUI."""
     s = env("mac-m4pro")
     m = run_pipeline("j_mac", default_spec("dog", "beagle", seed=21, pet_name="Bea"), LocalStore(tmp_path / "s"), s).data
     assert manifest_errors(m) == []
     g = m["genai"]
     assert g["profile"] == "mac-m4pro" and g["accelerator"] == "mps" and g["quality"] == "test"
-    assert g["adapters"] == {"parser": "ollama", "image": "comfy", "shape": "http", "texture": "projection"}
+    assert g["adapters"] == {"parser": "ollama", "image": "comfy", "shape": "comfy", "texture": "projection"}
     assert g["models"]["image.checkpoint"] == "sd_xl_base_1.0.safetensors"
-    assert g["models"]["shape"] == "tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1"
-    assert m["versions"]["workflows"]["01_concept_front"] == "1-unvalidated"
+    assert g["models"]["shape.multiview"] == "hunyuan3d-dit-v2-mv.fp16.safetensors"
+    assert g["models"]["shape.fallback"] == "tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1"
+    wf = m["versions"]["workflows"]
+    assert wf["02b_views_mvadapter"] == "1" and wf["03_shape_hy2mv"] == "1"  # validated on the Mac
+    assert wf["01b_concept_txt2img"] == "1-unvalidated" and wf["05_matte_birefnet"] == "1-unvalidated"
+    # The fake's views are ellipses, so their hull need not wrap onto the dog base mesh (E may ship it unwrapped);
+    # what matters here is that D used the multi-view shape with no fallback.
+    assert m["fallback"] in ("none", "unwrapped")
+    assert next(st for st in m["stages"] if st["stage"] == "D")["status"] == "ok"
     paths = [e["path"] for e in host.log]
     prompts = [i for i, p in enumerate(paths) if p == "/comfy/prompt"]
-    assert len(prompts) == 2  # concept, then the four-view graph
+    assert len(prompts) == 8  # concept, its matte, the MV-Adapter views (one graph), four view mattes, the shape
     for i in prompts:  # one resident model: every ComfyUI prompt is followed by /free
         assert "/comfy/free" in paths[i:]
-    frees = [e for e in host.log if e["path"] == "/comfy/free"]
-    assert all(e["json"]["unload_models"] for e in frees) and len(frees) >= 2
-    shape = next(e for e in host.log if e["path"] == "/shape/v1/shape#params")["json"]
-    assert shape["octree_resolution"] == 192 and shape["steps"] == 30 and shape["unload_after"] is True
-    # The mesh is a job that is polled (the tunnel cuts off any request after ~100 s): submit, poll, download.
-    shape_paths = [e["path"] for e in host.log if e["path"].startswith("/shape/v1/shape/")]
-    assert any(p.endswith("/mesh") for p in shape_paths) and sum(not p.endswith("/mesh") for p in shape_paths) >= 2
+    graphs = [e["json"]["prompt"] for e in host.log if e["path"] == "/comfy/prompt"]
+    concept, mv, shape = graphs[0], graphs[2], graphs[-1]
+    assert "EmptyLatentImage" in classes(concept) and not classes(concept) & {"ControlNetApplyAdvanced", "LoadImage"}
+    text = next(n["inputs"]["text"] for n in concept.values() if n["class_type"] == "CLIPTextEncode" and "figurine" in n["inputs"]["text"])
+    assert not text.startswith("petpop_style")  # no LoRA yet: its trigger word is dropped
+    assert not any(n["class_type"] == "LoraLoader" for n in concept.values())  # and the LoRA node bypassed
+    assert "DiffusersMVSampler" in classes(mv)
+    assert sum("RemoveBackground" in classes(gr) for gr in graphs) == 5
+    bg = next(n for gr in graphs for n in gr.values() if n["class_type"] == "LoadBackgroundRemovalModel")
+    assert bg["inputs"]["bg_removal_name"] == "birefnet.safetensors"
+    dec = next(n for n in shape.values() if n["class_type"] == "VAEDecodeHunyuan3D")
+    k = next(n for n in shape.values() if n["class_type"] == "KSampler")
+    mesh = next(n for n in shape.values() if n["class_type"] == "VoxelToMesh")
+    assert dec["inputs"]["octree_resolution"] == 256 and k["inputs"]["steps"] == 50 and mesh["inputs"]["algorithm"] == "surface net"
+    assert not any(p.startswith("/shape/v1/shape") for p in paths)  # the shape server is only the fallback
     slowest = max((e for e in host.log if "seconds" in e), key=lambda e: e["seconds"])
     assert slowest["seconds"] < 30, f"{slowest['path']} took {slowest['seconds']:.0f} s through the tunnel"
-    concept = next(e for e in host.log if e["path"] == "/comfy/prompt")["json"]["prompt"]
-    ckpt = next(n for n in concept.values() if n["class_type"] == "CheckpointLoaderSimple")
-    assert ckpt["inputs"]["ckpt_name"] == "sd_xl_base_1.0.safetensors"  # the model name came from the profile
-    assert not any(n["class_type"] == "LoraLoader" for n in concept.values())  # no LoRA yet: bypassed
     assert m["metrics"]["print_watertight"]
+
+
+def test_mac_bespoke_fast_path(env, host, tmp_path):
+    """Bespoke jobs take the profile's fast path: the front view alone on the shape server, polled as a job."""
+    s = env("mac-m4pro")
+    m = run_pipeline("j_fast", default_spec("dog", "pug", seed=24), LocalStore(tmp_path / "s"), s, kind="bespoke").data
+    assert manifest_errors(m) == [] and m["fallback"] in ("none", "unwrapped")
+    graphs = [e["json"]["prompt"] for e in host.log if e["path"] == "/comfy/prompt"]
+    assert not any("VAEDecodeHunyuan3D" in classes(gr) for gr in graphs)
+    shape = next(e for e in host.log if e["path"] == "/shape/v1/shape#params")["json"]
+    assert shape["octree_resolution"] == 192 and shape["steps"] == 30 and shape["unload_after"] is True
+    assert shape["seed"] == 24 + 1  # the fallback's seed offset
+    shape_paths = [e["path"] for e in host.log if e["path"].startswith("/shape/v1/shape/")]
+    assert any(p.endswith("/mesh") for p in shape_paths) and sum(not p.endswith("/mesh") for p in shape_paths) >= 2
+    d = next(st for st in m["stages"] if st["stage"] == "D")
+    assert d["status"] == "ok" and "fast path" in d["notes"]
 
 
 def test_nvidia_24gb_profile(env, host, tmp_path):
@@ -107,6 +139,7 @@ def test_nvidia_24gb_profile(env, host, tmp_path):
     shape_i = next(i for i, e in enumerate(host.log) if e["path"] == "/comfy/prompt" and e["json"]["prompt"] is shape_graph)
     assert "/comfy/free" in paths[:shape_i]  # image stack unloaded before Stage D
     assert m["fallback"] in ("none", "single_view")
+    assert sum("RemoveBackground" in classes(gr) for gr in prompts) == 5  # concept + four views matted by BiRefNet
 
 
 def test_nvidia_hy_paint_opt_in(env, host, tmp_path):

@@ -163,11 +163,11 @@ class Worker:
     def run_pipeline(self, job_id: str) -> str:
         with self.db() as db:
             job = db.get(JobRow, job_id)
-            spec = dict(job.pet_spec)
+            spec, kind = dict(job.pet_spec), job.kind
             job.status, job.started_at, job.attempts = "running", job.started_at or utcnow(), job.attempts + 1
             db.commit()
         ctx = StageContext(job_id=job_id, settings=self.s, store=self.store, backends=self.backends,
-                           progress=self._progress(job_id), on_artefact=self._artefact(job_id))
+                           progress=self._progress(job_id), on_artefact=self._artefact(job_id), kind=kind)
         try:
             manifest = StageRunner(ctx, spec, on_stage=self._stage(job_id)).run()
             # The manifest itself is an artefact too.

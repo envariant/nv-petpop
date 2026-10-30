@@ -1,0 +1,89 @@
+{
+ "meta": {
+  "version": "1",
+  "validated": false,
+  "validated_against": null,
+  "stage": "B/C (matting)",
+  "node_packs": [
+   "core"
+  ],
+  "inputs": {
+   "image": [
+    "1",
+    "image"
+   ],
+   "bg_model": [
+    "2",
+    "bg_removal_name"
+   ]
+  },
+  "outputs": {
+   "mask": "5"
+  },
+  "optional_nodes": {},
+  "required": [
+   "image",
+   "bg_model"
+  ],
+  "notes": "Foreground mask of one image; the worker turns it into alpha and re-centres the subject."
+ },
+ "1": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": ""
+  },
+  "_meta": {
+   "title": "image"
+  }
+ },
+ "2": {
+  "class_type": "LoadBackgroundRemovalModel",
+  "inputs": {
+   "bg_removal_name": ""
+  },
+  "_meta": {
+   "title": "background removal model"
+  }
+ },
+ "3": {
+  "class_type": "RemoveBackground",
+  "inputs": {
+   "bg_removal_model": [
+    "2",
+    0
+   ],
+   "image": [
+    "1",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "remove background"
+  }
+ },
+ "4": {
+  "class_type": "MaskToImage",
+  "inputs": {
+   "mask": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "mask as image"
+  }
+ },
+ "5": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "4",
+    0
+   ],
+   "filename_prefix": "petpop/mask"
+  },
+  "_meta": {
+   "title": "mask"
+  }
+ }
+}

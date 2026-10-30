@@ -50,8 +50,13 @@
       }
     },
     "parser": {"type": "object", "required": ["backend", "timeout_s"], "properties": {"backend": {"enum": ["rules", "ollama"]}, "service": {"type": "string"}, "model": {"type": "string"}}},
-    "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key"]}}}}},
+    "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key", "birefnet"]}}}}},
     "shape": {"type": "object", "required": ["backend", "views", "iou_min", "height_mm"], "properties": {"backend": {"enum": ["mock", "comfy", "http"]}, "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}, "minItems": 1}, "iou_min": {"type": "number"}}},
+    "paths": {
+      "type": "object", "description": "Library quality by default; job kinds (paths.by_kind) can take a faster path.",
+      "properties": {"default": {"type": "string"}, "by_kind": {"type": "object", "additionalProperties": {"type": "string"}}},
+      "additionalProperties": {"type": ["object", "string"], "properties": {"shape": {"enum": ["multiview", "single_view"]}}}
+    },
     "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint"]}}}},
     "gates": {"type": "object", "required": ["iou_min", "p50_s", "max_s"]}
   },

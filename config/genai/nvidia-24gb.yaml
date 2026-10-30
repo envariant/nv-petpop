@@ -1,7 +1,7 @@
 # GenAI profile: nvidia-24gb. Production GenAI host: one 24 GB NVIDIA card (RTX 4090 / L4 class), CUDA.
 # ComfyUI runs SDXL, IP-Adapter and Hunyuan3D-2mv; Ollama runs the 7B parser. BRIEF Sections 6 and 8.
 profile: nvidia-24gb
-version: 1
+version: 2
 description: Production NVIDIA box. Hunyuan3D-2mv at octree 384 / 50 steps, 4-minute target enforced.
 host: {kind: nvidia, accelerator: cuda, memory_gb: 24}
 mode: real
@@ -39,7 +39,10 @@ parser:
 image:
   backend: comfy
   service: comfy
-  workflows: {concept: 01_concept_front.json, views: 02_views_ipadapter.json, views_alt: 02b_views_mvadapter.json}
+  # Concept: plain txt2img with BiRefNet matting, as on the Mac (decisions 86, 98). Views stay per-view SDXL until
+  # the NVIDIA image provides MV-Adapter's diffusers folders by path (S6); then views: 02b_views_mvadapter.json.
+  workflows: {concept: 01b_concept_txt2img.json, views: 02_views_ipadapter.json, views_alt: 02b_views_mvadapter.json, matte: 05_matte_birefnet.json}
+  lora_trigger: petpop_style
   models:
     checkpoint: sd_xl_base_1.0.safetensors
     vae: sdxl_vae_fp16_fix.safetensors
@@ -48,9 +51,10 @@ image:
     clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
     lora: null
     mvadapter: mvadapter_i2mv_sdxl.safetensors
+    bg_removal: birefnet.safetensors
   params: {concept_steps: 30, view_steps: 30, cfg: 6.0, sampler: dpmpp_2m, scheduler: karras, controlnet_strength: 0.7, init_denoise: 0.7, ipadapter_weight: 0.7, lora_strength: 0.8}
   precision: {unet: fp16, vae: fp16, fp8_allowed: true}
-  matting: {method: white_key, threshold: 236}
+  matting: {method: birefnet}
 
 shape:
   backend: comfy
@@ -60,7 +64,7 @@ shape:
   models:
     multiview: hunyuan3d-dit-v2-mv.fp16.safetensors
     single_view: hunyuan3d-dit-v2-1.fp16.ckpt
-  params: {octree_resolution: 384, steps: 50, guidance: 5.5, num_chunks: 8000, latent_resolution: 3072, threshold: 0.6}
+  params: {octree_resolution: 384, steps: 50, guidance: 5.5, num_chunks: 8000, latent_resolution: 3072, threshold: 0.6, sampler: euler, scheduler: normal, mesh_algorithm: surface net}
   fallback: {seed_offset: 1, params: {octree_resolution: 384, steps: 50, guidance: 5.0}}
   orientation: {yaw_deg: 0}
   height_mm: 90

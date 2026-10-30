@@ -41,6 +41,27 @@ class TextureBackend(Protocol):
     def paint(self, ctx, spec: dict[str, Any], wrapped_obj: bytes, coords: np.ndarray, views: dict[str, bytes]) -> bytes: ...
 
 
+class SingleViewFallback:
+    """Multi-view on one backend, the single-view fallback on another: on the Mac, Hunyuan3D-2mv through ComfyUI
+    and Hunyuan3D-2.1 on the shape server (profile shape.fallback.backend)."""
+
+    def __init__(self, primary: ShapeBackend, fallback: ShapeBackend) -> None:
+        self.primary, self.fallback, self.name = primary, fallback, primary.name
+
+    def multiview(self, ctx, spec, views):
+        return self.primary.multiview(ctx, spec, views)
+
+    def single_view(self, ctx, spec, front):
+        return self.fallback.single_view(ctx, spec, front)
+
+
+def fallback_cfg(shape: dict[str, Any]) -> dict[str, Any]:
+    """The shape section as the fallback backend sees it: its own service, model and parameters."""
+    fb = shape["fallback"]
+    return {**shape, "service": fb["service"], "model": fb.get("model"), "views": ["front"], "params": fb.get("params", {}),
+            "fallback": {"seed_offset": fb.get("seed_offset", 1)}}
+
+
 @dataclass
 class Backends:
     parser: Parser
@@ -99,6 +120,10 @@ def make_backends(settings) -> Backends:
         from .mock.shape import MockShapeBackend
 
         shape = MockShapeBackend(profile)
+    if shape_kind == "comfy" and (profile["shape"].get("fallback") or {}).get("backend") == "http":
+        from .real.shape_http import HttpShapeBackend
+
+        shape = SingleViewFallback(shape, HttpShapeBackend(profile, fallback_cfg(profile["shape"])))
     from .texture import make_texture
 
     texture = make_texture(profile, comfy if profile["texture"]["backend"] == "hy_paint" else None)

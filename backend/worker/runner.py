@@ -112,7 +112,15 @@ class StageRunner:
             status, notes, attempts = "ok", "", 1
             backend = {"A": ctx.backends.parser.name, "B": ctx.backends.image.name, "C": ctx.backends.image.name,
                        "D": ctx.backends.shape.name, "F": ctx.backends.texture.name}.get(stage, "blender")
-            if stage == "D":
+            if stage == "D" and ctx.path.get("shape") == "single_view":  # a fast path shapes from the front view
+                ok, attempts, err = self._attempt("D", fn, retries=0, single_view=True)
+                notes = f"{ctx.path['name']} path: single view"
+                if not ok:
+                    ctx.progress("D", 62, "Using the classic figure shape")
+                    fallback, status, notes = "parametric", "fallback", f"single view: {err}; parametric base mesh"
+                    ctx.state.pop("iou", None)
+                    ok = True
+            elif stage == "D":
                 ok, attempts, err = self._attempt("D", fn)
                 if not ok:
                     ctx.progress("D", 56, "Views disagree, trying the front view alone")
