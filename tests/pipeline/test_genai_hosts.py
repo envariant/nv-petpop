@@ -79,7 +79,7 @@ def test_mac_m4pro_profile(env, host, tmp_path):
     assert g["models"]["shape.fallback"] == "tencent/Hunyuan3D-2.1/hunyuan3d-dit-v2-1"
     wf = m["versions"]["workflows"]
     assert wf["02b_views_mvadapter"] == "1" and wf["03_shape_hy2mv"] == "1"  # validated on the Mac
-    assert wf["01b_concept_txt2img"] == "1-unvalidated" and wf["05_matte_birefnet"] == "1-unvalidated"
+    assert wf["01b_concept_txt2img"] == "1" and wf["05_matte_birefnet"] == "1"
     # The fake's views are ellipses, so their hull need not wrap onto the dog base mesh (E may ship it unwrapped);
     # what matters here is that D used the multi-view shape with no fallback.
     assert m["fallback"] in ("none", "unwrapped")

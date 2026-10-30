@@ -112,12 +112,17 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
       `euler/simple` but it still collapses depth; side balance is a review flag; full tolerates an under-rotated side
   - [x] Concept A/B for the sharp-focus prompt (decision 99) and the three-quarter concept test (X1 to X4,
     2026-10-30, decision 102, docs/s3/10 to 14): sharp prompt kept, front reference kept, 3/4 reference not adopted
-  - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
-    library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
-    fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
-  - [ ] Mark each workflow that has run cleanly on the Mac `validated: true` (date and host) in
-    `scripts/make_comfy_workflows.py`, then `make workflows`: 01 and 02 ran cleanly on 2026-10-29; 02b and 03 after
-    their first clean run
+  - [x] Integrate (2026-10-30, decisions 103 to 106): c3 txt2img concept, MV-Adapter views from a grey 90 %
+    reference, BiRefNet matting, 2mv full via ComfyUI with the shape server as single-view fallback; bespoke jobs
+    take the fast path (single view). Validated on the Mac with real jobs (golden, seed 101): library path 1819 s,
+    no fallback, IoU 0.896, wrap valid, watertight; fast path 958 s, shape fine, wrap invalid (shipped unwrapped);
+    grey-reference rerun of C to F: much better views (docs/s3/15 to 18)
+  - [x] Mark each workflow that has run cleanly on the Mac `validated: true` (`VALIDATED` in
+    `scripts/make_comfy_workflows.py`): 01, 02 (2026-10-29), 01b, 02b, 03, 05 (2026-10-30); 03b and 04 are NVIDIA-only
+  - [ ] Stages E and F now limit the figurine (docs/s3/16, 18): the raw 2mv or 2.1 shape is good, but the wrap onto
+    the base topology rounds the head and the four-view projection onto the wrapped mesh ghosts the face (doubled
+    eyes and nose) and smears colour. Next: project onto the raw shape and transfer to the base UVs, or weight each
+    view by how well the wrapped silhouette matches it; fix the fast path's invalid wraps (inverted triangles)
   - [ ] Stage A: one availability probe instead of two, a smaller patch-only output schema, re-measure
   - [ ] Gates 3 to 5 on the new settings, one pet at a time (`PETPOP_REGRESS_LIMIT=1`)
   - [ ] `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and

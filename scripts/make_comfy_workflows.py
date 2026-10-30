@@ -23,6 +23,8 @@ VALIDATED = {
     "02_views_ipadapter.json": "mac-m4pro 2026-10-29",
     "02b_views_mvadapter.json": "mac-m4pro 2026-10-30",
     "03_shape_hy2mv.json": "mac-m4pro 2026-10-30",
+    "01b_concept_txt2img.json": "mac-m4pro 2026-10-30",
+    "05_matte_birefnet.json": "mac-m4pro 2026-10-30",
 }
 
 
