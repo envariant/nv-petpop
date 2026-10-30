@@ -102,12 +102,16 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   - [ ] Next Mac jobs, one at a time, each on Nishant's go (planned 2026-10-30). Before them, on the Mac: `git pull`,
     `make -C mac setup` (renders the new `background_removal` model folder), `make -C mac models` (BiRefNet,
     0.44 GB, decision 98), `make -C mac restart`
-    - [ ] J1: golden 2mv turbo on the existing views with surface-net meshing (validates 03), then turbo with
+    - [x] J1: golden 2mv turbo on the existing views with surface-net meshing (validates 03), then turbo with
       `euler/simple` and `lcm/simple` (is turbo's poor shape the sampler?), about 14 min
-    - [ ] J2: c3 concept + MV-Adapter for cat:calico, cat:tabby_orange, dog:great_dane (asymmetric coats), then
+    - [x] J2: c3 concept + MV-Adapter for cat:calico, cat:tabby_orange, dog:great_dane (asymmetric coats), then
       DINOv2 scores and BiRefNet mattes: calibrates the left/right balance check, about 36 min
-    - [ ] J3 (optional): french_bulldog 2mv full with surface net on the existing views: does full tolerate an
+    - [x] J3 (optional): french_bulldog 2mv full with surface net on the existing views: does full tolerate an
       under-rotated side? About 23 min
+    - Results 2026-10-30 (decisions 100, 101; docs/s3/7 to 9): surface net validated; turbo's best sampler is
+      `euler/simple` but it still collapses depth; side balance is a review flag; full tolerates an under-rotated side
+  - [ ] Concept A/B for the sharp-focus prompt (decision 99): c3 with the new prompt for the five sweep pets, then
+    MV-Adapter for two, scored with the focus map and DINOv2, about 30 min on the Mac (needs Nishant's go)
   - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
     library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
     fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
