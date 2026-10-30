@@ -98,11 +98,17 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
     library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
     fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
+  - [ ] Mark each workflow that has run cleanly on the Mac `validated: true` (date and host) in
+    `scripts/make_comfy_workflows.py`, then `make workflows`: 01 and 02 ran cleanly on 2026-10-29; 02b and 03 after
+    their first clean run
   - [ ] Stage A: one availability probe instead of two, a smaller patch-only output schema, re-measure
   - [ ] Gates 3 to 5 on the new settings, one pet at a time (`PETPOP_REGRESS_LIMIT=1`)
   - [ ] `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and
     isolated behind Caddy at `host.docker.internal:8787`, no tunnel; worker image `linux/amd64` because `bpy`
     has no Linux ARM wheel; one 24 GB memory pool shared with the dev stack)
+- [ ] DINOv2 beyond evaluation, once its scores have been checked against the eye: best-of-N concept selection
+  (2 to 3 seeds, scored against the style references with a minimum subject fill), then similarity search and
+  de-duplication for the library (M8/M9)
 - [ ] Style LoRA from Nishant's curated image set (`assets/lora/DATASET.md`): captions, Kohya layout, Mac training
   config, then `image_sweep.py --lora` for the before/after
 - [ ] S4 real assets: hand-built base meshes (frozen before M9), `petpop_style` LoRA (Nishant)
