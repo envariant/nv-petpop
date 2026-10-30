@@ -92,9 +92,13 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
     txt2img at 1024) is the concept setting; per-view SDXL views cannot hold identity and viewpoint (no back view)
   - [x] MV-Adapter, Hunyuan3D-2mv (full and turbo) and DINOv2-Large pinned and installed on the Mac; DINOv2 served
     as its own `embed` service (`EMBED_URL`, shape server process for now)
-  - [ ] Score the existing view sets (`image_sweep.py --stage score`) and check the DINOv2 scores against the eye
-  - [ ] MV-Adapter views (`--stage mv`) for golden_retriever and french_bulldog from their c3 concepts; check the
-    left/right convention; then Hunyuan3D-2mv full and turbo on those views (`--stage shape`)
+  - [x] Score the existing view sets (`image_sweep.py --stage score`) and check the DINOv2 scores against the eye
+    (2026-10-30, decision 97: similarity ranks agree but is viewpoint-blind on its own; fill fooled by textured floors)
+  - [x] MV-Adapter views (`--stage mv`) for golden_retriever and french_bulldog from their c3 concepts; check the
+    left/right convention; then Hunyuan3D-2mv full and turbo on those views (`--stage shape`). 2026-10-30: 02b ran
+    after two fixes (decisions 95, 96), 629 s / 447 s per pet at 768 px; real backs; the frenchie's left view
+    under-rotated. 2mv full 1347 s (clean, library-grade shape), turbo 258 s (body depth collapses, tail detached),
+    docs/s3/5 and 6. Found: 03 decodes with `VoxelToMeshBasic` (unwelded voxel cubes); use `VoxelToMesh` surface net
   - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
     library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
     fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`

@@ -59,9 +59,9 @@
   },
   "outputs": {
    "view_front": "9",
-   "view_right": "11",
+   "view_left": "11",
    "view_back": "13",
-   "view_left": "15"
+   "view_right": "15"
   },
   "optional_nodes": {},
   "required": [
@@ -74,7 +74,7 @@
    "negative",
    "seed"
   ],
-  "notes": "MV-Adapter image-to-multiview SDXL conditioned on the concept; check the azimuth-to-view mapping and the left/right convention on first run."
+  "notes": "MV-Adapter image-to-multiview SDXL conditioned on the concept; azimuth 90 is the pet's left (checked on the Mac 2026-10-30)."
  },
  "1": {
   "class_type": "DiffusersMVPipelineLoader",
@@ -128,7 +128,7 @@
    ],
    "load_mvadapter": true,
    "num_views": 4,
-   "enable_vae_slicing": true,
+   "enable_vae_slicing": false,
    "enable_vae_tiling": false,
    "adapter_path": "",
    "adapter_name": ""
@@ -157,7 +157,7 @@
    "front_left_view": false
   },
   "_meta": {
-   "title": "front/right/back/left"
+   "title": "azimuths 0/90/180/270"
   }
  },
  "7": {
@@ -226,7 +226,7 @@
    "length": 1
   },
   "_meta": {
-   "title": "pick right"
+   "title": "pick left"
   }
  },
  "11": {
@@ -236,10 +236,10 @@
     "10",
     0
    ],
-   "filename_prefix": "petpop/mv_right"
+   "filename_prefix": "petpop/mv_left"
   },
   "_meta": {
-   "title": "view_right"
+   "title": "view_left"
   }
  },
  "12": {
@@ -280,7 +280,7 @@
    "length": 1
   },
   "_meta": {
-   "title": "pick left"
+   "title": "pick right"
   }
  },
  "15": {
@@ -290,10 +290,10 @@
     "14",
     0
    ],
-   "filename_prefix": "petpop/mv_left"
+   "filename_prefix": "petpop/mv_right"
   },
   "_meta": {
-   "title": "view_left"
+   "title": "view_right"
   }
  }
 }

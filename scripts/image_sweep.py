@@ -330,6 +330,27 @@ def _wait(c: ComfyClient, g: dict, pid: str, t0: float, timeout: float) -> tuple
     raise ComfyError(f"timed out after {timeout:.0f} s")
 
 
+def border_matte(png: bytes, size: int) -> bytes:
+    """Evaluation-only matte for views on a plain non-white backdrop: key the top/side border colour (the floor is
+    left out of the estimate), open away speckle, keep the largest subject, fill holes, re-centre on white.
+    A stand-in until a background-removal model is pinned on the host (decision 87)."""
+    from scipy import ndimage
+
+    from backend.worker.imaging import matte_square
+
+    a = np.asarray(Image.open(io.BytesIO(png)).convert("RGB")).astype(np.int16)
+    b = max(2, a.shape[0] // 25)
+    bg = np.median(np.concatenate([a[:b].reshape(-1, 3), a[:, :b].reshape(-1, 3), a[:, -b:].reshape(-1, 3)]), axis=0)
+    fg = ndimage.binary_opening(np.abs(a - bg).max(axis=2) > 40, iterations=3)
+    lab, n = ndimage.label(fg)
+    if n:
+        fg = lab == (1 + int(np.argmax(ndimage.sum(fg, lab, range(1, n + 1)))))
+    fg = ndimage.binary_fill_holes(fg)
+    buf = io.BytesIO()
+    Image.fromarray(np.dstack([a.astype(np.uint8), (fg * 255).astype(np.uint8)]), "RGBA").save(buf, format="PNG")
+    return matte_square(buf.getvalue(), size)
+
+
 def white_border(png: bytes, threshold: int) -> float:
     a = np.asarray(Image.open(io.BytesIO(png)).convert("L"))
     b = max(2, a.shape[0] // 25)
@@ -416,6 +437,8 @@ def main() -> int:
     ap.add_argument("--mv-px", type=int, default=768)
     ap.add_argument("--shape", default="full", help="Hunyuan3D-2mv variant(s) for --stage shape: full,turbo")
     ap.add_argument("--octree", type=int, default=256)
+    ap.add_argument("--matte", choices=["profile", "border"], default="profile",
+                    help="--stage shape: the profile's matting, or border_matte for views on a grey backdrop")
     ap.add_argument("--shape-views-from", help="folder holding <breed>__mv__<view>.png (default: --out)")
     ap.add_argument("--breeds", default=BREEDS)
     ap.add_argument("--seed", type=int, default=101)
@@ -493,9 +516,14 @@ def main() -> int:
                 from backend.worker.imaging import matte
 
                 vdir = Path(args.shape_views_from) if args.shape_views_from else out
-                names = {v: c.upload(f"sweep_{breed}_mv_{v}.png",
-                                     matte((vdir / f"{breed}__mv__{v}.png").read_bytes(), p["matting"], args.mv_px))
-                         for v in VIEWS}
+                matted = {}
+                for v in VIEWS:
+                    raw = (vdir / f"{breed}__mv__{v}.png").read_bytes()
+                    matted[v] = (border_matte(raw, args.mv_px) if args.matte == "border"
+                                 else matte(raw, p["matting"], args.mv_px))
+                    (out / f"{breed}__mv_matted__{v}.png").write_bytes(matted[v])
+                names = {v: c.upload(f"sweep_{breed}_mv_{v}.png", png) for v, png in matted.items()}
+                view_rows.append((f"{breed}\n2mv input ({args.matte})", [(f"{v}  matted", matted[v]) for v in VIEWS]))
                 for sv in args.shape.split(","):
                     try:
                         imgs, dt = submit(c, shape_graph(c, names, SHAPE[sv], args.seed, args.octree), timeout=3600)
@@ -503,7 +531,7 @@ def main() -> int:
                         if glb is None:
                             raise ComfyError("no GLB in the outputs")
                         (out / f"{breed}__2mv_{sv}.glb").write_bytes(glb)
-                        row = [(f"{v}  silhouette", png) for v, png in mesh_preview(glb)]
+                        row = [(f"{v}  {dt:.0f}s" if v == "front" else v, png) for v, png in mesh_preview(glb)]
                         report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "s": round(dt), "glb_bytes": len(glb)})
                     except (ComfyError, StopIteration) as exc:
                         row = [(f"{v}  FAILED", None) for v in VIEWS]

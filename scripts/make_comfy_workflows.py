@@ -136,25 +136,27 @@ def views_mvadapter() -> dict:
     g.bind("mv_vae", vae, "vae_name", "")
     sched = g.add("DiffusersMVSchedulerLoader", "mv scheduler", pipeline=[pipe, 0], scheduler_name="DPMSolverMultistep",
                   shift_snr=True, shift_mode="interpolated", shift_scale=8.0)
+    # VAE slicing off: the node calls pipeline.enable_vae_slicing(), which diffusers 0.42 no longer has (decision 95).
     model = g.add("DiffusersMVModelMakeup", "mv adapter", pipeline=[pipe, 0], scheduler=[sched, 0], autoencoder=[vae, 0],
-                  load_mvadapter=True, num_views=4, enable_vae_slicing=True, enable_vae_tiling=False)
+                  load_mvadapter=True, num_views=4, enable_vae_slicing=False, enable_vae_tiling=False)
     g.bind("mv_adapter_repo", model, "adapter_path", "")
     g.bind("mvadapter", model, "adapter_name", "")
     ref = g.add("LoadImage", "concept reference")
     g.bind("concept_image", ref, "image", "")
-    views = g.add("ViewSelector", "front/right/back/left", front_view=True, front_right_view=False, right_view=True,
+    views = g.add("ViewSelector", "azimuths 0/90/180/270", front_view=True, front_right_view=False, right_view=True,
                   back_view=True, left_view=True, front_left_view=False)
     s = g.add("DiffusersMVSampler", "mv sampler", pipeline=[model, 0], num_views=4, reference_image=[ref, 0],
               azimuth_degrees=[views, 0])
     for name, field, ph in (("positive", "prompt", ""), ("negative", "negative_prompt", ""), ("width", "width", 768),
                             ("height", "height", 768), ("steps", "steps", 30), ("cfg", "cfg", 6.0), ("seed", "seed", 0)):
         g.bind(name, s, field, ph)
-    # ViewSelector keeps azimuths 0, 90, 180, 270; the brief's left view is the pet's left (camera at +X).
-    for i, v in enumerate(["front", "right", "back", "left"]):
+    # ViewSelector keeps azimuths 0, 90, 180, 270 in that order. MV-Adapter's 90 shows the pet's left side (nose
+    # toward image left), which is the brief's left view (camera at +X) and Hunyuan3D-2mv's (decision 96).
+    for i, v in enumerate(["front", "left", "back", "right"]):
         one = g.add("ImageFromBatch", f"pick {v}", image=[s, 0], batch_index=i, length=1)
         g.outputs[f"view_{v}"] = g.add("SaveImage", f"view_{v}", images=[one, 0], filename_prefix=f"petpop/mv_{v}")
     return g.doc("1", "C (alt)", ["ComfyUI-MVAdapter"], "MV-Adapter image-to-multiview SDXL conditioned on the concept; "
-                 "check the azimuth-to-view mapping and the left/right convention on first run.",
+                 "azimuth 90 is the pet's left (checked on the Mac 2026-10-30).",
                  ["mv_base", "mv_vae", "mv_adapter_repo", "mvadapter", "concept_image", "positive", "negative", "seed"])
 
 
