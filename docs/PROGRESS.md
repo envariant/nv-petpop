@@ -80,9 +80,31 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 ## Track C: GenAI host (Section 13)
 
-- [ ] S3 Mac bring-up (after Nishant sets `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL`, `GENAI_TOKEN`): gate-3
+- [ ] S3 Mac bring-up (after Nishant sets `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL`, `EMBED_URL`, `GENAI_TOKEN`): gate-3
   precheck, then `PETPOP_ADAPTERS` swaps A, B, C, D one at a time; gates 3 to 5 one pet at a time in the
-  foreground; studio worker only
+  foreground; studio worker only. Progress (2026-10-29/30; contact sheets in `docs/s3/`, decisions 86 to 94):
+  - [x] Precheck: all services answer through the tunnel (`scripts/genai_check.py`)
+  - [x] Fixes found on the way: Pillow 13 depth PNGs, profile-aware health contract check, `PETPOP_REGRESS_LIMIT`
+    for one-pet gate runs, launchd reload race in `mac/setup.sh`, model root in `genai.env`
+  - [x] Stage A measured: about 11 s per parse (tunnel 1.2 s per call, two availability probes, 0.8 s model load,
+    about 370 output tokens), so it falls back to the rule parser; fix listed below
+  - [x] Stage B/C sweep (`scripts/image_sweep.py`): proxy-mesh control causes the procedural look; c3 (plain
+    txt2img at 1024) is the concept setting; per-view SDXL views cannot hold identity and viewpoint (no back view)
+  - [x] MV-Adapter, Hunyuan3D-2mv (full and turbo) and DINOv2-Large pinned and installed on the Mac; DINOv2 served
+    as its own `embed` service (`EMBED_URL`, shape server process for now)
+  - [ ] Score the existing view sets (`image_sweep.py --stage score`) and check the DINOv2 scores against the eye
+  - [ ] MV-Adapter views (`--stage mv`) for golden_retriever and french_bulldog from their c3 concepts; check the
+    left/right convention; then Hunyuan3D-2mv full and turbo on those views (`--stage shape`)
+  - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
+    library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
+    fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
+  - [ ] Stage A: one availability probe instead of two, a smaller patch-only output schema, re-measure
+  - [ ] Gates 3 to 5 on the new settings, one pet at a time (`PETPOP_REGRESS_LIMIT=1`)
+  - [ ] `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and
+    isolated behind Caddy at `host.docker.internal:8787`, no tunnel; worker image `linux/amd64` because `bpy`
+    has no Linux ARM wheel; one 24 GB memory pool shared with the dev stack)
+- [ ] Style LoRA from Nishant's curated image set (`assets/lora/DATASET.md`): captions, Kohya layout, Mac training
+  config, then `image_sweep.py --lora` for the before/after
 - [ ] S4 real assets: hand-built base meshes (frozen before M9), `petpop_style` LoRA (Nishant)
 - [ ] S5 kiosk hardening on the Mac profile (`make gate-6`)
 - [ ] S6 production host: Compose on the NVIDIA box, gates 3 to 6 on `nvidia-24gb`, `make regress`
