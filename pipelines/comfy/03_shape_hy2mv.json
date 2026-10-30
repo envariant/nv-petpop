@@ -44,6 +44,14 @@
     "12",
     "cfg"
    ],
+   "sampler": [
+    "12",
+    "sampler_name"
+   ],
+   "scheduler": [
+    "12",
+    "scheduler"
+   ],
    "num_chunks": [
     "13",
     "num_chunks"
@@ -51,6 +59,10 @@
    "octree_resolution": [
     "13",
     "octree_resolution"
+   ],
+   "mesh_algorithm": [
+    "14",
+    "algorithm"
    ],
    "threshold": [
     "14",
@@ -237,12 +249,12 @@
     "11",
     0
    ],
-   "sampler_name": "euler",
-   "scheduler": "normal",
    "denoise": 1.0,
    "seed": 0,
    "steps": 50,
-   "cfg": 5.5
+   "cfg": 5.5,
+   "sampler_name": "euler",
+   "scheduler": "normal"
   },
   "_meta": {
    "title": "sampler"
@@ -267,12 +279,13 @@
   }
  },
  "14": {
-  "class_type": "VoxelToMeshBasic",
+  "class_type": "VoxelToMesh",
   "inputs": {
    "voxel": [
     "13",
     0
    ],
+   "algorithm": "surface net",
    "threshold": 0.6
   },
   "_meta": {

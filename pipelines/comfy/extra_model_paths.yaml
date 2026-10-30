@@ -7,3 +7,4 @@ petpop:
   clip_vision: clip_vision
   diffusion_models: diffusion_models
   vae: vae
+  background_removal: background_removal

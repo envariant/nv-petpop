@@ -114,7 +114,7 @@ clone_at ComfyUI_IPAdapter_plus "$PETPOP_GENAI/ComfyUI/custom_nodes/ComfyUI_IPAd
 clone_at ComfyUI-MVAdapter "$PETPOP_GENAI/ComfyUI/custom_nodes/ComfyUI-MVAdapter"   # its packages are in the comfyui lock
 venv_sync comfyui
 sed "s#__MODELS__#$PETPOP_MODELS#g" "$REPO/mac/comfy_extra_model_paths.yaml.in" > "$PETPOP_GENAI/ComfyUI/extra_model_paths.yaml"
-mkdir -p "$PETPOP_MODELS"/{checkpoints,vae,controlnet,ipadapter,clip_vision,loras,diffusion_models,hf,diffusers}
+mkdir -p "$PETPOP_MODELS"/{checkpoints,vae,controlnet,ipadapter,clip_vision,loras,diffusion_models,hf,diffusers,background_removal}
 # MV-Adapter loads diffusers-format folders by path, relative to ComfyUI's working directory, so the profile names
 # them as petpop-models/<dest> and never an absolute host path.
 ln -sfn "$PETPOP_MODELS" "$PETPOP_GENAI/ComfyUI/petpop-models"

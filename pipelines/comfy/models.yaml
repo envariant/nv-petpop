@@ -172,6 +172,18 @@ models:
     profiles: [mac-m4pro]
     licence: Apache-2.0
 
+  # Background removal for generated views (decision 87): ComfyUI core's LoadBackgroundRemovalModel reads one
+  # BiRefNet safetensors from the background_removal folder (its loader keys on bb.layers.*, checked in the header).
+  - name: birefnet
+    deploy_as: birefnet.safetensors
+    dest: background_removal/birefnet.safetensors
+    repo: ZhengPeng7/BiRefNet
+    file: model.safetensors
+    revision: e2bf8e4460fc8fa32bba5ea4d94b3233d367b0e4
+    sha256: 9ab37426bf4de0567af6b5d21b16151357149139362e6e8992021b8ce356a154
+    profiles: [mac-m4pro, nvidia-24gb]
+    licence: MIT
+
   - name: hunyuan3d-paint-v2-0
     deploy_as: hunyuan3d-paint-v2-0
     dest: hf/tencent/Hunyuan3D-2

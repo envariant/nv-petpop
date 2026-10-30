@@ -1,5 +1,17 @@
 {
  "entries": {
+  "birefnet": {
+   "dest": "background_removal/birefnet.safetensors",
+   "files": {
+    "model.safetensors": {
+     "sha256": "9ab37426bf4de0567af6b5d21b16151357149139362e6e8992021b8ce356a154",
+     "size": 444473596
+    }
+   },
+   "repo": "ZhengPeng7/BiRefNet",
+   "revision": "e2bf8e4460fc8fa32bba5ea4d94b3233d367b0e4",
+   "sha256": "9ab37426bf4de0567af6b5d21b16151357149139362e6e8992021b8ce356a154"
+  },
   "clip-vit-h-image-encoder": {
    "dest": "clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors",
    "files": {

@@ -37,7 +37,7 @@ unpinned packages. `setup.sh` does the same steps from the pins instead.
 ## 0. Before you start
 
 - macOS 15 or later on Apple Silicon, with the Xcode Command Line Tools (`xcode-select --install`). About 45 GB
-  free: weights 20.5 GB, the Ollama model 4.7 GB, venvs and caches the rest. No Homebrew needed.
+  free: weights 21 GB, the Ollama model 4.7 GB, venvs and caches the rest. No Homebrew needed.
 - A Hugging Face account. Set `HF_TOKEN` if a download asks for it.
 - Read the Tencent Hunyuan community licence: it is not granted in the EU, the UK or South Korea.
 
@@ -63,7 +63,7 @@ This runs `mac/setup.sh`, which does the following, all under `~/petpop-genai`:
 
 Re-running it is safe and is how you take an update: it re-checks every pin and leaves what already matches.
 
-## 2. Fetch the weights (once, about 20.5 GB)
+## 2. Fetch the weights (once, about 21 GB)
 
 ```bash
 make -C mac models

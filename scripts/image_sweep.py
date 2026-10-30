@@ -215,12 +215,35 @@ def mv_graph(c: ComfyClient, p: dict, prompts: dict, concept: str, seed: int, px
     return c.fill(graph, meta, values)
 
 
-def shape_graph(c: ComfyClient, views: dict[str, str], variant: dict, seed: int, octree: int) -> dict:
+def shape_graph(c: ComfyClient, views: dict[str, str], variant: dict, seed: int, octree: int,
+                sampler: str = "euler", scheduler: str = "normal", mesher: str = "surface net") -> dict:
     graph, meta = c.load("03_shape_hy2mv.json")
     values = {"model": variant["model"], "seed": seed, "steps": variant["steps"], "guidance": variant["guidance"],
               "octree_resolution": octree, "num_chunks": 8000, "latent_resolution": 3072, "threshold": 0.6,
+              "sampler": sampler, "scheduler": scheduler, "mesh_algorithm": mesher,
               **{f"view_{v}": name for v, name in views.items()}}
     return c.fill(graph, meta, values)
+
+
+def birefnet_matte(c: ComfyClient, png: bytes, name: str, size: int, model: str = "birefnet.safetensors") -> bytes:
+    """Matte through ComfyUI core's BiRefNet (LoadBackgroundRemovalModel + RemoveBackground): the mask comes back
+    as an image and is applied here, then re-centred on white like matte_square."""
+    from backend.worker.imaging import matte_square
+
+    ref = c.upload(name, png)
+    g = {"1": {"class_type": "LoadImage", "inputs": {"image": ref}},
+         "2": {"class_type": "LoadBackgroundRemovalModel", "inputs": {"bg_removal_name": model}},
+         "3": {"class_type": "RemoveBackground", "inputs": {"bg_removal_model": ["2", 0], "image": ["1", 0]}},
+         "4": {"class_type": "MaskToImage", "inputs": {"mask": ["3", 0]}},
+         "5": {"class_type": "SaveImage", "inputs": {"images": ["4", 0], "filename_prefix": "petpop/sweep_mask"}}}
+    imgs, _ = submit(c, g, timeout=600)
+    mask = Image.open(io.BytesIO(next(iter(imgs.values())))).convert("L")
+    rgb = Image.open(io.BytesIO(png)).convert("RGB")
+    rgba = rgb.copy()
+    rgba.putalpha(mask.resize(rgb.size))
+    buf = io.BytesIO()
+    rgba.save(buf, format="PNG")
+    return matte_square(buf.getvalue(), size)
 
 
 def mesh_preview(glb: bytes, px: int = 256) -> list[tuple[str, bytes]]:
@@ -437,8 +460,12 @@ def main() -> int:
     ap.add_argument("--mv-px", type=int, default=768)
     ap.add_argument("--shape", default="full", help="Hunyuan3D-2mv variant(s) for --stage shape: full,turbo")
     ap.add_argument("--octree", type=int, default=256)
-    ap.add_argument("--matte", choices=["profile", "border"], default="profile",
-                    help="--stage shape: the profile's matting, or border_matte for views on a grey backdrop")
+    ap.add_argument("--matte", choices=["profile", "border", "birefnet"], default="profile",
+                    help="--stage shape: the profile's matting, border_matte for views on a grey backdrop, or "
+                         "BiRefNet through ComfyUI (needs background_removal/birefnet.safetensors on the host)")
+    ap.add_argument("--shape-samplers", default="euler:normal",
+                    help="--stage shape: sampler:scheduler pairs for the 2mv KSampler, e.g. euler:normal,lcm:simple")
+    ap.add_argument("--mesher", default="surface net", choices=["surface net", "basic"])
     ap.add_argument("--shape-views-from", help="folder holding <breed>__mv__<view>.png (default: --out)")
     ap.add_argument("--breeds", default=BREEDS)
     ap.add_argument("--seed", type=int, default=101)
@@ -519,25 +546,32 @@ def main() -> int:
                 matted = {}
                 for v in VIEWS:
                     raw = (vdir / f"{breed}__mv__{v}.png").read_bytes()
-                    matted[v] = (border_matte(raw, args.mv_px) if args.matte == "border"
-                                 else matte(raw, p["matting"], args.mv_px))
+                    if args.matte == "birefnet":
+                        matted[v] = birefnet_matte(c, raw, f"sweep_{breed}_mv_{v}_raw.png", args.mv_px)
+                    elif args.matte == "border":
+                        matted[v] = border_matte(raw, args.mv_px)
+                    else:
+                        matted[v] = matte(raw, p["matting"], args.mv_px)
                     (out / f"{breed}__mv_matted__{v}.png").write_bytes(matted[v])
                 names = {v: c.upload(f"sweep_{breed}_mv_{v}.png", png) for v, png in matted.items()}
                 view_rows.append((f"{breed}\n2mv input ({args.matte})", [(f"{v}  matted", matted[v]) for v in VIEWS]))
-                for sv in args.shape.split(","):
+                for sv, (smp, sch) in ((sv, pair.split(":")) for sv in args.shape.split(",")
+                                       for pair in args.shape_samplers.split(",")):
+                    tag = f"{sv} {smp}/{sch} {args.mesher}"
                     try:
-                        imgs, dt = submit(c, shape_graph(c, names, SHAPE[sv], args.seed, args.octree), timeout=3600)
+                        imgs, dt = submit(c, shape_graph(c, names, SHAPE[sv], args.seed, args.octree, smp, sch, args.mesher),
+                                          timeout=3600)
                         glb = next(iter(imgs.values())) if imgs else None
                         if glb is None:
                             raise ComfyError("no GLB in the outputs")
-                        (out / f"{breed}__2mv_{sv}.glb").write_bytes(glb)
+                        (out / f"{breed}__2mv_{sv}_{smp}_{sch}_{args.mesher.replace(' ', '')}.glb").write_bytes(glb)
                         row = [(f"{v}  {dt:.0f}s" if v == "front" else v, png) for v, png in mesh_preview(glb)]
-                        report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "s": round(dt), "glb_bytes": len(glb)})
+                        report["items"].append({"breed": breed, "variant": f"2mv {tag}", "s": round(dt), "glb_bytes": len(glb)})
                     except (ComfyError, StopIteration) as exc:
                         row = [(f"{v}  FAILED", None) for v in VIEWS]
-                        report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "error": str(exc)[:600]})
+                        report["items"].append({"breed": breed, "variant": f"2mv {tag}", "error": str(exc)[:600]})
                     print(report["items"][-1], flush=True)
-                    view_rows.append((f"{breed}\n2mv {sv} {args.octree}", row))
+                    view_rows.append((f"{breed}\n2mv {sv} {args.octree}\n{smp}/{sch}\n{args.mesher}", row))
             if args.stage == "score":  # score view sets already on disk: --score-sets label=dir:variant,...
                 src = next(f for f in (out / f"{breed}__{args.views_from}.png", out.parent / f"{breed}__{args.views_from}.png")
                            if f.exists()).read_bytes()

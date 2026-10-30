@@ -173,14 +173,18 @@ def shape_hy2mv() -> dict:
     latent = g.add("EmptyLatentHunyuan3Dv2", "latent", batch_size=1)
     g.bind("latent_resolution", latent, "resolution", 3072)
     k = g.add("KSampler", "sampler", model=[ckpt, 0], positive=[cond, 0], negative=[cond, 1], latent_image=[latent, 0],
-              sampler_name="euler", scheduler="normal", denoise=1.0)
+              denoise=1.0)
     g.bind("seed", k, "seed", 0)
     g.bind("steps", k, "steps", 50)
     g.bind("guidance", k, "cfg", 5.5)
+    g.bind("sampler", k, "sampler_name", "euler")
+    g.bind("scheduler", k, "scheduler", "normal")
     dec = g.add("VAEDecodeHunyuan3D", "decode voxels", samples=[k, 0], vae=[ckpt, 2])
     g.bind("num_chunks", dec, "num_chunks", 8000)
     g.bind("octree_resolution", dec, "octree_resolution", 384)
-    mesh = g.add("VoxelToMeshBasic", "voxels to mesh", voxel=[dec, 0])
+    # Surface nets give a welded smooth surface; "basic" is one unwelded cube face per boundary voxel (S3, 2026-10-30).
+    mesh = g.add("VoxelToMesh", "voxels to mesh", voxel=[dec, 0])
+    g.bind("mesh_algorithm", mesh, "algorithm", "surface net")
     g.bind("threshold", mesh, "threshold", 0.6)
     g.outputs["shape"] = g.add("SaveGLB", "shape", mesh=[mesh, 0], filename_prefix="petpop/shape")
     return g.doc("1", "D", ["core"], "ComfyUI core Hunyuan3D-2mv nodes (comfy_extras/nodes_hunyuan3d.py).",

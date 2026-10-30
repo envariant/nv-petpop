@@ -33,7 +33,7 @@ shape server and Ollama run on the Mac.
    make -C mac setup
    ```
 
-4. Fetch about 20.5 GB of weights. Each file must match the SHA256 in `pipelines/comfy/models.lock.json`, or
+4. Fetch about 21 GB of weights. Each file must match the SHA256 in `pipelines/comfy/models.lock.json`, or
    it is deleted and the command fails. The pins are already committed, so there is nothing to commit after:
 
    ```bash

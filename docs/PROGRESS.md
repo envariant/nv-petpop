@@ -99,6 +99,15 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
     after two fixes (decisions 95, 96), 629 s / 447 s per pet at 768 px; real backs; the frenchie's left view
     under-rotated. 2mv full 1347 s (clean, library-grade shape), turbo 258 s (body depth collapses, tail detached),
     docs/s3/5 and 6. Found: 03 decodes with `VoxelToMeshBasic` (unwelded voxel cubes); use `VoxelToMesh` surface net
+  - [ ] Next Mac jobs, one at a time, each on Nishant's go (planned 2026-10-30). Before them, on the Mac: `git pull`,
+    `make -C mac setup` (renders the new `background_removal` model folder), `make -C mac models` (BiRefNet,
+    0.44 GB, decision 98), `make -C mac restart`
+    - [ ] J1: golden 2mv turbo on the existing views with surface-net meshing (validates 03), then turbo with
+      `euler/simple` and `lcm/simple` (is turbo's poor shape the sampler?), about 14 min
+    - [ ] J2: c3 concept + MV-Adapter for cat:calico, cat:tabby_orange, dog:great_dane (asymmetric coats), then
+      DINOv2 scores and BiRefNet mattes: calibrates the left/right balance check, about 36 min
+    - [ ] J3 (optional): french_bulldog 2mv full with surface net on the existing views: does full tolerate an
+      under-rotated side? About 23 min
   - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
     library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
     fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
