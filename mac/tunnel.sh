@@ -42,7 +42,7 @@ for _ in $(seq 1 30); do
   code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GENAI_TOKEN" "$BASE/comfy/system_stats" || true)"
   [ "$code" = "200" ] && break; sleep 2
 done
-for svc in "comfy/system_stats" "shape/health" "ollama/api/tags"; do
+for svc in "comfy/system_stats" "shape/health" "embed/health" "ollama/api/tags"; do
   printf '  %-20s %s\n' "$svc" "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GENAI_TOKEN" "$BASE/$svc")"
 done
 
@@ -55,6 +55,7 @@ GENAI_PROFILE=mac-m4pro
 COMFY_URL=$BASE/comfy
 SHAPE_URL=$BASE/shape
 OLLAMA_URL=$BASE/ollama
+EMBED_URL=$BASE/embed
 GENAI_TOKEN=<value of GENAI_TOKEN in $PETPOP_GENAI/genai.env>
 
 Allow the tunnel host in the environment's network settings if access is Limited: ${BASE#https://}

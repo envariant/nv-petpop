@@ -36,7 +36,7 @@ logs:
 	tail -n 40 -f $(PETPOP_GENAI)/logs/*.log
 
 check:   ## probe the three services locally (no tunnel)
-	cd $(REPO) && COMFY_URL=http://127.0.0.1:8188 SHAPE_URL=http://127.0.0.1:8190 OLLAMA_URL=http://127.0.0.1:11434 \
+	cd $(REPO) && COMFY_URL=http://127.0.0.1:8188 SHAPE_URL=http://127.0.0.1:8190 OLLAMA_URL=http://127.0.0.1:11434 EMBED_URL=http://127.0.0.1:8190 \
 		$(TOOLS_PY) scripts/genai_check.py
 
 tunnel:  ## authenticating proxy + Cloudflare tunnel; prints the URLs for the cloud environment

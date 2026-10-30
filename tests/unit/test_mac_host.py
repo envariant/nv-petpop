@@ -265,3 +265,16 @@ def test_shape_server_embeds_with_the_profile_model_offline_one_model_at_a_time(
     monkeypatch.setitem(mod.EMBED, "wait_s", 0.05)
     with mod._lock:  # a mesh holds the slot: answer 409 instead of blocking past the tunnel's timeout
         assert client.post("/v1/embed", files=files).status_code == 409
+
+
+def test_embed_is_its_own_service_routed_to_the_shape_process():
+    """Clients address embeddings as their own service (EMBED_URL, Caddy /embed/*), so the model can move to its own
+    process later by changing only the profile and the proxy."""
+    prof = yaml.safe_load((ROOT / "config" / "genai" / "mac-m4pro.yaml").read_text())
+    svc = prof["services"][prof["embed"]["service"]]
+    assert svc["env"] == "EMBED_URL"
+    port = svc["default"].rsplit(":", 1)[1]
+    assert port == prof["services"]["shape"]["default"].rsplit(":", 1)[1]
+    caddy = (MAC / "Caddyfile").read_text()
+    assert re.search(r"handle_path /embed/\* \{[^}]*reverse_proxy 127\.0\.0\.1:" + port, caddy)
+    assert "EMBED_URL=$BASE/embed" in (MAC / "tunnel.sh").read_text()

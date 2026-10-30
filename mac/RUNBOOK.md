@@ -144,10 +144,11 @@ GENAI_PROFILE=mac-m4pro
 COMFY_URL=https://<tunnel host>/comfy
 SHAPE_URL=https://<tunnel host>/shape
 OLLAMA_URL=https://<tunnel host>/ollama
+EMBED_URL=https://<tunnel host>/embed
 GENAI_TOKEN=<value of GENAI_TOKEN in ~/petpop-genai/genai.env>
 ```
 
-Put these five values in the cloud environment: environment settings, Edit, Environment variables. Copy
+Put these six values in the cloud environment: environment settings, Edit, Environment variables. Copy
 `GENAI_TOKEN` from `~/petpop-genai/genai.env`; never paste it into a chat. Then start a new session, which
 picks the variables up. The tunnel serves only while `make -C mac tunnel` runs (it is not a launchd service).
 

@@ -19,7 +19,7 @@ import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
 from backend.core.genai import Profile  # noqa: E402
 
-PROBES = {"comfy": "/system_stats", "shape": "/health", "ollama": "/api/tags"}
+PROBES = {"comfy": "/system_stats", "shape": "/health", "ollama": "/api/tags", "embed": "/health"}
 
 
 def main() -> int:

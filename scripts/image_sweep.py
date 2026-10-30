@@ -351,7 +351,7 @@ def embed(prof, pngs: list[bytes]) -> list[np.ndarray] | None:
     """DINOv2 embeddings from the shape server's /v1/embed (L2-normalised), or None if the host has no endpoint yet."""
     import httpx
 
-    url = prof.url("shape") + "/v1/embed"
+    url = prof.url((prof.doc.get("embed") or {}).get("service", "embed")) + "/v1/embed"
     files = [("image", (f"{i}.png", b, "image/png")) for i, b in enumerate(pngs)]
     for attempt in range(10):
         try:

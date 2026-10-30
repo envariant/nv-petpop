@@ -18,6 +18,9 @@
 		handle_path /shape/* {
 			reverse_proxy 127.0.0.1:8190
 		}
+		handle_path /embed/* {   # image embeddings; the shape server's process serves them for now
+			reverse_proxy 127.0.0.1:8190
+		}
 		handle_path /ollama/* {
 			reverse_proxy 127.0.0.1:11434 {
 				header_up Host 127.0.0.1:11434

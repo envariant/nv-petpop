@@ -58,7 +58,7 @@ shape server and Ollama run on the Mac.
 
 ### Getting the tunnel URL into the cloud VM
 
-`mac/tunnel.sh` prints five values. Set them as environment variables in the cloud environment
+`mac/tunnel.sh` prints six values. Set them as environment variables in the cloud environment
 (environment settings, then Edit, then Environment variables), then start a new session:
 
 | Variable | Value |
@@ -67,9 +67,10 @@ shape server and Ollama run on the Mac.
 | `COMFY_URL` | `https://<tunnel host>/comfy` |
 | `SHAPE_URL` | `https://<tunnel host>/shape` |
 | `OLLAMA_URL` | `https://<tunnel host>/ollama` |
+| `EMBED_URL` | `https://<tunnel host>/embed` (image embeddings; served by the shape server's process) |
 | `GENAI_TOKEN` | the value in `~/petpop-genai/genai.env` on the Mac (copy it; never paste it into a chat) |
 
-The adapters read these through the profile (`config/genai/mac-m4pro.yaml` names `COMFY_URL`, `SHAPE_URL`
+The adapters read these through the profile (`config/genai/mac-m4pro.yaml` names `COMFY_URL`, `SHAPE_URL`, `EMBED_URL`
 and `OLLAMA_URL` as the env vars for its services) and send `Authorization: Bearer $GENAI_TOKEN` on every
 call. The proxy on the Mac answers 401 without it.
 
