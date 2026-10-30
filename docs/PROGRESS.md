@@ -110,8 +110,8 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
       under-rotated side? About 23 min
     - Results 2026-10-30 (decisions 100, 101; docs/s3/7 to 9): surface net validated; turbo's best sampler is
       `euler/simple` but it still collapses depth; side balance is a review flag; full tolerates an under-rotated side
-  - [ ] Concept A/B for the sharp-focus prompt (decision 99): c3 with the new prompt for the five sweep pets, then
-    MV-Adapter for two, scored with the focus map and DINOv2, about 30 min on the Mac (needs Nishant's go)
+  - [x] Concept A/B for the sharp-focus prompt (decision 99) and the three-quarter concept test (X1 to X4,
+    2026-10-30, decision 102, docs/s3/10 to 14): sharp prompt kept, front reference kept, 3/4 reference not adopted
   - [ ] Integrate: c3 concept settings in the profile (no proxy init or depth), MV-Adapter views and 2mv shape as the
     library-quality path (02b inputs filled from the profile, shape via ComfyUI with the shape server as single-view
     fallback), the kiosk keeps a fast path; background-removal matting instead of `white_key`
