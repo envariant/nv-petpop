@@ -204,7 +204,7 @@ class FakeHost:
         @app.post("/comfy/prompt")
         async def prompt(request: Request):
             body = await request.json()
-            pid = uuid.uuid4().hex
+            pid = body.get("prompt_id") or str(uuid.uuid4())
             host.history[pid] = {"status": {"status_str": "success", "completed": True},
                                  "outputs": host.run_prompt(body["prompt"])}
             return {"prompt_id": pid, "number": len(host.history), "node_errors": {}}
@@ -219,6 +219,18 @@ class FakeHost:
 
         @app.post("/comfy/free")
         def free():
+            return {}
+
+        @app.get("/comfy/queue")
+        def queue():
+            return {"queue_running": [], "queue_pending": []}  # prompts complete as soon as they are posted
+
+        @app.post("/comfy/queue")
+        def queue_edit():
+            return {}
+
+        @app.post("/comfy/interrupt")
+        def interrupt():
             return {}
 
         # Shape server ---------------------------------------------------------------

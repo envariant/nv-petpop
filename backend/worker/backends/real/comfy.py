@@ -21,6 +21,7 @@ from backend.core.paths import PIPELINES
 from ..base import ShapeResult
 
 WORKFLOWS = PIPELINES / "comfy"
+TRANSIENT_TRIES = 6  # a dropped tunnel connection is retried with backoff (1, 2, 4, 8, 15 s) before giving up
 log = logging.getLogger("petpop.worker")
 
 
@@ -86,20 +87,69 @@ class ComfyClient:
             raise ComfyError(f"missing required workflow inputs {missing}")
         return g
 
+    def _get(self, path: str, **params) -> httpx.Response:
+        """GET that rides out a dropped connection or a 5xx from the tunnel (the host keeps working meanwhile)."""
+        for attempt in range(TRANSIENT_TRIES):
+            try:
+                r = self.http.get(f"{self.url}{path}", params=params or None)
+                if r.status_code < 500:
+                    r.raise_for_status()
+                    return r
+                err: Exception = ComfyError(f"GET {path}: {r.status_code}")
+            except httpx.TransportError as exc:
+                err = exc
+            log.warning("ComfyUI GET %s failed (%s), retrying", path, err)
+            time.sleep(min(2 ** attempt, 15))
+        raise ComfyError(f"ComfyUI unreachable for {path}: {err}")
+
+    def _submit(self, workflow: str, graph: dict[str, Any]) -> str:
+        """Queue a prompt under an id chosen here, so a POST cut off in the tunnel can be checked before it is
+        sent again: a prompt must never be queued twice."""
+        prompt_id = str(uuid.uuid4())
+        body = {"prompt": graph, "client_id": self.client_id, "prompt_id": prompt_id}
+        for attempt in range(TRANSIENT_TRIES):
+            try:
+                r = self.http.post(f"{self.url}/prompt", json=body)
+            except httpx.TransportError as exc:
+                log.warning("ComfyUI /prompt for %s failed (%s), checking whether it was queued", workflow, exc)
+                time.sleep(min(2 ** attempt, 15))
+                if self._known(prompt_id):
+                    return prompt_id
+                continue
+            if r.status_code != 200:
+                raise ComfyError(f"/prompt rejected {workflow}: {r.text[:500]}")
+            return r.json().get("prompt_id", prompt_id)
+        raise ComfyError(f"/prompt for {workflow} could not be sent")
+
+    def _known(self, prompt_id: str) -> bool:
+        q = self._get("/queue").json()
+        queued = any(it[1] == prompt_id for it in q.get("queue_running", []) + q.get("queue_pending", []))
+        return queued or prompt_id in self._get(f"/history/{prompt_id}").json()
+
+    def cancel(self, prompt_id: str) -> None:
+        """Take an abandoned prompt off the host (dequeue it, or interrupt it if it is running), so a retry never
+        queues behind its own orphan."""
+        try:
+            q = self._get("/queue").json()
+            if any(it[1] == prompt_id for it in q.get("queue_running", [])):
+                self.http.post(f"{self.url}/interrupt", json={"prompt_id": prompt_id})
+            elif any(it[1] == prompt_id for it in q.get("queue_pending", [])):
+                self.http.post(f"{self.url}/queue", json={"delete": [prompt_id]})
+        except (httpx.HTTPError, ComfyError) as exc:
+            log.warning("could not cancel ComfyUI prompt %s: %s", prompt_id, exc)
+
     def run(self, workflow: str, values: dict[str, Any], timeout: float) -> tuple[dict[str, list[bytes]], dict[str, Any]]:
         graph, meta = self.load(workflow)
         if not meta.get("validated", False):
             log.warning("workflow %s is unvalidated (meta.validated=false)", workflow)
         g = self.fill(graph, meta, values)
-        r = self.http.post(f"{self.url}/prompt", json={"prompt": g, "client_id": self.client_id})
-        if r.status_code != 200:
-            raise ComfyError(f"/prompt rejected {workflow}: {r.text[:500]}")
-        prompt_id = r.json()["prompt_id"]
-        t0 = time.monotonic()
+        prompt_id = self._submit(workflow, g)
+        t0, done = time.monotonic(), False
         try:
             while time.monotonic() - t0 < timeout:
-                h = self.http.get(f"{self.url}/history/{prompt_id}").json()
+                h = self._get(f"/history/{prompt_id}").json()
                 if prompt_id in h:
+                    done = True
                     entry = h[prompt_id]
                     if entry.get("status", {}).get("status_str") == "error":
                         raise ComfyError(f"{workflow} failed: {json.dumps(entry['status'])[:500]}")
@@ -107,6 +157,8 @@ class ComfyClient:
                 time.sleep(1.0)
             raise ComfyError(f"{workflow} timed out after {timeout:.0f} s")
         finally:
+            if not done:
+                self.cancel(prompt_id)
             if self.profile["residency"].get("free_comfy_after_call"):
                 self.free()
 
@@ -123,9 +175,8 @@ class ComfyClient:
                 for item in result.get(key, []) or []:
                     if not isinstance(item, dict) or "filename" not in item:
                         continue
-                    v = self.http.get(f"{self.url}/view", params={"filename": item["filename"], "subfolder": item.get("subfolder", ""),
-                                                                  "type": item.get("type", "output")})
-                    v.raise_for_status()
+                    v = self._get("/view", filename=item["filename"], subfolder=item.get("subfolder", ""),
+                                  type=item.get("type", "output"))
                     out.setdefault(name, []).append(v.content)
         missing = set(meta.get("outputs", {})) - set(out)
         if missing:
