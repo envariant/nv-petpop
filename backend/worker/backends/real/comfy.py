@@ -242,7 +242,7 @@ class ComfyImageBackend:
         return self._matte(ctx, out["concept"][0], "concept", size)
 
     def views(self, ctx, spec, prompts, control, concept):
-        from backend.worker.imaging import on_white
+        from backend.worker.imaging import mv_reference
 
         wf = self.cfg["workflows"]["views"]
         _, meta = self.c.load(wf)
@@ -250,7 +250,7 @@ class ComfyImageBackend:
         m, p = self.cfg["models"], self.cfg["params"]
         if "mv_base" in meta["inputs"]:  # multi-view diffusion from the concept alone (MV-Adapter)
             values = {"mv_base": m["mv_base"], "mv_vae": m["mv_vae"], "mv_adapter_repo": m["mv_adapter_repo"],
-                      "mvadapter": m["mvadapter"], "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", on_white(concept)),
+                      "mvadapter": m["mvadapter"], "concept_image": self.c.upload(f"{ctx.job_id}_concept.png", mv_reference(concept, size)),
                       "positive": self._positive(prompts["positive"]).replace(", front view", ""),
                       "negative": prompts["negative"], "width": size, "height": size, "steps": p["mv_steps"],
                       "cfg": p["mv_cfg"], "seed": int(spec["seed"])}

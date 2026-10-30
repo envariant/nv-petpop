@@ -76,10 +76,17 @@ def apply_mask(png: bytes, mask_png: bytes, size: int) -> bytes:
     return matte_square(buf.getvalue(), size)
 
 
-def on_white(png: bytes) -> bytes:
-    """An RGBA image flattened onto white (a matted concept as a reference image)."""
+def mv_reference(png: bytes, size: int, fill: float = 0.9, grey: int = 127) -> bytes:
+    """A matted concept as a multi-view reference, the way MV-Adapter prepares its own: the subject's longer side at
+    90 % of a square frame, centred, on mid-grey (scripts/inference_i2mv_sdxl.py, preprocess_image)."""
     img = Image.open(io.BytesIO(png)).convert("RGBA")
-    out = Image.alpha_composite(Image.new("RGBA", img.size, (255, 255, 255, 255)), img).convert("RGB")
+    ys, xs = np.nonzero(np.asarray(img)[..., 3] > 8)
+    if len(xs):
+        img = img.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+    scale = size * fill / max(img.size)
+    img = img.resize((max(1, round(img.size[0] * scale)), max(1, round(img.size[1] * scale))), Image.LANCZOS)
+    canvas = Image.new("RGBA", (size, size), (grey, grey, grey, 255))
+    canvas.alpha_composite(img, ((size - img.size[0]) // 2, (size - img.size[1]) // 2))
     buf = io.BytesIO()
-    out.save(buf, format="PNG")
+    canvas.convert("RGB").save(buf, format="PNG")
     return buf.getvalue()
