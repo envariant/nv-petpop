@@ -14,6 +14,9 @@ GenAI profile (shape.server), so this file names no model either:
     GET  /v1/shape/{job_id}       -> {"job_id", "status": queued|running|done|failed, "seconds", "error"}
     GET  /v1/shape/{job_id}/mesh  -> model/gltf-binary once done (409 before)
     POST /v1/free                 -> unload the model now, or after the running job (never blocks)
+    POST /v1/embed                multipart image=<png> (repeatable) -> {"model", "dim", "embeddings": [[...]]}
+                                  L2-normalised image embeddings (the profile's `embed` model, DINOv2) for scoring:
+                                  view consistency, best-of-N, curation. 409 if a mesh holds the model slot too long.
 
 A mesh takes minutes and the Cloudflare tunnel cuts any request off after about 100 s, so generation is a job,
 like ComfyUI's /prompt + /history: every request answers in well under a second. One worker thread runs the jobs
@@ -96,6 +99,34 @@ def load():
     return _pipe
 
 
+EMBED = PROFILE.get("embed") or {}
+
+
+def embed_dir() -> Path:
+    return Path(os.environ.get("PETPOP_MODELS", "~/petpop-models")).expanduser() / "hf" / EMBED.get("repo", "")
+
+
+def _embed_vectors(images: list[Image.Image]) -> list[list[float]]:
+    """The only torch code of /v1/embed: load the embedder from the pinned folder, embed, drop it again."""
+    import torch
+    from transformers import AutoImageProcessor, AutoModel
+
+    d = str(embed_dir())
+    proc = AutoImageProcessor.from_pretrained(d, local_files_only=True)
+    model = AutoModel.from_pretrained(d, local_files_only=True, torch_dtype=getattr(torch, EMBED.get("dtype", "float16")))
+    model = model.to(EMBED.get("device", "mps")).eval()
+    try:
+        with torch.inference_mode():
+            x = proc(images=images, return_tensors="pt")["pixel_values"].to(model.device, model.dtype)
+            v = model(pixel_values=x).pooler_output.float()  # DINOv2: the layer-normed CLS token
+            return torch.nn.functional.normalize(v, dim=-1).cpu().tolist()
+    finally:
+        del model
+        gc.collect()
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+
+
 def unload() -> None:
     global _pipe
     _pipe = None
@@ -138,6 +169,27 @@ def generate(front: Image.Image, p: dict) -> bytes:
                    generator=gen, output_type="trimesh")
     mesh = out[0] if isinstance(out, (list, tuple)) else out
     return mesh.export(file_type="glb")
+
+
+@app.post("/v1/embed")
+async def embed(image: list[UploadFile] = File(...)):
+    if not EMBED:
+        raise HTTPException(404, "this GenAI profile has no embed model")
+    if not (embed_dir() / "config.json").exists():
+        raise HTTPException(503, f"no weights at {embed_dir()}; run `make -C mac models`")
+    imgs = []
+    for f in image:  # transparent pixels read as white, as the generated views are matted
+        im = Image.open(io.BytesIO(await f.read())).convert("RGBA")
+        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+        imgs.append(Image.alpha_composite(bg, im).convert("RGB"))
+    if not _lock.acquire(timeout=float(EMBED.get("wait_s", 30))):  # one resident model at a time
+        raise HTTPException(409, "busy with a mesh; retry shortly")
+    try:
+        unload()  # the shape model, if it stayed resident, makes room first
+        vecs = _embed_vectors(imgs)
+    finally:
+        _lock.release()
+    return {"model": EMBED.get("model"), "dim": len(vecs[0]) if vecs else 0, "embeddings": vecs}
 
 
 def _prune() -> None:

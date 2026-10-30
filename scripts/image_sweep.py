@@ -337,6 +337,56 @@ def white_border(png: bytes, threshold: int) -> float:
     return round(float((edge >= threshold).mean()), 3)
 
 
+def subject_frac(png: bytes) -> float:
+    """Share of the frame that differs from the background colour (the border median): low means a tiny or blank
+    subject, which the white-border score alone rewards."""
+    a = np.asarray(Image.open(io.BytesIO(png)).convert("RGB")).astype(np.int16)
+    b = max(2, a.shape[0] // 25)
+    edge = np.concatenate([a[:b].reshape(-1, 3), a[-b:].reshape(-1, 3), a[:, :b].reshape(-1, 3), a[:, -b:].reshape(-1, 3)])
+    bg = np.median(edge, axis=0)
+    return round(float((np.abs(a - bg).max(axis=2) > 30).mean()), 3)
+
+
+def embed(prof, pngs: list[bytes]) -> list[np.ndarray] | None:
+    """DINOv2 embeddings from the shape server's /v1/embed (L2-normalised), or None if the host has no endpoint yet."""
+    import httpx
+
+    url = prof.url("shape") + "/v1/embed"
+    files = [("image", (f"{i}.png", b, "image/png")) for i, b in enumerate(pngs)]
+    for attempt in range(10):
+        try:
+            r = httpx.post(url, files=files, headers=prof.auth_headers(), timeout=120)
+        except httpx.TransportError:
+            time.sleep(5)
+            continue
+        if r.status_code == 409:  # a mesh holds the model slot
+            time.sleep(15)
+            continue
+        if r.status_code in (404, 503):
+            print(f"  (no embeddings: {r.status_code} {r.text[:120]})", flush=True)
+            return None
+        r.raise_for_status()
+        return [np.asarray(v, dtype=np.float32) for v in r.json()["embeddings"]]
+    return None
+
+
+def view_scores(prof, concept: bytes, views: list[bytes]) -> dict:
+    """Identity: DINOv2 cosine of each view to the concept. Viewpoint: how different the back is from the front
+    (a back that is a copy of the front scores high on identity and near zero here). Fill: subject_frac."""
+    vecs = embed(prof, [concept, *views])
+    out = {"fill": [subject_frac(v) for v in views]}
+    if vecs:
+        c, vs = vecs[0], vecs[1:]
+        out["to_concept"] = [round(float(c @ v), 3) for v in vs]
+        out["front_back"] = round(float(vs[0] @ vs[VIEWS.index("back")]), 3)
+    return out
+
+
+def caption(view: str, sc: dict, i: int) -> str:
+    sim = f" sim {sc['to_concept'][i]}" if "to_concept" in sc else ""
+    return f"{view}{sim} fill {sc['fill'][i]}"
+
+
 def sheet(rows: list[tuple[str, list[tuple[str, bytes | None]]]], path: Path, cell: int = 320) -> None:
     cols = max(len(r[1]) for r in rows)
     lab_w, head = 170, 24
@@ -359,7 +409,8 @@ def sheet(rows: list[tuple[str, list[tuple[str, bytes | None]]]], path: Path, ce
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["concept", "views", "all", "mv", "shape"], default="all")
+    ap.add_argument("--stage", choices=["concept", "views", "all", "mv", "shape", "score"], default="all")
+    ap.add_argument("--score-sets", default="", help="--stage score: label=dir:variant,... (files <breed>__<variant>__<view>.png)")
     ap.add_argument("--mv-steps", type=int, default=30)
     ap.add_argument("--mv-cfg", type=float, default=3.0)
     ap.add_argument("--mv-px", type=int, default=768)
@@ -401,8 +452,9 @@ def main() -> int:
             if spec["breed"]["id"] != breed:
                 raise SystemExit(f"unknown breed {breed!r} for {species}")
             prompts = compile_prompts(spec)
-            ctrl_png = control_images(species, spec, args.px)
-            ctrl = {k: c.upload(f"sweep_{breed}_{k}.png", v) for k, v in ctrl_png.items()}
+            ctrl = {}
+            if args.stage in ("concept", "views", "all"):  # only the SDXL graphs read the proxy's control images
+                ctrl = {k: c.upload(f"sweep_{breed}_{k}.png", v) for k, v in control_images(species, spec, args.px).items()}
             cells, concept_png = [], {}
             if args.stage in ("concept", "all"):
                 for name in concepts:
@@ -425,13 +477,13 @@ def main() -> int:
                 cref = c.upload(f"sweep_{breed}_concept.png", src)
                 try:
                     imgs, dt = submit(c, mv_graph(c, p, prompts, cref, args.seed, args.mv_px, args.mv_steps, args.mv_cfg), timeout=3600)
-                    row = [("concept", src)]
-                    for view in VIEWS:
-                        png = next(b for k, b in imgs.items() if k.endswith(f"mv_{view}"))
+                    pngs = [next(b for k, b in imgs.items() if k.endswith(f"mv_{view}")) for view in VIEWS]
+                    for view, png in zip(VIEWS, pngs):
                         (out / f"{breed}__mv__{view}.png").write_bytes(png)
-                        row.append((f"{view}  white {white_border(png, threshold)}", png))
-                    report["items"].append({"breed": breed, "variant": "mv", "s": round(dt),
-                                            "white_border": [white_border(b, threshold) for _, b in row[1:]]})
+                    sc = view_scores(prof, src, pngs)
+                    row = [("concept", src)] + [(caption(v, sc, i), b) for i, (v, b) in enumerate(zip(VIEWS, pngs))]
+                    report["items"].append({"breed": breed, "variant": "mv", "s": round(dt), **sc,
+                                            "white_border": [white_border(b, threshold) for b in pngs]})
                 except (ComfyError, StopIteration) as exc:
                     row = [("concept", src)] + [(f"{view}  FAILED", None) for view in VIEWS]
                     report["items"].append({"breed": breed, "variant": "mv", "error": str(exc)[:600]})
@@ -458,6 +510,21 @@ def main() -> int:
                         report["items"].append({"breed": breed, "variant": f"2mv_{sv}", "error": str(exc)[:600]})
                     print(report["items"][-1], flush=True)
                     view_rows.append((f"{breed}\n2mv {sv} {args.octree}", row))
+            if args.stage == "score":  # score view sets already on disk: --score-sets label=dir:variant,...
+                src = next(f for f in (out / f"{breed}__{args.views_from}.png", out.parent / f"{breed}__{args.views_from}.png")
+                           if f.exists()).read_bytes()
+                for item in args.score_sets.split(","):
+                    label, _, rest = item.partition("=")
+                    vdir, _, vname = rest.partition(":")
+                    files = [Path(vdir) / f"{breed}__{vname}__{v}.png" for v in VIEWS]
+                    if not all(f.exists() for f in files):
+                        continue
+                    pngs = [f.read_bytes() for f in files]
+                    sc = view_scores(prof, src, pngs)
+                    report["items"].append({"breed": breed, "variant": label, **sc})
+                    print(report["items"][-1], flush=True)
+                    view_rows.append((f"{breed}\n{label}", [("concept", src)] + [(caption(v, sc, i), b) for i, (v, b) in
+                                                                                 enumerate(zip(VIEWS, pngs))]))
             if args.stage in ("views", "all"):
                 found = [d / f"{breed}__{args.views_from}.png" for d in (out, out.parent)]
                 src = concept_png.get(args.views_from) or next(f for f in found if f.exists()).read_bytes()

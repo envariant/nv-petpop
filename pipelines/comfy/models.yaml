@@ -161,6 +161,17 @@ models:
     optional: [nvidia-24gb]
     licence: MIT
 
+  # DINOv2-Large image embeddings for scoring (config/genai/mac-m4pro.yaml `embed`; shape server /v1/embed).
+  - name: dinov2-large
+    deploy_as: facebook/dinov2-large
+    dest: hf/facebook/dinov2-large
+    repo: facebook/dinov2-large
+    files: [config.json, model.safetensors, preprocessor_config.json]
+    revision: 47b73eefe95e8d44ec3623f8890bd894b6ea2d6c
+    sha256: 0581d896c3d42ebcd7da5d8568540532675f365c071c4fb44b739b6b3f796452
+    profiles: [mac-m4pro]
+    licence: Apache-2.0
+
   - name: hunyuan3d-paint-v2-0
     deploy_as: hunyuan3d-paint-v2-0
     dest: hf/tencent/Hunyuan3D-2

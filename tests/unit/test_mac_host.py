@@ -236,3 +236,32 @@ def test_shape_server_follows_the_fork_and_stays_offline(server):
         assert client.post("/v1/free").json() == {"status": "after current job"}
         assert time.perf_counter() - t0 < 1.0
     assert client.post("/v1/free").json() == {"status": "freed"}
+
+
+def test_shape_server_embeds_with_the_profile_model_offline_one_model_at_a_time(server, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    mod, models = server
+    client = TestClient(mod.app)
+    files = [("image", ("a.png", _png(), "image/png")), ("image", ("b.png", _png(), "image/png"))]
+    r = client.post("/v1/embed", files=files)
+    assert r.status_code == 503 and "make -C mac models" in r.json()["detail"]
+
+    (models / "hf" / "facebook" / "dinov2-large").mkdir(parents=True)
+    (models / "hf" / "facebook" / "dinov2-large" / "config.json").write_text("{}")
+    seen = []
+
+    def fake(images):
+        seen.append((len(images), images[0].mode, mod._lock.locked(), mod._pipe))
+        return [[1.0, 0.0], [0.0, 1.0]]
+
+    monkeypatch.setattr(mod, "_embed_vectors", fake)
+    mod._pipe = object()  # a shape model left resident is dropped before the embedder loads
+    r = client.post("/v1/embed", files=files)
+    assert r.status_code == 200, r.text
+    assert r.json() == {"model": "facebook/dinov2-large", "dim": 2, "embeddings": [[1.0, 0.0], [0.0, 1.0]]}
+    assert seen == [(2, "RGB", True, None)]
+
+    monkeypatch.setitem(mod.EMBED, "wait_s", 0.05)
+    with mod._lock:  # a mesh holds the slot: answer 409 instead of blocking past the tunnel's timeout
+        assert client.post("/v1/embed", files=files).status_code == 409

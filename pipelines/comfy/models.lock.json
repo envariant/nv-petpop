@@ -24,6 +24,26 @@
    "revision": "17bb97973f29801224cd66f192c5ffacf82648b4",
    "sha256": "66a6813e6bd7270ecfe68206a59ddd605a011ae85321188376605c66e0a4f303"
   },
+  "dinov2-large": {
+   "dest": "hf/facebook/dinov2-large",
+   "files": {
+    "config.json": {
+     "sha256": "12df51c069a2dc1305e34ba71ef58bc2407ea553b75f4722a1715c1bce3bbed0",
+     "size": 549
+    },
+    "model.safetensors": {
+     "sha256": "399fba97a95f22c36834418bc69373364a99af3a1153da1c0fb31db567c92e23",
+     "size": 1217522888
+    },
+    "preprocessor_config.json": {
+     "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+     "size": 436
+    }
+   },
+   "repo": "facebook/dinov2-large",
+   "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
+   "sha256": "0581d896c3d42ebcd7da5d8568540532675f365c071c4fb44b739b6b3f796452"
+  },
   "hunyuan3d-2.1-shape-snapshot": {
    "dest": "hf/tencent/Hunyuan3D-2.1",
    "files": {
