@@ -122,8 +122,8 @@ def build_lowfi(pet: tuple) -> None:
     thumb = lowfi.flat_render(base, wrapped, colours, 25, 256, False)
     write(out, mb, job_id, "thumbnail.png", "thumbnail", "F", lowfi.png_bytes(thumb))
     tick("F", "lowfi-bake")
-    mb.metric(iou_mean=round(float(np.mean(ious)), 4), iou_views=ious, wrap_valid=True,
-              wrap_notes="nearest-point stand-in", print_watertight=bool(pm.is_watertight),
+    mb.metric(iou_mean=round(float(np.mean(ious)), 4), iou_views=ious, segmentation_valid=True,
+              segmentation_notes="template stand-in", print_watertight=bool(pm.is_watertight),
               print_tris=int(len(pm.faces)), print_height_mm=round(float(pm.extents[2]), 2),
               min_wall_ok=True, min_wall_mm=None, paint_mask_pct=round(pct, 2),
               uv_layout_hash=base.uv_hash(), topology_hash=base.topology_hash())

@@ -1,11 +1,13 @@
 """Texture sources for Stage F, chosen by the GenAI profile (texture.backend, overridable with TEXTURE_BACKEND):
 
-- projection (default on every profile): Blender stage that projects the four Stage C views onto the wrapped
-  mesh in the fixed UV layout (pipelines/blender/project_texture.py), then per-region colour correction.
-- flat: the PetSpec colours painted over the region masks (no views needed).
+- projection (default on the self-hosted profiles): Blender stage that projects the four Stage C views onto the
+  figurine's mesh in its own UVs (pipelines/blender/project_texture.py), then per-part colour correction.
+- flat: the PetSpec colours painted over the pattern regions (no views needed).
 - hy_paint (optional, NVIDIA only): Hunyuan3D-Paint through the profile's ComfyUI workflow.
-- transfer: the texture a provider made for its own mesh (Stage D's shape.glb), carried onto the base UV layout
-  by nearest surface point (pipelines/blender/transfer_texture.py, decision 108).
+- transfer: the texture a provider made for its own mesh, kept as it is in the mesh's own UVs (Stage E stores it
+  as provider_albedo.png; decisions 108 and 116).
+
+Every backend paints the figurine mesh Stage E produced (petpop_library.figure), whatever its source.
 """
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ import numpy as np
 from PIL import Image
 
 from backend.core import lowfi
-from petpop_library.meshkit import load_base
+from petpop_library import figure
 from backend.core.paths import PIPELINES
 from backend.worker import blender
 
@@ -32,10 +34,9 @@ import transfer_texture  # noqa: E402
 class FlatTexture:
     name = "flat"
 
-    def paint(self, ctx, spec, wrapped_obj, coords, views):
+    def paint(self, ctx, spec, mesh, views):
         with Pace("F"):
-            base = load_base(spec["species"])
-            return lowfi.png_bytes(bake.flat_albedo(base, spec, coords, int(ctx.quality["albedo_px"])))
+            return lowfi.png_bytes(bake.flat_albedo(mesh, spec, mesh.co, int(ctx.quality["albedo_px"])))
 
 
 class ProjectionTexture:
@@ -44,28 +45,32 @@ class ProjectionTexture:
     def __init__(self, cfg: dict) -> None:
         self.cfg = cfg
 
-    def paint(self, ctx, spec, wrapped_obj, coords, views):
+    def paint(self, ctx, spec, mesh, views):
         size = int(ctx.quality["albedo_px"])
         power, pad = float(self.cfg.get("view_weight_power", 2.0)), int(self.cfg.get("seam_pad_px", 2))
-        base = load_base(spec["species"])
+        if mesh.source != "template":  # the generated mesh already holds the accessories the views show
+            spec = {**spec, "accessories": []}
+        coords = mesh.co
         with Pace("F"):
             if blender.available(ctx.settings.bpy_python):
                 work = ctx.workdir("project")
                 (work / "spec.json").write_text(json.dumps(spec))
+                (work / "figure_mesh.npz").write_bytes(figure.save(mesh))
                 np.save(work / "coords.npy", coords.astype(np.float32))
                 paths = {}
                 for v, data in views.items():
                     (work / f"{v}.png").write_bytes(data)
                     paths[v] = str(work / f"{v}.png")
                 res = blender.run(ctx.settings.bpy_python, ["project_texture"], {
-                    "spec": str(work / "spec.json"), "coords": str(work / "coords.npy"), "views": paths, "size": size,
+                    "spec": str(work / "spec.json"), "coords": str(work / "coords.npy"), "mesh": str(work / "figure_mesh.npz"),
+                    "views": paths, "size": size,
                     "power": power, "seam_pad": pad, "out_dir": str(work)}, timeout=ctx.remaining())
                 img = Image.open(res["albedo"]).convert("RGB")
             else:
                 arr = {v: np.asarray(Image.open(io.BytesIO(d)).convert("RGBA"), dtype=np.float32) / 255 for v, d in views.items()}
-                img = Image.fromarray((project_texture.project(base, spec, coords, arr, size, power, pad) * 255).astype(np.uint8))
+                img = Image.fromarray((project_texture.project(mesh, spec, coords, arr, size, power, pad) * 255).astype(np.uint8))
             if self.cfg.get("colour_correct", True):
-                img = bake.colour_correct(base, spec, img)
+                img = bake.colour_correct(mesh, spec, img)
             return lowfi.png_bytes(img)
 
 
@@ -75,19 +80,21 @@ class TransferTexture:
     def __init__(self, cfg: dict) -> None:
         self.cfg = cfg
 
-    def paint(self, ctx, spec, wrapped_obj, coords, views):
-        base = load_base(spec["species"])
-        if not ctx.store.exists(ctx.key("shape.glb")):  # parametric fallback: no provider mesh to take colour from
-            return FlatTexture().paint(ctx, spec, wrapped_obj, coords, views)
-        with Pace("F"):
-            arr = transfer_texture.transfer(base, spec, coords, ctx.get("shape.glb"), int(ctx.quality["albedo_px"]),
-                                            samples=int(self.cfg.get("samples", 1_500_000)),
-                                            normal_mm=float(self.cfg.get("normal_mm", 4.0)),
-                                            max_mm=float(self.cfg.get("max_mm", 4.0)))
+    def paint(self, ctx, spec, mesh, views):
+        if mesh.source == "generated" and ctx.store.exists(ctx.key("provider_albedo.png")):
+            img = Image.open(io.BytesIO(ctx.get("provider_albedo.png"))).convert("RGB")
+        elif mesh.source == "generated":  # a provider mesh without a texture image: its vertex colours or factor
+            with Pace("F"):
+                arr = transfer_texture.transfer(mesh, spec, mesh.co, ctx.get("shape.glb"), int(ctx.quality["albedo_px"]),
+                                                samples=int(self.cfg.get("samples", 1_500_000)),
+                                                normal_mm=float(self.cfg.get("normal_mm", 4.0)),
+                                                max_mm=float(self.cfg.get("max_mm", 4.0)))
             img = Image.fromarray((arr * 255).astype(np.uint8))
-            if self.cfg.get("colour_correct", False):
-                img = bake.colour_correct(base, spec, img)
-            return lowfi.png_bytes(img)
+        else:  # the parametric fallback: no provider mesh to take colour from
+            return FlatTexture().paint(ctx, spec, mesh, views)
+        if self.cfg.get("colour_correct", False):
+            img = bake.colour_correct(mesh, spec, img)
+        return lowfi.png_bytes(img)
 
 
 class HyPaintTexture:
@@ -98,18 +105,22 @@ class HyPaintTexture:
         self.correct = cfg.get("projection", {}).get("colour_correct", True)
         self.comfy = comfy_factory
 
-    def paint(self, ctx, spec, wrapped_obj, coords, views):
+    def paint(self, ctx, spec, mesh, views):
+        from petpop_library.meshkit import write_obj
+
         from .real.comfy import _version
 
+        obj_path = ctx.workdir("hy_paint") / "figure_uv.obj"
+        write_obj(obj_path, mesh, mesh.co)
         c = self.comfy()
-        values = {"mesh_path": "input/" + c.upload(f"{ctx.job_id}_wrapped.obj", wrapped_obj, "text/plain"),
+        values = {"mesh_path": "input/" + c.upload(f"{ctx.job_id}_figure.obj", obj_path.read_bytes(), "text/plain"),
                   "ref_image": c.upload(f"{ctx.job_id}_front.png", views["front"]), "model": self.cfg["model"],
                   "seed": int(spec["seed"]), "texture_size": int(ctx.quality["albedo_px"]), **self.cfg["params"]}
         out, meta = c.run(self.cfg["workflow"], values, timeout=ctx.remaining())
         _version(ctx, self.cfg["workflow"], meta)
         img = Image.open(io.BytesIO(out["albedo"][0])).convert("RGB")
         if self.correct:
-            img = bake.colour_correct(load_base(spec["species"]), spec, img)
+            img = bake.colour_correct(mesh, spec, img)
         return lowfi.png_bytes(img)
 
 

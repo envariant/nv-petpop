@@ -15,7 +15,7 @@
        "concept",
        "view",
        "shape",
-       "wrapped",
+       "segmented",
        "uv_obj",
        "albedo",
        "glb",
@@ -4561,7 +4561,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.4.0"
+  "version": "3.5.0"
  },
  "openapi": "3.1.0",
  "paths": {

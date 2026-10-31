@@ -5,7 +5,7 @@ echo "gate-2: real backend, parametric path"
 export PETPOP_MOCK_SPEED=0
 step "unit tests" "$PY" -m pytest tests/unit
 step "identical contract test: mock server AND real backend" "$PY" -m pytest tests/contract
-step "pipeline: fallbacks by fault injection, resume, determinism, one topology" "$PY" -m pytest tests/pipeline
+step "pipeline: fallbacks by fault injection, resume, determinism, own meshes on one schema" "$PY" -m pytest tests/pipeline
 step "base meshes and accessory library" bash -c '"$0" scripts/check_base_mesh.py && test -f assets/accessories/accessories.blend' "$PY"
 step "fixture pack comes from the real pipeline" "$PY" -c '
 import json, pathlib

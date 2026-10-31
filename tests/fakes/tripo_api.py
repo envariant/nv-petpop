@@ -23,6 +23,40 @@ from PIL import Image, ImageDraw
 CREDITS = {"text-to-image": 5.0, "image-to-model": 30.0, "multiview-to-model": 30.0, "image-to-multiview": 10.0}
 
 
+def surface(grid: np.ndarray):
+    """The outer surface of a voxel grid (a quad wherever a filled voxel meets an empty one), welded; vertices in
+    voxel units, voxel i spanning [i - 0.5, i + 0.5] like trimesh's boxes."""
+    import trimesh
+
+    padded = np.pad(grid, 1)
+    quads = []
+    corners = {0: [(0, 0), (1, 0), (1, 1), (0, 1)]}
+    for axis in range(3):
+        for step in (1, -1):
+            nb = np.roll(padded, -step, axis=axis)
+            face = padded & ~nb
+            idx = np.argwhere(face) - 1  # back to grid coordinates
+            if not len(idx):
+                continue
+            u, w = [a for a in range(3) if a != axis]
+            base = idx.astype(np.float64) - 0.5
+            base[:, axis] += 1.0 if step > 0 else 0.0
+            quad = np.repeat(base[:, None, :], 4, axis=1)
+            for k, (du, dw) in enumerate(corners[0]):
+                quad[:, k, u] += du
+                quad[:, k, w] += dw
+            if step < 0:
+                quad = quad[:, ::-1]
+            quads.append(quad)
+    q = np.concatenate(quads)
+    verts = q.reshape(-1, 3)
+    i = np.arange(len(q))[:, None] * 4
+    faces = np.concatenate([i + np.array([0, 1, 2]), i + np.array([0, 2, 3])])
+    mesh = trimesh.Trimesh(verts, faces, process=True)
+    mesh.fix_normals()
+    return mesh
+
+
 class FakeTripo:
     def __init__(self, key: str = "tsk_fake") -> None:
         self.key, self.base = key, ""
@@ -77,7 +111,8 @@ class FakeTripo:
                 srow = side_mask[min(int((1 - (k + 0.5) / n) * sh), sh - 1)]
                 for j in range(n):
                     grid[i, j, k] = srow[min(int((j + 0.5) / n * sw), sw - 1)]
-        mesh = trimesh.voxel.VoxelGrid(grid).as_boxes()
+        mesh = surface(grid)
+        trimesh.smoothing.filter_taubin(mesh, iterations=6)  # a generator's surface is smooth, not blocky
         v = mesh.vertices / n
         aspect = w / h  # the grid is a unit cube; the subject is as wide as its silhouette
         depth = (side_mask.shape[1] / side_mask.shape[0]) if side_mask is not None else aspect

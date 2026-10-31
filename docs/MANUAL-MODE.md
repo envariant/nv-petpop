@@ -11,7 +11,7 @@ API later is `GENAI_PROFILE=tripo`: same manifest (`config/providers/tripo-v3.ya
 ```
 A parse -> control -> B concept: WAITS (you: Tripo text to image -> upload the image)
                    -> C skipped -> D shape: WAITS (you: Tripo image to 3D on the matted concept -> upload the GLB)
-                   -> E wrap onto the base mesh -> F texture transfer, print files -> done (and curation, for a batch)
+                   -> E labels the uploaded mesh to the schema -> F keeps its texture, print files -> done (and curation, for a batch)
 ```
 
 - While it waits, the job's status is `waiting` (Studio shows "This figurine is waiting for you"); nothing runs.

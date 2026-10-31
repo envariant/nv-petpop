@@ -1,6 +1,6 @@
 """Stage F paint check (BRIEF Section 6.6): for each face, the free-space distance along its normal to the
 next surface; faces closer than the painter head stand-off are flagged. Returns per-triangle flags in the
-base-mesh triangle order; the worker rasterises them into paint_mask.png in UV space."""
+mesh's triangle order; the worker rasterises them into paint_mask.png in UV space."""
 import json
 from pathlib import Path
 
@@ -9,18 +9,13 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-from common import ROOT, add_accessories, load_base, reset, set_coords
+from common import ROOT, add_accessories, mesh_and_object, reset
 
 
 def main(job: dict) -> dict:
-    from petpop_library.meshkit import load_base as np_base
-
     standoff = json.loads((ROOT / "config" / "mandrel.json").read_text())["paint_head_standoff_mm"]
     reset()
-    base = np_base(job["species"])
-    co = np.load(job["coords"]).astype(np.float64)
-    obj = load_base(job["species"])
-    set_coords(obj, co)
+    base, co, obj = mesh_and_object(job)
     accs = add_accessories(job.get("accessories", []), co, base.landmarks, base.shell)
     verts = [tuple(p) for p in co]
     polys = [tuple(int(i) for i in t) for t in base.tri_verts]

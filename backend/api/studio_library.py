@@ -70,9 +70,11 @@ def curate(db_factory, store, job_id: str) -> dict[str, Any]:
         spec, info = job.pet_spec, batch.spec["jobs"][job_id]
     species = spec["species"]
     base = load_base(species)
-    coords = np.load(io.BytesIO(store.get(f"jobs/{job_id}/wrapped_coords.npy"))).astype(np.float64)
+    # Until library mode moves to per-mesh releases (decision 116, Track E), parts are measured on the template
+    # as Stage E fitted it to the figurine.
+    coords = np.load(io.BytesIO(store.get(f"jobs/{job_id}/template_fit.npy"))).astype(np.float64)
     manifest = json.loads(store.get(f"jobs/{job_id}/manifest.json"))
-    wrap_valid = bool(manifest["metrics"].get("wrap_valid", True)) and manifest.get("fallback") in ("none", "single_view")
+    wrap_valid = bool(manifest["metrics"].get("segmentation_valid", True)) and manifest.get("fallback") in ("none", "single_view")
     ps = extract(base, coords)
     report = qc.evaluate(base, ps, wrap_valid=wrap_valid)
     tag = job_id[2:8]

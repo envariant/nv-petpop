@@ -1,4 +1,4 @@
-"""Stage F print mesh (BRIEF Sections 6.6 and 10): join shells and accessories, fuse the flat base disc,
+"""Stage F print mesh (BRIEF Sections 6.6 and 10): the figurine's own mesh joined with its accessories, fuse the flat base disc,
 voxel-remesh for watertightness, cut the mandrel socket (blind hole with keying flat from
 config/mandrel.json), decimate, check the minimum wall and export STL (the worker writes the 3MF)."""
 import json
@@ -9,7 +9,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-from common import ROOT, activate, add_accessories, load_base, reset, set_coords
+from common import ROOT, activate, add_accessories, mesh_and_object, reset
 
 
 def apply(obj, mod):
@@ -76,15 +76,10 @@ def min_wall(obj, samples: int = 2000) -> float:
 
 
 def main(job: dict) -> dict:
-    from petpop_library.meshkit import load_base as np_base
-
     cfg = json.loads((ROOT / "config" / "mandrel.json").read_text())
     q = job["quality"]
     reset()
-    base = np_base(job["species"])
-    co = np.load(job["coords"]).astype(np.float64)
-    obj = load_base(job["species"])
-    set_coords(obj, co)
+    base, co, obj = mesh_and_object(job)
     parts = [obj] + add_accessories(job.get("accessories", []), co, base.landmarks, base.shell)
     disc = cfg["base_disc"]
     bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=disc["diameter_mm"] / 2, depth=disc["thickness_mm"],

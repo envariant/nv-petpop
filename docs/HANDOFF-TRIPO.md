@@ -53,8 +53,8 @@ running it on Nishant's own computer (native `make dev`, or Docker Compose with 
 - Real API jobs and the manifest's first contact with the live API (above).
 - Compare Tripo model versions (`v3.1-20260211`, `P1-20260311`, `P2-20260801`) once credits allow.
 - Private generation: a request flag, if Tripo's docs for this access name one.
-- Gates 3 to 5 and the regression set on the tripo profiles; Stage E's wrap on real Tripo meshes (the fast-path wraps
-  on the Mac sometimes failed validation, decision 104).
+- Gates 3 to 5 and the regression set on the tripo profiles; Stage E's segmentation on real Tripo meshes (decision 116):
+  check `segmentation_valid`, `parts.png` and the landmarks on the first jobs.
 
 ## Conventions that matter here
 

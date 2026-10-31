@@ -4,7 +4,8 @@ Runs A, control, B, C, D, E, F in order. Each stage is idempotent and resumable 
 in the store: a stage whose manifest entry is ok and whose files all exist is skipped, so a retry restarts at
 the failed stage. Every stage retries once; hard per-stage timeouts fail the job with the stage name.
 Fallbacks (Section 5): D low confidence or failure -> single-view D -> parametric (skip D, ship the morphed
-base mesh); an invalid wrap ships the morphed base unwrapped. The user always gets a figurine unless A, B,
+template); if Stage E cannot label the generated mesh at all, the morphed template ships (fallback "unwrapped",
+kept as the API's name for it). A mesh whose labels are imperfect still ships, with segmentation_valid false. The user always gets a figurine unless A, B,
 C or F fail twice.
 """
 from __future__ import annotations
@@ -20,7 +21,6 @@ from typing import Any
 import numpy as np
 
 from petpop_core.manifest import ManifestBuilder, now_iso
-from petpop_library.meshkit import load_base
 from backend.core.paths import BASE_DIR
 
 from . import control, stage_a, stage_b, stage_c, stage_d, stage_e, stage_f
@@ -144,10 +144,10 @@ class StageRunner:
                         ok = True  # D is skipped: the parametric base mesh ships
             elif stage == "E":
                 ok, attempts, err = self._attempt("E", fn, parametric=(fallback == "parametric"))
-                wrap = ctx.state.get("wrap", {})
-                if ok and wrap.get("fallback") == "unwrapped" and fallback == "none":
+                seg = ctx.state.get("segmentation", {})
+                if ok and seg.get("fallback") == "unwrapped" and fallback == "none":
                     fallback, status = "unwrapped", "fallback"
-                notes = wrap.get("notes", err)
+                notes = seg.get("notes", err)
             else:
                 ok, attempts, err = self._attempt(stage, fn)
             ms = int((time.monotonic() - t0) * 1000)
@@ -183,15 +183,16 @@ class StageRunner:
             if iou:
                 self.manifest.metric(iou_views=iou)
         elif stage == "E":
-            wrap = st.get("wrap", {})
-            self.manifest.metric(wrap_valid=bool(wrap.get("valid", True)), wrap_notes=str(wrap.get("notes", ""))[:200])
+            seg = st.get("segmentation", {})
+            self.manifest.metric(segmentation_valid=bool(seg.get("valid", True)), segmentation_notes=str(seg.get("notes", ""))[:200])
+            if seg.get("mesh_id"):
+                self.manifest.metric(mesh_id=seg["mesh_id"], segmentation_version=seg["schema_version"],
+                                     figure_tris=int(seg["tris"]), topology_hash=seg["topology_hash"], uv_layout_hash=seg["uv_hash"])
         elif stage == "F":
             self.manifest.metric(**st.get("f_metrics", {}))
 
     def _finish(self, fallback: str) -> None:
-        base = load_base(self.spec["species"])
         self.manifest.data["fallback"] = fallback
-        self.manifest.metric(uv_layout_hash=base.uv_hash(), topology_hash=base.topology_hash())
         self.manifest.finish()
         errs = self.manifest.errors()
         if errs:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 
+import numpy as np
 import pytest
 
 from backend.api.store import LocalStore
@@ -39,11 +40,12 @@ def test_full_run_outputs_and_metrics(tmp_path):
     assert manifest_errors(m) == []
     assert m["fallback"] == "none" and m["fidelity"] == "high"
     names = {f["name"] for f in m["files"]}
-    for n in ("spec.json", "concept.png", "views/front.png", "shape.glb", "figure_wrapped.obj", "albedo.png",
+    for n in ("spec.json", "concept.png", "views/front.png", "shape.glb", "figure_mesh.npz", "albedo.png", "parts.png",
               "figure_uv.obj", "figure.stl", "figure.3mf", "paint_mask.png", "figure.glb", "thumbnail.png"):
         assert n in names, n
     met = m["metrics"]
-    assert met["print_watertight"] and met["wrap_valid"] and met["iou_mean"] >= 0.85
+    assert met["print_watertight"] and met["segmentation_valid"] and met["iou_mean"] >= 0.85
+    assert met["mesh_id"].startswith("m_") and met["segmentation_version"] == "seg-1"
     assert [s["stage"] for s in m["stages"]] == ["A", "control", "B", "C", "D", "E", "F"]
 
 
@@ -61,7 +63,7 @@ def test_fault_injection_D_ships_parametric_figure(tmp_path, monkeypatch):
 def test_fault_injection_E_ships_unwrapped(tmp_path, monkeypatch):
     monkeypatch.setenv("PETPOP_FAIL_STAGE", "E")
     m = run(LocalStore(tmp_path / "s"), "j_e", default_spec("dog", "pug", seed=6))
-    assert m["fallback"] == "unwrapped" and m["metrics"]["wrap_valid"] is False
+    assert m["fallback"] == "unwrapped" and m["metrics"]["segmentation_valid"] is False
 
 
 @pytest.mark.parametrize("stage", ["B", "F"])
@@ -87,19 +89,39 @@ def test_resume_from_store_and_determinism(tmp_path, monkeypatch):
     # Same spec + seed on a fresh store: identical geometry and print layout.
     other = LocalStore(tmp_path / "s2")
     run(other, "j_r2", spec)
-    for name in ("figure_uv.obj", "albedo.png", "figure_wrapped.obj"):
+    for name in ("figure_uv.obj", "albedo.png", "parts.png"):
         assert sha(store, f"jobs/j_r/{name}") == sha(other, f"jobs/j_r2/{name}"), name
+    assert m["metrics"]["mesh_id"] == json.loads(other.get("jobs/j_r2/manifest.json"))["metrics"]["mesh_id"]
 
 
-def test_same_topology_and_uv_for_every_output_of_a_species(tmp_path):
+def test_each_breed_keeps_its_own_mesh_labelled_to_one_schema(tmp_path):
+    """Decision 116: different breeds get different meshes (no shared topology), every one segmented to the
+    species schema, with its own UVs, a part label per texel and landmarks inside their parts."""
+    from petpop_library import figure
+
     store = LocalStore(tmp_path / "s")
     a = run(store, "j_a", default_spec("dog", "dachshund", seed=1))
     b = run(store, "j_b", default_spec("dog", "samoyed", seed=2))
-    assert a["metrics"]["topology_hash"] == b["metrics"]["topology_hash"]
-    assert a["metrics"]["uv_layout_hash"] == b["metrics"]["uv_layout_hash"]
+    assert a["metrics"]["mesh_id"] != b["metrics"]["mesh_id"]
+    assert a["metrics"]["topology_hash"] != b["metrics"]["topology_hash"]
+    assert a["metrics"]["segmentation_version"] == b["metrics"]["segmentation_version"] == "seg-1"
+    sch = figure.schema("dog")
+    for job in ("j_a", "j_b"):
+        mesh = figure.load(store.get(f"jobs/{job}/figure_mesh.npz"))
+        assert mesh.source == "generated" and sorted(mesh.group_names) == sorted(p["name"] for p in sch["parts"])
+        labels = mesh.group_names
+        dominant = mesh.groups.argmax(axis=0)
+        for lm, allowed in sch["landmarks"].items():
+            assert labels[dominant[mesh.landmarks[lm]]] in allowed, (job, lm)
+        import io
+
+        from PIL import Image
+
+        parts = np.asarray(Image.open(io.BytesIO(store.get(f"jobs/{job}/parts.png"))))
+        assert set(np.unique(parts)) - {0} == set(range(1, len(sch["parts"]) + 1)), job
 
     def layout(job):
         lines = store.get(f"jobs/{job}/figure_uv.obj").decode().splitlines()
         return [ln for ln in lines if ln.startswith(("vt ", "f "))]
 
-    assert layout("j_a") == layout("j_b")  # UVs and faces verbatim; only positions differ
+    assert layout("j_a") != layout("j_b")  # each figurine ships its own mesh and UVs to the painter

@@ -5,76 +5,253 @@
   "description": "jobs/{job_id}/manifest.json: every file a job wrote, its stage, timings and the seeds and versions used (BRIEF Section 6.6).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["manifest_version", "job_id", "species", "seed", "mode", "fidelity", "fallback", "created_at", "versions", "genai", "seeds", "stages", "files", "metrics"],
+  "required": [
+    "manifest_version",
+    "job_id",
+    "species",
+    "seed",
+    "mode",
+    "fidelity",
+    "fallback",
+    "created_at",
+    "versions",
+    "genai",
+    "seeds",
+    "stages",
+    "files",
+    "metrics"
+  ],
   "properties": {
-    "manifest_version": { "const": "1.1" },
-    "job_id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
-    "species": { "enum": ["dog", "cat"] },
-    "pet_name": { "type": "string" },
-    "seed": { "type": "integer", "minimum": 0 },
-    "mode": { "enum": ["mock", "real"] },
-    "fidelity": { "enum": ["high", "low"] },
-    "fallback": { "enum": ["none", "single_view", "parametric", "unwrapped"] },
-    "created_at": { "type": "string", "format": "date-time" },
-    "finished_at": { "type": ["string", "null"], "format": "date-time" },
+    "manifest_version": {
+      "const": "1.1"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "species": {
+      "enum": [
+        "dog",
+        "cat"
+      ]
+    },
+    "pet_name": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mode": {
+      "enum": [
+        "mock",
+        "real"
+      ]
+    },
+    "fidelity": {
+      "enum": [
+        "high",
+        "low"
+      ]
+    },
+    "fallback": {
+      "enum": [
+        "none",
+        "single_view",
+        "parametric",
+        "unwrapped"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
     "versions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pipeline", "spec", "vocab", "base_mesh", "workflows"],
+      "required": [
+        "pipeline",
+        "spec",
+        "vocab",
+        "base_mesh",
+        "workflows"
+      ],
       "properties": {
-        "pipeline": { "type": "string" },
-        "spec": { "type": "string" },
-        "vocab": { "type": "string" },
-        "base_mesh": { "type": "string" },
-        "workflows": { "type": "object", "additionalProperties": { "type": "string" } }
+        "pipeline": {
+          "type": "string"
+        },
+        "spec": {
+          "type": "string"
+        },
+        "vocab": {
+          "type": "string"
+        },
+        "base_mesh": {
+          "type": "string"
+        },
+        "workflows": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
       }
     },
     "source": {
       "type": "object",
       "description": "What the job was made from: absent for a PetSpec through the pipeline; a library composition for a Stage-F-only export (BRIEF Section 16).",
       "additionalProperties": false,
-      "required": ["kind", "composition_id", "release_version"],
-      "properties": {"kind": {"const": "composition"}, "composition_id": {"type": "string"}, "release_version": {"type": "string"}}
+      "required": [
+        "kind",
+        "composition_id",
+        "release_version"
+      ],
+      "properties": {
+        "kind": {
+          "const": "composition"
+        },
+        "composition_id": {
+          "type": "string"
+        },
+        "release_version": {
+          "type": "string"
+        }
+      }
     },
     "genai": {
       "type": "object",
       "description": "The GenAI profile the job ran on and every model id (with pins) it could use (1.1).",
       "additionalProperties": false,
-      "required": ["profile", "profile_version", "profile_sha", "host", "accelerator", "adapters", "models", "model_pins", "quality"],
+      "required": [
+        "profile",
+        "profile_version",
+        "profile_sha",
+        "host",
+        "accelerator",
+        "adapters",
+        "models",
+        "model_pins",
+        "quality"
+      ],
       "properties": {
-        "profile": { "type": "string" },
-        "profile_version": { "type": "integer" },
-        "profile_sha": { "type": "string" },
-        "host": { "type": "string" },
-        "accelerator": { "type": "string" },
-        "adapters": {
-          "type": "object", "additionalProperties": false, "required": ["parser", "image", "shape", "texture"],
-          "properties": { "parser": { "type": "string" }, "image": { "type": "string" }, "shape": { "type": "string" }, "texture": { "type": "string" } }
+        "profile": {
+          "type": "string"
         },
-        "models": { "type": "object", "additionalProperties": { "type": "string" } },
-        "model_pins": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } },
-        "quality": { "type": "string" }
+        "profile_version": {
+          "type": "integer"
+        },
+        "profile_sha": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "accelerator": {
+          "type": "string"
+        },
+        "adapters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parser",
+            "image",
+            "shape",
+            "texture"
+          ],
+          "properties": {
+            "parser": {
+              "type": "string"
+            },
+            "image": {
+              "type": "string"
+            },
+            "shape": {
+              "type": "string"
+            },
+            "texture": {
+              "type": "string"
+            }
+          }
+        },
+        "models": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "model_pins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "quality": {
+          "type": "string"
+        }
       }
     },
     "seeds": {
       "type": "object",
-      "additionalProperties": { "type": "integer" }
+      "additionalProperties": {
+        "type": "integer"
+      }
     },
     "stages": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["stage", "status", "ms", "attempts", "backend"],
+        "required": [
+          "stage",
+          "status",
+          "ms",
+          "attempts",
+          "backend"
+        ],
         "properties": {
-          "stage": { "$ref": "#/$defs/stage" },
-          "status": { "enum": ["ok", "failed", "skipped", "fallback"] },
-          "started_at": { "type": "string", "format": "date-time" },
-          "ended_at": { "type": "string", "format": "date-time" },
-          "ms": { "type": "integer", "minimum": 0 },
-          "attempts": { "type": "integer", "minimum": 0 },
-          "backend": { "type": "string" },
-          "notes": { "type": "string" }
+          "stage": {
+            "$ref": "#/$defs/stage"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "failed",
+              "skipped",
+              "fallback"
+            ]
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "backend": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
         }
       }
     },
@@ -83,14 +260,34 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "kind", "stage", "object_key", "bytes"],
+        "required": [
+          "name",
+          "kind",
+          "stage",
+          "object_key",
+          "bytes"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "kind": { "$ref": "#/$defs/kind" },
-          "stage": { "$ref": "#/$defs/stage" },
-          "object_key": { "type": "string" },
-          "bytes": { "type": "integer", "minimum": 0 },
-          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/kind"
+          },
+          "stage": {
+            "$ref": "#/$defs/stage"
+          },
+          "object_key": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
         }
       }
     },
@@ -98,24 +295,103 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "iou_mean": { "type": ["number", "null"] },
-        "iou_views": { "type": "array", "items": { "type": "number" } },
-        "wrap_valid": { "type": "boolean" },
-        "wrap_notes": { "type": "string" },
-        "print_watertight": { "type": "boolean" },
-        "print_tris": { "type": "integer" },
-        "print_height_mm": { "type": "number" },
-        "min_wall_ok": { "type": "boolean" },
-        "min_wall_mm": { "type": ["number", "null"] },
-        "paint_mask_pct": { "type": "number" },
-        "uv_layout_hash": { "type": "string" },
-        "topology_hash": { "type": "string" },
-        "total_ms": { "type": "integer" }
+        "iou_mean": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "iou_views": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "segmentation_valid": {
+          "type": "boolean",
+          "description": "Stage E labelled every schema part, sides and landmarks consistently (decision 116)."
+        },
+        "segmentation_notes": {
+          "type": "string"
+        },
+        "segmentation_version": {
+          "type": "string",
+          "description": "The segmentation schema the parts follow (data/segmentation/)."
+        },
+        "mesh_id": {
+          "type": "string",
+          "pattern": "^m_[0-9a-f]{16}$",
+          "description": "Content hash of the figurine's own mesh; equal ids mean a shared mesh."
+        },
+        "figure_tris": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "print_watertight": {
+          "type": "boolean"
+        },
+        "print_tris": {
+          "type": "integer"
+        },
+        "print_height_mm": {
+          "type": "number"
+        },
+        "min_wall_ok": {
+          "type": "boolean"
+        },
+        "min_wall_mm": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "paint_mask_pct": {
+          "type": "number"
+        },
+        "uv_layout_hash": {
+          "type": "string",
+          "description": "Of the figurine's own mesh (its triangles / its UVs)."
+        },
+        "topology_hash": {
+          "type": "string",
+          "description": "Of the figurine's own mesh (its triangles / its UVs)."
+        },
+        "total_ms": {
+          "type": "integer"
+        }
       }
     }
   },
   "$defs": {
-    "stage": { "enum": ["A", "control", "B", "C", "D", "E", "F"] },
-    "kind": { "enum": ["spec", "control", "concept", "view", "shape", "wrapped", "uv_obj", "albedo", "glb", "3mf", "stl", "mask", "turntable", "thumbnail", "manifest"] }
+    "stage": {
+      "enum": [
+        "A",
+        "control",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ]
+    },
+    "kind": {
+      "enum": [
+        "spec",
+        "control",
+        "concept",
+        "view",
+        "shape",
+        "segmented",
+        "uv_obj",
+        "albedo",
+        "glb",
+        "3mf",
+        "stl",
+        "mask",
+        "turntable",
+        "thumbnail",
+        "manifest"
+      ]
+    }
   }
 }

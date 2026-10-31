@@ -46,6 +46,42 @@ def load_base(species: str, base_dir: str | None = None):
     return obj
 
 
+def figure_object(mesh):
+    """A Blender object built from a figurine mesh package (petpop_library.figure): polygons, its own UVs and the
+    part weights as vertex groups."""
+    starts, totals = np.asarray(mesh.poly_start), np.asarray(mesh.poly_total)
+    loops = np.concatenate([np.arange(s, s + n) for s, n in zip(starts, totals)])
+    me = bpy.data.meshes.new("figure")
+    me.from_pydata([tuple(p) for p in mesh.co], [], [tuple(int(v) for v in mesh.loops_v[s:s + n]) for s, n in zip(starts, totals)])
+    me.update()
+    uvl = me.uv_layers.new(name="UVMap")
+    uvl.data.foreach_set("uv", np.asarray(mesh.uv[loops], np.float32).ravel())
+    obj = bpy.data.objects.new("figure", me)
+    bpy.context.scene.collection.objects.link(obj)
+    for name, w in zip(mesh.group_names, mesh.groups):
+        vg = obj.vertex_groups.new(name=name)
+        for value in np.unique(np.round(w[w > 0.01], 2)):
+            vg.add([int(i) for i in np.nonzero(np.abs(w - value) < 0.005)[0]], float(value), "REPLACE")
+    return obj
+
+
+def mesh_and_object(job: dict):
+    """(numpy mesh, coords, Blender object) for a stage job: the figurine mesh when the job names one
+    (decision 116), otherwise the species template moved to the job's coords (library compositions)."""
+    if job.get("mesh"):
+        from petpop_library import figure
+
+        mesh = figure.load(job["mesh"])
+        return mesh, mesh.co.astype(np.float64), figure_object(mesh)
+    from petpop_library.meshkit import load_base as np_base
+
+    mesh = np_base(job["species"])
+    co = np.load(job["coords"]).astype(np.float64)
+    obj = load_base(job["species"])
+    set_coords(obj, co)
+    return mesh, co, obj
+
+
 def set_coords(obj, co: np.ndarray) -> None:
     """Replace vertex positions (same order), dropping shape keys: the result is the morphed/wrapped mesh."""
     if obj.data.shape_keys:

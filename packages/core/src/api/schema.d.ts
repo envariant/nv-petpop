@@ -684,7 +684,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "spec" | "control" | "concept" | "view" | "shape" | "wrapped" | "uv_obj" | "albedo" | "glb" | "3mf" | "stl" | "mask" | "turntable" | "thumbnail" | "manifest";
+            kind: "spec" | "control" | "concept" | "view" | "shape" | "segmented" | "uv_obj" | "albedo" | "glb" | "3mf" | "stl" | "mask" | "turntable" | "thumbnail" | "manifest";
             /** Name */
             name: string;
             /** Stage */

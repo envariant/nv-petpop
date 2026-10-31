@@ -104,21 +104,45 @@ def bake_albedo(base: BaseMesh, spec: dict[str, Any], co: np.ndarray, size: int 
     return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8), "RGB")
 
 
-def print_mesh(base: BaseMesh, co: np.ndarray):
-    """Join shells, fuse the base disc and cut the mandrel socket; manifold booleans keep it watertight."""
+def _closed(mesh, pitch: float = 0.6):
+    """A watertight stand-in for an open generated surface: voxelised, filled and re-meshed."""
     import trimesh
+
+    if mesh.is_watertight:
+        return mesh
+    vox = mesh.voxelized(pitch).fill()
+    out = vox.marching_cubes
+    out.apply_transform(vox.transform)
+    trimesh.repair.fix_normals(out)
+    return out
+
+
+def print_mesh(base: BaseMesh, co: np.ndarray, accessories: list | None = None):
+    """Join shells (or the figurine's one surface) and its accessories, fuse the base disc and cut the mandrel
+    socket; manifold booleans keep it watertight."""
+    import trimesh
+
+    from petpop_library.accessories import placed
 
     cfg = mandrel()
     parts = []
-    for s in range(7):
-        m = base.shell[base.tri_verts[:, 0]] == s
-        part = trimesh.Trimesh(co, base.tri_verts[m], process=True)
-        part.remove_unreferenced_vertices()
-        part.merge_vertices()
-        part.fix_normals()  # strong morphs can turn a small shell inside out
-        if part.volume < 0:
-            part.invert()
-        parts.append(part)
+    if base.source == "generated":  # one generated surface (decision 116), closed if the generator left gaps
+        whole = trimesh.Trimesh(co, base.tri_verts, process=True)
+        whole.fix_normals()
+        parts.append(_closed(whole))
+    else:
+        for s in range(7):
+            m = base.shell[base.tri_verts[:, 0]] == s
+            part = trimesh.Trimesh(co, base.tri_verts[m], process=True)
+            part.remove_unreferenced_vertices()
+            part.merge_vertices()
+            part.fix_normals()  # strong morphs can turn a small shell inside out
+            if part.volume < 0:
+                part.invert()
+            parts.append(part)
+    av, af = placed(accessories or [], co, base.landmarks, base.shell)
+    if len(av):
+        parts.append(_closed(trimesh.Trimesh(av, af, process=True)))
     disc = trimesh.creation.cylinder(radius=cfg["base_disc"]["diameter_mm"] / 2,
                                      height=cfg["base_disc"]["thickness_mm"], sections=96)
     disc.apply_translation([0, 0, -cfg["base_disc"]["thickness_mm"] / 2 + 0.6])

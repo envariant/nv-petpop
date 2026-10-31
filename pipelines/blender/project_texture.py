@@ -115,10 +115,11 @@ def main(job: dict) -> dict:
 
     from PIL import Image
 
+    from petpop_library import figure
     from petpop_library.meshkit import load_base
 
     spec = json.loads(Path(job["spec"]).read_text())
-    base = load_base(spec["species"])
+    base = figure.load(job["mesh"]) if job.get("mesh") else load_base(spec["species"])
     co = np.load(job["coords"]).astype(np.float64)
     views = {k: np.asarray(Image.open(v).convert("RGBA"), dtype=np.float32) / 255.0 for k, v in job["views"].items()}
     img = project(base, spec, co, views, int(job["size"]), float(job.get("power", 2.0)), int(job.get("seam_pad", 2)))

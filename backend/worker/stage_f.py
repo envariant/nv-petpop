@@ -1,6 +1,7 @@
-"""Stage F: texture bake and export (BRIEF Section 6.6): albedo in the fixed UV layout with per-region colour
-correction and seam padding, figure_uv.obj, the print mesh (STL + 3MF), the paint check mask, the Draco GLB,
-thumbnail and turntable."""
+"""Stage F: texture bake and export (BRIEF Section 6.6) on the figurine's own mesh (decision 116): the albedo in
+its UVs (the provider's texture, or views projected, with per-part colour correction and seam padding),
+figure_uv.obj, parts.png, the print mesh (STL + 3MF), the paint check mask, the Draco GLB, thumbnail and
+turntable."""
 from __future__ import annotations
 
 import io
@@ -13,7 +14,8 @@ import numpy as np
 from PIL import Image
 
 from backend.core import lowfi
-from petpop_library.meshkit import dilate, load_base, raster_uv, to_trimesh, write_obj
+from petpop_library import figure
+from petpop_library.meshkit import dilate, raster_uv, to_trimesh, write_obj
 
 from . import blender
 from .backends.mock.pacing import Pace
@@ -63,27 +65,32 @@ def albedo_vertex_colours(base, albedo_png: bytes) -> np.ndarray:
 def run(job_id, spec, manifest, *, ctx) -> list[str]:
     ctx.check_fault("F")
     spec = json.loads(ctx.get("spec.json"))
-    base = load_base(spec["species"])
-    coords = np.load(io.BytesIO(ctx.get("wrapped_coords.npy"))).astype(np.float64)
+    mesh = figure.load(ctx.get("figure_mesh.npz"))
     keys: list[str] = []
     with Pace("F"):
         views = {v: ctx.get(f"views/{v}.png") for v in ("front", "left", "back", "right")
                  if ctx.store.exists(ctx.key(f"views/{v}.png"))}
-        albedo_png = ctx.backends.texture.paint(ctx, spec, ctx.get("figure_wrapped.obj"), coords, views)
+        albedo_png = ctx.backends.texture.paint(ctx, spec, mesh, views)
         keys.append(ctx.put(manifest, "albedo.png", "albedo", "F", albedo_png))
+        keys.append(ctx.put(manifest, "parts.png", "mask", "F", figure.parts_png(mesh, int(ctx.quality["mask_px"]))))
         from petpop_library.colouring import vertex_colours
 
-        metrics, more = finish_export(ctx, manifest, spec, base, coords, albedo_png,
-                                      thumb_colours=lambda: vertex_colours(base, spec, coords))
+        # A generated mesh already carries the accessories the generator drew; the template does not.
+        accessories = spec.get("accessories", []) if mesh.source == "template" else []
+        metrics, more = finish_export(ctx, manifest, spec, mesh, mesh.co, albedo_png, accessories=accessories,
+                                      thumb_colours=lambda: vertex_colours(mesh, spec, mesh.co))
         keys += more
         ctx.state["f_metrics"] = metrics
     return keys
 
 
-def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_colours=None) -> tuple[dict, list[str]]:
+def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_colours=None,
+                  accessories: list | None = None) -> tuple[dict, list[str]]:
     """The print half of Stage F, shared by the pipeline and the kiosk's library export (BRIEF Section 16): the UV
     OBJ, the print mesh with base disc and mandrel socket (accessories and shell parts fused), the print and paint
-    checks, the GLB, thumbnail and turntable. Returns (metrics, artefact keys)."""
+    checks, the GLB, thumbnail and turntable. `base` is the figurine's mesh (a figure mesh, or the template whose
+    vertices `coords` moves). Returns (metrics, artefact keys)."""
+    accessories = spec.get("accessories", []) if accessories is None else accessories
     q = ctx.quality
     keys: list[str] = []
     work = ctx.workdir("export")
@@ -93,13 +100,17 @@ def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_co
     albedo_path = work / "albedo.png"
     albedo_path.write_bytes(albedo_png)
     np.save(work / "coords.npy", coords.astype(np.float32))
+    job = {"species": spec["species"], "coords": str(work / "coords.npy")}
+    if base.mesh_id:  # a figurine mesh: the Blender stages build it from the package, not from the template
+        (work / "figure_mesh.npz").write_bytes(figure.save(base))
+        job["mesh"] = str(work / "figure_mesh.npz")
     metrics: dict = {}
     import trimesh
 
     if blender.available(ctx.settings.bpy_python):
         res = blender.run(ctx.settings.bpy_python, ["export_print", "paint_check", "preview"], {
-            "species": spec["species"], "coords": str(work / "coords.npy"), "albedo": str(albedo_path),
-            "accessories": spec.get("accessories", []), "quality": q, "out_dir": str(work)}, timeout=ctx.remaining())
+            **job, "albedo": str(albedo_path), "accessories": accessories, "quality": q, "out_dir": str(work)},
+            timeout=ctx.remaining())
         stl = Path(res["stl"]).read_bytes()
         flags = np.load(res["flags"]).astype(np.float32)
         glb = Path(res["glb"]).read_bytes()
@@ -111,7 +122,7 @@ def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_co
         turntable = encode_mp4(Path(res["frames_dir"]), int(res["fps"]), mp4)
     else:
         ctx.state["fidelity"] = "low"
-        pm = lowfi.print_mesh(base, coords)
+        pm = lowfi.print_mesh(base, coords, accessories)
         stl = pm.export(file_type="stl")
         mask_img, _ = lowfi.paint_check(base, coords, int(q["mask_px"]))
         flags = None

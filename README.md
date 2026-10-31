@@ -32,7 +32,7 @@ make regress        # 30-pet regression set -> tests/regression/metrics.md
 | `backend/api/` | FastAPI app: contract routers (`/kiosk`, `/studio`), auth, DB, artefact store, queue/event bus |
 | `backend/core/` | runtime settings and GenAI profiles |
 | `backend/worker/` | workers for the `studio` and `kiosk` queues, StageRunner, `stage_a.py` to `stage_f.py`, adapters |
-| `pipelines/blender/` | bpy scripts: control renders, wrap, bake, print export, paint check, preview |
+| `pipelines/blender/` | bpy scripts: control renders, UV unwrap, bake, print export, paint check, preview |
 | `pipelines/comfy/` | workflow manifests for the GPU host (S3) |
 | `assets/` | proxy base meshes, accessory library, selector tiles, LoRA tooling |
 | `data/` | JSON Schemas, vocab, OpenAPI, breed presets |

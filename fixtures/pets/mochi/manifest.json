@@ -239,8 +239,8 @@
    0.9526,
    0.9697
   ],
-  "wrap_valid": true,
-  "wrap_notes": "inverted 0, laplacian x0.91, self-intersections 72",
+  "segmentation_valid": true,
+  "segmentation_notes": "inverted 0, laplacian x0.91, self-intersections 72",
   "print_tris": 29962,
   "print_height_mm": 86.87,
   "min_wall_mm": 0.42,

@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.4.0"
+API_VERSION = "3.5.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -20,7 +20,7 @@ Stage = Literal["queued", "A", "control", "B", "C", "D", "E", "F", "done"]
 Fallback = Literal["none", "single_view", "parametric", "unwrapped"]
 Role = Literal["operator", "curator", "admin"]
 JobKind = Literal["pipeline", "bespoke", "export", "batch"]
-ArtefactKind = Literal["spec", "control", "concept", "view", "shape", "wrapped", "uv_obj", "albedo", "glb", "3mf",
+ArtefactKind = Literal["spec", "control", "concept", "view", "shape", "segmented", "uv_obj", "albedo", "glb", "3mf",
                        "stl", "mask", "turntable", "thumbnail", "manifest"]
 
 

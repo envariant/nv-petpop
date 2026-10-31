@@ -39,6 +39,9 @@ class BaseMesh:
     mask_names: list[str]
     masks: np.ndarray         # (k, n)
     landmarks: dict[str, int]
+    mesh_id: str = ""          # a figurine mesh's identity (petpop_library.figure); "" for a template
+    schema_version: str = ""   # the segmentation schema its parts follow (decision 116)
+    source: str = ""           # "generated" (Stage D's mesh) or "template" (the morphed template as a figurine)
 
     def group(self, name: str) -> np.ndarray:
         return self.groups[self.group_names.index(name)]
@@ -82,39 +85,66 @@ def load_base(species: str, base_dir: str | None = None) -> BaseMesh:
 # --------------------------------------------------------------------------- UV-space rasterisation
 
 def raster_uv(base: BaseMesh, values: np.ndarray, size: int, per_face: bool = False) -> tuple[np.ndarray, np.ndarray]:
-    """Rasterise per-vertex (n, C) or per-triangle (t, C) values into the UV atlas. Returns (img, coverage)."""
+    """Rasterise per-vertex (n, C) or per-triangle (t, C) values into the UV atlas. Returns (img, coverage).
+
+    Triangles are drawn in index order and a later triangle overwrites an earlier one, exactly as a loop over
+    them would; consecutive triangles are evaluated together in batches, so large figurine meshes (decision 116)
+    rasterise in seconds."""
     vals = values if values.ndim == 2 else values[:, None]
     c = vals.shape[1]
     img = np.zeros((size, size, c), np.float32)
     cov = np.zeros((size, size), bool)
     uvs = base.uv[base.tri_loops] * (size - 1)  # (t, 3, 2)
     uvs[..., 1] = (size - 1) - uvs[..., 1]      # image rows go down
-    for ti in range(len(uvs)):
-        (x0, y0), (x1, y1), (x2, y2) = uvs[ti]
-        minx, maxx = int(math.floor(min(x0, x1, x2))), int(math.ceil(max(x0, x1, x2)))
-        miny, maxy = int(math.floor(min(y0, y1, y2))), int(math.ceil(max(y0, y1, y2)))
-        minx, miny = max(minx, 0), max(miny, 0)
-        maxx, maxy = min(maxx, size - 1), min(maxy, size - 1)
-        if maxx < minx or maxy < miny:
+    x0, y0, x1, y1, x2, y2 = (uvs[:, k, d] for k in range(3) for d in range(2))
+    minx = np.maximum(np.floor(np.minimum(np.minimum(x0, x1), x2)).astype(np.int64), 0)
+    maxx = np.minimum(np.ceil(np.maximum(np.maximum(x0, x1), x2)).astype(np.int64), size - 1)
+    miny = np.maximum(np.floor(np.minimum(np.minimum(y0, y1), y2)).astype(np.int64), 0)
+    maxy = np.minimum(np.ceil(np.maximum(np.maximum(y0, y1), y2)).astype(np.int64), size - 1)
+    den = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
+    ok = (maxx >= minx) & (maxy >= miny) & (np.abs(den) >= 1e-12)
+    w = np.where(ok, maxx - minx + 1, 0)
+    h = np.where(ok, maxy - miny + 1, 0)
+    t_all = len(uvs)
+    start = 0
+    budget = 1 << 21  # texel evaluations per batch
+    while start < t_all:
+        end, bw, bh = start, 1, 1
+        while end < t_all:
+            nw, nh = max(bw, int(w[end])), max(bh, int(h[end]))
+            if end > start and (end - start + 1) * nw * nh > budget:
+                break
+            bw, bh, end = nw, nh, end + 1
+        idx = np.arange(start, end)
+        idx = idx[ok[idx]]
+        start = end
+        if not len(idx):
             continue
-        xs, ys = np.meshgrid(np.arange(minx, maxx + 1) + 0.0, np.arange(miny, maxy + 1) + 0.0)
-        den = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
-        if abs(den) < 1e-12:
-            continue
-        a = ((y1 - y2) * (xs - x2) + (x2 - x1) * (ys - y2)) / den
-        b = ((y2 - y0) * (xs - x2) + (x0 - x2) * (ys - y2)) / den
+        gx = minx[idx][:, None, None] + np.arange(bw)[None, None, :] + 0.0
+        gy = miny[idx][:, None, None] + np.arange(bh)[None, :, None] + 0.0
+        X0, Y0, X1, Y1, X2, Y2, D = (a[idx][:, None, None] for a in (x0, y0, x1, y1, x2, y2, den))
+        a = ((Y1 - Y2) * (gx - X2) + (X2 - X1) * (gy - Y2)) / D
+        b = ((Y2 - Y0) * (gx - X2) + (X0 - X2) * (gy - Y2)) / D
         g = 1 - a - b
         inside = (a >= -0.02) & (b >= -0.02) & (g >= -0.02)
-        if not inside.any():
+        inside &= (gx <= maxx[idx][:, None, None]) & (gy <= maxy[idx][:, None, None])
+        ti, ry, rx = np.nonzero(inside)
+        if not len(ti):
             continue
+        yy = (miny[idx][ti] + ry).astype(np.int64)
+        xx = (minx[idx][ti] + rx).astype(np.int64)
         if per_face:
-            col = np.broadcast_to(vals[ti], (inside.sum(), c))
+            col = vals[idx[ti]]
         else:
-            tv = base.tri_verts[ti]
-            col = a[inside][:, None] * vals[tv[0]] + b[inside][:, None] * vals[tv[1]] + g[inside][:, None] * vals[tv[2]]
-        yy, xx = ys[inside].astype(int), xs[inside].astype(int)
-        img[yy, xx] = col
-        cov[yy, xx] = True
+            tv = base.tri_verts[idx[ti]]
+            aa, bb, cc = a[ti, ry, rx][:, None], b[ti, ry, rx][:, None], g[ti, ry, rx][:, None]
+            col = aa * vals[tv[:, 0]] + bb * vals[tv[:, 1]] + cc * vals[tv[:, 2]]
+        lin = yy * size + xx
+        # The last triangle (highest index) to cover a texel wins, as in a sequential loop.
+        _, last = np.unique(lin[::-1], return_index=True)
+        last = len(lin) - 1 - last
+        img[yy[last], xx[last]] = col[last]
+        cov[yy[last], xx[last]] = True
     return img, cov
 
 

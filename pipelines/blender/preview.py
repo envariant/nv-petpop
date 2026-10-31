@@ -6,18 +6,13 @@ from pathlib import Path
 import bpy  # noqa: I001
 import numpy as np
 
-from common import activate, add_accessories, assign_material, image_material, load_base, ortho_camera, render_to, reset, scene_setup, set_coords
+from common import activate, add_accessories, assign_material, image_material, mesh_and_object, ortho_camera, render_to, reset, scene_setup
 
 
 def main(job: dict) -> dict:
-    from petpop_library.meshkit import load_base as np_base
-
     q = job["quality"]
     reset()
-    base = np_base(job["species"])
-    co = np.load(job["coords"]).astype(np.float64)
-    obj = load_base(job["species"])
-    set_coords(obj, co)
+    base, co, obj = mesh_and_object(job)
     obj.vertex_groups.clear()
     assign_material(obj, image_material("vinyl", job["albedo"], roughness=0.55))
     accs = add_accessories(job.get("accessories", []), co, base.landmarks, base.shell)

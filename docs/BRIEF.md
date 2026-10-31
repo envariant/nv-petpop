@@ -356,7 +356,7 @@ backend/api/           FastAPI app: routers kiosk/ and studio/, schemas, auth
 backend/worker/        arq workers on two queues (kiosk, studio), StageRunner, stage_a.py to stage_f.py, backends/{real,mock}/
 backend/prompts/       Jinja templates, compiler.py, vocab loader
 pipelines/comfy/       generated workflow JSONs (API format), node + model manifests
-pipelines/blender/     bpy scripts: render_control.py, wrap.py, bake.py, export_print.py, paint_check.py
+pipelines/blender/     bpy scripts: render_control.py, unwrap.py, bake.py, export_print.py, paint_check.py
 config/genai/          mock.yaml, mac-m4pro.yaml, nvidia-24gb.yaml
 mac/                   Mac GenAI host kit: setup, launchd units, tunnel, models
 assets/base/dog/, cat/ base .blend + exported GLB, landmarks.json, morph list

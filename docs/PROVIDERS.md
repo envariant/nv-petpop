@@ -28,15 +28,17 @@ capabilities:
 
 ```
 concept (Tripo text-to-image) -> border-key matte (local) -> [no Stage C] -> Tripo image-to-model (textured)
-  -> texture-keeping normalisation -> Stage E wrap onto the base mesh -> Stage F: texture TRANSFER onto the base UVs
+  -> texture-keeping normalisation -> Stage E labels Tripo's mesh to the segmentation schema -> Stage F keeps
+     Tripo's texture in Tripo's UVs (the figurine is Tripo's mesh itself, decision 116)
 ```
 
 - Stage C is skipped (`image.views: none`): the shape comes from the concept alone, which stays truest to it
   (decision 107) and spends fewest credits. `shape.views: [front, left, back, right]` plus a views source would
   switch Stage D to multiview-to-model.
-- Stage F's `transfer` texture (pipelines/blender/transfer_texture.py) gives each texel of the base UV layout the
-  colour of the nearest point of the provider's own textured surface. Unlike projecting views onto the wrapped
-  mesh, nothing can ghost (decision 108).
+- Stage F's `transfer` texture keeps the provider's own texture image in the provider's own UVs: Stage E stores it as
+  `provider_albedo.png` and the figurine mesh keeps Tripo's UVs, so nothing is resampled and nothing can ghost
+  (decisions 108 and 116). A provider mesh without a texture image takes its colour by nearest surface point
+  (pipelines/blender/transfer_texture.py).
 - Each stage's manifest entry notes the provider task id and the credits it consumed; the job manifest records the
   provider manifest and version (`genai.models["provider.tripo"]`).
 
@@ -51,9 +53,9 @@ Studio picks per job: the profile ("Run on"), its pipeline and its quality switc
 
 | Switch | Default | Add-on | Note |
 | --- | --- | --- | --- |
-| HD texture | on | +10 | transferred onto the figurine as is |
-| HD geometry | off | +20 | the wrap onto the base mesh smooths some of it away |
-| Quad mesh | off | +5 | the base mesh's topology is used, so it does not reach the figurine |
+| HD texture | on | +10 | the figurine's texture as Tripo made it |
+| HD geometry | off | +20 | reaches the print: the figurine is Tripo's mesh (decision 116) |
+| Quad mesh | off | +5 | reaches the figurine's mesh (the print is re-meshed for watertightness either way) |
 
 Prices from developers.tripo3d.ai/en/pricing on 2026-10-31 (1 credit = $0.01; image models other than the default
 cost more). In manual mode the same requests run in Tripo Studio on its own credits.

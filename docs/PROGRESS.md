@@ -166,9 +166,12 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 - [x] Spec: brief Sections 1, 5, 6.5, 6.6, 10, 13, 14 and 16 and CLAUDE.md rewritten; `data/segmentation/{dog,cat}.json`
   (`seg-1`) and `data/schema/segmentation.schema.json`, checked against the template meshes
-- [ ] Pipeline: Stage E labels the generated mesh (template fit, nearest-point transfer of parts, regions and
-  landmarks; UV unwrap where a mesh has none); Stage F textures, exports and paint-checks the figurine's own mesh
-  (`figure_mesh.npz`, `parts.png`, `mesh_id` in the manifest); the provider texture is kept in its own UVs
+- [x] Pipeline (decision 117, API 3.5.0): Stage E labels the generated mesh (template fit, nearest-point transfer of
+  parts, regions and landmarks; UV unwrap where a mesh has none); Stage F textures, exports and paint-checks the
+  figurine's own mesh (`figure_mesh.npz`, `parts.png`, `mesh_id` in the manifest); the provider texture is kept in
+  its own UVs
+- [ ] Regenerate the fixture pack with `make fixtures` once library mode reads figure meshes (its manifests were
+  only renamed in place)
 - [ ] Library: releases of meshes keyed by `mesh_id`, families labelled with the breeds that share a mesh, part
   variants and stamps per mesh, the kiosk viewer loading one mesh per family; Studio publishes meshes
 - [ ] Experiment: Tripo segmentation and part completion as `segmentation.method: provider` and as cross-mesh parts

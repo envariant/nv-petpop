@@ -92,7 +92,7 @@ def run_export(ctx: StageContext, job_id: str, composition: dict[str, Any], comp
     ctx.progress("F", 40, "Preparing the print file")
     base = load_base(composition["species"])
     metrics, _ = finish_export(ctx, mb, spec_like, base, coords, albedo_png)
-    mb.metric(**metrics, wrap_valid=True, wrap_notes="library composition (no wrap)", uv_layout_hash=base.uv_hash(),
+    mb.metric(**metrics, segmentation_valid=True, segmentation_notes="library composition", uv_layout_hash=base.uv_hash(),
               topology_hash=base.topology_hash())
     mb.stage("F", "ok", int((time.perf_counter() - t0) * 1000), 1, "library-export")
     mb.data["fidelity"] = ctx.state.get("fidelity", "high")
