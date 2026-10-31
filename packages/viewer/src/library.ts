@@ -17,6 +17,7 @@ export interface MeshEntry {
   info: string;
   package: string;
   texture?: string | null;
+  coat_hex?: string | null;
   atlas: { size: number; mask_files: string[]; channels: Record<string, number> };
   breeds: string[]; // every breed whose family is built on this mesh: they share it
   version: number;

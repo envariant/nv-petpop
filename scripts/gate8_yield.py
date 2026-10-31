@@ -1,8 +1,8 @@
-"""Gate 8 on a GenAI host (BRIEF Section 16): 20 generated figurines yield at least 15 published parts sets with
-no manual mesh edits. A parts set is a figurine's family plus at least four of its five region parts (DECISIONS 78).
+"""Gate 8 on a GenAI host (BRIEF Section 16): 20 generated figurines yield at least 15 published meshes with valid
+segmentation and no manual mesh edits (decision 119: each figurine is a library mesh of its own, with its family).
 
 Runs a 20-figurine batch (20 dog breeds, preset, one seed) through the studio worker on the active GenAI profile,
-accepts and publishes every part that passed QC (no curator edits), and counts the parts sets. On the Mac this
+accepts and publishes every family that passed QC (no curator edits), and counts the published meshes. On the Mac this
 takes several hours; run it in the foreground on a quiet host.
 
     GENAI_PROFILE=mac-m4pro python scripts/gate8_yield.py
@@ -31,9 +31,9 @@ def main() -> int:
     api, worker = BackendApi(s), Worker(s, queue="studio")
     batch = accept_and_publish(api, run_batch(api, worker, "dog", breeds))
     sm = batch.summary
-    print(f"profile {s.profile}: {sm.figurines} figurines, {sm.failed} failed, {sm.passed_qc}/{sm.candidates} parts passed QC, "
-          f"{sm.parts_sets_published} parts sets published (need {NEED})")
-    return 0 if sm.parts_sets_published >= NEED else 1
+    print(f"profile {s.profile}: {sm.figurines} figurines, {sm.failed} failed, {sm.passed_qc}/{sm.candidates} passed QC, "
+          f"{sm.meshes_published} meshes published (need {NEED})")
+    return 0 if sm.meshes_published >= NEED else 1
 
 
 if __name__ == "__main__":

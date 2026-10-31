@@ -47,8 +47,8 @@ def load_base(species: str, base_dir: str | None = None):
 
 
 def figure_object(mesh):
-    """A Blender object built from a figurine mesh package (petpop_library.figure): polygons, its own UVs and the
-    part weights as vertex groups."""
+    """A Blender object built from a figurine mesh package (petpop_library.figure): polygons and its own UVs (no
+    stage reads vertex groups, so the part weights stay in the package)."""
     starts, totals = np.asarray(mesh.poly_start), np.asarray(mesh.poly_total)
     loops = np.concatenate([np.arange(s, s + n) for s, n in zip(starts, totals)])
     me = bpy.data.meshes.new("figure")
@@ -58,10 +58,6 @@ def figure_object(mesh):
     uvl.data.foreach_set("uv", np.asarray(mesh.uv[loops], np.float32).ravel())
     obj = bpy.data.objects.new("figure", me)
     bpy.context.scene.collection.objects.link(obj)
-    for name, w in zip(mesh.group_names, mesh.groups):
-        vg = obj.vertex_groups.new(name=name)
-        for value in np.unique(np.round(w[w > 0.01], 2)):
-            vg.add([int(i) for i in np.nonzero(np.abs(w - value) < 0.005)[0]], float(value), "REPLACE")
     return obj
 
 
@@ -72,6 +68,10 @@ def mesh_and_object(job: dict):
         from petpop_library import figure
 
         mesh = figure.load(job["mesh"])
+        if mesh.source == "template":  # the template's own topology: append it from its .blend, which is quicker
+            obj = load_base(mesh.species)
+            set_coords(obj, mesh.co)
+            return mesh, mesh.co.astype(np.float64), obj
         return mesh, mesh.co.astype(np.float64), figure_object(mesh)
     from petpop_library.meshkit import load_base as np_base
 

@@ -1,9 +1,10 @@
 """Gate 8: "a release bundle loads on a clean kiosk" (BRIEF Section 16).
 
 Studio side (one temporary install): a batch of real pipeline runs on the active GenAI profile (the mock profile's
-stand-ins in CI), curated into parts, the passing parts accepted and published, and a release packed.
-Kiosk side (a second, clean install: no proxy library, its own database and store): the bundle dropped in its
-inbox loads, becomes active, and a composition built from the new family and parts exports to a print bundle.
+stand-ins in CI), curated into library meshes (one per figurine, with its family; decision 119), the passing ones accepted and
+published, and a release packed. Kiosk side (a second, clean install: no proxy library, its own database and
+store): the bundle dropped in its inbox loads, becomes active, and a composition on a new figurine's own mesh
+exports to a print bundle.
 
     python scripts/gate8_clean_kiosk.py
 """
@@ -46,8 +47,8 @@ def main() -> int:
     batch = run_batch(api, worker, "dog", ["beagle", "border_collie"])
     batch = accept_and_publish(api, batch)
     summ = batch.summary
-    print(f"studio: {summ.figurines} figurines, {summ.passed_qc}/{summ.candidates} parts passed QC, {summ.published} published, "
-          f"{summ.parts_sets_published} parts sets")
+    print(f"studio: {summ.figurines} figurines, {summ.passed_qc}/{summ.candidates} passed QC, {summ.published} published, "
+          f"{summ.meshes_published} meshes")
     info = asyncio.run(api.create_release(m.ReleaseCreate(species="dog"), m.StaffUser(username="gate8", role="admin")))
     bundle = (s.release_inbox[0] / f"{info.release_version}.tar").read_bytes()
     manifest, _ = release.read(bundle)
@@ -74,11 +75,10 @@ def main() -> int:
     _, rel_files = rel_mod.read((kiosk_var / "inbox" / f"{info.release_version}.tar").read_bytes())
     comp = sample(rel, layers=3, stamps=20, pet_name="Fresh", files=rel_files)
     fams = [c for c in new_parts if c.kind == "family"]
-    if fams:
-        comp["family_id"] = fams[0].id
-    for c in new_parts:
-        if c.kind == "region":
-            comp["parts"][c.region] = c.id
+    if fams:  # a new figurine's family, on its own mesh: no part variants from another mesh, stamps on this mesh
+        fam = next(f for f in rel["families"] if f["id"] == fams[0].id)
+        comp = sample(rel, layers=3, stamps=20, pet_name="Fresh", files=rel_files, family=fam["id"])
+        ok &= fam["mesh_id"] in {me["id"] for me in rel["meshes"]} and fam["mesh_id"] == comp["mesh_id"]
     used = [comp["family_id"], *comp["parts"].values()]
     sess = asyncio.run(kiosk.create_session(m.SessionCreate(kiosk_id="clean-kiosk")))
     st = asyncio.run(kiosk.create_composition(m.CompositionCreate(session_id=sess.session_id, composition=comp), "http://kiosk"))

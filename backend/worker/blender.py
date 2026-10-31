@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import subprocess
 import tempfile
 from functools import lru_cache
@@ -10,6 +11,7 @@ from typing import Any
 
 from backend.core.paths import PIPELINES, ROOT
 
+log = logging.getLogger("petpop.blender")
 
 class BlenderError(RuntimeError):
     pass
@@ -42,4 +44,6 @@ def run(python: str, tasks: list[str], job: dict[str, Any], timeout: float) -> d
         merged: dict[str, Any] = {}
         for v in result["tasks"].values():
             merged.update(v)
+        merged["ms"] = {t: v.get("ms") for t, v in result["tasks"].items()}  # per task, for timing reports
+        log.info("blender %s", ", ".join(f"{t} {v.get('ms')} ms" for t, v in result["tasks"].items()))
         return merged

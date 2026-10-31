@@ -23,10 +23,13 @@ def test_fixture_pack():
         assert manifest["metrics"]["print_watertight"] is True
 
 
-def test_fixture_topology_identical_per_species():
+def test_fixture_pets_have_own_meshes_on_one_schema():
+    """Decision 116: every fixture pet is its own mesh (no shared topology), all labelled to one schema."""
     index = json.loads((FIXTURES / "index.json").read_text())["pets"]
-    by_species: dict[str, set] = {}
+    ids, schemas = set(), set()
     for pet in index:
         m = json.loads((FIXTURES / pet["id"] / "manifest.json").read_text())["metrics"]
-        by_species.setdefault(pet["species"], set()).add((m["topology_hash"], m["uv_layout_hash"]))
-    assert all(len(v) == 1 for v in by_species.values())
+        ids.add(m["mesh_id"])
+        schemas.add(m["segmentation_version"])
+        assert (FIXTURES / pet["id"] / "figure_mesh.npz").exists()
+    assert len(ids) == len(index) and schemas == {"seg-1"}

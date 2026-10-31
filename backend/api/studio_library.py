@@ -2,9 +2,11 @@
 versioning, and releases.
 
 - A batch is breeds x variants x seeds of `batch` jobs on the studio queue: the full pipeline (stages A to F, so
-  every figurine has a GLB and a turntable for review), then `curate()` in the studio worker extracts the family
-  and region deltas, runs the QC metrics and files every part as a draft, or as auto-rejected with its reasons.
-- Curators accept, reject and tag per region; publishing makes an item part of the next release. Editing a
+  every figurine has a GLB and a turntable for review), then `curate()` in the studio worker keeps the figurine's
+  own mesh (decision 119) with one family on it for its breed, runs the QC checks and files the family as a
+  draft, or as auto-rejected with its reasons.
+- Curators accept, reject, tag and add breeds (breeds on one family share its mesh and are labelled so);
+  publishing makes an item part of the next release. Editing a
   published item creates a new draft version; publishing it supersedes the old version.
 - `POST /studio/releases` packs the latest published version of every item into a signed release bundle
   (petpop_library.packer) and drops it in the kiosk's release inbox.
@@ -31,8 +33,8 @@ from petpop_core.breeds import all_breeds
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch, default_spec, fill_colour_names
 from petpop_library import content, figure, qc, release
-from petpop_library.deltas import REGIONS, decode, encode
-from petpop_library.extract import extract, normalised_weights
+from petpop_library.deltas import decode
+from petpop_library.extract import normalised_weights
 from petpop_library.meshkit import load_base
 from petpop_library.packer import pack
 
@@ -47,7 +49,7 @@ ROWS = {"family": FamilyRow, "region": RegionDeltaRow, "shell": ShellPartRow, "p
 MANIFEST_KIND = {"family": "families", "region": "region_deltas", "shell": "shell_parts", "pattern": "pattern_layers"}
 KIND_OF = {v: k for k, v in MANIFEST_KIND.items()}
 MAX_BATCH = 60
-PARTS_SET_MIN_REGIONS = 4  # a usable parts set: its family plus at least four of the five regions (DECISIONS 78)
+
 
 
 def aware(dt):
@@ -64,13 +66,21 @@ def mesh_key(species: str, mesh_id: str, name: str) -> str:
     return f"library/{species}/meshes/{mesh_id}/{name}"
 
 
-def put_mesh(store, mesh, meta: dict[str, Any], texture: bytes | None = None) -> str:
-    """Keep a library mesh in Studio's store (decision 118): its figure package and metadata (name, source job)."""
-    store.put(mesh_key(mesh.species, mesh.mesh_id, "figure_mesh.npz"), figure.save(mesh))
-    store.put(mesh_key(mesh.species, mesh.mesh_id, "meta.json"), json.dumps(meta, sort_keys=True).encode())
+def put_mesh(store, mesh, meta: dict[str, Any], texture: bytes | None = None,
+             prebuilt: tuple[dict[str, Any], dict[str, bytes]] | None = None) -> str:
+    """Keep a library mesh in Studio's store (decision 118): its figure package, metadata (name, source job) and its
+    release files, built here once (masks, texel maps and thumbnails take seconds) so packing a release is quick."""
+    sp, mid = mesh.species, mesh.mesh_id
+    store.put(mesh_key(sp, mid, "figure_mesh.npz"), figure.save(mesh))
+    store.put(mesh_key(sp, mid, "meta.json"), json.dumps(meta, sort_keys=True).encode())
     if texture is not None:
-        store.put(mesh_key(mesh.species, mesh.mesh_id, "texture.png"), texture)
-    return mesh.mesh_id
+        store.put(mesh_key(sp, mid, "texture.png"), texture)
+    entry, files = prebuilt or content.mesh_entry(mesh, meta["name"], [], int(meta.get("version", 1)), meta.get("source_job"),
+                                                  texture=texture)
+    for path, data in files.items():
+        store.put(mesh_key(sp, mid, f"release/{path}"), data)
+    store.put(mesh_key(sp, mid, "release.json"), json.dumps({"entry": entry, "files": sorted(files)}, sort_keys=True).encode())
+    return mid
 
 
 def get_mesh(store, species: str, mesh_id: str):
@@ -80,6 +90,10 @@ def get_mesh(store, species: str, mesh_id: str):
     tex = mesh_key(species, mesh_id, "texture.png")
     if store.exists(tex):
         meta["texture"] = store.get(tex)
+    built = mesh_key(species, mesh_id, "release.json")
+    if store.exists(built):
+        doc = json.loads(store.get(built))
+        meta["prebuilt"] = (doc["entry"], {p: store.get(mesh_key(species, mesh_id, f"release/{p}")) for p in doc["files"]})
     return mesh, meta
 
 
@@ -95,54 +109,55 @@ def template_mesh(store, species: str):
 
 # --------------------------------------------------------------------------- curation (studio worker)
 
+def mesh_qc(manifest: dict[str, Any]) -> dict[str, Any]:
+    """QC of a figurine as a library mesh (decision 119): it must be the generated mesh (no fallback to the
+    template), labelled validly to the schema, and printable."""
+    met, fallback = manifest["metrics"], manifest.get("fallback", "none")
+    reasons = []
+    if fallback not in ("none", "single_view"):
+        reasons.append(f"fallback {fallback}: the template shipped, not a generated mesh")
+    if not met.get("segmentation_valid", False):
+        reasons.append(f"segmentation: {met.get('segmentation_notes', 'invalid')}")
+    if not met.get("print_watertight", False):
+        reasons.append("print mesh is not watertight")
+    if met.get("min_wall_ok") is False:
+        reasons.append(f"walls thinner than the printer's minimum ({met.get('min_wall_mm')} mm)")
+    return {"mesh_id": met.get("mesh_id"), "segmentation_valid": bool(met.get("segmentation_valid", False)),
+            "segmentation_notes": met.get("segmentation_notes", ""), "print_watertight": bool(met.get("print_watertight", False)),
+            "min_wall_mm": met.get("min_wall_mm"), "figure_tris": met.get("figure_tris"), "fallback": fallback,
+            "passed": not reasons, "reasons": reasons}
+
+
 def curate(db_factory, store, job_id: str) -> dict[str, Any]:
-    """Extract and QC one finished batch figurine; file its family and region parts as drafts or rejections."""
+    """File one finished batch figurine as a library mesh of its own (decision 119): its mesh, with the texture
+    the pipeline made for it, and one family on that mesh for its breed, as a draft (or a rejection with QC
+    reasons). Other breeds can be added to the family later; they then share the mesh and are labelled so."""
     with db_factory() as db:
         job = db.get(JobRow, job_id)
         batch = db.get(CurationBatchRow, job.batch_id)
         spec, info = job.pet_spec, batch.spec["jobs"][job_id]
     species = spec["species"]
-    base = load_base(species)
-    mesh_id = template_mesh(store, species).mesh_id
-    # Until Studio publishes figurines as meshes of their own (Track E, L2), parts are measured on the template
-    # as Stage E fitted it to the figurine, and filed as variants of the template mesh.
-    coords = np.load(io.BytesIO(store.get(f"jobs/{job_id}/template_fit.npy"))).astype(np.float64)
     manifest = json.loads(store.get(f"jobs/{job_id}/manifest.json"))
-    wrap_valid = bool(manifest["metrics"].get("segmentation_valid", True)) and manifest.get("fallback") in ("none", "single_view")
-    ps = extract(base, coords)
-    report = qc.evaluate(base, ps, wrap_valid=wrap_valid)
+    q = mesh_qc(manifest)
+    mesh = figure.load(store.get(f"jobs/{job_id}/figure_mesh.npz"))
     tag = job_id[2:8]
     breed, variant = info["breed"], info["variant"]
     label = next((b["label"] for b in all_breeds(species) if b["id"] == breed), breed)
-    weights = normalised_weights(base)
-    tags = [f"breed:{breed}", f"variant:{variant}"]
-    now = utcnow()
-    rows = []
-    for region in REGIONS:
-        rid = f"{region}_{breed}_{tag}"
-        q = report["regions"][region]
-        files = {"delta": item_key(species, "region", rid, 1, "delta.f16"), "thumbnail": item_key(species, "region", rid, 1, "thumb.png")}
-        store.put(files["delta"], encode(ps.parts[region]))
-        store.put(files["thumbnail"], content.thumbnail(base, base.co + ps.parts[region], content.highlight(base, weights[region])))
-        rows.append(RegionDeltaRow(id=rid, version=1, species=species, base_mesh_version=figure.schema(species)["schema_version"], mesh_id=mesh_id,
-                                   name=f"{label} {region} ({variant})", region=region, status="draft" if q["passed"] else "rejected",
-                                   tags=tags, files=files, meta={"qc": q, "auto_rejected": not q["passed"]}, batch_id=batch.id,
-                                   source_job=job_id, created_at=now))
+    albedo = f"jobs/{job_id}/albedo.png"
+    put_mesh(store, mesh, {"name": f"{label} ({variant})", "source_job": job_id, "version": 1},
+             store.get(albedo) if store.exists(albedo) else None)
     fid = f"family_{breed}_{tag}"
-    q = report["regions"]["family"]
-    files = {"delta": item_key(species, "family", fid, 1, "delta.f16"), "thumbnail": item_key(species, "family", fid, 1, "thumb.png")}
-    store.put(files["delta"], encode(ps.family))
-    store.put(files["thumbnail"], content.thumbnail(base, ps.compose(base)))
-    rows.append(FamilyRow(id=fid, version=1, species=species, base_mesh_version=figure.schema(species)["schema_version"], mesh_id=mesh_id,
-                          name=f"{label} ({variant})", status="draft" if q["passed"] else "rejected", tags=tags, files=files,
-                          meta={"qc": q, "auto_rejected": not q["passed"], "wrap_valid": wrap_valid}, batch_id=batch.id,
-                          source_job=job_id, created_at=now, default_parts={r: f"{r}_{breed}_{tag}" for r in REGIONS},
-                          breeds=[breed]))
+    files = {"thumbnail": item_key(species, "family", fid, 1, "thumb.png")}
+    thumb = f"jobs/{job_id}/thumbnail.png"
+    store.put(files["thumbnail"], store.get(thumb) if store.exists(thumb) else content.thumbnail(mesh, mesh.co))
+    row = FamilyRow(id=fid, version=1, species=species, base_mesh_version=mesh.schema_version, mesh_id=mesh.mesh_id,
+                    name=f"{label} ({variant})", status="draft" if q["passed"] else "rejected", tags=[f"breed:{breed}", f"variant:{variant}"],
+                    files=files, meta={"qc": q, "auto_rejected": not q["passed"]}, batch_id=batch.id, source_job=job_id,
+                    created_at=utcnow(), default_parts={}, breeds=[breed])
     with db_factory() as db:
-        for r in rows:
-            db.merge(r)
+        db.merge(row)
         db.commit()
-    return report
+    return q
 
 
 # --------------------------------------------------------------------------- the service
@@ -169,9 +184,11 @@ class StudioLibrary:
         manifest, files = release.read(bundle)
         species, now = manifest["species"], utcnow()
         for me in manifest["meshes"]:
+            d = me["bin"].rsplit("/", 1)[0] + "/"  # the release's own files for the mesh are its prebuilt files
             put_mesh(self.store, figure.load(files[me["package"]]),
                      {"name": me["name"], "source_job": me.get("source_job"), "version": me["version"]},
-                     files[me["texture"]] if me.get("texture") else None)
+                     files[me["texture"]] if me.get("texture") else None,
+                     prebuilt=(me, {p: data for p, data in files.items() if p.startswith(d)}))
         # Pattern thumbnails are drawn on the first mesh (the template in the proxy release).
         atlas = manifest["meshes"][0]["atlas"]
         for i, path in enumerate(atlas["mask_files"]):
@@ -285,7 +302,7 @@ class StudioLibrary:
     def _batch_model(self, b: CurationBatchRow, figurines: list[m.BatchFigurine]) -> m.Batch:
         done = [f for f in figurines if f.status in ("done", "failed", "fulfilled")]
         cands = [c for f in figurines for c in f.candidates]
-        sets = sum(1 for f in figurines if parts_set_published(f.candidates))
+        meshes = sum(1 for f in figurines if mesh_published(f.candidates))
         status = b.status
         if status == "running" and figurines and len(done) == len(figurines):
             status = "review"
@@ -294,7 +311,7 @@ class StudioLibrary:
         summary = m.BatchSummary(figurines=len(figurines), finished=len(done), failed=sum(f.status == "failed" for f in figurines),
                                  candidates=len(cands), passed_qc=sum(not c.auto_rejected for c in cands),
                                  accepted=sum(c.status == "accepted" for c in cands), rejected=sum(c.status == "rejected" for c in cands),
-                                 published=sum(c.status == "published" for c in cands), parts_sets_published=sets)
+                                 published=sum(c.status == "published" for c in cands), meshes_published=meshes)
         return m.Batch(batch_id=b.id, species=b.species, status=status, created_by=b.created_by, created_at=aware(b.created_at),
                        request=b.spec["request"], genai_profile=b.genai_profile, pipeline=b.pipeline, options=b.options,
                        summary=summary,
@@ -307,7 +324,7 @@ class StudioLibrary:
 
     def _candidate(self, r) -> m.LibraryCandidate:
         kind = "family" if r.__tablename__ == "families" else "region"
-        return m.LibraryCandidate(id=r.id, version=r.version, kind=kind, region=getattr(r, "region", None), name=r.name, status=r.status,
+        return m.LibraryCandidate(id=r.id, version=r.version, kind=kind, region=getattr(r, "region", None), mesh_id=r.mesh_id, name=r.name, status=r.status,
                                   tags=r.tags, qc=r.meta.get("qc", {}), auto_rejected=bool(r.meta.get("auto_rejected")),
                                   thumbnail_url=self.url(r.files.get("thumbnail")))
 
@@ -345,7 +362,13 @@ class StudioLibrary:
         mine = (Row.species == row.species, Row.id == row.id)
         versions = sorted(db.scalars(select(Row.version).where(*mine)).all())
         published = db.scalars(select(Row.version).where(*mine, Row.status == "published")).first()
-        return m.LibraryItem(kind=kind, id=row.id, version=row.version, versions=versions, published_version=published,
+        mesh_id = getattr(row, "mesh_id", None)
+        shared: list[str] | None = None
+        if kind == "family" and mesh_id:  # other families on the same mesh: their breeds share it
+            others = db.scalars(select(FamilyRow).where(FamilyRow.species == row.species, FamilyRow.mesh_id == mesh_id,
+                                                        FamilyRow.id != row.id, FamilyRow.status != "rejected")).all()
+            shared = sorted({b for o in others for b in o.breeds})
+        return m.LibraryItem(mesh_id=mesh_id, shared_with=shared,kind=kind, id=row.id, version=row.version, versions=versions, published_version=published,
                              species=row.species, name=row.name, status=row.status, tags=row.tags,
                              region=getattr(row, "region", None), socket=getattr(row, "socket", None),
                              default_colour=getattr(row, "default_colour", None),
@@ -517,8 +540,10 @@ class StudioLibrary:
 def release_entries(latest: dict[str, list]) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     """Manifest entries (with source keys) for the published rows; problems that block a release."""
     problems = []
-    regions = {r: [row.id for row in latest["region"] if row.region == r] for r in REGIONS}
-    problems += [f"no published {r} part" for r, ids in regions.items() if not ids]
+    # Part variants are optional (a generated mesh has none, decision 119) and only ever belong to their own mesh.
+    regions = {(row.mesh_id, row.region): [] for row in latest["region"]}
+    for row in latest["region"]:
+        regions[(row.mesh_id, row.region)].append(row.id)
     if not latest["family"]:
         problems.append("no published family")
     if not latest["pattern"]:
@@ -526,9 +551,11 @@ def release_entries(latest: dict[str, list]) -> tuple[dict[str, list[dict[str, A
     items: dict[str, list[dict[str, Any]]] = {}
     items["families"] = [{"id": r.id, "name": r.name, "mesh_id": r.mesh_id, "delta": r.files.get("delta"), "breeds": r.breeds, "tags": r.tags,
                           "version": r.version, "thumbnail": r.files["thumbnail"], "source_job": r.source_job,
-                          # A default part that is not published falls back to the region's first published part.
-                          "default_parts": {reg: (pid if pid in regions.get(reg, []) else (regions[reg] or [pid])[0])
-                                            for reg, pid in r.default_parts.items()}} for r in latest["family"]]
+                          # A default part that is not published falls back to the first published part of that region
+                          # on the family's mesh, or is dropped when the mesh has none.
+                          "default_parts": {reg: (pid if pid in regions.get((r.mesh_id, reg), []) else regions[(r.mesh_id, reg)][0])
+                                            for reg, pid in r.default_parts.items() if regions.get((r.mesh_id, reg))}}
+                         for r in latest["family"]]
     items["region_deltas"] = [{"id": r.id, "name": r.name, "region": r.region, "mesh_id": r.mesh_id, "delta": r.files["delta"], "tags": r.tags,
                                "version": r.version, "thumbnail": r.files["thumbnail"], "source_job": r.source_job,
                                "curator_score": r.score} for r in latest["region"]]
@@ -541,7 +568,6 @@ def release_entries(latest: dict[str, list]) -> tuple[dict[str, list[dict[str, A
     return items, problems
 
 
-def parts_set_published(cands: list[m.LibraryCandidate]) -> bool:
-    fam = [c for c in cands if c.kind == "family" and c.status == "published"]
-    regions = {c.region for c in cands if c.kind == "region" and c.status == "published"}
-    return bool(fam) and len(regions) >= PARTS_SET_MIN_REGIONS
+def mesh_published(cands: list[m.LibraryCandidate]) -> bool:
+    """A figurine whose family, on its own mesh, is published (decision 119)."""
+    return any(c.kind == "family" and c.status == "published" for c in cands)

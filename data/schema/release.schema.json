@@ -402,7 +402,7 @@
             "string",
             "null"
           ],
-          "description": "The generator's own texture in the mesh's UVs, when it has one."
+          "description": "The figurine's own texture (the pipeline's albedo, decision 119), resampled to the atlas size: the base layer of a composition on this mesh, tinted by its base colour."
         },
         "atlas": {
           "type": "object",
@@ -457,6 +457,14 @@
         },
         "thumbnail": {
           "type": "string"
+        },
+        "coat_hex": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Mean colour of the texture outside the eyes and nose: a composition whose base colour equals it shows the texture untinted."
         }
       }
     }

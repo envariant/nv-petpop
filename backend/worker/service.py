@@ -126,12 +126,12 @@ class Worker:
         return result
 
     def curate(self, job_id: str) -> str:
-        """A batch figurine (M8): extract its family and region parts, run QC, file them for review."""
+        """A batch figurine (M8): keep its mesh with a family on it, run QC, file it for review (decision 119)."""
         from backend.api.studio_library import curate
 
         try:
             report = curate(self.db, self.store, job_id)
-            log.info("curated %s: passed %s", job_id, ", ".join(report["passed_regions"]) or "nothing")
+            log.info("curated %s: mesh %s %s", job_id, report["mesh_id"], "passed" if report["passed"] else f"rejected ({'; '.join(report['reasons'])})")
             return "done"
         except Exception as exc:  # noqa: BLE001 - the figurine stays visible in review with the error
             log.exception("curation of %s failed", job_id)

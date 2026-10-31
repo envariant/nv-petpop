@@ -8,12 +8,11 @@ import { assetUrl } from '@petpop/core';
 
 type Manifest = {
   release_version: string; number: number;
-  families: { id: string; name: string; tags: string[]; version: number; thumbnail: string; breeds: string[]; default_parts: Record<string, string> }[];
-  region_deltas: { id: string; name: string; region: string; tags: string[]; version: number; thumbnail: string }[];
+  families: { id: string; name: string; mesh_id: string; tags: string[]; version: number; thumbnail: string; breeds: string[]; default_parts: Record<string, string> }[];
+  region_deltas: { id: string; name: string; region: string; mesh_id: string; tags: string[]; version: number; thumbnail: string }[];
   shell_parts: { id: string; name: string; socket: string; default_colour: string; tags?: string[]; version: number; thumbnail: string }[];
   pattern_layers: { id: string; name: string; default_colour: string; coverage: { min: number; max: number; default: number }; tags?: string[]; version: number; thumbnail: string }[];
 };
-const REGIONS = ['ears', 'tail', 'muzzle', 'head', 'legs'];
 const FIGURINE_MS = 2500;
 const iso = (t: number) => new Date(t).toISOString();
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 12)}`;
@@ -31,11 +30,15 @@ function seed(): Promise<void> {
     const add = (it: Partial<LibraryItem> & { kind: ItemKind; id: string; name: string; thumbnail: string }) =>
       items.set(`${sp}/${it.id}`, {
         version: 1, versions: [1], published_version: 1, species: sp, status: 'published', tags: [], region: null, socket: null, default_colour: null,
-        coverage: null, breeds: null, default_parts: null, qc: null, source_job: null, batch_id: null, published_at: iso(Date.now()), ...it,
+        coverage: null, breeds: null, mesh_id: null, shared_with: null, default_parts: null, qc: null, source_job: null, batch_id: null, published_at: iso(Date.now()), ...it,
         thumbnail_url: t(it.thumbnail),
       } as LibraryItem);
-    m.families.forEach((f) => add({ kind: 'family', id: f.id, name: f.name, tags: f.tags, thumbnail: f.thumbnail, breeds: f.breeds, default_parts: f.default_parts }));
-    m.region_deltas.forEach((d) => add({ kind: 'region', id: d.id, name: d.name, tags: d.tags, thumbnail: d.thumbnail, region: d.region as LibraryItem['region'] }));
+    m.families.forEach((f) =>
+      add({
+        kind: 'family', id: f.id, name: f.name, tags: f.tags, thumbnail: f.thumbnail, breeds: f.breeds, default_parts: f.default_parts, mesh_id: f.mesh_id,
+        shared_with: [...new Set(m.families.filter((o) => o.mesh_id === f.mesh_id && o.id !== f.id).flatMap((o) => o.breeds))].sort(),
+      }));
+    m.region_deltas.forEach((d) => add({ kind: 'region', id: d.id, name: d.name, tags: d.tags, thumbnail: d.thumbnail, region: d.region as LibraryItem['region'], mesh_id: d.mesh_id }));
     m.shell_parts.forEach((s) => add({ kind: 'shell', id: s.id, name: s.name, tags: s.tags ?? [], thumbnail: s.thumbnail, socket: s.socket as LibraryItem['socket'], default_colour: s.default_colour }));
     m.pattern_layers.forEach((p) => add({ kind: 'pattern', id: p.id, name: p.name, tags: p.tags ?? [], thumbnail: p.thumbnail, default_colour: p.default_colour, coverage: p.coverage }));
     releases.push({ release_version: m.release_version, species: sp, number: m.number, created_by: 'import:proxy', created_at: iso(Date.now()), counts: { families: m.families.length, region_deltas: m.region_deltas.length, shell_parts: m.shell_parts.length, pattern_layers: m.pattern_layers.length }, bytes: 0, sha256: '', url: null });
@@ -43,25 +46,26 @@ function seed(): Promise<void> {
   return seeded;
 }
 
-/** A finished figurine's candidates: deterministic stand-in QC (a pug's muzzle folds, as on the real pipeline). */
+/** A finished figurine's candidate (decision 119): its family on its own mesh, with mesh QC (deterministic
+ *  stand-in: a flat-faced breed's muzzle does not segment, as can happen on the real pipeline). */
 function candidates(b: MockBatch, f: MockBatch['figs'][number]): LibraryCandidate[] {
   const tag = f.job_id.slice(2, 8);
-  const thumb = assetUrl(`fixtures/${f.pet}/thumbnail.png`);
-  const make = (kind: 'family' | 'region', region: string | null): LibraryCandidate => {
-    const id = kind === 'family' ? `family_${f.breed}_${tag}` : `${region}_${f.breed}_${tag}`;
-    const folded = region === 'muzzle' && /pug|bulldog|persian/.test(f.breed);
-    const qc = { symmetry_mm: region === 'tail' ? 1.2 : 0.3, boundary_strain: region === 'muzzle' ? 1.2 : 0.4, self_intersections: folded ? 58 : 0, passed: !folded, reasons: folded ? ['58 self-intersecting vertices'] : [] };
-    const existing = items.get(`${b.species}/${id}`);
-    return { id, version: existing?.version ?? 1, kind, region: region as LibraryCandidate['region'], name: `${f.breed} ${region ?? 'body'} (${f.variant})`, status: existing?.status ?? (folded ? 'rejected' : 'draft'), tags: existing?.tags ?? [`breed:${f.breed}`], qc, auto_rejected: folded, thumbnail_url: thumb };
-  };
-  return [make('family', null), ...REGIONS.map((r) => make('region', r))];
+  const id = `family_${f.breed}_${tag}`;
+  const bad = /pug|bulldog|persian/.test(f.breed);
+  const qc = { segmentation_valid: !bad, print_watertight: true, min_wall_mm: 2.1, figure_tris: 14512, passed: !bad, reasons: bad ? ['segmentation: missing muzzle'] : [] };
+  const existing = items.get(`${b.species}/${id}`);
+  return [{
+    id, version: existing?.version ?? 1, kind: 'family', region: null, mesh_id: `m_${tag.padEnd(16, '0')}`, name: `${f.breed} (${f.variant})`,
+    status: existing?.status ?? (bad ? 'rejected' : 'draft'), tags: existing?.tags ?? [`breed:${f.breed}`], qc, auto_rejected: bad,
+    thumbnail_url: assetUrl(`fixtures/${f.pet}/thumbnail.png`),
+  }];
 }
 
 function batchOf(b: MockBatch): Batch {
   const now = Date.now();
   const figurines: BatchFigurine[] = b.figs.map((f) => {
     const done = now >= f.at;
-    if (done) for (const c of candidates(b, f)) if (!items.has(`${b.species}/${c.id}`)) items.set(`${b.species}/${c.id}`, { kind: c.kind, id: c.id, version: 1, versions: [1], published_version: null, species: b.species, name: c.name, status: c.status, tags: c.tags, region: c.region, socket: null, default_colour: null, coverage: null, breeds: c.kind === 'family' ? [f.breed] : null, default_parts: null, qc: c.qc, source_job: f.job_id, batch_id: b.id, thumbnail_url: c.thumbnail_url, published_at: null });
+    if (done) for (const c of candidates(b, f)) if (!items.has(`${b.species}/${c.id}`)) items.set(`${b.species}/${c.id}`, { kind: c.kind, id: c.id, version: 1, versions: [1], published_version: null, species: b.species, name: c.name, status: c.status, tags: c.tags, region: c.region, socket: null, default_colour: null, coverage: null, breeds: c.kind === 'family' ? [f.breed] : null, mesh_id: c.mesh_id ?? null, shared_with: [], default_parts: null, qc: c.qc, source_job: f.job_id, batch_id: b.id, thumbnail_url: c.thumbnail_url, published_at: null });
     return {
       job_id: f.job_id, breed_id: f.breed, variant: f.variant, seed: f.seed, status: done ? 'done' : 'running', stage: done ? 'done' : 'D', error: null,
       glb_url: done ? assetUrl(`fixtures/${f.pet}/figure.glb`) : null, thumbnail_url: done ? assetUrl(`fixtures/${f.pet}/thumbnail.png`) : null,
@@ -70,11 +74,11 @@ function batchOf(b: MockBatch): Batch {
   });
   const cands = figurines.flatMap((f) => f.candidates);
   const finished = figurines.filter((f) => f.status === 'done').length;
-  const sets = figurines.filter((f) => f.candidates.some((c) => c.kind === 'family' && c.status === 'published') && f.candidates.filter((c) => c.kind === 'region' && c.status === 'published').length >= 4).length;
+  const meshes = figurines.filter((f) => f.candidates.some((c) => c.kind === 'family' && c.status === 'published')).length;
   return {
     batch_id: b.id, species: b.species, status: finished < figurines.length ? 'running' : cands.some((c) => c.status === 'draft' || c.status === 'accepted') ? 'review' : 'done',
     created_by: b.by, created_at: iso(b.created), request: b.request as unknown as Record<string, unknown>, figurines,
-    summary: { figurines: figurines.length, finished, failed: 0, candidates: cands.length, passed_qc: cands.filter((c) => !c.auto_rejected).length, accepted: cands.filter((c) => c.status === 'accepted').length, rejected: cands.filter((c) => c.status === 'rejected').length, published: cands.filter((c) => c.status === 'published').length, parts_sets_published: sets },
+    summary: { figurines: figurines.length, finished, failed: 0, candidates: cands.length, passed_qc: cands.filter((c) => !c.auto_rejected).length, accepted: cands.filter((c) => c.status === 'accepted').length, rejected: cands.filter((c) => c.status === 'rejected').length, published: cands.filter((c) => c.status === 'published').length, meshes_published: meshes },
   };
 }
 

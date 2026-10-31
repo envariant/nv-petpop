@@ -16,7 +16,7 @@ test('studio curation walkthrough: batch, review, publish, release', async ({ pa
   await page.getByTestId('accept-passing').tap();
   await expect(page.getByTestId('publish-accepted')).toBeEnabled();
   await page.getByTestId('publish-accepted').tap();
-  await expect(page.getByTestId('review')).toContainText('2 parts sets', { timeout: 60_000 });
+  await expect(page.getByTestId('review')).toContainText('2 meshes', { timeout: 60_000 });
   await shot('3-published');
 
   await page.getByTestId('nav-library').tap();

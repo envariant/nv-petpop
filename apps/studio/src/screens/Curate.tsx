@@ -117,7 +117,7 @@ export function GenerateScreen() {
             data-testid={`batch-${b.batch_id}`}
           >
             <span>
-              <b>{b.species}</b> · {b.summary.finished}/{b.summary.figurines} done · {b.summary.passed_qc}/{b.summary.candidates} parts pass QC · by {b.created_by}
+              <b>{b.species}</b> · {b.summary.finished}/{b.summary.figurines} done · {b.summary.passed_qc}/{b.summary.candidates} pass QC · {b.summary.meshes_published} meshes published · by {b.created_by}
               {b.genai_profile ? (
                 <span data-testid={`batch-profile-${b.batch_id}`}>
                   {' '}· on {b.genai_profile}
@@ -135,10 +135,17 @@ export function GenerateScreen() {
 
 // ------------------------------------------------------------------ Review grid
 function QcLine({ c }: { c: LibraryCandidate }) {
-  const q = c.qc as { symmetry_mm?: number; boundary_strain?: number; self_intersections?: number; reasons?: string[] };
+  const q = c.qc as {
+    symmetry_mm?: number; boundary_strain?: number; self_intersections?: number; reasons?: string[];
+    segmentation_valid?: boolean; print_watertight?: boolean; min_wall_mm?: number | null; figure_tris?: number | null;
+  };
+  // A curated figurine is a mesh of its own (decision 119): its QC is the segmentation and the print checks.
+  const meshQc = q.segmentation_valid !== undefined;
   return (
     <span className={cx('text-xl', c.auto_rejected ? 'text-accent2' : 'text-muted')} title={(q.reasons ?? []).join('; ')}>
-      sym {q.symmetry_mm?.toFixed(2)} mm · strain {q.boundary_strain?.toFixed(2)} · x {q.self_intersections}
+      {meshQc
+        ? `parts ${q.segmentation_valid ? 'labelled' : 'not labelled'} · ${q.print_watertight ? 'watertight' : 'leaky'} · ${q.figure_tris ?? '?'} tris`
+        : `sym ${q.symmetry_mm?.toFixed(2)} mm · strain ${q.boundary_strain?.toFixed(2)} · x ${q.self_intersections}`}
       {c.auto_rejected && ` · ${(q.reasons ?? [])[0] ?? 'rejected'}`}
     </span>
   );
@@ -153,7 +160,7 @@ function CandidateRow({ c }: { c: LibraryCandidate }) {
     <div className="flex items-center gap-4 border-t-2 border-line py-3" data-testid={`cand-${c.id}`}>
       {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="h-20 w-20 object-contain" />}
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-display text-2xl">{c.kind === 'family' ? 'Family' : label(c.region ?? '')}</span>
+        <span className="truncate font-display text-2xl">{c.kind === 'family' ? 'Family on its own mesh' : label(c.region ?? '')}</span>
         <QcLine c={c} />
       </div>
       <Status status={c.status} />
@@ -239,7 +246,7 @@ export function ReviewScreen() {
   const s = b.summary;
   return (
     <div className="no-scrollbar flex h-full flex-col overflow-y-auto px-12 pb-10 pt-24" data-testid="review">
-      <Title sub={`${s.finished}/${s.figurines} figurines done · ${s.passed_qc}/${s.candidates} parts pass QC · ${s.accepted} accepted · ${s.published} published · ${s.parts_sets_published} parts sets`}>
+      <Title sub={`${s.finished}/${s.figurines} figurines done · ${s.passed_qc}/${s.candidates} pass QC · ${s.accepted} accepted · ${s.published} published · ${s.meshes_published} meshes`}>
         Review {b.species} batch
       </Title>
       <Notice />
@@ -251,7 +258,7 @@ export function ReviewScreen() {
           Publish {accepted.length} accepted
         </Button>
       </div>
-      <p className="mb-4 text-xl text-muted">Fix in Blender: download a figurine's GLB from the queue, edit it on the base topology, and re-run it as a one-off; its parts come back here for review.</p>
+      <p className="mb-4 text-xl text-muted">Fix in Blender: download a figurine's GLB from the queue, edit it, and re-run it as a one-off; it comes back here as a mesh of its own for review.</p>
       {b.figurines.map((f) => (
         <FigurineCard key={f.job_id} f={f} />
       ))}
@@ -315,6 +322,12 @@ function Editor({ item }: { item: LibraryItem }) {
         <input className={field} value={name} onChange={(e) => setName(e.target.value)} data-testid="edit-name" aria-label="Name" />
         <input className={field} value={tags} onChange={(e) => setTags(e.target.value)} data-testid="edit-tags" aria-label="Tags" placeholder="tags, comma separated" />
         {item.kind === 'family' && <input className={field} value={breeds} onChange={(e) => setBreeds(e.target.value)} data-testid="edit-breeds" aria-label="Breeds" placeholder="breed ids" />}
+        {item.mesh_id && (
+          <p className="text-xl text-muted" data-testid="item-mesh">
+            Mesh {item.mesh_id}
+            {item.shared_with && item.shared_with.length > 0 ? ` · shared with ${item.shared_with.map((b) => label(b)).join(', ')}` : ' · not shared'}
+          </p>
+        )}
         {(item.kind === 'shell' || item.kind === 'pattern') && (
           <Row>
             {COLOURS.map((h) => (

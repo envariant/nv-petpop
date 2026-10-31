@@ -11,6 +11,8 @@ the print matches the kiosk screen. The kiosk does the same maths: stamps with p
 - A stamp (p, r, colour) paints every texel whose 3D base-mesh position lies within r of p, soft over
   FEATHER_MM: a = clamp((r - d) / FEATHER_MM + 0.5, 0, 1), composited "over" in order into an RGBA stamp layer
   that is quantised to 8 bits (it is an 8-bit texture on the kiosk) before it goes over the layers.
+- On a mesh with its own texture (decision 119) the base is that texture, tinted per channel by
+  base_colour / coat_hex and clamped to 0..255; otherwise it is the flat base colour.
 - Eyes and nose (mask >= 128) are painted last, flat.
 - Every channel is quantised with floor(x + 0.5), clamped to 0..255.
 """
@@ -85,11 +87,17 @@ def stamp_layer(base: BaseMesh, tm: TexelMap, stamps: list[dict[str, Any]]) -> n
 
 
 def composite(masks: np.ndarray, channels: dict[str, int], composition: dict[str, Any],
-              pattern_channel: dict[str, int], stamps: np.ndarray) -> np.ndarray:
-    """(S, S, 3) uint8 albedo at mask resolution. masks: (S, S, K) uint8, one channel per mask."""
+              pattern_channel: dict[str, int], stamps: np.ndarray, texture: np.ndarray | None = None,
+              coat_hex: str | None = None) -> np.ndarray:
+    """(S, S, 3) uint8 albedo at mask resolution. masks: (S, S, K) uint8, one channel per mask; texture: the
+    mesh's own (S, S, 3) uint8 texture, if it has one."""
     size = masks.shape[0]
     c = np.empty((size, size, 3), np.float64)
-    c[:] = hex_rgb(composition["base_colour"])
+    if texture is not None and coat_hex:
+        tint = hex_rgb(composition["base_colour"]) / np.maximum(hex_rgb(coat_hex), 1.0)
+        c[:] = np.clip(texture.astype(np.float64) * tint, 0.0, 255.0)
+    else:
+        c[:] = hex_rgb(composition["base_colour"])
     for layer in composition["layers"]:
         m = masks[..., pattern_channel[layer["pattern_id"]]].astype(np.float64)
         a = np.clip((float(layer["coverage"]) * MASK_MAX - m) / EDGE + 0.5, 0.0, 1.0)[..., None]

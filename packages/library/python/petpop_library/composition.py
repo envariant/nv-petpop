@@ -43,12 +43,12 @@ def check_ids(manifest: dict[str, Any], body: dict[str, Any]) -> list[str]:
 
 
 def sample(manifest: dict[str, Any], *, layers: int = 3, stamps: int = 0, pet_name: str = "Biscuit", seed: int = 0,
-           files: dict[str, bytes] | None = None) -> dict[str, Any]:
-    """A valid composition for tests and gates: the first family with its default parts, the first `layers`
-    pattern layers at their default coverage, and `stamps` spots spread over its mesh."""
+           files: dict[str, bytes] | None = None, family: str | None = None) -> dict[str, Any]:
+    """A valid composition for tests and gates: the first family (or `family`) with its default parts, the first
+    `layers` pattern layers at their default coverage, and `stamps` spots spread over its mesh."""
     import numpy as np
 
-    fam = manifest["families"][0]
+    fam = next(f for f in manifest["families"] if f["id"] == family) if family else manifest["families"][0]
     body = {
         "composition_version": "2.0", "species": manifest["species"], "release_version": manifest["release_version"],
         "mesh_id": fam["mesh_id"], "pet_name": pet_name, "family_id": fam["id"],

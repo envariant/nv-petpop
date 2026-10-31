@@ -23,20 +23,25 @@ export function job(status: Job['status'], extra: Partial<Job> = {}): Job {
 export const VIEW_PREVIEWS = { concept: f('concept.png'), view_front: f('views/front.png'), view_left: f('views/left.png'), view_back: f('views/back.png'), view_right: f('views/right.png') };
 
 // ------------------------------------------------------------------ curation (M8)
-const qc = (ok: boolean) => ({ symmetry_mm: 0.31, boundary_strain: 0.42, self_intersections: ok ? 0 : 58, passed: ok, reasons: ok ? [] : ['58 self-intersecting vertices'] });
-const cand = (id: string, kind: 'family' | 'region', region: string | null, status: LibraryCandidate['status'], ok = true): LibraryCandidate => ({
-  id, version: 1, kind, region: region as LibraryCandidate['region'], name: id, status, tags: ['breed:pug'], qc: qc(ok), auto_rejected: !ok, thumbnail_url: '/studio/fixtures/mochi/thumbnail.png',
+const qc = (ok: boolean) => ({ segmentation_valid: ok, print_watertight: true, min_wall_mm: 2.1, figure_tris: 14512, passed: ok, reasons: ok ? [] : ['segmentation: missing muzzle'] });
+const cand = (id: string, status: LibraryCandidate['status'], ok = true): LibraryCandidate => ({
+  id, version: 1, kind: 'family', region: null, mesh_id: 'm_0a1b2c3d4e5f6789', name: id, status, tags: ['breed:pug'], qc: qc(ok), auto_rejected: !ok,
+  thumbnail_url: '/studio/fixtures/mochi/thumbnail.png',
 });
 export const BATCH: Batch = {
   batch_id: 'b_story', species: 'dog', status: 'review', created_by: 'operator', created_at: '2026-10-29T10:00:00Z',
   request: { species: 'dog', breeds: ['pug', 'beagle'], variants: [{ label: 'preset', patch: {} }], seeds: 1 },
-  summary: { figurines: 2, finished: 2, failed: 0, candidates: 12, passed_qc: 11, accepted: 3, rejected: 1, published: 2, parts_sets_published: 0 },
+  summary: { figurines: 3, finished: 2, failed: 0, candidates: 2, passed_qc: 1, accepted: 0, rejected: 1, published: 1, meshes_published: 1 },
   figurines: [
     {
       job_id: 'j_story1', breed_id: 'pug', variant: 'preset', seed: 1, status: 'done', stage: 'done', error: null,
       glb_url: '/studio/fixtures/mochi/figure.glb', thumbnail_url: '/studio/fixtures/mochi/thumbnail.png', turntable_url: null,
-      candidates: [cand('family_pug_a1', 'family', null, 'published'), cand('ears_pug_a1', 'region', 'ears', 'published'), cand('tail_pug_a1', 'region', 'tail', 'accepted'),
-        cand('muzzle_pug_a1', 'region', 'muzzle', 'rejected', false), cand('head_pug_a1', 'region', 'head', 'accepted'), cand('legs_pug_a1', 'region', 'legs', 'draft')],
+      candidates: [cand('family_pug_a1', 'published')],
+    },
+    {
+      job_id: 'j_story3', breed_id: 'pug', variant: 'preset', seed: 2, status: 'done', stage: 'done', error: null,
+      glb_url: '/studio/fixtures/mochi/figure.glb', thumbnail_url: '/studio/fixtures/mochi/thumbnail.png', turntable_url: null,
+      candidates: [cand('family_pug_b2', 'rejected', false)],
     },
     { job_id: 'j_story2', breed_id: 'beagle', variant: 'preset', seed: 1, status: 'running', stage: 'D', error: null, glb_url: null, thumbnail_url: null, turntable_url: null, candidates: [] },
   ],

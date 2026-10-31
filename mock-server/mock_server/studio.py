@@ -1,7 +1,7 @@
 """Studio's library in the mock server (BRIEF Section 16, M8): the real StudioLibrary (curation, review, editors,
 publish, releases) on a private SQLite database and store, with batch figurines that "finish" on a script from
-the fixture pack instead of running the pipeline. Curation then runs for real on the fixture pet's fitted template,
-so the mock's QC, parts and release bundles are the backend's, computed from real pipeline output."""
+the fixture pack instead of running the pipeline. Curation then runs for real on the fixture pet's own mesh
+(decision 119), so the mock's QC, meshes and release bundles are the backend's, computed from real pipeline output."""
 from __future__ import annotations
 
 import json
@@ -12,8 +12,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-import numpy as np
-
 from backend.api import models as m
 from backend.api.db import ArtefactRow, JobRow, session_factory, utcnow
 from backend.api.store import LocalStore
@@ -21,16 +19,13 @@ from backend.api.studio_library import StudioLibrary, curate
 from backend.core.paths import FIXTURES
 
 FIGURINE_S = 4.0  # scripted time per batch figurine (x PETPOP_MOCK_SPEED)
-ARTEFACTS = [("figure.glb", "glb"), ("thumbnail.png", "thumbnail"), ("turntable.mp4", "turntable"), ("manifest.json", "manifest")]
+ARTEFACTS = [("figure.glb", "glb"), ("thumbnail.png", "thumbnail"), ("turntable.mp4", "turntable"), ("manifest.json", "manifest"),
+             ("figure_mesh.npz", "segmented"), ("albedo.png", "albedo")]
 
 
 class _NoBus:
     def enqueue(self, job_id: str, queue: str) -> None:  # the mock finishes batch jobs itself
         pass
-
-
-def obj_vertices(path: Path) -> np.ndarray:
-    return np.array([line.split()[1:4] for line in path.read_text().splitlines() if line.startswith("v ")], dtype=np.float64)
 
 
 class MockStudio:
@@ -82,11 +77,6 @@ class MockStudio:
                     data = (d / name).read_bytes()
                     self.store.put(key, data)
                     db.add(ArtefactRow(job_id=job_id, stage="F", kind=kind, name=name, object_key=key, bytes=len(data)))
-            import io
-
-            buf = io.BytesIO()
-            np.save(buf, obj_vertices(d / "figure_uv.obj"))
-            self.store.put(f"jobs/{job_id}/template_fit.npy", buf.getvalue())
             job = db.get(JobRow, job_id)
             job.status, job.stage, job.pct, job.finished_at = "done", "done", 100, utcnow()
             db.commit()

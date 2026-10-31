@@ -73,16 +73,28 @@ def mesh_entry(mesh: BaseMesh, name: str, breeds: list[str], version: int = 1, s
     d = f"meshes/{mesh.mesh_id}"
     files = {f"{d}/mesh.bin": base_bin(mesh), f"{d}/mesh.json": mesh_json(mesh, f"{d}/mesh.bin"),
              f"{d}/figure_mesh.npz": figure.save(mesh), f"{d}/thumb.png": thumbnail(mesh, mesh.co)}
-    masks = pack_png(build_masks(mesh, mesh_texel_map(mesh, size)))
+    tm = mesh_texel_map(mesh, size)
+    stack = build_masks(mesh, tm)
+    masks = pack_png(stack)
     for i, data in enumerate(masks):
         files[f"{d}/masks_{i}.png"] = data
+    coat_hex = None
     if texture is not None:
-        files[f"{d}/texture.png"] = texture
+        # The texture at atlas resolution, texel for texel beside the masks, so screen and print sample it alike.
+        img = Image.open(io.BytesIO(texture)).convert("RGB")
+        if img.size != (size, size):
+            img = img.resize((size, size), Image.Resampling.BICUBIC)
+        files[f"{d}/texture.png"] = png(img)
+        arr = np.asarray(img, np.float64)
+        coat = tm.covered & (stack[..., CHANNELS.index("eye")] < 128) & (stack[..., CHANNELS.index("nose")] < 128)
+        mean = arr[coat].mean(axis=0) if coat.any() else arr.reshape(-1, 3).mean(axis=0)
+        coat_hex = "#" + "".join(f"{int(round(v)):02X}" for v in mean)
     entry = {"id": mesh.mesh_id, "name": name, "source": mesh.source or "template", "bin": f"{d}/mesh.bin",
              "info": f"{d}/mesh.json", "package": f"{d}/figure_mesh.npz", "texture": f"{d}/texture.png" if texture else None,
              "atlas": {"size": size, "mask_files": [f"{d}/masks_{i}.png" for i in range(len(masks))],
                        "channels": {c: i for i, c in enumerate(CHANNELS)}},
-             "breeds": sorted(set(breeds)), "source_job": source_job, "version": version, "thumbnail": f"{d}/thumb.png"}
+             "coat_hex": coat_hex, "breeds": sorted(set(breeds)), "source_job": source_job, "version": version,
+             "thumbnail": f"{d}/thumb.png"}
     return entry, files
 
 

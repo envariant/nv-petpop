@@ -31,7 +31,7 @@ def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read
          created_at: str | None = None, key: bytes | None = None) -> tuple[bytes, dict[str, Any]]:
     """items: kind -> manifest entries whose file fields hold *source* keys for `read`; mesh_of(mesh_id) gives each
     mesh the families and part variants name, with its metadata (name, breeds, version, source_job, texture
-    bytes). Returns (bundle, manifest)."""
+    bytes, or `prebuilt`: its (entry, files) from content.mesh_entry). Returns (bundle, manifest)."""
     files: dict[str, bytes] = {}
     out: dict[str, list[dict[str, Any]]] = {}
     for kind in KINDS:
@@ -49,8 +49,13 @@ def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read
     meshes = []
     for mid in sorted({e["mesh_id"] for k in ("families", "region_deltas") for e in out[k]}):
         mesh, meta = mesh_of(mid)
-        entry, mfiles = mesh_entry(mesh, meta["name"], meta.get("breeds", []), int(meta.get("version", 1)),
-                                   meta.get("source_job"), texture=meta.get("texture"))
+        if meta.get("prebuilt"):  # the mesh's release files, built once when it entered the library
+            entry, mfiles = meta["prebuilt"]
+            entry = {**entry, "name": meta["name"], "breeds": sorted(set(meta.get("breeds", []))),
+                     "version": int(meta.get("version", 1)), "source_job": meta.get("source_job")}
+        else:
+            entry, mfiles = mesh_entry(mesh, meta["name"], meta.get("breeds", []), int(meta.get("version", 1)),
+                                       meta.get("source_job"), texture=meta.get("texture"))
         meshes.append(entry)
         files.update(mfiles)
     m = release_manifest(species, number, schema(species)["schema_version"], created_by,

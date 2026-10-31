@@ -832,10 +832,10 @@ export interface components {
             /** Finished */
             finished: number;
             /**
-             * Parts Sets Published
-             * @description Figurines whose family and at least four region parts are published.
+             * Meshes Published
+             * @description Figurines whose family, on the figurine's own mesh, is published (decision 119).
              */
-            parts_sets_published: number;
+            meshes_published: number;
             /** Passed Qc */
             passed_qc: number;
             /** Published */
@@ -1386,11 +1386,16 @@ export interface components {
              * @enum {string}
              */
             kind: "family" | "region";
+            /**
+             * Mesh Id
+             * @description The mesh it is built on: a curated figurine's family is on its own mesh (decision 119).
+             */
+            mesh_id?: string | null;
             /** Name */
             name: string;
             /**
              * Qc
-             * @description symmetry_mm, boundary_strain, self_intersections, passed, reasons.
+             * @description A figurine's mesh: segmentation_valid, print_watertight, min_wall_mm, figure_tris, passed, reasons.
              */
             qc: {
                 [key: string]: unknown;
@@ -1472,6 +1477,11 @@ export interface components {
              * @enum {string}
              */
             kind: "family" | "region" | "shell" | "pattern";
+            /**
+             * Mesh Id
+             * @description Families and part variants: the mesh they are built on.
+             */
+            mesh_id?: string | null;
             /** Name */
             name: string;
             /** Published At */
@@ -1484,6 +1494,11 @@ export interface components {
             } | null;
             /** Region */
             region?: ("ears" | "tail" | "muzzle" | "head" | "legs") | null;
+            /**
+             * Shared With
+             * @description Families: breeds of other families on the same mesh (they share it).
+             */
+            shared_with?: string[] | null;
             /** Socket */
             socket?: ("neck" | "head" | "face") | null;
             /** Source Job */
@@ -2118,6 +2133,8 @@ export interface components {
             bin: string;
             /** @description Every breed whose family uses this mesh: breeds listed together share one mesh (decision 116). */
             breeds: string[];
+            /** @description Mean colour of the texture outside the eyes and nose: a composition whose base colour equals it shows the texture untinted. */
+            coat_hex?: string | null;
             /** @description mesh_id: content hash of the geometry (petpop_library.figure). */
             id: components["schemas"]["ReleaseManifest_id"];
             /** @description JSON: mesh_id, segmentation version, topology, counts and landmarks. */
@@ -2128,7 +2145,7 @@ export interface components {
             /** @enum {unknown} */
             source?: "generated" | "template";
             source_job?: string | null;
-            /** @description The generator's own texture in the mesh's UVs, when it has one. */
+            /** @description The figurine's own texture (the pipeline's albedo, decision 119), resampled to the atlas size: the base layer of a composition on this mesh, tinted by its base colour. */
             texture?: string | null;
             thumbnail: string;
             version: number;

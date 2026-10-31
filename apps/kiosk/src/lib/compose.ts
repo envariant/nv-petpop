@@ -71,6 +71,10 @@ export function startingComposition(manifest: ReleaseManifest, breed: Breed, pet
   }
   for (const m of markings) if (MARKING_LAYERS[m]) add(MARKING_LAYERS[m], m === 'dark_mask' ? undefined : m === 'points' ? undefined : WHITE);
   const nose = NOSE_HEX[(get(preset, 'nose.colour') as string) ?? 'black'] ?? NOSE_HEX.black;
+  // A mesh with its own texture (a curated figurine, decision 119) already wears its coat and markings: start
+  // untinted (base = its coat colour) and with no extra layers; the customer can still recolour and add layers.
+  const mesh = manifest.meshes.find((m) => m.id === family.mesh_id);
+  const textured = !!(mesh?.texture && mesh.coat_hex);
   return {
     composition_version: '2.0',
     species: manifest.species,
@@ -81,8 +85,8 @@ export function startingComposition(manifest: ReleaseManifest, breed: Breed, pet
     family_id: familyId,
     parts,
     shells: [],
-    base_colour: base.toUpperCase(),
-    layers: layers.slice(0, 10),
+    base_colour: (textured ? mesh!.coat_hex! : base).toUpperCase(),
+    layers: textured ? [] : layers.slice(0, 10),
     stamps: [],
     eye_colour: ((get(preset, 'eyes.hex') as string) ?? '#3B2412').toUpperCase(),
     nose_colour: nose.toUpperCase(),

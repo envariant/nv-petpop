@@ -129,7 +129,9 @@ export const useDesign = create<DesignState>((set, get) => {
         const pid = partFor(release.manifest, region, breedPreset, fam.default_parts[region], fam.mesh_id);
         if (pid) parts[region] = pid;
       }
-      set({ lib, composition: { ...c, family_id: id, mesh_id: fam.mesh_id, parts, stamps: [] }, strokes: [] });
+      const mesh = release.manifest.meshes.find((x) => x.id === fam.mesh_id);
+      const base = mesh?.texture && mesh.coat_hex ? mesh.coat_hex.toUpperCase() : c.base_colour; // untinted on a textured mesh
+      set({ lib, composition: { ...c, family_id: id, mesh_id: fam.mesh_id, parts, stamps: [], base_colour: base }, strokes: [] });
     },
     setPart: (region, id) => edit((c) => ({ ...c, parts: { ...c.parts, [region]: id } })),
     setBase: (hex) => edit((c) => ({ ...c, base_colour: hex })),

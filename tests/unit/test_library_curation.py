@@ -1,5 +1,8 @@
-"""M8 curation maths (BRIEF Section 16): delta extraction and the QC metrics, on figurines from the real pipeline
-(the fixture pack's wrapped meshes)."""
+"""Part-variant maths (BRIEF Section 16, decision 118): delta extraction and the QC metrics for variants of one mesh.
+
+Curated figurines are meshes of their own (decision 119); part variants are only ever offsets within one mesh, so
+they are tested on variants of the template mesh: the fixture pets' specs, morphed and roughened by the mock
+shape's noise."""
 from __future__ import annotations
 
 import json
@@ -18,9 +21,21 @@ PETS = ROOT / "fixtures" / "pets"
 
 
 def wrapped(pet: str) -> tuple[str, np.ndarray]:
-    species = json.loads((PETS / pet / "spec.json").read_text())["species"]
-    rows = [line.split()[1:4] for line in (PETS / pet / "figure_uv.obj").read_text().splitlines() if line.startswith("v ")]
-    return species, np.array(rows, dtype=np.float64)
+    """A variant of the species template mesh for a fixture pet: its preset's morph plus the mock shape's noise."""
+    from backend.core import lowfi
+    from petpop_core.vocab import morph_weights
+
+    spec = json.loads((PETS / pet / "spec.json").read_text())
+    base = load_base(spec["species"])
+    return spec["species"], lowfi.mock_shape(base, base.morph(morph_weights(spec)), int(spec["seed"])).astype(np.float64)
+
+
+def folded_muzzle(base, co: np.ndarray) -> np.ndarray:
+    out = co.copy()
+    m = base.group("muzzle") > 0.5
+    centre = out[m].mean(axis=0)
+    out[m] = centre + (out[m] - centre) * np.array([1.0, -1.0, 1.0])  # turn the muzzle inside out
+    return out
 
 
 @pytest.mark.parametrize("pet", ["biscuit", "luna"])
@@ -77,20 +92,19 @@ def test_boundary_strain_grows_with_a_part_that_pulls_at_its_seam():
 
 
 def test_qc_passes_clean_figurines_and_rejects_folded_regions():
-    """Calibration on the fixture pack: clean pets pass every region; a folded brachy muzzle is auto-rejected."""
+    """Clean variants pass every region; a folded muzzle is auto-rejected."""
     species, co = wrapped("biscuit")
     base = load_base(species)
     report = qc.evaluate(base, extract(base, co))
     assert report["passed_regions"] == [*REGIONS, "family"]
-    species, co = wrapped("gus")
-    base = load_base(species)
+    co = folded_muzzle(base, co)
     report = qc.evaluate(base, extract(base, co))
     assert "muzzle" not in report["passed_regions"]
-    assert any("self-intersecting" in r for r in report["regions"]["muzzle"]["reasons"])
+    assert report["regions"]["muzzle"]["reasons"]  # the fold tears at the muzzle's seam
     bad_wrap = qc.evaluate(base, extract(base, co), wrap_valid=False)
     assert bad_wrap["passed_regions"] == []
 
 
 def test_pets_exist():
-    assert all((PETS / p / "figure_uv.obj").exists() for p in ("biscuit", "luna", "gus"))
+    assert all((PETS / p / "spec.json").exists() for p in ("biscuit", "luna", "gus"))
     assert Path(PETS).is_dir()

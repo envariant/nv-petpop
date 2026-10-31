@@ -157,23 +157,27 @@ test('8 generate: the batch spec builder counts breeds x variants x seeds and st
   await expect(page.getByTestId('batch-list')).toContainText('on tripo-manual, multiview');
 });
 
-test('9 review: turntables, QC per region, accept, reject and tag; operators cannot review', async ({ page }) => {
+test('9 review: each figurine is a mesh of its own with mesh QC; accept, tag, publish; the mesh is labelled', async ({ page }) => {
   await signInHome(page, 'curator');
   await runBatch(page, ['beagle']);
-  const fig = page.locator('[data-testid^=fig-]').first();
-  await expect(fig.locator('video, img').first()).toBeVisible();
-  await expect(fig.locator('[data-testid^=cand-]')).toHaveCount(6);
-  await expect(fig).toContainText('sym');
-  const legs = (await fig.locator('[data-testid^=cand-legs_]').getAttribute('data-testid'))!.replace('cand-', '');
-  await page.getByTestId(`reject-${legs}`).tap();
-  await expect(page.getByTestId(`cand-${legs}`)).toContainText('rejected');
+  const figs = page.locator('[data-testid^=fig-]');
+  await expect(figs.first().locator('video, img').first()).toBeVisible();
+  await expect(figs.first().locator('[data-testid^=cand-]')).toHaveCount(1); // one family, on the figurine's own mesh
+  await expect(page.getByTestId('review')).toContainText('Family on its own mesh');
+  await expect(page.getByTestId('review')).toContainText('parts labelled');
   await page.getByTestId('accept-passing').tap();
   await expect(page.getByTestId('review')).toContainText('accepted');
-  const ears = (await fig.locator('[data-testid^=cand-ears_]').getAttribute('data-testid'))!.replace('cand-', '');
-  await page.getByTestId(`hero-${ears}`).tap();
-  await expect(page.getByTestId(`hero-${ears}`)).toHaveAttribute('aria-pressed', 'true');
-  await page.getByTestId(`publish-${ears}`).tap();
-  await expect(page.getByTestId(`cand-${ears}`)).toContainText('published');
+  const beagle = (await page.locator('[data-testid^=cand-family_beagle_]').getAttribute('data-testid'))!.replace('cand-', '');
+  await page.getByTestId(`hero-${beagle}`).tap();
+  await expect(page.getByTestId(`hero-${beagle}`)).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId(`publish-${beagle}`).tap();
+  await expect(page.getByTestId(`cand-${beagle}`)).toContainText('published');
+  await expect(page.getByTestId('review')).toContainText('1 meshes');
+  // The library editor names the family's mesh and who shares it.
+  await page.getByTestId('nav-library').tap();
+  await page.getByTestId('kind-family').tap();
+  await page.getByTestId('item-family_standard').tap();
+  await expect(page.getByTestId('item-mesh')).toContainText('shared with');
 });
 
 test('10 library: the pattern editor versions a published layer; publish ships the new version', async ({ page }) => {

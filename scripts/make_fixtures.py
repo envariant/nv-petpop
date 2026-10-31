@@ -136,7 +136,7 @@ def build_lowfi(pet: tuple) -> None:
           f"watertight {pm.is_watertight}")
 
 
-PRUNE = ("control/", "wrapped_coords.npy", "figure_wrapped.obj")  # intermediates the kiosk never shows
+PRUNE = ("control/", "template_fit.npy")  # intermediates the kiosk never shows; figure_mesh.npz stays (Studio curates it)
 
 
 def build_real(pet: tuple) -> None:

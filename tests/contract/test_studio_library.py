@@ -1,6 +1,6 @@
 """Studio's library (BRIEF Section 16, M8) through the contract, on the mock server and the real backend alike:
-a batch is generated and curated into parts, a curator reviews, edits and publishes, an admin packs a release,
-and the kiosk switches to it."""
+a batch is generated and curated into library meshes (one per figurine, with its family; decision 119), a curator
+reviews, edits and publishes, an admin packs a release, and the kiosk switches to it and orders on a new mesh."""
 from __future__ import annotations
 
 import time
@@ -42,13 +42,15 @@ def test_studio_library_from_batch_to_kiosk_release(client):
     fig = b["figurines"][0]
     assert fig["glb_url"] and fig["thumbnail_url"]
     cands = fig["candidates"]
-    assert len(cands) == 6 and {c["kind"] for c in cands} == {"family", "region"}
-    assert all({"symmetry_mm", "boundary_strain", "self_intersections", "passed", "reasons"} <= set(c["qc"]) for c in cands)
+    # One family per figurine, on the figurine's own mesh, with mesh QC (segmentation and print checks).
+    assert len(cands) == 1 and cands[0]["kind"] == "family" and cands[0]["mesh_id"].startswith("m_")
+    assert all({"segmentation_valid", "print_watertight", "passed", "reasons"} <= set(c["qc"]) for c in cands)
+    assert len({f["candidates"][0]["mesh_id"] for f in b["figurines"]}) == 2  # two breeds, two meshes
     assert all(c["status"] == ("rejected" if c["auto_rejected"] else "draft") for c in cands)
 
     # Review: curators only. Accept every candidate that passed QC, tag one, reject one.
     passing = [c for c in cands if not c["auto_rejected"]]
-    assert passing, "QC should pass at least one part of a clean figurine"
+    assert passing, "QC should pass a clean figurine"
     body = {"decisions": [{"item_id": c["id"], "action": "accept"} for c in passing]}
     assert client.post(f"{S}/batches/{bid}/review", headers=op, json=body).status_code == 403
     body["decisions"][0]["tags"] = ["hero"]
@@ -101,18 +103,28 @@ def test_studio_library_from_batch_to_kiosk_release(client):
     assert ids[pat["id"]]["version"] == pub["version"] and ids[pat["id"]]["default_colour"] == "#FAFAFA"
     assert ids[shell["id"]]["name"] != "Red collar"  # edited but not republished: the release keeps the published version
 
-    # The kiosk switches to it and accepts a composition that uses the new parts.
+    # The new figurine's mesh ships with its texture, and lists the breed that uses it.
+    fam = ids[passing[0]["id"]]
+    mesh = next(me for me in manifest["meshes"] if me["id"] == fam["mesh_id"])
+    assert mesh["texture"] and mesh["coat_hex"] and set(fam["breeds"]) <= set(mesh["breeds"]) and fam["delta"] is None
+    # Breeds added to a family share its mesh, and the editor says so for every other family on that mesh.
+    shared = check(f"{S}/library/{{species}}/{{kind}}/{{item_id}}", "patch",
+                   client.patch(f"{S}/library/dog/family/{fam['id']}", headers=cur, json={"breeds": [*fam["breeds"], "dachshund"]}))
+    assert shared["mesh_id"] == fam["mesh_id"] and "dachshund" in shared["breeds"]
+
+    # The kiosk switches to it and accepts a composition on the new mesh; a part from another mesh is refused.
     rel = check(f"{K}/library/{{species}}", "get", client.get(f"{K}/library/dog"))
     assert rel["release_version"] == "release-dog-2"
-    region = next((c for c in passing if c["kind"] == "region"), None)
-    if region:
-        from petpop_library.composition import sample
+    from petpop_library.composition import sample
 
-        comp = sample(rel["manifest"], layers=2)
-        comp["parts"][region["region"]] = region["id"]
-        sid = new_session(client)
-        r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": comp})
-        assert r.status_code == 201, r.text
+    comp = sample(rel["manifest"], layers=2, family=fam["id"])
+    assert comp["mesh_id"] == fam["mesh_id"] and comp["parts"] == {}
+    sid = new_session(client)
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": comp})
+    assert r.status_code == 201, r.text
+    other = next(d for d in rel["manifest"]["region_deltas"] if d["mesh_id"] != fam["mesh_id"])
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": dict(comp, parts={other["region"]: other["id"]})})
+    assert r.status_code == 422 and "another mesh" in r.text
 
     # Unpublish takes an item out of the next release.
     first = passing[0]

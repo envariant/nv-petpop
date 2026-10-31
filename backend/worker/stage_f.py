@@ -110,9 +110,15 @@ def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_co
     import trimesh
 
     if blender.available(ctx.settings.bpy_python):
-        res = blender.run(ctx.settings.bpy_python, ["export_print", "paint_check", "preview"], {
-            **job, "albedo": str(albedo_path), "accessories": accessories, "quality": q, "out_dir": str(work)},
-            timeout=ctx.remaining())
+        from concurrent.futures import ThreadPoolExecutor
+
+        bjob = {**job, "albedo": str(albedo_path), "accessories": accessories, "quality": q, "out_dir": str(work)}
+        # Two Blender processes side by side: the print mesh (remesh, booleans, decimate) is mostly single-threaded,
+        # so the paint check and the preview renders overlap with it instead of waiting.
+        with ThreadPoolExecutor(2) as pool:
+            jobs = [pool.submit(blender.run, ctx.settings.bpy_python, tasks, bjob, timeout=ctx.remaining())
+                    for tasks in (["export_print"], ["paint_check", "preview"])]
+            res = {**jobs[0].result(), **jobs[1].result()}
         stl = Path(res["stl"]).read_bytes()
         flags = np.load(res["flags"]).astype(np.float32)
         glb = Path(res["glb"]).read_bytes()

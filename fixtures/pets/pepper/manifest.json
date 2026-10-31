@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T14:38:18.888Z",
- "finished_at": "2026-10-28T14:39:17.001Z",
+ "created_at": "2026-10-31T13:11:39.585Z",
+ "finished_at": "2026-10-31T13:12:22.789Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -19,7 +19,7 @@
  "genai": {
   "profile": "mock",
   "profile_version": 1,
-  "profile_sha": "33b5fbe5b044",
+  "profile_sha": "5792626304de",
   "host": "cpu",
   "accelerator": "none",
   "adapters": {
@@ -39,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 11,
+   "ms": 8,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T14:38:18.888Z",
-   "ended_at": "2026-10-28T14:38:18.899Z"
+   "started_at": "2026-10-31T13:11:39.585Z",
+   "ended_at": "2026-10-31T13:11:39.594Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 6371,
+   "ms": 3887,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T14:38:18.899Z",
-   "ended_at": "2026-10-28T14:38:25.271Z"
+   "started_at": "2026-10-31T13:11:39.594Z",
+   "ended_at": "2026-10-31T13:11:43.482Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1797,
+   "ms": 1647,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:38:25.272Z",
-   "ended_at": "2026-10-28T14:38:27.070Z"
+   "started_at": "2026-10-31T13:11:43.483Z",
+   "ended_at": "2026-10-31T13:11:45.130Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 2632,
+   "ms": 2635,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:38:27.072Z",
-   "ended_at": "2026-10-28T14:38:29.704Z"
+   "started_at": "2026-10-31T13:11:45.131Z",
+   "ended_at": "2026-10-31T13:11:47.767Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 5015,
+   "ms": 5018,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:38:29.706Z",
-   "ended_at": "2026-10-28T14:38:34.721Z"
+   "started_at": "2026-10-31T13:11:47.768Z",
+   "ended_at": "2026-10-31T13:11:52.786Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 1652,
+   "ms": 1241,
    "attempts": 1,
    "backend": "blender",
-   "notes": "inverted 0, laplacian x0.90, self-intersections 0",
-   "started_at": "2026-10-28T14:38:34.723Z",
-   "ended_at": "2026-10-28T14:38:36.375Z"
+   "notes": "ok",
+   "started_at": "2026-10-31T13:11:52.788Z",
+   "ended_at": "2026-10-31T13:11:54.029Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 40619,
+   "ms": 28755,
    "attempts": 1,
    "backend": "projection",
-   "started_at": "2026-10-28T14:38:36.377Z",
-   "ended_at": "2026-10-28T14:39:16.997Z"
+   "started_at": "2026-10-31T13:11:54.031Z",
+   "ended_at": "2026-10-31T13:12:22.787Z"
   }
  ],
  "files": [
@@ -115,8 +115,8 @@
    "kind": "spec",
    "stage": "A",
    "object_key": "jobs/fx_pepper/prompts.json",
-   "bytes": 3676,
-   "sha256": "18d1be2150582a65e1f0902437b7f98b44845e9f93561bae985ed79bef83304f"
+   "bytes": 4196,
+   "sha256": "7f7968a61567ecd0a9e6e3fb69e0ec6af7f8aa9b05b5e54d1dc8de1bbc7f21f0"
   },
   {
    "name": "concept.png",
@@ -167,68 +167,84 @@
    "sha256": "485c89ff5cf5bd09299a1f2e0d44221b09d2ba7871beb3d3b7bc08034e66fe3f"
   },
   {
+   "name": "figure_mesh.npz",
+   "kind": "segmented",
+   "stage": "E",
+   "object_key": "jobs/fx_pepper/figure_mesh.npz",
+   "bytes": 528200,
+   "sha256": "16fec0940d666725bbb37caff822f5b6b8f128e8076e378a7e4d685dd23d031b"
+  },
+  {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_pepper/albedo.png",
-   "bytes": 580805,
-   "sha256": "dfa23aa654dd806fcc9fcccd6fdd3a9b6fc3cd306180e434c83bc893b88e434b"
+   "bytes": 595035,
+   "sha256": "3cc22274155a8e48d738a3ee0e9be0a762e0cc98df208e82a8348ce5e360d322"
+  },
+  {
+   "name": "parts.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_pepper/parts.png",
+   "bytes": 33395,
+   "sha256": "e361c893a8593e84be1c97df50b160d58eeb2b499ad2b45bdba9f1d977afec32"
   },
   {
    "name": "figure_uv.obj",
    "kind": "uv_obj",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure_uv.obj",
-   "bytes": 1116028,
-   "sha256": "84f1087189f0997dafc07bb7256b0d609c7ec19ee7c62daec9f9cfa9aec26332"
+   "bytes": 1592655,
+   "sha256": "acdda6eb9c62b2a0098134fe914c379992a94955aa93007e47d3886e85ea34c6"
   },
   {
    "name": "figure.stl",
    "kind": "stl",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure.stl",
-   "bytes": 1500084,
-   "sha256": "e53d48005a77cbbd17abae4a500264078d75f83aca2a5190c26a73b598194155"
+   "bytes": 1499984,
+   "sha256": "96e1660556226388bc0c4b96c2b3f2507cd984b2a7d6ad5425a51457888e23f2"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure.3mf",
-   "bytes": 610315,
-   "sha256": "30c52159b1a04acc56d7137180de0dbf78aa2b479936fb3d03780f1cc429ad3a"
+   "bytes": 610473,
+   "sha256": "2179165f9d23ad4dd0e8793e7fd7b84c45175112dee2d433b28d59ceffae32de"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_pepper/paint_mask.png",
-   "bytes": 6577,
-   "sha256": "32bdd1ff65ec0a886678c07f8203ca43b74391c152d2887a92d02d5de8724bcd"
+   "bytes": 6497,
+   "sha256": "83434995a54adbe4dc8bf052e4ed49f67515452190e0cc595daaa3d7e4cd41ba"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_pepper/thumbnail.png",
-   "bytes": 52817,
-   "sha256": "ab0c899fbec9c0b2e31cc63ba2f6085f0b7191b404b3911903490a44c12943f9"
+   "bytes": 52903,
+   "sha256": "ed1511cf632262cd37a4cccfd4d61eb50606de2f05ce92aadfbc9d5d298fd4bd"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_pepper/turntable.mp4",
-   "bytes": 86646,
-   "sha256": "b8cbd0b823c70f1d02d113c1d4d5545ebe78bc771833e105eabc99a699db5572"
+   "bytes": 88650,
+   "sha256": "0694072cf0cd08c56e7f7492ffb34f82980aff8b2becdcc883b37ec6d04aa540"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_pepper/figure.glb",
-   "bytes": 767280,
-   "sha256": "bb8b141aa9d44b333de106c466b0bd683bb3ee578e198e6b4f7177cb4715ed2d"
+   "bytes": 884172,
+   "sha256": "3637032d9b07ce6b8fd94476788404dd4280862aa839171ed1628cfb72a0a48c"
   }
  ],
  "metrics": {
@@ -240,15 +256,18 @@
    0.9642
   ],
   "segmentation_valid": true,
-  "segmentation_notes": "inverted 0, laplacian x0.90, self-intersections 0",
-  "print_tris": 30000,
-  "print_height_mm": 87.62,
-  "min_wall_mm": 3.483,
+  "segmentation_notes": "ok",
+  "mesh_id": "m_6df9eebb7a6de50d",
+  "segmentation_version": "seg-1",
+  "figure_tris": 14512,
+  "topology_hash": "366fa04d35fee47b",
+  "uv_layout_hash": "9d8d203b4c2810a1",
+  "print_tris": 29998,
+  "print_height_mm": 87.64,
+  "min_wall_mm": 2.848,
   "min_wall_ok": true,
   "print_watertight": true,
-  "paint_mask_pct": 4.55,
-  "uv_layout_hash": "a925f74e10d7acea",
-  "topology_hash": "837de5361ae6d863",
-  "total_ms": 58097
+  "paint_mask_pct": 4.63,
+  "total_ms": 43191
  }
 }

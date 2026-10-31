@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T14:41:13.418Z",
- "finished_at": "2026-10-28T14:42:10.071Z",
+ "created_at": "2026-10-31T13:13:50.210Z",
+ "finished_at": "2026-10-31T13:14:34.184Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -19,7 +19,7 @@
  "genai": {
   "profile": "mock",
   "profile_version": 1,
-  "profile_sha": "33b5fbe5b044",
+  "profile_sha": "5792626304de",
   "host": "cpu",
   "accelerator": "none",
   "adapters": {
@@ -39,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 12,
+   "ms": 6,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T14:41:13.418Z",
-   "ended_at": "2026-10-28T14:41:13.430Z"
+   "started_at": "2026-10-31T13:13:50.210Z",
+   "ended_at": "2026-10-31T13:13:50.217Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 6080,
+   "ms": 4176,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T14:41:13.431Z",
-   "ended_at": "2026-10-28T14:41:19.511Z"
+   "started_at": "2026-10-31T13:13:50.217Z",
+   "ended_at": "2026-10-31T13:13:54.394Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1595,
+   "ms": 1722,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:41:19.512Z",
-   "ended_at": "2026-10-28T14:41:21.107Z"
+   "started_at": "2026-10-31T13:13:54.394Z",
+   "ended_at": "2026-10-31T13:13:56.117Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 2468,
+   "ms": 2506,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:41:21.109Z",
-   "ended_at": "2026-10-28T14:41:23.577Z"
+   "started_at": "2026-10-31T13:13:56.118Z",
+   "ended_at": "2026-10-31T13:13:58.625Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 5719,
+   "ms": 5219,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:41:23.579Z",
-   "ended_at": "2026-10-28T14:41:29.298Z"
+   "started_at": "2026-10-31T13:13:58.626Z",
+   "ended_at": "2026-10-31T13:14:03.846Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 1768,
+   "ms": 1347,
    "attempts": 1,
    "backend": "blender",
-   "notes": "inverted 0, laplacian x0.90, self-intersections 0",
-   "started_at": "2026-10-28T14:41:29.299Z",
-   "ended_at": "2026-10-28T14:41:31.068Z"
+   "notes": "ok",
+   "started_at": "2026-10-31T13:14:03.847Z",
+   "ended_at": "2026-10-31T13:14:05.195Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 38997,
+   "ms": 28985,
    "attempts": 1,
    "backend": "projection",
-   "started_at": "2026-10-28T14:41:31.069Z",
-   "ended_at": "2026-10-28T14:42:10.066Z"
+   "started_at": "2026-10-31T13:14:05.196Z",
+   "ended_at": "2026-10-31T13:14:34.182Z"
   }
  ],
  "files": [
@@ -115,8 +115,8 @@
    "kind": "spec",
    "stage": "A",
    "object_key": "jobs/fx_luna/prompts.json",
-   "bytes": 3765,
-   "sha256": "63f1f928d8bfafa6be9de0d3d678c98bf63416fa43b9b23141cf39f00381a3fb"
+   "bytes": 4285,
+   "sha256": "8861c442348cc4d308fc7f50b5a5727dc6e9d22a926515d8df325036a71a7fa7"
   },
   {
    "name": "concept.png",
@@ -167,20 +167,36 @@
    "sha256": "c04f00416512465ffdbe9a7c30048e8c52b58d13ff7f1b9936876fd60a3b64e5"
   },
   {
+   "name": "figure_mesh.npz",
+   "kind": "segmented",
+   "stage": "E",
+   "object_key": "jobs/fx_luna/figure_mesh.npz",
+   "bytes": 530401,
+   "sha256": "4afc79ddfb869b2fedda17068df4f9a090e493e6f78f7af7a94fe83d9a306da2"
+  },
+  {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_luna/albedo.png",
-   "bytes": 653064,
-   "sha256": "0142daa76879761ec011c22210c062835d98b37afdf2429befd46ab8213b889c"
+   "bytes": 671633,
+   "sha256": "fa6a32d233eee4dac4fdbbefd6028cf40d7e7bc9de7b49adb3fd8f2cb4dd23d3"
+  },
+  {
+   "name": "parts.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_luna/parts.png",
+   "bytes": 35478,
+   "sha256": "a6efd63f4db483c3b576d5f013367a048ce58277e338d106b0e5dacf354adfd5"
   },
   {
    "name": "figure_uv.obj",
    "kind": "uv_obj",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure_uv.obj",
-   "bytes": 1115194,
-   "sha256": "ebdb3b830ad47a5dff71de8a696776556fc582b0d3359199865929aa5a421bb5"
+   "bytes": 1592093,
+   "sha256": "0a9a1c073827a79fcea87ee9b327bb7181a2de552bbe1ba4584a3cba295c9a21"
   },
   {
    "name": "figure.stl",
@@ -188,47 +204,47 @@
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.stl",
    "bytes": 1500084,
-   "sha256": "3b68b89e8ea8f39cf96b0b6814754ece710dc096661f962a70e605e045129400"
+   "sha256": "416b51f57527eb2b4f27eb35ac6bb8b430d9a4a3bb564a7aebbe129037facb8d"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.3mf",
-   "bytes": 611574,
-   "sha256": "383d069400fa98cbe19c40da26f4df7ff67da94dc0c5d8d2ce867b615c39796e"
+   "bytes": 612278,
+   "sha256": "9af6d2749e893e0d3b97425ea035084943f884c23704a82c40b25839ba87bab8"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_luna/paint_mask.png",
-   "bytes": 4903,
-   "sha256": "8903fc4825b9341d541cb196d2e1f032bcc755e1aa793e9a8c42db23e4bca413"
+   "bytes": 5553,
+   "sha256": "17e07d2bdd460986dfe545043fa5601ffffc5db4c0e4e5337be37afb23cd6f65"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_luna/thumbnail.png",
-   "bytes": 60918,
-   "sha256": "f535357e6e4ba02c9137c4080afdcaab5717240b7a84acf66d2cc4977870c2ad"
+   "bytes": 61225,
+   "sha256": "ae3035c54c5d595cc21043ee823baeba6208443b87511391d101ced0ec197076"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_luna/turntable.mp4",
-   "bytes": 90541,
-   "sha256": "f0d9b44b9dafb04001fc7836b294ce8daa3d3f9a3ac8ae4502a2a8741ed9d0f7"
+   "bytes": 96326,
+   "sha256": "a7b8a7cc58354f4b039c03335f584a192f80cba9e6214458ab4311f64984d0bf"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_luna/figure.glb",
-   "bytes": 838516,
-   "sha256": "2478c349f04360983bcd6ef86db2362de1c7b535d8537ea700f63d1d914e1ed2"
+   "bytes": 958088,
+   "sha256": "c9491928d77493a362cbfa9e33eb36c936ccf03337393fd34dac3ec61b551acf"
   }
  ],
  "metrics": {
@@ -240,15 +256,18 @@
    0.9505
   ],
   "segmentation_valid": true,
-  "segmentation_notes": "inverted 0, laplacian x0.90, self-intersections 0",
+  "segmentation_notes": "ok",
+  "mesh_id": "m_fadd7510b6d51b13",
+  "segmentation_version": "seg-1",
+  "figure_tris": 14516,
+  "topology_hash": "a5787a8413f07b6a",
+  "uv_layout_hash": "06e0fdd26443e401",
   "print_tris": 30000,
-  "print_height_mm": 99.85,
-  "min_wall_mm": 2.91,
+  "print_height_mm": 100.35,
+  "min_wall_mm": 3.052,
   "min_wall_ok": true,
   "print_watertight": true,
-  "paint_mask_pct": 2.96,
-  "uv_layout_hash": "277c6a886ac7c151",
-  "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 56639
+  "paint_mask_pct": 3.01,
+  "total_ms": 43961
  }
 }

@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.6.0"
+API_VERSION = "3.7.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -502,10 +502,11 @@ class LibraryCandidate(_M):
     version: int
     kind: Literal["family", "region"]
     region: Region | None
+    mesh_id: str | None = Field(None, description="The mesh it is built on: a curated figurine's family is on its own mesh (decision 119).")
     name: str
     status: ItemStatus
     tags: list[str]
-    qc: dict[str, Any] = Field(description="symmetry_mm, boundary_strain, self_intersections, passed, reasons.")
+    qc: dict[str, Any] = Field(description="A figurine's mesh: segmentation_valid, print_watertight, min_wall_mm, figure_tris, passed, reasons.")
     auto_rejected: bool
     thumbnail_url: str | None
 
@@ -533,7 +534,7 @@ class BatchSummary(_M):
     accepted: int
     rejected: int
     published: int
-    parts_sets_published: int = Field(description="Figurines whose family and at least four region parts are published.")
+    meshes_published: int = Field(description="Figurines whose family, on the figurine's own mesh, is published (decision 119).")
 
 
 class Batch(_M):
@@ -579,6 +580,8 @@ class LibraryItem(_M):
     default_colour: str | None = None
     coverage: PatternCoverage | None = None
     breeds: list[str] | None = None
+    mesh_id: str | None = Field(None, description="Families and part variants: the mesh they are built on.")
+    shared_with: list[str] | None = Field(None, description="Families: breeds of other families on the same mesh (they share it).")
     default_parts: dict[str, str] | None = None
     qc: dict[str, Any] | None = None
     source_job: str | None = None

@@ -42,6 +42,7 @@ export async function loadLibrary(manifest: ReleaseManifest, url: (path: string)
   const size = meshEntry.atlas.size;
   const loader = new THREE.TextureLoader();
   const masks = await Promise.all(meshEntry.atlas.mask_files.map((f) => loader.loadAsync(url(f)).then(atlasTexture)));
+  const texture = meshEntry.texture ? await loader.loadAsync(url(meshEntry.texture)).then(atlasTexture) : null;
   const tm = buildTexelMap(base, size);
   const stamps = new StampLayer(base, tm, triangleSpheres(base));
   const deltaCache = new Map<string, Promise<Float32Array>>();
@@ -49,7 +50,7 @@ export async function loadLibrary(manifest: ReleaseManifest, url: (path: string)
   const gltf = new GLTFLoader();
   return {
     manifest, meshEntry, mesh, base, tm, stamps, url,
-    textures: { masks, stamps: stampTexture(size) },
+    textures: { masks, stamps: stampTexture(size), texture, coat: meshEntry.coat_hex ?? null },
     delta: (path) => {
       if (!deltaCache.has(path)) deltaCache.set(path, fetch(url(path)).then((r) => r.arrayBuffer()).then(decodeF16));
       return deltaCache.get(path)!;

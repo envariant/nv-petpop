@@ -7,8 +7,8 @@
  "mode": "mock",
  "fidelity": "high",
  "fallback": "none",
- "created_at": "2026-10-28T14:42:10.130Z",
- "finished_at": "2026-10-28T14:43:02.000Z",
+ "created_at": "2026-10-31T13:14:34.228Z",
+ "finished_at": "2026-10-31T13:15:15.504Z",
  "versions": {
   "pipeline": "0.2.0",
   "spec": "1.0",
@@ -19,7 +19,7 @@
  "genai": {
   "profile": "mock",
   "profile_version": 1,
-  "profile_sha": "33b5fbe5b044",
+  "profile_sha": "5792626304de",
   "host": "cpu",
   "accelerator": "none",
   "adapters": {
@@ -39,66 +39,66 @@
   {
    "stage": "A",
    "status": "ok",
-   "ms": 11,
+   "ms": 8,
    "attempts": 1,
    "backend": "rules",
-   "started_at": "2026-10-28T14:42:10.130Z",
-   "ended_at": "2026-10-28T14:42:10.141Z"
+   "started_at": "2026-10-31T13:14:34.228Z",
+   "ended_at": "2026-10-31T13:14:34.237Z"
   },
   {
    "stage": "control",
    "status": "ok",
-   "ms": 6315,
+   "ms": 4132,
    "attempts": 1,
    "backend": "blender",
-   "started_at": "2026-10-28T14:42:10.142Z",
-   "ended_at": "2026-10-28T14:42:16.458Z"
+   "started_at": "2026-10-31T13:14:34.237Z",
+   "ended_at": "2026-10-31T13:14:38.370Z"
   },
   {
    "stage": "B",
    "status": "ok",
-   "ms": 1874,
+   "ms": 1768,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:42:16.459Z",
-   "ended_at": "2026-10-28T14:42:18.333Z"
+   "started_at": "2026-10-31T13:14:38.371Z",
+   "ended_at": "2026-10-31T13:14:40.139Z"
   },
   {
    "stage": "C",
    "status": "ok",
-   "ms": 2593,
+   "ms": 2510,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:42:18.334Z",
-   "ended_at": "2026-10-28T14:42:20.928Z"
+   "started_at": "2026-10-31T13:14:40.140Z",
+   "ended_at": "2026-10-31T13:14:42.651Z"
   },
   {
    "stage": "D",
    "status": "ok",
-   "ms": 5107,
+   "ms": 5619,
    "attempts": 1,
    "backend": "mock",
-   "started_at": "2026-10-28T14:42:20.929Z",
-   "ended_at": "2026-10-28T14:42:26.037Z"
+   "started_at": "2026-10-31T13:14:42.652Z",
+   "ended_at": "2026-10-31T13:14:48.272Z"
   },
   {
    "stage": "E",
    "status": "ok",
-   "ms": 2068,
+   "ms": 1236,
    "attempts": 1,
    "backend": "blender",
-   "notes": "inverted 0, laplacian x0.92, self-intersections 0",
-   "started_at": "2026-10-28T14:42:26.038Z",
-   "ended_at": "2026-10-28T14:42:28.107Z"
+   "notes": "ok",
+   "started_at": "2026-10-31T13:14:48.273Z",
+   "ended_at": "2026-10-31T13:14:49.510Z"
   },
   {
    "stage": "F",
    "status": "ok",
-   "ms": 33887,
+   "ms": 25990,
    "attempts": 1,
    "backend": "projection",
-   "started_at": "2026-10-28T14:42:28.108Z",
-   "ended_at": "2026-10-28T14:43:01.996Z"
+   "started_at": "2026-10-31T13:14:49.511Z",
+   "ended_at": "2026-10-31T13:15:15.502Z"
   }
  ],
  "files": [
@@ -115,8 +115,8 @@
    "kind": "spec",
    "stage": "A",
    "object_key": "jobs/fx_marmalade/prompts.json",
-   "bytes": 3640,
-   "sha256": "8e40c53706bb39db18d7e0436ce496a05e20dd3ba49b7449097ec14ec6b4038f"
+   "bytes": 4160,
+   "sha256": "30ed3e26804c0726a2c28c63f848ec11193c6ec901a21224f6a69651dd74ae11"
   },
   {
    "name": "concept.png",
@@ -167,20 +167,36 @@
    "sha256": "9ab65fae6614dead4c29f433d626846d25f4551556c693f2cbeea0f754c03d90"
   },
   {
+   "name": "figure_mesh.npz",
+   "kind": "segmented",
+   "stage": "E",
+   "object_key": "jobs/fx_marmalade/figure_mesh.npz",
+   "bytes": 530980,
+   "sha256": "cb598ab910ceb2c841cc24751b9a9cae6c37a0518ebe1eb7af332928e4a5d51c"
+  },
+  {
    "name": "albedo.png",
    "kind": "albedo",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/albedo.png",
-   "bytes": 723138,
-   "sha256": "9d97716abdb15f059c4659dac9799bdc29851c737cd2227ce5db4e94444e6c9e"
+   "bytes": 724372,
+   "sha256": "80ba775756c39ccd4cf3730cf981b0b54c9fb9422653cc96592166148a0f4bac"
+  },
+  {
+   "name": "parts.png",
+   "kind": "mask",
+   "stage": "F",
+   "object_key": "jobs/fx_marmalade/parts.png",
+   "bytes": 34038,
+   "sha256": "a62402f68e325ebfa1574f25c67efd481f3264a4a93d65c8a4a66cd5cafb6083"
   },
   {
    "name": "figure_uv.obj",
    "kind": "uv_obj",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure_uv.obj",
-   "bytes": 1116123,
-   "sha256": "3d6c0cf9785809b96808f2f8cc1a84aee232fa51c448b1fd8182b29ad727280d"
+   "bytes": 1593054,
+   "sha256": "45387d65b2e6427d67b8e08fa0070111c0a1762147e5ab71a85727cc3fa41193"
   },
   {
    "name": "figure.stl",
@@ -188,47 +204,47 @@
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure.stl",
    "bytes": 1499984,
-   "sha256": "14a570a4f5222efd64263e6efd216640fb6d18425c703aa50e9a2f46887e8f2d"
+   "sha256": "385ceb299fa06405b4105ddc7467d77984719c572ceb7ffa2c4888385eab1729"
   },
   {
    "name": "figure.3mf",
    "kind": "3mf",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure.3mf",
-   "bytes": 611650,
-   "sha256": "21e274b2e916782097f7f7aed999469057e1e8cbb5aeccb9f85766ad3a5ead01"
+   "bytes": 612516,
+   "sha256": "5d462bae56a3c0c8d2710ca0f44a3c75fa6d956953d85a784599875165b4ab66"
   },
   {
    "name": "paint_mask.png",
    "kind": "mask",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/paint_mask.png",
-   "bytes": 4895,
-   "sha256": "c7b354785d5a65a46e9d5ed2f8d0ab36393540866d443bdc71f256cc16d57e55"
+   "bytes": 5655,
+   "sha256": "9dcd5c21298929715b005c812a9942311c84f3a8a1046b87cb08fdb34d484f9e"
   },
   {
    "name": "thumbnail.png",
    "kind": "thumbnail",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/thumbnail.png",
-   "bytes": 66469,
-   "sha256": "2ce1a80415784b4de321d25618b55d4fb2a1b1ce4ace1a29fe7f5e8f9d46578b"
+   "bytes": 67164,
+   "sha256": "e55864f7cde7ea280d17a323df5319b1d4fd19d609855d9c4fd63dfe2f6982a7"
   },
   {
    "name": "turntable.mp4",
    "kind": "turntable",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/turntable.mp4",
-   "bytes": 103632,
-   "sha256": "609da67b790638f19814218a688ec51dfd743da38b5b248bf75115d83855d576"
+   "bytes": 106705,
+   "sha256": "981c6410109da8504d5a54b075e6d2397b8aef5b71e349c5db920372c1a08806"
   },
   {
    "name": "figure.glb",
    "kind": "glb",
    "stage": "F",
    "object_key": "jobs/fx_marmalade/figure.glb",
-   "bytes": 910172,
-   "sha256": "e998cbbc3ca2032b7286d9864458c43dcb967f45200e87f831377b445ac4bf7f"
+   "bytes": 1013568,
+   "sha256": "5d48767ca4ebfcd884759aef4dd59c0583b75825c41b3fc60efb16299141fc36"
   }
  ],
  "metrics": {
@@ -240,15 +256,18 @@
    0.9628
   ],
   "segmentation_valid": true,
-  "segmentation_notes": "inverted 0, laplacian x0.92, self-intersections 0",
+  "segmentation_notes": "ok",
+  "mesh_id": "m_8b9bffaa49cd4411",
+  "segmentation_version": "seg-1",
+  "figure_tris": 14516,
+  "topology_hash": "a774b8be0af911a0",
+  "uv_layout_hash": "71dd73ddadd97cce",
   "print_tris": 29998,
-  "print_height_mm": 93.5,
-  "min_wall_mm": 3.187,
+  "print_height_mm": 94.32,
+  "min_wall_mm": 2.891,
   "min_wall_ok": true,
   "print_watertight": true,
-  "paint_mask_pct": 2.91,
-  "uv_layout_hash": "277c6a886ac7c151",
-  "topology_hash": "9ad6ca9a22865e07",
-  "total_ms": 51855
+  "paint_mask_pct": 3.02,
+  "total_ms": 41263
  }
 }

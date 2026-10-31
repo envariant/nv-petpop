@@ -1,7 +1,7 @@
 // Pattern layers in the shader (BRIEF Section 16): each layer's signed-distance mask is thresholded at its coverage
 // on the GPU, so markings grow and shrink smoothly as a slider moves, with up to 10 layers at no extra CPU cost.
 // The compositing maths is petpop_library/paint.py's composite(), in the same order and units (0..255): base
-// colour, layers (mask < coverage * 250, 2-step soft edge), the 8-bit stamp layer "over", then nose and eye.
+// colour (or the mesh's own texture tinted by base / coat, decision 119), layers (mask < coverage * 250, 2-step soft edge), the 8-bit stamp layer "over", then nose and eye.
 // bakeAtlas() renders that function unlit into an RGBA8 target, texel for texel, which is how gate 7 checks the
 // screen against the export's albedo.
 import * as THREE from 'three';
@@ -14,6 +14,9 @@ uniform sampler2D uMask0;
 uniform sampler2D uMask1;
 uniform sampler2D uMask2;
 uniform sampler2D uStamps;
+uniform sampler2D uTexture;
+uniform int uHasTexture;
+uniform vec3 uCoat;
 uniform vec3 uBase;
 uniform int uLayerCount;
 uniform int uLayerChannel[${MAX_LAYERS}];
@@ -35,6 +38,7 @@ vec3 ppComposite(vec2 uv) {
   mv[4] = m1.r; mv[5] = m1.g; mv[6] = m1.b; mv[7] = m1.a;
   mv[8] = m2.r; mv[9] = m2.g; mv[10] = m2.b; mv[11] = m2.a;
   vec3 c = uBase;
+  if (uHasTexture == 1) c = clamp(texture2D(uTexture, st).rgb * 255.0 * (uBase / max(uCoat, vec3(1.0))), 0.0, 255.0);
   for (int i = 0; i < ${MAX_LAYERS}; i++) {
     if (i >= uLayerCount) break;
     float m = 0.0;
@@ -71,6 +75,8 @@ function rgb255(hex: string): THREE.Vector3 {
 export interface AtlasTextures {
   masks: THREE.Texture[];
   stamps: THREE.DataTexture;
+  texture?: THREE.Texture | null; // the mesh's own texture at atlas size, when it has one
+  coat?: string | null; // its mean coat colour: a base colour equal to it shows the texture untinted
 }
 
 /** Atlas data textures: linear filtering, no mipmaps, no colour conversion (they are data, not colours). */
@@ -99,6 +105,9 @@ export function makeUniforms(tex: AtlasTextures, channels: Record<string, number
     uMask1: { value: tex.masks[1] },
     uMask2: { value: tex.masks[2] },
     uStamps: { value: tex.stamps },
+    uTexture: { value: tex.texture ?? tex.stamps },
+    uHasTexture: { value: tex.texture && tex.coat ? 1 : 0 },
+    uCoat: { value: rgb255(tex.coat ?? '#FFFFFF') },
     uBase: { value: new THREE.Vector3(200, 160, 120) },
     uLayerCount: { value: 0 },
     uLayerChannel: { value: new Array(MAX_LAYERS).fill(0) },
@@ -142,7 +151,7 @@ export function patternMaterial(uniforms: Record<string, THREE.IUniform>): THREE
          diffuseColor.rgb = mix(pow((ppC + 0.055) / 1.055, vec3(2.4)), ppC / 12.92, vec3(lessThanEqual(ppC, vec3(0.04045))));`,
       );
   };
-  mat.customProgramCacheKey = () => 'petpop-pattern-v1';
+  mat.customProgramCacheKey = () => 'petpop-pattern-v2';
   return mat;
 }
 

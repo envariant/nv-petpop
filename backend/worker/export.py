@@ -8,6 +8,7 @@ no adapter, no network: a kiosk can take orders while the GenAI host is unreacha
 """
 from __future__ import annotations
 
+import io
 import time
 from typing import Any
 
@@ -63,13 +64,19 @@ def composed_coords(rel: Release, composition: dict[str, Any], mesh=None) -> np.
 def render_albedo(rel: Release, composition: dict[str, Any], mesh=None) -> np.ndarray:
     """The composition's atlas at mask resolution, in its mesh's UVs: layers, stamps, eyes and nose."""
     base = mesh if mesh is not None else rel.mesh(composition["mesh_id"])
-    atlas = rel.item("meshes", composition["mesh_id"])["atlas"]
+    entry = rel.item("meshes", composition["mesh_id"])
+    atlas = entry["atlas"]
     masks = paint.read_masks([rel.file(f) for f in atlas["mask_files"]])
     pattern_channel = {p["id"]: p["channel"] for p in rel.manifest["pattern_layers"]}
     tm = mesh_texel_map(base, atlas["size"])
     # Padded like the kiosk's stamp texture, so a stamp across a UV seam samples the same on screen and in print.
     stamps = dilate_into_padding(paint.stamp_layer(base, tm, composition["stamps"]), tm.tri >= 0, 2)
-    return paint.composite(masks, atlas["channels"], composition, pattern_channel, stamps)
+    texture = None
+    if entry.get("texture"):
+        from PIL import Image
+
+        texture = np.asarray(Image.open(io.BytesIO(rel.file(entry["texture"]))).convert("RGB"))
+    return paint.composite(masks, atlas["channels"], composition, pattern_channel, stamps, texture, entry.get("coat_hex"))
 
 
 def run_export(ctx: StageContext, job_id: str, composition: dict[str, Any], composition_id: str) -> ManifestBuilder:
