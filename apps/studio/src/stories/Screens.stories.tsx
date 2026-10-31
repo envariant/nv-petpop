@@ -9,6 +9,8 @@ import { useSession, type Screen, type SessionState } from '../store/session';
 import { useCurate, type CurateState } from '../store/curate';
 import { useManual, type ManualState } from '../store/manual';
 import { MANUAL_TASKS } from '../mocks/manual';
+import { PROFILES } from '../mocks/handlers';
+import { useProfiles } from '../store/profiles';
 import { BATCH, CORGI, PATTERN_ITEM, RELEASES, SPEC, VIEW_PREVIEWS, job } from './fixtures';
 
 const OPERATOR = { username: 'operator', role: 'operator' as const };
@@ -20,6 +22,7 @@ function Hydrate({ state, curate, manual, children }: { state: Partial<SessionSt
     useSession.getState().hydrate({ user: OPERATOR, ...state });
     if (curate) useCurate.getState().set(curate);
     if (manual) useManual.getState().set(manual);
+    useProfiles.getState().set({ offered: PROFILES as never, choice: 'tripo-manual' });
     setReady(true);
   }, [state, curate, manual]);
   return ready ? <>{children}</> : null;

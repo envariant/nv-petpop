@@ -139,6 +139,8 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 - [x] Manual mode (decision 111, API 3.2.0): profile `tripo-manual`, the `manual` provider, job status `waiting`,
   Studio Manual inbox (story, Playwright test 12), `scripts/run_job.py`; docs/MANUAL-MODE.md, docs/LOCAL.md,
   docs/HANDOFF-TRIPO.md (2026-10-31)
+- [x] GenAI profile per job (decision 113, API 3.3.0): `PETPOP_STUDIO_PROFILES`, "Run on" in Generate and the
+  one-off Name screen, `GET /studio/profiles`, the profile recorded on each job and batch (2026-10-31)
 - [ ] Build the first library batch by hand in manual mode (Nishant, Tripo Studio): one breed per species first
 - [ ] Real Tripo jobs once `TRIPO_API_KEY` is in the environment (docs/HANDOFF-TRIPO.md, first steps): `GENAI_PROFILE=tripo python scripts/genai_check.py`,
   then one job per species; record times, credits and IoU; settle `shape.iou_min`, `expected_s` and timeouts

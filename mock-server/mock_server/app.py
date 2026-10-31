@@ -32,6 +32,7 @@ from backend.api import models as m
 from petpop_core.breeds import breed_doc, search
 from backend.api.contract import ApiError, check_sig, make_app, make_token, read_token, signed_file_url
 from petpop_core.parser import parse
+from backend.core.genai import ProfileError, profile_name, profiles_offered, resolve
 from backend.core.paths import FIXTURES, ROOT, mock_speed
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch
@@ -68,6 +69,7 @@ class MockJob:
     ticket: str | None = None
     fulfilled: bool = False
     manifest: dict[str, Any] = field(default_factory=dict)
+    genai_profile: str | None = None
 
     def scaled(self, s: float) -> float:
         return s * self.speed
@@ -149,7 +151,7 @@ class MockApi:
         return signed_file_url(self.secret, f"jobs/{job.job_id}/{name}", base=base)
 
     def _enqueue(self, session_id: str | None, requested_by: str, spec: dict[str, Any], script: dict[str, Any] | None = None,
-                 kind: str = "pipeline") -> MockJob:
+                 kind: str = "pipeline", genai_profile: str | None = None) -> MockJob:
         now = time.time()
         speed = mock_speed()
         script = script or self._pick_script(spec)
@@ -157,7 +159,8 @@ class MockApi:
         start = max(now, busy_until) + script.get("queue_ahead", 0) * script.get("queue_job_s", 0) * speed
         job = MockJob(job_id="j_" + uuid.uuid4().hex[:12], session_id=session_id, requested_by=requested_by, kind=kind,
                       spec=spec, script=script,
-                      pet=self._pick_pet(spec), created=now, start=start, speed=speed)
+                      pet=self._pick_pet(spec), created=now, start=start, speed=speed,
+                      genai_profile=genai_profile or profile_name())
         job.manifest = self._fixture_manifest(job.pet)
         self.jobs[job.job_id] = job
         return job
@@ -288,7 +291,17 @@ class MockApi:
 
     async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated:
         self._check_spec(body.spec)
-        return self._created(self._enqueue(None, user.username, body.spec))
+        return self._created(self._enqueue(None, user.username, body.spec, genai_profile=self._profile(body.genai_profile)))
+
+    @staticmethod
+    def _profile(requested: str | None) -> str:
+        try:
+            return resolve(requested)
+        except ProfileError as exc:
+            raise ApiError(422, str(exc)) from exc
+
+    async def genai_profiles(self) -> m.GenaiProfiles:
+        return m.GenaiProfiles(**profiles_offered())
 
     async def get_job(self, job_id: str, base: str) -> m.Job:
         job = self._job(job_id)
@@ -337,7 +350,7 @@ class MockApi:
                      else None, error=job.script.get("error") if st["status"] == "failed" else None,
                      fallback=job.script.get("fallback", "none") if done else "none",
                      fidelity=job.manifest.get("fidelity", "low"), timings=timings, artefacts=artefacts,
-                     previews=previews, result_url=result_url, ticket=ticket, spec=job.spec)
+                     previews=previews, result_url=result_url, ticket=ticket, spec=job.spec, genai_profile=job.genai_profile)
 
     async def job_events(self, job_id: str, base: str) -> AsyncIterator[m.ProgressEvent]:
         job = self._job(job_id)
@@ -376,7 +389,7 @@ class MockApi:
         old = self._job(job_id)
         spec, _ = apply_patch(old.spec, req.patch)
         spec["seed"] = old.spec["seed"]
-        return await self.create_job(m.JobCreate(spec=spec), user)
+        return await self.create_job(m.JobCreate(spec=spec, genai_profile=old.genai_profile), user)
 
     async def fulfil(self, job_id: str) -> m.FulfilResponse:
         job = self._job(job_id)
@@ -432,7 +445,8 @@ class MockApi:
                           fallback=job.script.get("fallback", "none"),
                           total_ms=int((job.end() - job.start) * 1000) if done else None,
                           thumbnail_url=self._url(job, "thumbnail.png") if st["status"] in ("done", "fulfilled")
-                          else None, error=job.script.get("error") if st["status"] == "failed" else None)
+                          else None, error=job.script.get("error") if st["status"] == "failed" else None,
+                          genai_profile=job.genai_profile)
 
     async def staff_queue(self, base: str) -> m.StaffQueue:
         now = time.time()
@@ -446,7 +460,8 @@ class MockApi:
 
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated:
         old = self._job(job_id)
-        return self._created(self._enqueue(old.session_id, user.username, old.spec, self.scripts["normal"], kind=old.kind))
+        return self._created(self._enqueue(old.session_id, user.username, old.spec, self.scripts["normal"], kind=old.kind,
+                                           genai_profile=old.genai_profile))
 
     # ----------------------------------------------------------------- manual mode (decision 111)
     async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList:
@@ -460,6 +475,7 @@ class MockApi:
 
     # ----------------------------------------------------------------- studio library (M8)
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:
+        body = body.model_copy(update={"genai_profile": self._profile(body.genai_profile)})
         return await asyncio.to_thread(self.studio.create_batch, body, user, mock_speed())
 
     async def list_batches(self) -> m.BatchList:

@@ -14,6 +14,16 @@ import type { Artefact, Breed, Job, PetSpec, ProgressEvent, StaffJob } from '@pe
 import { applyPatch, assetUrl } from '@petpop/core';
 import { curationHandlers } from './curation';
 import { manualHandlers } from './manual';
+
+/** Per-job GenAI profiles (decision 113): what a server with PETPOP_STUDIO_PROFILES=tripo-manual,tripo offers. */
+export const PROFILES = {
+  default: 'mock',
+  items: [
+    { name: 'mock', description: 'CPU stand-ins for every GenAI stage (no host needed).', mode: 'mock', host: 'cpu', ready: true, missing: [] },
+    { name: 'tripo-manual', description: 'Tripo3D in manual mode. The operator runs each request in Tripo Studio and uploads the output.', mode: 'real', host: 'api', ready: true, missing: [] },
+    { name: 'tripo', description: 'Tripo3D API. Concept by text-to-image, textured shape by image-to-model.', mode: 'real', host: 'api', ready: false, missing: ['TRIPO_API_KEY'] },
+  ],
+} as const;
 import { mockParse } from './parse';
 
 type Step = { stage: string; at_s: number; pct: number; message: string; preview?: string; preview_kind?: string; also?: string[][] };
@@ -33,6 +43,7 @@ export const HANDLED_PATHS = [
   '/api/v1/studio/library/{species}/{kind}/{item_id}', '/api/v1/studio/library/{species}/{kind}/{item_id}/publish',
   '/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish', '/api/v1/studio/releases',
   '/api/v1/studio/manual', '/api/v1/studio/manual/{task_id}', '/api/v1/studio/manual/{task_id}/result',
+  '/api/v1/studio/profiles',
 ];
 const ROLES = ['operator', 'curator', 'admin'];
 const MOCK_PASSWORD = 'petpop-dev';
@@ -134,7 +145,7 @@ const userOf = (request: Request) => {
 const unauthorised = () => HttpResponse.json({ detail: 'staff login required' }, { status: 401 });
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.2.0', server: 'mock-server' })),
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.3.0', server: 'mock-server' })),
   http.post('/api/v1/studio/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (!ROLES.includes(body.username) || body.password !== MOCK_PASSWORD) return HttpResponse.json({ detail: 'wrong username or password' }, { status: 401 });
@@ -250,4 +261,5 @@ export const handlers = [
   }),
   ...curationHandlers(userOf, unauthorised),
   ...manualHandlers,
+  http.get('/api/v1/studio/profiles', () => HttpResponse.json(PROFILES)),
 ];

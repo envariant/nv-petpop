@@ -75,6 +75,18 @@
       "title": "Figurines",
       "type": "array"
      },
+     "genai_profile": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The GenAI profile its figurines run on (decision 113).",
+      "title": "Genai Profile"
+     },
      "request": {
       "additionalProperties": true,
       "title": "Request",
@@ -133,6 +145,18 @@
       "minimum": 1.0,
       "title": "First Seed",
       "type": "integer"
+     },
+     "genai_profile": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).",
+      "title": "Genai Profile"
      },
      "seeds": {
       "default": 1,
@@ -953,6 +977,78 @@
     "title": "FulfilResponse",
     "type": "object"
    },
+   "GenaiProfileInfo": {
+    "additionalProperties": false,
+    "properties": {
+     "description": {
+      "title": "Description",
+      "type": "string"
+     },
+     "host": {
+      "description": "Where the GenAI runs: cpu, apple-silicon, nvidia or api.",
+      "title": "Host",
+      "type": "string"
+     },
+     "missing": {
+      "description": "Environment variables it needs that are not set (names only).",
+      "items": {
+       "type": "string"
+      },
+      "title": "Missing",
+      "type": "array"
+     },
+     "mode": {
+      "enum": [
+       "mock",
+       "real"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "ready": {
+      "description": "False when a key it needs is missing from the server's environment.",
+      "title": "Ready",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "name",
+     "description",
+     "mode",
+     "host",
+     "ready",
+     "missing"
+    ],
+    "title": "GenaiProfileInfo",
+    "type": "object"
+   },
+   "GenaiProfiles": {
+    "additionalProperties": false,
+    "properties": {
+     "default": {
+      "description": "GENAI_PROFILE: kiosk bespoke jobs and jobs that name none run on it.",
+      "title": "Default",
+      "type": "string"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/GenaiProfileInfo"
+      },
+      "title": "Items",
+      "type": "array"
+     }
+    },
+    "required": [
+     "default",
+     "items"
+    ],
+    "title": "GenaiProfiles",
+    "type": "object"
+   },
    "GpuStatus": {
     "additionalProperties": false,
     "properties": {
@@ -1120,6 +1216,18 @@
       ],
       "title": "Finished At"
      },
+     "genai_profile": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The GenAI profile the job runs on, fixed at creation (decision 113).",
+      "title": "Genai Profile"
+     },
      "job_id": {
       "title": "Job Id",
       "type": "string"
@@ -1282,6 +1390,18 @@
    "JobCreate": {
     "additionalProperties": false,
     "properties": {
+     "genai_profile": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).",
+      "title": "Genai Profile"
+     },
      "spec": {
       "$ref": "#/components/schemas/PetSpec"
      }
@@ -3830,6 +3950,17 @@
       ],
       "title": "Finished At"
      },
+     "genai_profile": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Genai Profile"
+     },
      "job_id": {
       "title": "Job Id",
       "type": "string"
@@ -4167,7 +4298,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.2.0"
+  "version": "3.3.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -7219,6 +7350,75 @@
      }
     },
     "summary": "Submit Manual",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/profiles": {
+   "get": {
+    "operationId": "studioGenaiProfiles",
+    "parameters": [
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GenaiProfiles"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Genai Profiles",
     "tags": [
      "studio"
     ]

@@ -32,6 +32,11 @@ then docs/PROVIDERS.md and docs/MANUAL-MODE.md. Decisions 108 to 112 explain the
    the front silhouette (`shape.iou_min` is 0.80, provisional), whether Tripo's text-to-image default model and size
    suit (`image.params`), and whether a private-generation request flag exists (decision 110; `create_extras`).
 
+## Choosing per job
+
+`GENAI_PROFILE` is the default; `PETPOP_STUDIO_PROFILES` (e.g. `tripo-manual,tripo`) lets Studio pick per job or
+batch ("Run on"); each job records its profile (decision 113, API 3.3.0).
+
 ## Manual mode, for building the library now
 
 `GENAI_PROFILE=tripo-manual`, `make dev`, Studio -> Generate (a batch) -> Manual (run each request in Tripo Studio,

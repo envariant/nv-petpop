@@ -75,6 +75,8 @@ class ApiImpl(Protocol):
     async def fulfil(self, job_id: str) -> m.FulfilResponse: ...
     async def staff_queue(self, base: str) -> m.StaffQueue: ...
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated: ...
+    # per-job GenAI profiles (decision 113)
+    async def genai_profiles(self) -> m.GenaiProfiles: ...
     # manual mode (decision 111): provider requests the operator runs in the vendor's app
     async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList: ...
     async def manual_task(self, task_id: str, base: str) -> m.ManualTask: ...
@@ -306,6 +308,10 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
     @studio.get("/queue", response_model=m.StaffQueue, operation_id="studioQueue", responses=AUTH)
     async def queue(request: Request, _: m.StaffUser = operator) -> m.StaffQueue:
         return await impl.staff_queue(_base(request))
+
+    @studio.get("/profiles", response_model=m.GenaiProfiles, operation_id="studioGenaiProfiles", responses=AUTH)
+    async def genai_profiles(_: m.StaffUser = operator) -> m.GenaiProfiles:
+        return await impl.genai_profiles()
 
     # ------------------------------------------------------------------ manual mode (decision 111)
     @studio.get("/manual", response_model=m.ManualTaskList, operation_id="studioManualTasks", responses=AUTH)

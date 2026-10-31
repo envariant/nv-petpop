@@ -72,6 +72,18 @@ class Settings:
         return self.genai.name
 
 
+def settings_for(profile: str, base: Settings | None = None) -> Settings:
+    """The settings of a job that runs on `profile` (decision 113): the process's settings with that profile's
+    GenAI configuration and quality preset."""
+    import dataclasses
+
+    base = base or settings()
+    if profile == base.profile:
+        return base
+    genai = Profile(profile)
+    return dataclasses.replace(base, genai=genai, mode=genai.mode, quality=genai.quality())
+
+
 def settings() -> Settings:
     var = _var()
     genai = Profile()

@@ -77,3 +77,44 @@ def test_a_job_waits_for_the_operator_and_resumes(studio):
     notes = {t["stage"]: t["status"] for t in job["timings"]}
     assert notes.get("D") == "ok" and c.get(f"{S}/manual").json()["pending"] == 0
     assert any(a["kind"] == "glb" for a in job["artefacts"])
+
+
+def test_one_worker_runs_each_job_on_its_own_profile(monkeypatch, tmp_path):
+    """Decision 113: GENAI_PROFILE is the default; Studio picks per job from PETPOP_STUDIO_PROFILES; one worker
+    builds each profile's adapters on first use, so a mock job and a manual-mode job run side by side."""
+    monkeypatch.setenv("GENAI_PROFILE", "mock")
+    monkeypatch.setenv("PETPOP_STUDIO_PROFILES", "tripo-manual")
+    monkeypatch.setenv("PETPOP_QUALITY", "test")
+    monkeypatch.setenv("PETPOP_MOCK_SPEED", "0")
+    monkeypatch.setenv("PETPOP_VAR", str(tmp_path / "var"))
+    monkeypatch.setenv("PETPOP_STUDIO_PASSWORD", "pick-test")
+    from backend.api.app import create_app
+    from backend.core.config import settings
+    from backend.worker.service import Worker
+
+    with TestClient(create_app(embed_worker=False)) as c:
+        c.headers["Authorization"] = "Bearer " + c.post(f"{S}/auth/login", json={"username": "operator", "password": "pick-test"}).json()["token"]
+        offered = c.get(f"{S}/profiles").json()
+        assert offered["default"] == "mock" and [p["name"] for p in offered["items"]] == ["mock", "tripo-manual"]
+        assert all(p["ready"] for p in offered["items"])  # manual mode needs no key
+        spec = default_spec("cat", "siamese", seed=8)
+        plain = c.post(f"{S}/jobs", json={"spec": spec}).json()["job_id"]
+        manual = c.post(f"{S}/jobs", json={"spec": spec, "genai_profile": "tripo-manual"}).json()["job_id"]
+        assert c.post(f"{S}/jobs", json={"spec": spec, "genai_profile": "tripo"}).status_code == 422  # not offered
+        worker = Worker(settings(), queue="studio")
+        assert worker.run_job(plain) == "done"
+        assert worker.run_job(manual) == "waiting"
+        jobs = {j: c.get(f"{S}/jobs/{j}").json() for j in (plain, manual)}
+        assert jobs[plain]["genai_profile"] == "mock" and jobs[manual]["genai_profile"] == "tripo-manual"
+        assert [t["job_id"] for t in c.get(f"{S}/manual").json()["items"]] == [manual]
+        # the profile is recorded at creation: changing the server default later does not move a waiting job
+        retried = c.post(f"{S}/jobs/{manual}/retry").json()["job_id"]
+        assert c.get(f"{S}/jobs/{retried}").json()["genai_profile"] == "tripo-manual"
+
+
+def test_an_unknown_studio_profile_is_a_configuration_error(monkeypatch):
+    from backend.core.genai import ProfileError, studio_profiles
+
+    monkeypatch.setenv("PETPOP_STUDIO_PROFILES", "tripo,no-such-profile")
+    with pytest.raises(ProfileError, match="no-such-profile"):
+        studio_profiles()

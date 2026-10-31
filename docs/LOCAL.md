@@ -58,6 +58,11 @@ make up        # builds petpop-app, starts everything, waits for health; make do
 
 ## Which GenAI profile
 
+`GENAI_PROFILE` is the default (kiosk bespoke jobs use it); `PETPOP_STUDIO_PROFILES` lists the others Studio may
+pick per job or batch under "Run on" (decision 113), e.g. `GENAI_PROFILE=mock` and
+`PETPOP_STUDIO_PROFILES=tripo-manual,tripo`. Switching needs no restart: each job records its own.
+
+
 | `GENAI_PROFILE` | Needs | Use |
 | --- | --- | --- |
 | `mock` | nothing | UI and pipeline work without GenAI |

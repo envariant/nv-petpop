@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.2.0"
+API_VERSION = "3.3.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -129,6 +129,7 @@ class ParseResponse(_M):
 
 class JobCreate(_M):
     spec: PetSpec
+    genai_profile: str | None = Field(None, description="GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).")
 
 
 class JobCreated(_M):
@@ -175,6 +176,7 @@ class Job(_M):
     artefacts: list[Artefact]
     previews: dict[str, str] = Field(description="Latest preview URL per kind (concept, view_front, shape, glb ...).")
     result_url: str | None = Field(None, description="Signed public result page URL for the QR code (7 days).")
+    genai_profile: str | None = Field(None, description="The GenAI profile the job runs on, fixed at creation (decision 113).")
     ticket: str | None = None
     spec: PetSpec
 
@@ -226,6 +228,7 @@ class StaffJob(_M):
     total_ms: int | None
     thumbnail_url: str | None
     error: str | None
+    genai_profile: str | None = None
 
 
 class GpuStatus(_M):
@@ -241,6 +244,22 @@ class StaffQueue(_M):
     queued: list[StaffJob]
     recent: list[StaffJob]
     gpu: GpuStatus
+
+
+# --------------------------------------------------------------------------- per-job GenAI profiles (decision 113, API 3.3.0)
+
+class GenaiProfileInfo(_M):
+    name: str
+    description: str
+    mode: Literal["mock", "real"]
+    host: str = Field(description="Where the GenAI runs: cpu, apple-silicon, nvidia or api.")
+    ready: bool = Field(description="False when a key it needs is missing from the server's environment.")
+    missing: list[str] = Field(description="Environment variables it needs that are not set (names only).")
+
+
+class GenaiProfiles(_M):
+    default: str = Field(description="GENAI_PROFILE: kiosk bespoke jobs and jobs that name none run on it.")
+    items: list[GenaiProfileInfo]
 
 
 # --------------------------------------------------------------------------- manual mode (decision 111, API 3.2.0)
@@ -432,6 +451,7 @@ class BatchCreate(_M):
     variants: list[BatchVariant] = Field(default_factory=lambda: [BatchVariant(label="preset")], min_length=1, max_length=5)
     seeds: int = Field(1, ge=1, le=10)
     first_seed: int = Field(1, ge=1, le=2**31 - 1)
+    genai_profile: str | None = Field(None, description="GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).")
 
 
 class LibraryCandidate(_M):
@@ -480,6 +500,7 @@ class Batch(_M):
     created_by: str
     created_at: datetime
     request: dict[str, Any]
+    genai_profile: str | None = Field(None, description="The GenAI profile its figurines run on (decision 113).")
     summary: BatchSummary
     figurines: list[BatchFigurine]
 

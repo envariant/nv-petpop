@@ -603,6 +603,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/studio/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Genai Profiles */
+        get: operations["studioGenaiProfiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/studio/queue": {
         parameters: {
             query?: never;
@@ -688,6 +705,11 @@ export interface components {
             created_by: string;
             /** Figurines */
             figurines: components["schemas"]["BatchFigurine"][];
+            /**
+             * Genai Profile
+             * @description The GenAI profile its figurines run on (decision 113).
+             */
+            genai_profile?: string | null;
             /** Request */
             request: {
                 [key: string]: unknown;
@@ -716,6 +738,11 @@ export interface components {
              * @default 1
              */
             first_seed: number;
+            /**
+             * Genai Profile
+             * @description GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).
+             */
+            genai_profile?: string | null;
             /**
              * Seeds
              * @default 1
@@ -1004,6 +1031,43 @@ export interface components {
             /** Ticket */
             ticket: string;
         };
+        /** GenaiProfileInfo */
+        GenaiProfileInfo: {
+            /** Description */
+            description: string;
+            /**
+             * Host
+             * @description Where the GenAI runs: cpu, apple-silicon, nvidia or api.
+             */
+            host: string;
+            /**
+             * Missing
+             * @description Environment variables it needs that are not set (names only).
+             */
+            missing: string[];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "mock" | "real";
+            /** Name */
+            name: string;
+            /**
+             * Ready
+             * @description False when a key it needs is missing from the server's environment.
+             */
+            ready: boolean;
+        };
+        /** GenaiProfiles */
+        GenaiProfiles: {
+            /**
+             * Default
+             * @description GENAI_PROFILE: kiosk bespoke jobs and jobs that name none run on it.
+             */
+            default: string;
+            /** Items */
+            items: components["schemas"]["GenaiProfileInfo"][];
+        };
         /** GpuStatus */
         GpuStatus: {
             /** Mock */
@@ -1076,6 +1140,11 @@ export interface components {
             fidelity: "high" | "low";
             /** Finished At */
             finished_at?: string | null;
+            /**
+             * Genai Profile
+             * @description The GenAI profile the job runs on, fixed at creation (decision 113).
+             */
+            genai_profile?: string | null;
             /** Job Id */
             job_id: string;
             /**
@@ -1138,6 +1207,11 @@ export interface components {
         };
         /** JobCreate */
         JobCreate: {
+            /**
+             * Genai Profile
+             * @description GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).
+             */
+            genai_profile?: string | null;
             spec: components["schemas"]["PetSpec"];
         };
         /** JobCreated */
@@ -1986,6 +2060,8 @@ export interface components {
             fallback: "none" | "single_view" | "parametric" | "unwrapped";
             /** Finished At */
             finished_at: string | null;
+            /** Genai Profile */
+            genai_profile?: string | null;
             /** Job Id */
             job_id: string;
             /**
@@ -4154,6 +4230,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioGenaiProfiles: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenaiProfiles"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

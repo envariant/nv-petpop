@@ -4,7 +4,7 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema';
 import type {
-  ManualTask, ManualTaskList,
+  GenaiProfiles, ManualTask, ManualTaskList,
   Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
   ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
@@ -83,7 +83,8 @@ export const StudioApi = {
     unwrap(await api.GET('/api/v1/studio/breeds', { params: { query: { species, q: q || undefined } }, ...(auth() as object) })),
   parse: async (species: Species, current: PetSpec, text: string, tapped: string[]): Promise<ParseResponse> =>
     unwrap(await api.POST('/api/v1/studio/spec/parse', { body: { species, current_spec: current, text, tapped_fields: tapped }, ...(auth() as object) })),
-  createJob: async (spec: PetSpec): Promise<JobCreated> => unwrap(await api.POST('/api/v1/studio/jobs', { body: { spec }, ...(auth() as object) })),
+  createJob: async (spec: PetSpec, genaiProfile?: string | null): Promise<JobCreated> =>
+    unwrap(await api.POST('/api/v1/studio/jobs', { body: { spec, genai_profile: genaiProfile || null }, ...(auth() as object) })),
   job: async (id: string): Promise<Job> => unwrap(await api.GET('/api/v1/studio/jobs/{job_id}', { params: { path: { job_id: id } }, ...(auth() as object) })),
   tweak: async (id: string, patch: Record<string, unknown>): Promise<JobCreated> =>
     unwrap(await api.POST('/api/v1/studio/jobs/{job_id}/tweak', { params: { path: { job_id: id } }, body: { patch }, ...(auth() as object) })),
@@ -110,6 +111,8 @@ export const StudioApi = {
   releases: async (): Promise<ReleaseList> => unwrap(await api.GET('/api/v1/studio/releases', auth())),
   createRelease: async (species: Species): Promise<ReleaseInfo> =>
     unwrap(await api.POST('/api/v1/studio/releases', { body: { species }, ...(auth() as object) })),
+  // per-job GenAI profiles (decision 113): what Studio may run a job on, and the server default
+  profiles: async (): Promise<GenaiProfiles> => unwrap(await api.GET('/api/v1/studio/profiles', auth())),
   // manual mode (decision 111): run a provider request in the vendor's app, upload its output
   manualTasks: async (status: 'pending' | 'submitted' | 'all' = 'pending'): Promise<ManualTaskList> =>
     unwrap(await api.GET('/api/v1/studio/manual', { params: { query: { status } }, ...(auth() as object) })),

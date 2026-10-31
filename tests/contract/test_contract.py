@@ -309,6 +309,28 @@ def test_studio_queue_and_retry(client):
     wait_terminal(client, auth, retried["job_id"])
 
 
+def test_genai_profiles(client):
+    """Per-job GenAI profiles (decision 113, API 3.3.0): Studio lists what it may run on; a job names one or gets
+    the default; a profile not offered is refused."""
+    auth = login(client)
+    offered = check(f"{S}/profiles", "get", client.get(f"{S}/profiles", headers=auth))
+    names = [p["name"] for p in offered["items"]]
+    assert offered["default"] == names[0] and all(isinstance(p["missing"], list) for p in offered["items"])
+    spec = default_spec("dog", "beagle", seed=5, pet_name="Pick")
+    r = client.post(f"{S}/jobs", json={"spec": spec, "genai_profile": names[-1]}, headers=auth)
+    job = check(f"{S}/jobs", "post", r)
+    got = check(f"{S}/jobs/{{job_id}}", "get", client.get(f"{S}/jobs/{job['job_id']}", headers=auth))
+    assert got["genai_profile"] == names[-1]
+    default = check(f"{S}/jobs", "post", client.post(f"{S}/jobs", json={"spec": spec}, headers=auth))
+    assert check(f"{S}/jobs/{{job_id}}", "get", client.get(f"{S}/jobs/{default['job_id']}", headers=auth))["genai_profile"] == offered["default"]
+    bad = client.post(f"{S}/jobs", json={"spec": spec, "genai_profile": "no-such-profile"}, headers=auth)
+    assert bad.status_code == 422 and "not offered" in bad.text
+    bad_batch = client.post(f"{S}/batches", json={"species": "dog", "breeds": ["beagle"], "genai_profile": "no-such-profile"}, headers=auth)
+    assert bad_batch.status_code == 422
+    wait_terminal(client, auth, job["job_id"])
+    wait_terminal(client, auth, default["job_id"])
+
+
 def test_manual_tasks(client):
     """Manual mode (decision 111, API 3.2.0): the inbox, one task, and uploading its output."""
     import io
@@ -351,7 +373,8 @@ def test_every_documented_path_is_exercised():
                  f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",
                  f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
                  f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
-                 f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result"}
+                 f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result",
+                 f"{S}/profiles"}
     assert set(doc()["paths"]) == exercised
 
 

@@ -2,6 +2,7 @@
 // editors and releases. The single-figurine Generate flow keeps its own state in session.ts.
 import { create } from 'zustand';
 import { ApiFailure, StudioApi } from '@petpop/core';
+import { useProfiles } from './profiles';
 import type { Batch, ItemKind, LibraryItem, LibraryItemPatch, ReleaseInfo, ReviewDecision, Species } from '@petpop/core';
 
 export type Area = 'generate' | 'review' | 'library' | 'releases' | 'single';
@@ -86,7 +87,7 @@ export const useCurate = create<CurateState>((set, get) => {
     startBatch: async () => {
       const { species, breeds, variants, seeds } = get();
       const batch = await run(() =>
-        StudioApi.createBatch({ species, breeds, seeds, first_seed: 1, variants: VARIANTS.filter((v) => variants.includes(v.label)).map((v) => ({ label: v.label, patch: v.patch })) }),
+        StudioApi.createBatch({ species, breeds, seeds, first_seed: 1, genai_profile: useProfiles.getState().choice, variants: VARIANTS.filter((v) => variants.includes(v.label)).map((v) => ({ label: v.label, patch: v.patch })) }),
       );
       if (batch) set({ batch, breeds: [], notice: `Batch started: ${batch.summary.figurines} figurines` });
       return batch;

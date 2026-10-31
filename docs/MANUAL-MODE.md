@@ -22,7 +22,9 @@ A parse -> control -> B concept: WAITS (you: Tripo text to image -> upload the i
 
 ## Running it
 
-1. `GENAI_PROFILE=tripo-manual` in `.env` (or the environment), then `make dev` (docs/LOCAL.md). No key needed.
+1. Offer it in Studio: `PETPOP_STUDIO_PROFILES=tripo-manual` in `.env` (or make it the default with
+   `GENAI_PROFILE=tripo-manual`), then `make dev` (docs/LOCAL.md). No key needed. Each job or batch then picks
+   "Run on" in Studio (decision 113).
 2. PetPop Studio (http://127.0.0.1:5174/studio/ with `make dev`): sign in as operator.
 3. Make figurines as usual: **Generate** for a batch (breeds x variants x seeds, which builds the library) or
    **One-off figurine** for a single one.

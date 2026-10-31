@@ -162,3 +162,46 @@ def model_pins(models) -> dict[str, dict[str, str]]:
 
 def current() -> Profile:
     return Profile()
+
+
+# ------------------------------------------------------------------ per-job profiles (decision 113)
+
+def studio_profiles() -> list[str]:
+    """Profiles Studio may run a job on: PETPOP_STUDIO_PROFILES (comma-separated), always led by the default
+    (GENAI_PROFILE, which kiosk bespoke jobs and any job without a choice use)."""
+    default = profile_name()
+    named = [p.strip() for p in os.environ.get("PETPOP_STUDIO_PROFILES", "").split(",") if p.strip()]
+    unknown = [p for p in named if p not in available()]
+    if unknown:
+        raise ProfileError(f"PETPOP_STUDIO_PROFILES names unknown profiles {unknown}; available: {', '.join(available())}")
+    return [default] + [p for p in named if p != default]
+
+
+def resolve(requested: str | None) -> str:
+    """The profile a new job runs on: the one asked for, if Studio may use it, else the default."""
+    if not requested:
+        return profile_name()
+    allowed = studio_profiles()
+    if requested not in allowed:
+        raise ProfileError(f"profile {requested!r} is not offered here (PETPOP_STUDIO_PROFILES allows {', '.join(allowed)})")
+    return requested
+
+
+def readiness(name: str) -> tuple[bool, list[str]]:
+    """Whether a profile can run now as far as configuration goes: the environment variables its API providers'
+    keys need (a manual provider needs none). Hosts and URLs with defaults are not checked here."""
+    p = Profile(name)
+    missing = [cfg["key_env"] for cfg in (p.get("providers") or {}).values()
+               if cfg.get("kind") != "manual" and cfg.get("key_env") and not os.environ.get(cfg["key_env"], "").strip()]
+    return not missing, missing
+
+
+def profiles_offered() -> dict[str, Any]:
+    """GET /studio/profiles: the default and every profile Studio may choose, with readiness."""
+    items = []
+    for name in studio_profiles():
+        p = Profile(name)
+        ready, missing = readiness(name)
+        items.append({"name": name, "description": p["description"], "mode": p.mode, "host": p["host"]["kind"],
+                      "ready": ready, "missing": missing})
+    return {"default": profile_name(), "items": items}

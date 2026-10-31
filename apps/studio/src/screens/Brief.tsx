@@ -6,6 +6,7 @@ import { Button, Chip, Title } from '@petpop/ui';
 import { label } from '@petpop/core';
 import { useSession } from '../store/session';
 import { NavBar } from './Nav';
+import { ProfilePicker } from './ProfilePicker';
 
 const EXAMPLES = ['loves snacks', 'one ear that flops', 'chunky', 'fluffy tail', 'white socks', 'blue eyes', 'red collar', 'cheeky'];
 const FIELD_LABEL: Record<string, string> = {
@@ -111,6 +112,9 @@ export function NameScreen() {
               </div>
             ))}
           </dl>
+        </div>
+        <div className="mt-6">
+          <ProfilePicker />
         </div>
         {s.error && (
           <p className="mt-6 text-3xl font-semibold text-accent2" data-testid="generate-error">

@@ -44,11 +44,26 @@ class Worker:
         self.bus = make_bus(self.s, self.db)
         self.store = make_store(self.s)
         self.backends = None
+        self._runtimes: dict[str, tuple[Settings, Any]] = {}  # GenAI profile -> (settings, adapters), decision 113
         if queue == "studio":
             from .backends.base import make_backends  # GenAI adapters: studio worker only
 
             self.backends = make_backends(self.s)
+            self._runtimes[self.s.profile] = (self.s, self.backends)
         self._stop = threading.Event()
+
+    def runtime(self, profile: str | None) -> tuple[Settings, Any]:
+        """Settings and adapters for a job's GenAI profile (its own, recorded at creation, or the default); built on
+        first use and kept, so a waiting job always resumes on the profile it started on."""
+        name = profile or self.s.profile
+        if name not in self._runtimes:
+            from backend.core.config import settings_for
+
+            from .backends.base import make_backends
+
+            s = settings_for(name, self.s)
+            self._runtimes[name] = (s, make_backends(s))
+        return self._runtimes[name]
 
     # ------------------------------------------------------------------ db mirrors
     def _update(self, job_id: str, **values: Any) -> None:
@@ -164,10 +179,14 @@ class Worker:
     def run_pipeline(self, job_id: str) -> str:
         with self.db() as db:
             job = db.get(JobRow, job_id)
-            spec, kind = dict(job.pet_spec), job.kind
+            spec, kind, profile = dict(job.pet_spec), job.kind, job.genai_profile
             job.status, job.started_at, job.attempts = "running", job.started_at or utcnow(), job.attempts + 1
             db.commit()
-        ctx = StageContext(job_id=job_id, settings=self.s, store=self.store, backends=self.backends,
+        try:
+            s, backends = self.runtime(profile)
+        except Exception as exc:  # noqa: BLE001 - an unknown or broken profile fails the job visibly
+            return self._fail(job_id, "queued", f"GenAI profile {profile!r} cannot run here: {exc}")
+        ctx = StageContext(job_id=job_id, settings=s, store=self.store, backends=backends,
                            progress=self._progress(job_id), on_artefact=self._artefact(job_id), kind=kind)
         try:
             manifest = StageRunner(ctx, spec, on_stage=self._stage(job_id)).run()

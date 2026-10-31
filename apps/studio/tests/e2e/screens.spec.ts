@@ -85,6 +85,11 @@ test('5 name and generate: summary card, name required', async ({ page }) => {
   await expect(page.getByTestId('nav-next')).toBeDisabled();
   await typeOnKeyboard(page, 'biscuit');
   await expect(page.getByTestId('summary-card')).toContainText('Pembroke Welsh Corgi');
+  // Run on: the server default is picked; a profile missing its key is listed but cannot be chosen
+  await expect(page.getByTestId('profile-mock')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('profile-tripo')).toContainText('needs TRIPO_API_KEY');
+  await page.getByTestId('profile-tripo').tap();
+  await expect(page.getByTestId('profile-mock')).toHaveAttribute('aria-pressed', 'true');
   await page.getByTestId('nav-next').tap();
   await expect(page.locator('[data-screen=generating]')).toBeVisible();
 });
@@ -137,9 +142,12 @@ test('8 generate: the batch spec builder counts breeds x variants x seeds and st
   await page.getByTestId('batch-variant-big_ears').tap();
   await page.getByTestId('seeds-minus').tap();
   await expect(page.getByTestId('start-batch')).toContainText('Generate 1 figurine');
+  await page.getByTestId('profile-tripo-manual').tap(); // this batch runs on Tripo by hand
+  await expect(page.getByTestId('profile-description')).toContainText('manual mode');
   await page.getByTestId('start-batch').tap();
   await expect(page.getByTestId('curate-notice')).toContainText('Batch started: 1 figurines');
   await expect(page.getByTestId('batch-list').locator('button')).not.toHaveCount(0);
+  await expect(page.getByTestId('batch-list')).toContainText('on tripo-manual');
 });
 
 test('9 review: turntables, QC per region, accept, reject and tag; operators cannot review', async ({ page }) => {

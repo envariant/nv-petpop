@@ -7,6 +7,7 @@ import type { Batch, BatchFigurine, Breed, ItemKind, LibraryCandidate, LibraryIt
 import { Button, Chip, Row, Section, Swatch, Title, cx } from '@petpop/ui';
 import { MAX_FIGURINES, VARIANTS, useCurate } from '../store/curate';
 import { useSession } from '../store/session';
+import { ProfilePicker } from './ProfilePicker';
 
 const STATUS_STYLE: Record<string, string> = {
   draft: 'bg-line text-ink', accepted: 'bg-accent text-white', rejected: 'bg-accent2 text-white', published: 'bg-ink text-white', superseded: 'bg-line text-muted',
@@ -94,6 +95,7 @@ export function GenerateScreen() {
           </Button>
         </div>
       </Section>
+      <ProfilePicker />
       <div className="flex items-center gap-6">
         <Button className="flex-1" disabled={!total || total > MAX_FIGURINES || c.busy} onClick={() => void c.startBatch()} data-testid="start-batch">
           {total > MAX_FIGURINES ? `${total} figurines: at most ${MAX_FIGURINES}` : `Generate ${total} figurine${total === 1 ? '' : 's'}`}
@@ -116,6 +118,7 @@ export function GenerateScreen() {
           >
             <span>
               <b>{b.species}</b> · {b.summary.finished}/{b.summary.figurines} done · {b.summary.passed_qc}/{b.summary.candidates} parts pass QC · by {b.created_by}
+              {b.genai_profile ? <span data-testid={`batch-profile-${b.batch_id}`}> · on {b.genai_profile}</span> : null}
             </span>
             <Status status={b.status} />
           </button>

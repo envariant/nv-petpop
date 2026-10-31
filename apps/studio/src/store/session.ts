@@ -1,5 +1,6 @@
 // Studio state (Zustand): the signed-in staff user and the Generate workspace's current figurine.
 import { create } from 'zustand';
+import { useProfiles } from './profiles';
 import { ApiFailure, StudioApi, applyPatch, clone, randomSeed, setPath, setStaffToken, specFromBreed } from '@petpop/core';
 import type { Breed, Job, ParseResponse, PetSpec, ProgressEvent, Species, StaffUser } from '@petpop/core';
 
@@ -142,7 +143,7 @@ export const useSession = create<SessionState>((set, get) => ({
     if (!spec) return;
     set({ error: null });
     try {
-      const created = tweakOf ? await StudioApi.tweak(tweakOf, tweakPatch(spec)) : await StudioApi.createJob(spec);
+      const created = tweakOf ? await StudioApi.tweak(tweakOf, tweakPatch(spec)) : await StudioApi.createJob(spec, useProfiles.getState().choice);
       set({ jobId: created.job_id, job: null, events: [], previews: {}, ticket: null, screen: 'generating', tweakOf: null });
     } catch (e) {
       const msg = e instanceof ApiFailure && (e.status === 409 || e.status === 422) ? String(e.detail) : 'Something went wrong. Please try again.';

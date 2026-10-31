@@ -20,6 +20,7 @@ from sqlalchemy import func, select
 from backend.api import models as m
 from petpop_core.breeds import breed_doc
 from backend.core.config import Settings
+from backend.core.genai import ProfileError, profile_name, profiles_offered, resolve
 from backend.api.contract import ApiError, check_sig, make_token, read_token, signed_file_url
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch, fill_colour_names
@@ -78,10 +79,11 @@ class BackendApi:
         return int(ahead + running + 1) if (ahead + running) else 1
 
     def _new_job(self, db, spec: dict, *, queue: str, kind: str, requested_by: str, session_id: str | None = None,
-                 contact: str | None = None) -> JobRow:
+                 contact: str | None = None, genai_profile: str | None = None) -> JobRow:
         job = JobRow(id="j_" + uuid.uuid4().hex[:12], queue=queue, kind=kind, session_id=session_id,
                      requested_by=requested_by, contact=contact, pet_spec=spec, status="queued", stage="queued",
-                     seed=int(spec["seed"]), created_at=utcnow())
+                     seed=int(spec["seed"]), created_at=utcnow(),
+                     genai_profile=None if queue == "kiosk" else (genai_profile or profile_name()))
         db.add(job)
         db.commit()
         self.bus.enqueue(job.id, queue)
@@ -207,8 +209,20 @@ class BackendApi:
     # ------------------------------------------------------------------ studio
     async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated:
         spec = self._check_spec(body.spec)
+        profile = self._profile(body.genai_profile)
         with self.db() as db:
-            return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username))
+            return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username,
+                                                   genai_profile=profile))
+
+    @staticmethod
+    def _profile(requested: str | None) -> str:
+        try:
+            return resolve(requested)
+        except ProfileError as exc:
+            raise ApiError(422, str(exc)) from exc
+
+    async def genai_profiles(self) -> m.GenaiProfiles:
+        return m.GenaiProfiles(**profiles_offered())
 
     async def get_job(self, job_id: str, base: str) -> m.Job:
         with self.db() as db:
@@ -237,7 +251,7 @@ class BackendApi:
                                                                    ended_at=aware(t.ended_at)) for t in timings],
                      artefacts=artefacts, previews=previews,
                      result_url=f"{self._public_base(base)}/r/{make_token(self.secret, job.id)}" if done else None,
-                     ticket=job.ticket, spec=job.pet_spec)
+                     ticket=job.ticket, spec=job.pet_spec, genai_profile=job.genai_profile)
 
     async def job_events(self, job_id: str, base: str) -> AsyncIterator[m.ProgressEvent]:
         with self.db() as db:
@@ -272,7 +286,10 @@ class BackendApi:
             old = self._job(db, job_id)
             spec, _ = apply_patch(old.pet_spec, req.patch)
             spec["seed"] = old.seed
-        return await self.create_job(m.JobCreate(spec=spec), user)
+            spec = self._check_spec(spec)
+            # the tweak runs where the original ran, even if Studio no longer offers that profile for new jobs
+            return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username,
+                                                   genai_profile=old.genai_profile))
 
     async def fulfil(self, job_id: str) -> m.FulfilResponse:
         with self.db() as db:
@@ -372,7 +389,8 @@ class BackendApi:
                           pet_name=job.pet_spec.get("pet_name"),
                           species=job.pet_spec["species"], created_at=aware(job.created_at), finished_at=aware(job.finished_at),
                           fallback=job.fallback, total_ms=total,
-                          thumbnail_url=self._url(thumb) if job.status in ("done", "fulfilled") else None, error=job.error)
+                          thumbnail_url=self._url(thumb) if job.status in ("done", "fulfilled") else None, error=job.error,
+                          genai_profile=job.genai_profile)
 
     async def staff_queue(self, base: str) -> m.StaffQueue:
         studio = JobRow.queue == "studio"
@@ -390,11 +408,12 @@ class BackendApi:
         with self.db() as db:
             old = self._job(db, job_id)
             job = self._new_job(db, old.pet_spec, queue=old.queue, kind=old.kind, requested_by=user.username,
-                                session_id=old.session_id, contact=old.contact)
+                                session_id=old.session_id, contact=old.contact, genai_profile=old.genai_profile)
             return self._created(db, job)
 
     # ------------------------------------------------------------------ studio library (M8)
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:
+        body = body.model_copy(update={"genai_profile": self._profile(body.genai_profile)})
         return await asyncio.to_thread(self.studio.create_batch, body, user)
 
     async def list_batches(self) -> m.BatchList:

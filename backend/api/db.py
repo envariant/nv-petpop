@@ -32,6 +32,7 @@ class JobRow(Base):
     queue: Mapped[str] = mapped_column(String(8), default="studio", index=True)  # kiosk | studio (BRIEF Section 17)
     kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export | batch
     batch_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)  # a Studio curation batch (M8)
+    genai_profile: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the job's GenAI profile (decision 113)
     session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
     requested_by: Mapped[str] = mapped_column(String(48), default="")
     contact: Mapped[str | None] = mapped_column(String(80), nullable=True)
@@ -142,6 +143,7 @@ class CurationBatchRow(Base):
     spec: Mapped[dict[str, Any]] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(12), default="queued")  # queued/running/review/done
     created_by: Mapped[str] = mapped_column(String(40))
+    genai_profile: Mapped[str | None] = mapped_column(String(40), nullable=True)  # decision 113
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -208,6 +210,20 @@ class CompositionRow(Base):
 
 _engines: dict[str, Engine] = {}
 
+# Columns added after a table first shipped: create_all() makes new tables but never alters existing ones, so an
+# existing database (a local var/petpop.db, a Postgres volume) gets them here. Additive and nullable only.
+ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", "genai_profile", "VARCHAR(40)")]
+
+
+def _add_missing_columns(eng: Engine) -> None:
+    from sqlalchemy import inspect, text
+
+    insp = inspect(eng)
+    with eng.begin() as conn:
+        for table, column, ddl in ADDED_COLUMNS:
+            if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+
 
 def engine(url: str) -> Engine:
     if url not in _engines:
@@ -225,6 +241,7 @@ def engine(url: str) -> Engine:
                 cur.execute("PRAGMA busy_timeout=30000")
                 cur.close()
         Base.metadata.create_all(eng)
+        _add_missing_columns(eng)
         _engines[url] = eng
     return _engines[url]
 
