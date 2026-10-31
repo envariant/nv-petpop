@@ -47,7 +47,7 @@ def test_the_manual_request_is_the_api_request(tmp_path):
         manual.image_to_model(ctx, png(), params, 5)
     p = w.value.packet
     assert p["request"] == api_body and p["route"] == "POST /v3/generation/image-to-model"
-    assert p["expects"] == {"kind": "model", "accept": [".glb"]} and p["inputs"][0]["name"] == "input.png"
+    assert p["expects"] == {"kind": "model", "accept": [".glb"], "slots": []} and p["inputs"][0]["name"] == "input.png"
     assert json.loads(ctx.store.get(ctx.key(f"manual/{p['request_id']}/request.json")))["task_id"] == p["task_id"]
     # The operator's output is found by the same call when the job resumes; a different seed is a new task.
     glb = trimesh.creation.box().export(file_type="glb")
@@ -73,3 +73,21 @@ def test_uploads_are_checked():
     assert "not a binary glTF" in check_output("model", "figure.glb", b"{}")
     flat = trimesh.Trimesh(np.zeros((3, 3)), [[0, 1, 2]], process=False).export(file_type="glb")
     assert "did not decode" in check_output("model", "figure.glb", flat)
+
+
+def test_manual_multiview_waits_for_all_four_views(tmp_path):
+    prof = Profile("tripo-manual")
+    manual = ManualProvider(prof, "tripo")
+    ctx = Ctx(LocalStore(tmp_path))
+    with pytest.raises(AwaitingOperator) as w:
+        manual.image_to_multiview(ctx, png(), {}, 5)
+    p = w.value.packet
+    assert p["expects"] == {"kind": "views", "accept": [".png", ".jpg", ".jpeg", ".webp"], "slots": ["front", "left", "back", "right"]}
+    assert p["route"] == "POST /v3/generation/image-to-multiview" and set(p["result_keys"]) == {"front", "left", "back", "right"}
+    for slot in ("front", "left", "back"):
+        ctx.store.put(p["result_keys"][slot], png())
+    with pytest.raises(AwaitingOperator):  # three of four is not enough
+        manual.image_to_multiview(ctx, png(), {}, 5)
+    ctx.store.put(p["result_keys"]["right"], png())
+    g = manual.image_to_multiview(ctx, png(), {}, 5)
+    assert set(g.files) == {"front", "left", "back", "right"} and g.task_id == f"manual-{p['request_id']}"

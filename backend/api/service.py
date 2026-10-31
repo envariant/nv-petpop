@@ -20,7 +20,7 @@ from sqlalchemy import func, select
 from backend.api import models as m
 from petpop_core.breeds import breed_doc
 from backend.core.config import Settings
-from backend.core.genai import ProfileError, profile_name, profiles_offered, resolve
+from backend.core.genai import ProfileError, profile_name, profiles_offered, resolve, resolve_options, resolve_pipeline
 from backend.api.contract import ApiError, check_sig, make_token, read_token, signed_file_url
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch, fill_colour_names
@@ -79,11 +79,14 @@ class BackendApi:
         return int(ahead + running + 1) if (ahead + running) else 1
 
     def _new_job(self, db, spec: dict, *, queue: str, kind: str, requested_by: str, session_id: str | None = None,
-                 contact: str | None = None, genai_profile: str | None = None) -> JobRow:
+                 contact: str | None = None, genai_profile: str | None = None, pipeline: str | None = None,
+                 options: dict[str, bool] | None = None) -> JobRow:
+        profile = None if queue == "kiosk" else (genai_profile or profile_name())
         job = JobRow(id="j_" + uuid.uuid4().hex[:12], queue=queue, kind=kind, session_id=session_id,
                      requested_by=requested_by, contact=contact, pet_spec=spec, status="queued", stage="queued",
-                     seed=int(spec["seed"]), created_at=utcnow(),
-                     genai_profile=None if queue == "kiosk" else (genai_profile or profile_name()))
+                     seed=int(spec["seed"]), created_at=utcnow(), genai_profile=profile,
+                     pipeline=(pipeline or resolve_pipeline(profile, None, kind)) if profile else None,
+                     options=(options if options is not None else resolve_options(profile, None)) if profile else None)
         db.add(job)
         db.commit()
         self.bus.enqueue(job.id, queue)
@@ -209,15 +212,18 @@ class BackendApi:
     # ------------------------------------------------------------------ studio
     async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated:
         spec = self._check_spec(body.spec)
-        profile = self._profile(body.genai_profile)
+        profile, pipeline, options = self._profile(body.genai_profile, body.pipeline, body.options)
         with self.db() as db:
             return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username,
-                                                   genai_profile=profile))
+                                                   genai_profile=profile, pipeline=pipeline, options=options))
 
     @staticmethod
-    def _profile(requested: str | None) -> str:
+    def _profile(requested: str | None, pipeline: str | None = None, options: dict[str, bool] | None = None,
+                 kind: str = "pipeline") -> tuple[str, str | None, dict[str, bool]]:
+        """The profile, pipeline and quality switches a new Studio job runs (decisions 113 to 115); 422 when not offered."""
         try:
-            return resolve(requested)
+            profile = resolve(requested)
+            return profile, resolve_pipeline(profile, pipeline, kind), resolve_options(profile, options)
         except ProfileError as exc:
             raise ApiError(422, str(exc)) from exc
 
@@ -251,7 +257,8 @@ class BackendApi:
                                                                    ended_at=aware(t.ended_at)) for t in timings],
                      artefacts=artefacts, previews=previews,
                      result_url=f"{self._public_base(base)}/r/{make_token(self.secret, job.id)}" if done else None,
-                     ticket=job.ticket, spec=job.pet_spec, genai_profile=job.genai_profile)
+                     ticket=job.ticket, spec=job.pet_spec, genai_profile=job.genai_profile, pipeline=job.pipeline,
+                     options=job.options)
 
     async def job_events(self, job_id: str, base: str) -> AsyncIterator[m.ProgressEvent]:
         with self.db() as db:
@@ -289,7 +296,7 @@ class BackendApi:
             spec = self._check_spec(spec)
             # the tweak runs where the original ran, even if Studio no longer offers that profile for new jobs
             return self._created(db, self._new_job(db, spec, queue="studio", kind="pipeline", requested_by=user.username,
-                                                   genai_profile=old.genai_profile))
+                                                   genai_profile=old.genai_profile, pipeline=old.pipeline, options=old.options))
 
     async def fulfil(self, job_id: str) -> m.FulfilResponse:
         with self.db() as db:
@@ -340,7 +347,8 @@ class BackendApi:
                             instructions=p.get("instructions", []), expects=m.ManualExpects(**p["expects"]),
                             species=job.pet_spec["species"], pet_name=job.pet_spec.get("pet_name"),
                             breed_label=(job.pet_spec.get("breed") or {}).get("label"), batch_id=job.batch_id,
-                            created_at=aware(row.created_at), submitted_at=aware(row.submitted_at), result_name=row.result_name)
+                            created_at=aware(row.created_at), submitted_at=aware(row.submitted_at), result_name=row.result_name,
+                            filled=list(p.get("filled", [])))
 
     async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList:
         with self.db() as db:
@@ -359,9 +367,10 @@ class BackendApi:
                 raise ApiError(404, f"unknown manual task {task_id}")
             return self._manual(row, self._job(db, row.job_id))
 
-    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str) -> m.ManualTask:
+    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str,
+                            slot: str | None = None) -> m.ManualTask:
         """The operator's output for a waiting job: checked, stored where the job looks for it, and the job re-queued
-        to resume from its stored stages."""
+        to resume from its stored stages. A views task takes one upload per slot and resumes when all are in."""
         from backend.worker.providers.manual import check_output
 
         with self.db() as db:
@@ -370,15 +379,26 @@ class BackendApi:
                 raise ApiError(404, f"unknown manual task {task_id}")
             if row.status != "pending":
                 raise ApiError(409, "this task already has its output")
-            why = check_output(row.packet["expects"]["kind"], filename, data)
+            expects = row.packet["expects"]
+            slots = expects.get("slots") or []
+            if slots and slot not in slots:
+                raise ApiError(422, f"this task takes one image per view: name the slot ({', '.join(slots)})")
+            why = check_output(expects["kind"], filename, data)
             if why:
                 raise ApiError(422, why)
-            await asyncio.to_thread(self.store.put, row.packet["result_key"], data)
-            row.status, row.submitted_at, row.submitted_by, row.result_name = "submitted", utcnow(), user.username, filename[:120]
+            key = row.packet["result_keys"][slot] if slots else row.packet["result_key"]
+            await asyncio.to_thread(self.store.put, key, data)
+            packet = dict(row.packet)
+            packet["filled"] = sorted(set(packet.get("filled", [])) | ({slot} if slot else set()), key=lambda s: slots.index(s))
+            row.packet, row.result_name = packet, filename[:120]
             job = self._job(db, row.job_id)
-            job.status, job.message = "queued", "Waiting for the studio"
-            db.commit()
-            self.bus.enqueue(job.id, job.queue)
+            if not slots or set(packet["filled"]) == set(slots):
+                row.status, row.submitted_at, row.submitted_by = "submitted", utcnow(), user.username
+                job.status, job.message = "queued", "Waiting for the studio"
+                db.commit()
+                self.bus.enqueue(job.id, job.queue)
+            else:
+                db.commit()
             return self._manual(row, job)
 
     # ------------------------------------------------------------------ staff
@@ -390,7 +410,7 @@ class BackendApi:
                           species=job.pet_spec["species"], created_at=aware(job.created_at), finished_at=aware(job.finished_at),
                           fallback=job.fallback, total_ms=total,
                           thumbnail_url=self._url(thumb) if job.status in ("done", "fulfilled") else None, error=job.error,
-                          genai_profile=job.genai_profile)
+                          genai_profile=job.genai_profile, pipeline=job.pipeline, options=job.options)
 
     async def staff_queue(self, base: str) -> m.StaffQueue:
         studio = JobRow.queue == "studio"
@@ -408,12 +428,14 @@ class BackendApi:
         with self.db() as db:
             old = self._job(db, job_id)
             job = self._new_job(db, old.pet_spec, queue=old.queue, kind=old.kind, requested_by=user.username,
-                                session_id=old.session_id, contact=old.contact, genai_profile=old.genai_profile)
+                                session_id=old.session_id, contact=old.contact, genai_profile=old.genai_profile,
+                                pipeline=old.pipeline, options=old.options)
             return self._created(db, job)
 
     # ------------------------------------------------------------------ studio library (M8)
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:
-        body = body.model_copy(update={"genai_profile": self._profile(body.genai_profile)})
+        profile, pipeline, options = self._profile(body.genai_profile, body.pipeline, body.options, "batch")
+        body = body.model_copy(update={"genai_profile": profile, "pipeline": pipeline, "options": options})
         return await asyncio.to_thread(self.studio.create_batch, body, user)
 
     async def list_batches(self) -> m.BatchList:

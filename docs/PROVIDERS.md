@@ -21,6 +21,7 @@ capabilities:
 | `text_to_image(prompt, negative, params)` | B concept | PNG (JPEG and WebP are converted) |
 | `image_to_model(image, params, seed)` | D shape (profile `shape.views: [front]`) | textured GLB |
 | `multiview_to_model(views, params, seed)` | D shape (four views) | textured GLB |
+| `image_to_multiview(image, params, seed)` | C views (multiview pipeline) | four PNGs (front, left, back, right) |
 | `balance()` | `scripts/genai_check.py` | credits left |
 
 ## The `tripo` profile (Tripo3D apiv3)
@@ -38,6 +39,24 @@ concept (Tripo text-to-image) -> border-key matte (local) -> [no Stage C] -> Tri
   mesh, nothing can ghost (decision 108).
 - Each stage's manifest entry notes the provider task id and the credits it consumed; the job manifest records the
   provider manifest and version (`genai.models["provider.tripo"]`).
+
+## Pipelines, quality switches and cost (decisions 114, 115)
+
+Studio picks per job: the profile ("Run on"), its pipeline and its quality switches; each job records all three.
+
+| Tripo pipeline | Stages | API credits per figurine |
+| --- | --- | --- |
+| Single view (default) | text-to-image -> image-to-3D (textured) | 35 |
+| Multiview | text-to-image -> image-to-multiview -> multiview-to-3D (textured) | 45 |
+
+| Switch | Default | Add-on | Note |
+| --- | --- | --- | --- |
+| HD texture | on | +10 | transferred onto the figurine as is |
+| HD geometry | off | +20 | the wrap onto the base mesh smooths some of it away |
+| Quad mesh | off | +5 | the base mesh's topology is used, so it does not reach the figurine |
+
+Prices from developers.tripo3d.ai/en/pricing on 2026-10-31 (1 credit = $0.01; image models other than the default
+cost more). In manual mode the same requests run in Tripo Studio on its own credits.
 
 ## Credentials, cost and rights
 

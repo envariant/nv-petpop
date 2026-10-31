@@ -316,6 +316,9 @@ def test_genai_profiles(client):
     offered = check(f"{S}/profiles", "get", client.get(f"{S}/profiles", headers=auth))
     names = [p["name"] for p in offered["items"]]
     assert offered["default"] == names[0] and all(isinstance(p["missing"], list) for p in offered["items"])
+    default_info = offered["items"][0]
+    assert {p["name"] for p in default_info["pipelines"]} >= {"single_view", "multiview"}  # mock offers both
+    assert sum(p["default"] for p in default_info["pipelines"]) == 1
     spec = default_spec("dog", "beagle", seed=5, pet_name="Pick")
     r = client.post(f"{S}/jobs", json={"spec": spec, "genai_profile": names[-1]}, headers=auth)
     job = check(f"{S}/jobs", "post", r)
@@ -325,10 +328,25 @@ def test_genai_profiles(client):
     assert check(f"{S}/jobs/{{job_id}}", "get", client.get(f"{S}/jobs/{default['job_id']}", headers=auth))["genai_profile"] == offered["default"]
     bad = client.post(f"{S}/jobs", json={"spec": spec, "genai_profile": "no-such-profile"}, headers=auth)
     assert bad.status_code == 422 and "not offered" in bad.text
+    single = check(f"{S}/jobs", "post", client.post(f"{S}/jobs", json={"spec": spec, "pipeline": "single_view"}, headers=auth))
+    assert check(f"{S}/jobs/{{job_id}}", "get", client.get(f"{S}/jobs/{single['job_id']}", headers=auth))["pipeline"] == "single_view"
+    assert client.post(f"{S}/jobs", json={"spec": spec, "pipeline": "turbo"}, headers=auth).status_code == 422
+    assert client.post(f"{S}/jobs", json={"spec": spec, "options": {"no_such_switch": True}}, headers=auth).status_code == 422
+    wait_terminal(client, auth, single["job_id"])
     bad_batch = client.post(f"{S}/batches", json={"species": "dog", "breeds": ["beagle"], "genai_profile": "no-such-profile"}, headers=auth)
     assert bad_batch.status_code == 422
     wait_terminal(client, auth, job["job_id"])
     wait_terminal(client, auth, default["job_id"])
+
+
+def _png() -> bytes:
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (64, 64), (200, 140, 80)).save(buf, format="PNG")
+    return buf.getvalue()
 
 
 def test_manual_tasks(client):
@@ -344,6 +362,16 @@ def test_manual_tasks(client):
     assert missing.status_code == 404 and check(f"{S}/manual/{{task_id}}", "get", missing)
     gone = client.post(f"{S}/manual/no-such-task/result", files={"file": ("x.png", b"x", "image/png")}, headers=auth)
     assert gone.status_code == 404 and check(f"{S}/manual/{{task_id}}/result", "post", gone)
+    views = next((t for t in listing["items"] if t["status"] == "pending" and t["expects"]["kind"] == "views"), None)
+    if views is not None:  # a four-view task (decision 114): one upload per slot, done when all are in
+        vurl = f"{S}/manual/{views['task_id']}/result"
+        no_slot = client.post(vurl, files={"file": ("front.png", _png(), "image/png")}, headers=auth)
+        assert no_slot.status_code == 422
+        for i, slot in enumerate(views["expects"]["slots"]):
+            r = check(f"{S}/manual/{{task_id}}/result", "post",
+                      client.post(vurl, params={"slot": slot}, files={"file": (f"{slot}.png", _png(), "image/png")}, headers=auth))
+            assert r["filled"] == views["expects"]["slots"][: i + 1]
+            assert r["status"] == ("submitted" if i == len(views["expects"]["slots"]) - 1 else "pending")
     image = next((t for t in listing["items"] if t["status"] == "pending" and t["expects"]["kind"] == "image"), None)
     if image is None:
         return  # the backend on the mock profile raises no manual tasks; tests/server covers its round trip

@@ -5,7 +5,7 @@ import type { ManualTask } from '@petpop/core';
 import { assetUrl } from '@petpop/core';
 
 const SETTINGS = ['model: v3.1-20260211', 'texture: true', 'pbr: false', 'texture_quality: detailed', 'texture_alignment: original_image', 'orientation: default', 'face_limit: 200000', 'model_seed: 7', 'texture_seed: 7'];
-const base = { job_id: 'j_manual_demo', status: 'pending', provider: 'tripo (manual)', vendor: 'Tripo3D', manifest: 'tripo-v3 v1', species: 'dog', pet_name: 'Biscuit', breed_label: 'Pembroke Welsh Corgi', batch_id: null, created_at: '2026-10-31T09:00:00Z', submitted_at: null, result_name: null } as const;
+const base = { job_id: 'j_manual_demo', status: 'pending', filled: [] as string[], provider: 'tripo (manual)', vendor: 'Tripo3D', manifest: 'tripo-v3 v1', species: 'dog', pet_name: 'Biscuit', breed_label: 'Pembroke Welsh Corgi', batch_id: null, created_at: '2026-10-31T09:00:00Z', submitted_at: null, result_name: null } as const;
 
 export const MANUAL_TASKS: ManualTask[] = [
   {
@@ -20,7 +20,7 @@ export const MANUAL_TASKS: ManualTask[] = [
     settings: [],
     inputs: [],
     instructions: ['In Tripo Studio, open image generation (text to image).', 'Paste the prompt; paste the negative prompt if the tool has a field for it.', 'Generate, download the image and upload it here.'],
-    expects: { kind: 'image', accept: ['.png', '.jpg', '.jpeg', '.webp'] },
+    expects: { kind: 'image', accept: ['.png', '.jpg', '.jpeg', '.webp'], slots: [] },
   },
   {
     ...base,
@@ -34,7 +34,21 @@ export const MANUAL_TASKS: ManualTask[] = [
     settings: SETTINGS,
     inputs: [{ name: 'input.png', url: assetUrl('fixtures/pets/biscuit/concept.png') }],
     instructions: ['Download the input image below.', 'In Tripo Studio, open image to 3D and upload it.', 'Match the settings below; keep private generation on.', 'Download the GLB and upload it here.'],
-    expects: { kind: 'model', accept: ['.glb'] },
+    expects: { kind: 'model', accept: ['.glb'], slots: [] },
+  },
+  {
+    ...base,
+    task_id: 'j_manual_demo.image-to-multiview-demo',
+    capability: 'image_to_multiview',
+    title: 'Four views of the concept (Tripo image to multiview)',
+    route: 'POST /v3/generation/image-to-multiview',
+    prompt: null,
+    negative_prompt: null,
+    request: { input: '<upload input.png>' },
+    settings: [],
+    inputs: [{ name: 'input.png', url: assetUrl('fixtures/pets/biscuit/concept.png') }],
+    instructions: ['Download the input image below.', 'In Tripo Studio, open multiview generation and upload it.', 'Upload each view into its slot here.'],
+    expects: { kind: 'views', accept: ['.png', '.jpg', '.jpeg', '.webp'], slots: ['front', 'left', 'back', 'right'] },
   },
 ];
 
@@ -56,7 +70,12 @@ export const manualHandlers = [
     const file = (await request.formData()).get('file') as File | null;
     const ext = file?.name.includes('.') ? `.${file.name.split('.').pop()!.toLowerCase()}` : '';
     if (!file || !t.expects.accept.includes(ext)) return HttpResponse.json({ detail: `expected ${t.expects.accept.join(' or ')}` }, { status: 422 });
-    Object.assign(t, { status: 'submitted', submitted_at: new Date().toISOString(), result_name: file.name });
+    const slots = t.expects.slots ?? [];
+    const slot = new URL(request.url).searchParams.get('slot');
+    if (slots.length && (!slot || !slots.includes(slot))) return HttpResponse.json({ detail: `name the slot (${slots.join(', ')})` }, { status: 422 });
+    const filled = slots.filter((x) => (t.filled ?? []).includes(x) || x === slot);
+    Object.assign(t, { filled, result_name: file.name });
+    if (!slots.length || filled.length === slots.length) Object.assign(t, { status: 'submitted', submitted_at: new Date().toISOString() });
     return HttpResponse.json(t);
   }),
 ];

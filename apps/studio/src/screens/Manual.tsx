@@ -52,6 +52,29 @@ function TaskCard({ t, selected, onClick }: { t: ManualTask; selected: boolean; 
   );
 }
 
+function SlotUpload({ t, slot }: { t: ManualTask; slot: string }) {
+  const { busy, submit } = useManual();
+  const [file, setFile] = useState<File | null>(null);
+  const done = (t.filled ?? []).includes(slot);
+  return (
+    <div className="mb-3 flex items-center gap-4 rounded-tile bg-card p-4 text-2xl shadow-soft" data-testid={`manual-slot-${slot}`}>
+      <b className="w-28 capitalize">{slot}</b>
+      {done ? (
+        <span className="flex-1 text-accent" data-testid={`manual-slot-${slot}-done`}>
+          received ✓
+        </span>
+      ) : (
+        <>
+          <input type="file" accept={t.expects.accept.join(',')} className="flex-1" onChange={(e) => setFile(e.target.files?.[0] ?? null)} data-testid={`manual-file-${slot}`} />
+          <Button disabled={!file || busy} onClick={() => file && void submit(file, slot)} data-testid={`manual-submit-${slot}`}>
+            Send
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Detail({ t }: { t: ManualTask }) {
   const { busy, submit } = useManual();
   const input = useRef<HTMLInputElement>(null);
@@ -100,7 +123,13 @@ function Detail({ t }: { t: ManualTask }) {
           <Copy text={JSON.stringify(t.request, null, 1)} testId="manual-request-copy" />
         </details>
       </Section>
-      {t.status === 'pending' ? (
+      {t.status === 'pending' && (t.expects.slots ?? []).length > 0 ? (
+        <Section title={`Upload each view (${t.expects.accept.join(', ')}); the job continues once all ${(t.expects.slots ?? []).length} are in`} testId="manual-slots">
+          {(t.expects.slots ?? []).map((slot) => (
+            <SlotUpload key={slot} t={t} slot={slot} />
+          ))}
+        </Section>
+      ) : t.status === 'pending' ? (
         <Section title={`Upload the ${t.expects.kind === 'model' ? '3D model' : 'image'} (${t.expects.accept.join(', ')})`}>
           <div className="flex items-center gap-6">
             <input

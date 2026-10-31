@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.3.0"
+API_VERSION = "3.4.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -130,6 +130,8 @@ class ParseResponse(_M):
 class JobCreate(_M):
     spec: PetSpec
     genai_profile: str | None = Field(None, description="GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).")
+    pipeline: str | None = Field(None, description="Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.")
+    options: dict[str, bool] | None = Field(None, description="Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.")
 
 
 class JobCreated(_M):
@@ -177,6 +179,8 @@ class Job(_M):
     previews: dict[str, str] = Field(description="Latest preview URL per kind (concept, view_front, shape, glb ...).")
     result_url: str | None = Field(None, description="Signed public result page URL for the QR code (7 days).")
     genai_profile: str | None = Field(None, description="The GenAI profile the job runs on, fixed at creation (decision 113).")
+    pipeline: str | None = Field(None, description="Its pipeline, e.g. single_view or multiview, fixed at creation (decision 114).")
+    options: dict[str, bool] | None = Field(None, description="Its quality switches, fixed at creation (decision 115).")
     ticket: str | None = None
     spec: PetSpec
 
@@ -229,6 +233,8 @@ class StaffJob(_M):
     thumbnail_url: str | None
     error: str | None
     genai_profile: str | None = None
+    pipeline: str | None = None
+    options: dict[str, bool] | None = None
 
 
 class GpuStatus(_M):
@@ -248,6 +254,22 @@ class StaffQueue(_M):
 
 # --------------------------------------------------------------------------- per-job GenAI profiles (decision 113, API 3.3.0)
 
+class GenaiPipeline(_M):
+    name: str
+    title: str
+    default: bool
+    credits: int | None = Field(None, description="Estimated API credits per figurine, where the provider prices by credit.")
+    note: str | None = None
+
+
+class GenaiOption(_M):
+    name: str
+    title: str
+    default: bool
+    credits: int | None = Field(None, description="API credits it adds per figurine.")
+    note: str | None = None
+
+
 class GenaiProfileInfo(_M):
     name: str
     description: str
@@ -255,6 +277,8 @@ class GenaiProfileInfo(_M):
     host: str = Field(description="Where the GenAI runs: cpu, apple-silicon, nvidia or api.")
     ready: bool = Field(description="False when a key it needs is missing from the server's environment.")
     missing: list[str] = Field(description="Environment variables it needs that are not set (names only).")
+    pipelines: list[GenaiPipeline] = Field(description="What a job on it can run (decision 114); empty = one fixed pipeline.")
+    options: list[GenaiOption] = Field(description="Quality switches a job on it can toggle (decision 115).")
 
 
 class GenaiProfiles(_M):
@@ -264,7 +288,7 @@ class GenaiProfiles(_M):
 
 # --------------------------------------------------------------------------- manual mode (decision 111, API 3.2.0)
 
-ManualCapability = Literal["text_to_image", "image_to_model", "multiview_to_model"]
+ManualCapability = Literal["text_to_image", "image_to_model", "multiview_to_model", "image_to_multiview"]
 
 
 class ManualInput(_M):
@@ -273,8 +297,9 @@ class ManualInput(_M):
 
 
 class ManualExpects(_M):
-    kind: Literal["image", "model"]
+    kind: Literal["image", "model", "views"]
     accept: list[str] = Field(description="File extensions the upload may have, e.g. ['.glb'].")
+    slots: list[str] = Field(default_factory=list, description="views: one upload per slot (front, left, back, right).")
 
 
 class ManualTask(_M):
@@ -303,6 +328,7 @@ class ManualTask(_M):
     created_at: datetime
     submitted_at: datetime | None = None
     result_name: str | None = None
+    filled: list[str] = Field(default_factory=list, description="views: the slots uploaded so far.")
 
 
 class ManualTaskList(_M):
@@ -452,6 +478,8 @@ class BatchCreate(_M):
     seeds: int = Field(1, ge=1, le=10)
     first_seed: int = Field(1, ge=1, le=2**31 - 1)
     genai_profile: str | None = Field(None, description="GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).")
+    pipeline: str | None = Field(None, description="Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.")
+    options: dict[str, bool] | None = Field(None, description="Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.")
 
 
 class LibraryCandidate(_M):
@@ -501,6 +529,8 @@ class Batch(_M):
     created_at: datetime
     request: dict[str, Any]
     genai_profile: str | None = Field(None, description="The GenAI profile its figurines run on (decision 113).")
+    pipeline: str | None = Field(None, description="Their pipeline (decision 114).")
+    options: dict[str, bool] | None = Field(None, description="Their quality switches (decision 115).")
     summary: BatchSummary
     figurines: list[BatchFigurine]
 

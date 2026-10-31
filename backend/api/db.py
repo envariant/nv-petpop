@@ -33,6 +33,8 @@ class JobRow(Base):
     kind: Mapped[str] = mapped_column(String(16), default="pipeline")  # pipeline | bespoke | export | batch
     batch_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)  # a Studio curation batch (M8)
     genai_profile: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the job's GenAI profile (decision 113)
+    pipeline: Mapped[str | None] = mapped_column(String(40), nullable=True)  # its pipeline, e.g. multiview (decision 114)
+    options: Mapped[dict[str, bool] | None] = mapped_column(JSON, nullable=True)  # its quality switches (decision 115)
     session_id: Mapped[str | None] = mapped_column(ForeignKey("sessions.id"), nullable=True)
     requested_by: Mapped[str] = mapped_column(String(48), default="")
     contact: Mapped[str | None] = mapped_column(String(80), nullable=True)
@@ -144,6 +146,8 @@ class CurationBatchRow(Base):
     status: Mapped[str] = mapped_column(String(12), default="queued")  # queued/running/review/done
     created_by: Mapped[str] = mapped_column(String(40))
     genai_profile: Mapped[str | None] = mapped_column(String(40), nullable=True)  # decision 113
+    pipeline: Mapped[str | None] = mapped_column(String(40), nullable=True)  # decision 114
+    options: Mapped[dict[str, bool] | None] = mapped_column(JSON, nullable=True)  # decision 115
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -212,7 +216,9 @@ _engines: dict[str, Engine] = {}
 
 # Columns added after a table first shipped: create_all() makes new tables but never alters existing ones, so an
 # existing database (a local var/petpop.db, a Postgres volume) gets them here. Additive and nullable only.
-ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", "genai_profile", "VARCHAR(40)")]
+ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", "genai_profile", "VARCHAR(40)"),
+                 ("jobs", "pipeline", "VARCHAR(40)"), ("curation_batches", "pipeline", "VARCHAR(40)"),
+                 ("jobs", "options", "JSON"), ("curation_batches", "options", "JSON")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

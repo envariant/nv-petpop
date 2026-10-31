@@ -22,7 +22,7 @@ function Hydrate({ state, curate, manual, children }: { state: Partial<SessionSt
     useSession.getState().hydrate({ user: OPERATOR, ...state });
     if (curate) useCurate.getState().set(curate);
     if (manual) useManual.getState().set(manual);
-    useProfiles.getState().set({ offered: PROFILES as never, choice: 'tripo-manual' });
+    useProfiles.getState().set({ offered: PROFILES as never, choice: 'tripo-manual', pipeline: 'multiview', options: { hd_texture: true, hd_geometry: false, quad: false } });
     setReady(true);
   }, [state, curate, manual]);
   return ready ? <>{children}</> : null;
@@ -57,7 +57,8 @@ export const Generate: Story = { args: { screen: 'generate', curate: { breeds: [
 export const Review: Story = { args: { screen: 'review', curate: { batch: BATCH } } };
 export const Library: Story = { args: { screen: 'library', curate: { kind: 'pattern', items: [PATTERN_ITEM], selected: PATTERN_ITEM } } };
 export const Releases: Story = { args: { screen: 'releases', state: { user: ADMIN }, curate: { releases: RELEASES } } };
-export const Manual: Story = { args: { screen: 'manual', manual: { tasks: MANUAL_TASKS, pending: 2, selectedId: MANUAL_TASKS[1].task_id } } };
+export const Manual: Story = { args: { screen: 'manual', manual: { tasks: MANUAL_TASKS, pending: 3, selectedId: MANUAL_TASKS[1].task_id } } };
+export const ManualViews: Story = { args: { screen: 'manual', manual: { tasks: MANUAL_TASKS, pending: 3, selectedId: MANUAL_TASKS[2].task_id } } };
 export const Species: Story = { args: { screen: 'species' } };
 export const Breed: Story = { args: { screen: 'breed', state: { species: 'dog' } } };
 export const Build: Story = { args: { screen: 'build', state: built } };

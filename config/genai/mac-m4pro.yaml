@@ -110,12 +110,14 @@ embed:
   dtype: float16
   wait_s: 30                         # wait this long for a running mesh, then answer 409
 
-# Library quality by default; the kiosk's bespoke jobs take the fast path (single-view shape, about 15 min).
+# Pipelines (decisions 104, 114): multiview by default (MV-Adapter views, Hunyuan3D-2mv, about 30 min); single
+# view shapes from the front alone on the shape server (Hunyuan3D-2.1, about 15 min) and is what the kiosk's
+# bespoke jobs use. Studio can pick either per job.
 paths:
-  default: library
-  by_kind: {bespoke: fast}
-  library: {shape: multiview}
-  fast: {shape: single_view}
+  default: multiview
+  by_kind: {bespoke: single_view}
+  multiview: {title: Multiview, views: generate, shape: multiview, note: "MV-Adapter views -> Hunyuan3D-2mv"}
+  single_view: {title: Single view, views: generate, shape: single_view, note: "Hunyuan3D-2.1 from the front view"}
 
 texture:
   backend: projection                # Blender camera projection of the four views; Hunyuan3D-Paint is NVIDIA-only

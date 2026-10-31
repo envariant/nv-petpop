@@ -53,9 +53,18 @@
     "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy", "api"]}, "provider": {"type": "string"}, "views": {"enum": ["none", "provider", "workflow"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key", "birefnet", "border_key"]}}}}},
     "shape": {"type": "object", "required": ["backend", "views", "iou_min", "height_mm"], "properties": {"backend": {"enum": ["mock", "comfy", "http", "api"]}, "provider": {"type": "string"}, "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}, "minItems": 1}, "iou_min": {"type": "number"}}},
     "paths": {
-      "type": "object", "description": "Library quality by default; job kinds (paths.by_kind) can take a faster path.",
+      "type": "object", "description": "Pipelines (decision 114): Studio picks one per job; job kinds (paths.by_kind) default to one; else paths.default.",
       "properties": {"default": {"type": "string"}, "by_kind": {"type": "object", "additionalProperties": {"type": "string"}}},
-      "additionalProperties": {"type": ["object", "string"], "properties": {"shape": {"enum": ["multiview", "single_view"]}}}
+      "additionalProperties": {"type": ["object", "string"], "properties": {
+        "title": {"type": "string"}, "note": {"type": "string"}, "credits": {"type": "integer", "minimum": 0},
+        "views": {"enum": ["none", "generate"], "description": "Whether Stage C makes the four views (none: the concept alone shapes)."},
+        "shape": {"enum": ["multiview", "single_view"], "description": "single_view: Stage D goes straight to the profile's single-view shape."}}}
+    },
+    "options": {
+      "type": "object", "description": "Quality switches Studio toggles per job (decision 115): request fields for each side and the add-on credits.",
+      "additionalProperties": {"type": "object", "required": ["title", "default"], "additionalProperties": false, "properties": {
+        "title": {"type": "string"}, "default": {"type": "boolean"}, "credits": {"type": "integer", "minimum": 0}, "note": {"type": "string"},
+        "set": {"type": "object"}, "unset": {"type": "object"}}}
     },
     "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint", "transfer"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint", "transfer"]}}}},
     "providers": {

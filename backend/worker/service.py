@@ -179,7 +179,7 @@ class Worker:
     def run_pipeline(self, job_id: str) -> str:
         with self.db() as db:
             job = db.get(JobRow, job_id)
-            spec, kind, profile = dict(job.pet_spec), job.kind, job.genai_profile
+            spec, kind, profile, pipeline, options = dict(job.pet_spec), job.kind, job.genai_profile, job.pipeline, job.options
             job.status, job.started_at, job.attempts = "running", job.started_at or utcnow(), job.attempts + 1
             db.commit()
         try:
@@ -187,7 +187,8 @@ class Worker:
         except Exception as exc:  # noqa: BLE001 - an unknown or broken profile fails the job visibly
             return self._fail(job_id, "queued", f"GenAI profile {profile!r} cannot run here: {exc}")
         ctx = StageContext(job_id=job_id, settings=s, store=self.store, backends=backends,
-                           progress=self._progress(job_id), on_artefact=self._artefact(job_id), kind=kind)
+                           progress=self._progress(job_id), on_artefact=self._artefact(job_id), kind=kind, pipeline=pipeline,
+                           options=options)
         try:
             manifest = StageRunner(ctx, spec, on_stage=self._stage(job_id)).run()
             # The manifest itself is an artefact too.

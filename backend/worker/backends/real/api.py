@@ -2,9 +2,10 @@
 and its options per stage; these adapters only translate the pipeline's calls into provider capabilities and
 record what each call cost in the stage notes.
 
-    image:  backend: api, provider: <name>, params: {...}, views: none | provider
-    shape:  backend: api, provider: <name>, views: [front] | [front, left, back, right], params: {...},
-            fallback: {seed_offset, params}
+    image:  backend: api, provider: <name>, params: {...}
+    shape:  backend: api, provider: <name>, params: {...}, fallback: {seed_offset, params}
+    paths:  the pipelines (decision 114): views: none (shape from the concept) | generate (Stage C asks the provider
+            for four views; Stage D then sends all four to its multiview-to-model)
 """
 from __future__ import annotations
 
@@ -42,7 +43,13 @@ class ApiImageBackend:
         return matte(g.data, self.cfg["matting"], int(ctx.quality["concept_px"]))
 
     def views(self, ctx, spec, prompts, control, concept):
-        raise NotImplementedError("this profile shapes from the concept alone (image.views: none); Stage C is skipped")
+        """Four turnaround views from the matted concept (the provider's image-to-multiview), matted like the concept."""
+        from backend.worker.imaging import matte
+
+        g = self.p.image_to_multiview(ctx, concept, dict(self.cfg.get("views_params") or {}), int(spec["seed"]))
+        _note(ctx, "C", g.note(self.p.name))
+        size = int(ctx.quality["view_px"])
+        return {v: matte(g.files[v], self.cfg["matting"], size) for v in ("front", "left", "back", "right")}
 
 
 class ApiShapeBackend:
@@ -56,9 +63,16 @@ class ApiShapeBackend:
     def _shape(self, ctx, g) -> ShapeResult:
         return ShapeResult(glb=normalise_glb(g.data, self.cfg), co=None, tris=None, backend=self.name)
 
+    def _params(self, ctx, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+        """The profile's shape parameters, the job's quality switches (decision 115) on top, then `extra`."""
+        from backend.core.genai import option_params
+
+        return {**(self.cfg.get("params") or {}), **option_params(ctx.settings.genai, getattr(ctx, "options", None)), **(extra or {})}
+
     def multiview(self, ctx, spec, views):
-        params, seed = dict(self.cfg.get("params") or {}), int(spec["seed"])
-        wanted = {v: views[v] for v in self.cfg["views"] if v in views}
+        """Stage D from whatever views there are: all four (a multiview pipeline) or the concept alone."""
+        params, seed = self._params(ctx), int(spec["seed"])
+        wanted = {v: views[v] for v in ("front", "left", "back", "right") if v in views}
         if list(wanted) == ["front"]:  # one image: the provider's image-to-model
             g = self.p.image_to_model(ctx, wanted["front"], params, seed)
         else:
@@ -68,7 +82,7 @@ class ApiShapeBackend:
 
     def single_view(self, ctx, spec, front):
         fb = self.cfg.get("fallback") or {}
-        params: dict[str, Any] = {**(self.cfg.get("params") or {}), **(fb.get("params") or {})}
+        params = self._params(ctx, fb.get("params"))
         g = self.p.image_to_model(ctx, front, params, int(spec["seed"]) + int(fb.get("seed_offset", 1)))
         _note(ctx, "D", g.note(self.p.name) + " (single-view retry)")
         return self._shape(ctx, g)

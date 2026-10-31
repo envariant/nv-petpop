@@ -196,12 +196,59 @@ def readiness(name: str) -> tuple[bool, list[str]]:
     return not missing, missing
 
 
+PATH_KEYS = {"default", "by_kind"}
+
+
+def pipelines(name: str) -> list[dict[str, Any]]:
+    """A profile's pipelines (decision 114): paths other than `default` and `by_kind`, in file order."""
+    paths = Profile(name).get("paths") or {}
+    default = paths.get("default")
+    return [{"name": k, "title": v.get("title", k.replace("_", " ")), "default": k == default,
+             "credits": v.get("credits"), "note": v.get("note")}
+            for k, v in paths.items() if k not in PATH_KEYS and isinstance(v, dict)]
+
+
+def resolve_pipeline(name: str, requested: str | None, kind: str = "pipeline") -> str | None:
+    """The pipeline a new job runs: the one asked for, if its profile has it; else the default for its kind."""
+    paths = Profile(name).get("paths") or {}
+    offered = [p["name"] for p in pipelines(name)]
+    if requested:
+        if requested not in offered:
+            raise ProfileError(f"profile {name!r} has no pipeline {requested!r} (it has {', '.join(offered) or 'none'})")
+        return requested
+    return (paths.get("by_kind") or {}).get(kind, paths.get("default"))
+
+
+def options(name: str) -> list[dict[str, Any]]:
+    """A profile's quality switches (decision 115), in file order."""
+    return [{"name": k, "title": v["title"], "default": bool(v["default"]), "credits": v.get("credits"), "note": v.get("note")}
+            for k, v in (Profile(name).get("options") or {}).items()]
+
+
+def resolve_options(name: str, requested: dict[str, bool] | None) -> dict[str, bool]:
+    """A new job's switches: each of the profile's options as asked, else its default; unknown names refused."""
+    known = {o["name"]: o["default"] for o in options(name)}
+    unknown = sorted(set(requested or {}) - set(known))
+    if unknown:
+        raise ProfileError(f"profile {name!r} has no option {', '.join(unknown)} (it has {', '.join(known) or 'none'})")
+    return {k: bool((requested or {}).get(k, d)) for k, d in known.items()}
+
+
+def option_params(genai: Profile, chosen: dict[str, bool] | None) -> dict[str, Any]:
+    """The shape request fields a job's switches mean (`set` when on, `unset` when off); defaults if none recorded."""
+    out: dict[str, Any] = {}
+    for k, o in (genai.get("options") or {}).items():
+        on = (chosen or {}).get(k, o["default"])
+        out.update(o.get("set" if on else "unset") or {})
+    return out
+
+
 def profiles_offered() -> dict[str, Any]:
-    """GET /studio/profiles: the default and every profile Studio may choose, with readiness."""
+    """GET /studio/profiles: the default and every profile Studio may choose, with readiness and pipelines."""
     items = []
     for name in studio_profiles():
         p = Profile(name)
         ready, missing = readiness(name)
         items.append({"name": name, "description": p["description"], "mode": p.mode, "host": p["host"]["kind"],
-                      "ready": ready, "missing": missing})
+                      "ready": ready, "missing": missing, "pipelines": pipelines(name), "options": options(name)})
     return {"default": profile_name(), "items": items}

@@ -31,14 +31,15 @@
     "capabilities": {
       "type": "object", "minProperties": 1, "additionalProperties": false,
       "properties": {"text_to_image": {"$ref": "#/$defs/capability"}, "image_to_model": {"$ref": "#/$defs/capability"},
-                     "multiview_to_model": {"$ref": "#/$defs/capability"}}
+                     "multiview_to_model": {"$ref": "#/$defs/capability"}, "image_to_multiview": {"$ref": "#/$defs/capability"}}
     }
   },
   "$defs": {
     "route": {"type": "string", "pattern": "^(GET|POST) /\\S*$"},
     "path": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$", "description": "Dotted path into a JSON object."},
     "capability": {
-      "type": "object", "required": ["route", "body", "result"], "additionalProperties": false,
+      "type": "object", "required": ["route", "body"], "additionalProperties": false,
+      "anyOf": [{"required": ["result"]}, {"required": ["results"]}],
       "properties": {
         "route": {"$ref": "#/$defs/route"},
         "body": {"type": "object", "description": "Request fields; values $prompt, $negative, $image (an uploaded token), $views (tokens in `views` order) and $seed are filled in."},
@@ -46,6 +47,8 @@
         "rename": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Profile parameter -> request field."},
         "seeds": {"type": "array", "items": {"type": "string"}, "description": "Request fields that take the job seed unless the profile sets them."},
         "result": {"type": "array", "items": {"$ref": "#/$defs/path"}, "minItems": 1, "description": "Output fields holding the result URL, in order of preference."},
+        "results": {"type": "object", "additionalProperties": {"type": "array", "items": {"$ref": "#/$defs/path"}, "minItems": 1},
+                    "description": "Several named results (e.g. one URL per view), each as output paths in order of preference."},
         "manual": {"type": "object", "additionalProperties": false, "description": "Manual mode (decision 111): the vendor's own app's equivalent, shown to the operator.",
                    "properties": {"title": {"type": "string"}, "steps": {"type": "array", "items": {"type": "string"}}}}
       }

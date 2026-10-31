@@ -80,7 +80,8 @@ class ApiImpl(Protocol):
     # manual mode (decision 111): provider requests the operator runs in the vendor's app
     async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList: ...
     async def manual_task(self, task_id: str, base: str) -> m.ManualTask: ...
-    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str) -> m.ManualTask: ...
+    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str,
+                            slot: str | None = None) -> m.ManualTask: ...
     # studio library (M8): batches, review, editors, publish, releases
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch: ...
     async def list_batches(self) -> m.BatchList: ...
@@ -326,11 +327,12 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
     @studio.post("/manual/{task_id}/result", response_model=m.ManualTask, operation_id="studioSubmitManual",
                  responses={**ERR, **AUTH, 409: {"model": m.ErrorBody}, 413: {"model": m.ErrorBody}})
     async def submit_manual(task_id: str, request: Request, file: UploadFile = File(...),
+                            slot: Literal["front", "left", "back", "right"] | None = Query(None, description="views tasks: which view this is."),
                             user: m.StaffUser = operator) -> m.ManualTask:
         data = await file.read()
         if len(data) > MANUAL_MAX_BYTES:
             raise ApiError(413, f"file over {MANUAL_MAX_BYTES // 2**20} MB")
-        return await impl.submit_manual(task_id, file.filename or "upload", data, user, _base(request))
+        return await impl.submit_manual(task_id, file.filename or "upload", data, user, _base(request), slot)
 
     # ------------------------------------------------------------------ studio library (M8)
     @studio.post("/batches", response_model=m.Batch, status_code=201, operation_id="studioCreateBatch", responses={**ERR, **AUTH})

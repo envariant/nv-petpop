@@ -87,6 +87,7 @@ test('5 name and generate: summary card, name required', async ({ page }) => {
   await expect(page.getByTestId('summary-card')).toContainText('Pembroke Welsh Corgi');
   // Run on: the server default is picked; a profile missing its key is listed but cannot be chosen
   await expect(page.getByTestId('profile-mock')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('pipeline-multiview')).toHaveAttribute('aria-pressed', 'true'); // the mock's default pipeline
   await expect(page.getByTestId('profile-tripo')).toContainText('needs TRIPO_API_KEY');
   await page.getByTestId('profile-tripo').tap();
   await expect(page.getByTestId('profile-mock')).toHaveAttribute('aria-pressed', 'true');
@@ -144,10 +145,16 @@ test('8 generate: the batch spec builder counts breeds x variants x seeds and st
   await expect(page.getByTestId('start-batch')).toContainText('Generate 1 figurine');
   await page.getByTestId('profile-tripo-manual').tap(); // this batch runs on Tripo by hand
   await expect(page.getByTestId('profile-description')).toContainText('manual mode');
+  await expect(page.getByTestId('pipeline-single_view')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('option-hd_texture')).toHaveAttribute('aria-pressed', 'true'); // HD texture is on by default
+  await expect(page.getByTestId('credit-estimate')).toContainText('45 API credits'); // 35 + HD texture 10
+  await page.getByTestId('pipeline-multiview').tap();
+  await page.getByTestId('option-hd_geometry').tap();
+  await expect(page.getByTestId('credit-estimate')).toContainText('75 API credits'); // 45 + 10 + 20
   await page.getByTestId('start-batch').tap();
   await expect(page.getByTestId('curate-notice')).toContainText('Batch started: 1 figurines');
   await expect(page.getByTestId('batch-list').locator('button')).not.toHaveCount(0);
-  await expect(page.getByTestId('batch-list')).toContainText('on tripo-manual');
+  await expect(page.getByTestId('batch-list')).toContainText('on tripo-manual, multiview');
 });
 
 test('9 review: turntables, QC per region, accept, reject and tag; operators cannot review', async ({ page }) => {
@@ -205,7 +212,7 @@ test('11 releases: only an admin publishes a release, and it lists with its coun
 
 test('12 manual: the inbox shows what the API would get; uploading an output resumes the job', async ({ page }) => {
   await signInHome(page);
-  await expect(page.getByTestId('manual-pending')).toHaveText('2');
+  await expect(page.getByTestId('manual-pending')).toHaveText('3');
   await page.getByTestId('nav-manual').tap();
   await expect(page.locator('[data-screen=manual]')).toBeVisible();
   await page.getByTestId('manual-task-j_manual_demo.text-to-image-demo').tap();
@@ -218,7 +225,7 @@ test('12 manual: the inbox shows what the API would get; uploading an output res
   await page.getByTestId('manual-file').setInputFiles('../../fixtures/pets/biscuit/concept.png');
   await page.getByTestId('manual-submit').tap();
   await expect(page.getByTestId('manual-notice')).toContainText('the job carries on');
-  await expect(page.getByTestId('manual-pending')).toHaveText('1', { timeout: 20_000 });
+  await expect(page.getByTestId('manual-pending')).toHaveText('2', { timeout: 20_000 });
   await page.getByTestId('manual-task-j_manual_demo.image-to-model-demo').tap();
   await expect(page.getByTestId('manual-settings')).toContainText('model: v3.1-20260211');
   await expect(page.getByTestId('manual-input-input.png')).toBeVisible();
@@ -226,6 +233,14 @@ test('12 manual: the inbox shows what the API would get; uploading an output res
   await page.getByTestId('manual-file').setInputFiles('../../fixtures/pets/biscuit/figure.glb');
   await page.getByTestId('manual-submit').tap();
   await expect(page.getByTestId('manual-notice')).toContainText('figure.glb received');
+  // a four-view task (multiview pipeline): one upload per slot; the job carries on once all four are in
+  await page.getByTestId('manual-task-j_manual_demo.image-to-multiview-demo').tap();
+  for (const slot of ['front', 'left', 'back', 'right']) {
+    await page.getByTestId(`manual-file-${slot}`).setInputFiles('../../fixtures/pets/biscuit/concept.png');
+    await page.getByTestId(`manual-submit-${slot}`).tap();
+    if (slot !== 'right') await expect(page.getByTestId(`manual-slot-${slot}-done`)).toBeVisible(); // the last one completes the task
+  }
+  await expect(page.getByTestId('manual-notice')).toContainText('the job carries on');
   await page.getByTestId('manual-filter-submitted').tap();
   await expect(page.getByTestId('manual-list')).toContainText('submitted');
 });

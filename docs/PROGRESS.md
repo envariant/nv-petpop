@@ -141,6 +141,10 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   docs/HANDOFF-TRIPO.md (2026-10-31)
 - [x] GenAI profile per job (decision 113, API 3.3.0): `PETPOP_STUDIO_PROFILES`, "Run on" in Generate and the
   one-off Name screen, `GET /studio/profiles`, the profile recorded on each job and batch (2026-10-31)
+- [x] Pipelines and quality switches per job (decisions 114, 115, API 3.4.0): single view or multiview (Tripo
+  image-to-multiview, four-slot manual tasks; the Mac's multiview path selectable again), HD texture, HD geometry,
+  quad; credit estimates from Tripo's pricing (2026-10-31)
+- [ ] First real multiview job: check Tripo's left/right convention (docs/HANDOFF-TRIPO.md, step 5)
 - [ ] Build the first library batch by hand in manual mode (Nishant, Tripo Studio): one breed per species first
 - [ ] Real Tripo jobs once `TRIPO_API_KEY` is in the environment (docs/HANDOFF-TRIPO.md, first steps): `GENAI_PROFILE=tripo python scripts/genai_check.py`,
   then one job per species; record times, credits and IoU; settle `shape.iou_min`, `expected_s` and timeouts

@@ -87,7 +87,7 @@ export const useCurate = create<CurateState>((set, get) => {
     startBatch: async () => {
       const { species, breeds, variants, seeds } = get();
       const batch = await run(() =>
-        StudioApi.createBatch({ species, breeds, seeds, first_seed: 1, genai_profile: useProfiles.getState().choice, variants: VARIANTS.filter((v) => variants.includes(v.label)).map((v) => ({ label: v.label, patch: v.patch })) }),
+        StudioApi.createBatch({ species, breeds, seeds, first_seed: 1, genai_profile: useProfiles.getState().choice, pipeline: useProfiles.getState().pipeline, options: useProfiles.getState().options, variants: VARIANTS.filter((v) => variants.includes(v.label)).map((v) => ({ label: v.label, patch: v.patch })) }),
       );
       if (batch) set({ batch, breeds: [], notice: `Batch started: ${batch.summary.figurines} figurines` });
       return batch;

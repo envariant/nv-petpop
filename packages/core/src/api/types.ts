@@ -57,3 +57,5 @@ export type ManualCapability = ManualTask['capability'];
 // Per-job GenAI profiles (decision 113, API 3.3.0).
 export type GenaiProfiles = S['GenaiProfiles'];
 export type GenaiProfileInfo = S['GenaiProfileInfo'];
+export type GenaiPipeline = S['GenaiPipeline'];
+export type GenaiOption = S['GenaiOption'];

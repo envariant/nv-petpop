@@ -15,13 +15,27 @@ import { applyPatch, assetUrl } from '@petpop/core';
 import { curationHandlers } from './curation';
 import { manualHandlers } from './manual';
 
-/** Per-job GenAI profiles (decision 113): what a server with PETPOP_STUDIO_PROFILES=tripo-manual,tripo offers. */
+const MOCK_PIPES = [
+  { name: 'multiview', title: 'Multiview', default: true, credits: null, note: 'four views -> shape' },
+  { name: 'single_view', title: 'Single view', default: false, credits: null, note: 'the concept alone -> shape' },
+];
+const TRIPO_PIPES = [
+  { name: 'single_view', title: 'Single view', default: true, credits: 35, note: 'concept -> image to 3D' },
+  { name: 'multiview', title: 'Multiview', default: false, credits: 45, note: 'concept -> four views -> multiview to 3D' },
+];
+const TRIPO_OPTIONS = [
+  { name: 'hd_texture', title: 'HD texture', default: true, credits: 10, note: 'sharper texture; transferred onto the figurine as is' },
+  { name: 'hd_geometry', title: 'HD geometry', default: false, credits: 20, note: 'finer surface; the wrap onto the base mesh smooths some of it away' },
+  { name: 'quad', title: 'Quad mesh', default: false, credits: 5, note: "quad topology; does not reach the figurine (the base mesh's topology is used)" },
+];
+
+/** Per-job GenAI profiles (decisions 113 to 115): what a server with PETPOP_STUDIO_PROFILES=tripo-manual,tripo offers. */
 export const PROFILES = {
   default: 'mock',
   items: [
-    { name: 'mock', description: 'CPU stand-ins for every GenAI stage (no host needed).', mode: 'mock', host: 'cpu', ready: true, missing: [] },
-    { name: 'tripo-manual', description: 'Tripo3D in manual mode. The operator runs each request in Tripo Studio and uploads the output.', mode: 'real', host: 'api', ready: true, missing: [] },
-    { name: 'tripo', description: 'Tripo3D API. Concept by text-to-image, textured shape by image-to-model.', mode: 'real', host: 'api', ready: false, missing: ['TRIPO_API_KEY'] },
+    { name: 'mock', description: 'CPU stand-ins for every GenAI stage (no host needed).', mode: 'mock', host: 'cpu', ready: true, missing: [], pipelines: MOCK_PIPES, options: [] },
+    { name: 'tripo-manual', description: 'Tripo3D in manual mode. The operator runs each request in Tripo Studio and uploads the output.', mode: 'real', host: 'api', ready: true, missing: [], pipelines: TRIPO_PIPES, options: TRIPO_OPTIONS },
+    { name: 'tripo', description: 'Tripo3D API. Concept by text-to-image, textured shape by image-to-model.', mode: 'real', host: 'api', ready: false, missing: ['TRIPO_API_KEY'], pipelines: TRIPO_PIPES, options: TRIPO_OPTIONS },
   ],
 } as const;
 import { mockParse } from './parse';
@@ -145,7 +159,7 @@ const userOf = (request: Request) => {
 const unauthorised = () => HttpResponse.json({ detail: 'staff login required' }, { status: 401 });
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.3.0', server: 'mock-server' })),
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.4.0', server: 'mock-server' })),
   http.post('/api/v1/studio/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (!ROLES.includes(body.username) || body.password !== MOCK_PASSWORD) return HttpResponse.json({ detail: 'wrong username or password' }, { status: 401 });

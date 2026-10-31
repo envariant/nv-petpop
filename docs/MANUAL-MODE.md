@@ -17,6 +17,10 @@ A parse -> control -> B concept: WAITS (you: Tripo text to image -> upload the i
 - While it waits, the job's status is `waiting` (Studio shows "This figurine is waiting for you"); nothing runs.
 - Uploading the output re-queues the job, which resumes from its stored stages; the provider hands your file back
   as if the API had returned it, with a synthetic task record (`manual-<request>`, no credits) in the stage notes.
+- The multiview pipeline (decision 114) adds a step after the concept: Tripo image to multiview, uploaded as four
+  images, one per slot (front, left, back, right; left is the pet's own left side). The job continues once all four
+  are in, then waits for the 3D model from those views (Tripo multiview to 3D).
+- Quality switches chosen for the job (HD texture, HD geometry, quad) appear in the task's settings to match.
 - If the silhouette check in Stage D rejects your model, the pipeline asks once more (a new request with the next
   seed); if that fails too, the parametric base mesh ships, as on any profile.
 

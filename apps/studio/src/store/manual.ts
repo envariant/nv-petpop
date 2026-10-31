@@ -17,7 +17,7 @@ export interface ManualState {
   set: (p: Partial<ManualState>) => void;
   load: () => Promise<void>;
   select: (id: string | null) => void;
-  submit: (file: File) => Promise<ManualTask | null>;
+  submit: (file: File, slot?: string) => Promise<ManualTask | null>;
 }
 
 const message = (e: unknown) =>
@@ -42,13 +42,14 @@ export const useManual = create<ManualState>((set, get) => ({
     }
   },
   select: (id) => set({ selectedId: id, error: null, notice: null }),
-  submit: async (file) => {
+  submit: async (file, slot) => {
     const id = get().selectedId;
     if (!id) return null;
     set({ busy: true, error: null, notice: null });
     try {
-      const t = await StudioApi.submitManual(id, file, file.name);
-      set({ notice: `${t.title}: ${file.name} received, the job carries on.` });
+      const t = await StudioApi.submitManual(id, file, file.name, slot);
+      const left = (t.expects.slots ?? []).filter((x) => !(t.filled ?? []).includes(x));
+      set({ notice: left.length ? `${slot} view received; still to come: ${left.join(', ')}.` : `${t.title}: ${file.name} received, the job carries on.` });
       await get().load();
       return t;
     } catch (e) {

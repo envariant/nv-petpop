@@ -193,13 +193,14 @@ class StudioLibrary:
         bid = "b_" + uuid.uuid4().hex[:10]
         with self.db() as db:
             batch = CurationBatchRow(id=bid, species=species, spec={"request": body.model_dump(), "jobs": {}}, status="running",
-                                     created_by=user.username, created_at=utcnow(), genai_profile=body.genai_profile)
+                                     created_by=user.username, created_at=utcnow(), genai_profile=body.genai_profile,
+                                     pipeline=body.pipeline, options=body.options)
             db.add(batch)
             jobs = {}
             for breed, variant, seed, spec in specs:
                 job = JobRow(id="j_" + uuid.uuid4().hex[:12], queue="studio", kind="batch", batch_id=bid, requested_by=user.username,
                              pet_spec=spec, status="queued", stage="queued", seed=seed, created_at=utcnow(),
-                             genai_profile=body.genai_profile)
+                             genai_profile=body.genai_profile, pipeline=body.pipeline, options=body.options)
                 db.add(job)
                 jobs[job.id] = {"breed": breed, "variant": variant, "seed": seed}
             batch.spec = {"request": body.model_dump(), "jobs": jobs}
@@ -254,7 +255,9 @@ class StudioLibrary:
                                  accepted=sum(c.status == "accepted" for c in cands), rejected=sum(c.status == "rejected" for c in cands),
                                  published=sum(c.status == "published" for c in cands), parts_sets_published=sets)
         return m.Batch(batch_id=b.id, species=b.species, status=status, created_by=b.created_by, created_at=aware(b.created_at),
-                       request=b.spec["request"], genai_profile=b.genai_profile, summary=summary, figurines=figurines)
+                       request=b.spec["request"], genai_profile=b.genai_profile, pipeline=b.pipeline, options=b.options,
+                       summary=summary,
+                       figurines=figurines)
 
     def batches(self) -> m.BatchList:
         with self.db() as db:

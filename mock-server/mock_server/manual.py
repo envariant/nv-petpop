@@ -12,7 +12,7 @@ from backend.api import models as m
 from backend.api.contract import ApiError, signed_file_url
 from backend.core.paths import FIXTURES
 from backend.worker.providers.manifest import load_manifest
-from backend.worker.providers.manual import ACCEPT, EXPECTS, _settings, check_output
+from backend.worker.providers.manual import ACCEPT, EXPECTS, SLOTS, _settings, check_output
 
 PET = "biscuit"
 PARAMS = {"model": "v3.1-20260211", "texture": True, "pbr": False, "texture_quality": "detailed",
@@ -38,6 +38,8 @@ class MockManual:
                                                                     "negative_prompt": prompts["negative"]}, []),
             ("j_manual_demo.image-to-model-demo", "image_to_model", {"input": "<upload input.png>", **PARAMS, "model_seed": 7,
                                                                       "texture_seed": 7}, [{"name": "input.png", "key": concept_key}]),
+            ("j_manual_demo.image-to-multiview-demo", "image_to_multiview", {"input": "<upload input.png>"},
+             [{"name": "input.png", "key": concept_key}]),
         ]
         for task_id, capability, body, inputs in demo:
             cap = man["capabilities"][capability]
@@ -47,7 +49,8 @@ class MockManual:
                 "title": cap["manual"]["title"], "provider": "tripo (manual)", "vendor": man["vendor"],
                 "manifest": f"{man['manifest']} v{man['version']}", "route": cap["route"], "request": body,
                 "prompt": body.get("prompt"), "negative_prompt": body.get("negative_prompt"), "settings": _settings(body, cap),
-                "inputs": inputs, "instructions": cap["manual"]["steps"], "expects": {"kind": kind, "accept": ACCEPT[kind]},
+                "inputs": inputs, "instructions": cap["manual"]["steps"],
+                "expects": {"kind": kind, "accept": ACCEPT[kind], "slots": list(SLOTS) if kind == "views" else []}, "filled": [],
                 "species": spec.get("species", "dog"), "pet_name": spec.get("pet_name") or "Biscuit",
                 "breed_label": (spec.get("breed") or {}).get("label"), "created_at": datetime.now(UTC),
                 "submitted_at": None, "result_name": None,
@@ -67,16 +70,22 @@ class MockManual:
             raise ApiError(404, f"unknown manual task {task_id}")
         return self._view(self.tasks[task_id])
 
-    def submit(self, task_id: str, filename: str, data: bytes) -> m.ManualTask:
+    def submit(self, task_id: str, filename: str, data: bytes, slot: str | None = None) -> m.ManualTask:
         with self.lock:
             t = self.tasks.get(task_id)
             if t is None:
                 raise ApiError(404, f"unknown manual task {task_id}")
             if t["status"] != "pending":
                 raise ApiError(409, "this task already has its output")
+            slots = t["expects"]["slots"]
+            if slots and slot not in slots:
+                raise ApiError(422, f"this task takes one image per view: name the slot ({', '.join(slots)})")
             why = check_output(t["expects"]["kind"], filename, data)
             if why:
                 raise ApiError(422, why)
-            self.store.put(f"manual-demo/{task_id}/result", data)
-            t.update(status="submitted", submitted_at=datetime.now(UTC), result_name=filename[:120])
+            self.store.put(f"manual-demo/{task_id}/result{'_' + slot if slot else ''}", data)
+            t["filled"] = [s for s in slots if s in set(t["filled"]) | {slot}]
+            t["result_name"] = filename[:120]
+            if not slots or len(t["filled"]) == len(slots):
+                t.update(status="submitted", submitted_at=datetime.now(UTC))
             return self._view(t)

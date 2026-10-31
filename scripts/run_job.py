@@ -2,6 +2,7 @@
 """Run one pipeline job on the active GenAI profile, outside the API (the provider harness's end-to-end check).
 
     GENAI_PROFILE=tripo python scripts/run_job.py --species dog --breed beagle --seed 1
+    GENAI_PROFILE=tripo python scripts/run_job.py --breed beagle --pipeline multiview --option hd_geometry=on
     GENAI_PROFILE=tripo-manual python scripts/run_job.py --species dog --breed beagle --seed 1   # re-run to resume
 
 Artefacts and the manifest go to var/run_job/<job_id>/ (the job's store; a second run resumes from it). Prints each
@@ -46,6 +47,8 @@ def main() -> int:
     ap.add_argument("--name", default=None, help="pet name")
     ap.add_argument("--kind", default="pipeline", choices=["pipeline", "bespoke", "batch"])
     ap.add_argument("--job", default=None, help="job id (default j_<breed>_<seed>); reuse it to resume")
+    ap.add_argument("--pipeline", default=None, help="the profile's pipeline (e.g. single_view, multiview); default: the profile's")
+    ap.add_argument("--option", action="append", default=[], metavar="NAME=on|off", help="a quality switch, e.g. hd_geometry=on")
     a = ap.parse_args()
     s = settings()
     job_id = a.job or f"j_{a.breed}_{a.seed}"
@@ -55,9 +58,14 @@ def main() -> int:
     if before:
         print("balance before:", json.dumps(before))
     spec = default_spec(a.species, a.breed, seed=a.seed, pet_name=a.name)
+    from backend.core.genai import resolve_options, resolve_pipeline
+
+    pipeline = resolve_pipeline(s.genai.name, a.pipeline, a.kind)
+    options = resolve_options(s.genai.name, {k: v.lower() in ("on", "1", "true", "yes") for k, _, v in (o.partition("=") for o in a.option)})
+    print(f"pipeline {pipeline}, options {json.dumps(options)}")
     try:
         m = run_pipeline(job_id, spec, store, s, lambda st, pct, msg, **k: print(f"  {st:<8} {pct:>3}% {msg}", flush=True),
-                         kind=a.kind).data
+                         kind=a.kind, pipeline=pipeline, options=options).data
     except AwaitingOperator as w:
         p = w.packet
         print(f"\nWAITING for the operator: {p['title']} ({p['task_id']})")
@@ -67,7 +75,12 @@ def main() -> int:
             print(f"  {line}")
         for i in p.get("inputs", []):
             print(f"  input {i['name']}: {store.root / i['key']}")
-        print(f"  put the {p['expects']['kind']} ({', '.join(p['expects']['accept'])}) at {store.root / p['result_key']}, then run again")
+        if p["expects"].get("slots"):
+            for slot, key in p["result_keys"].items():
+                print(f"  put the {slot} view ({', '.join(p['expects']['accept'])}) at {store.root / key}")
+            print("  then run again")
+        else:
+            print(f"  put the {p['expects']['kind']} ({', '.join(p['expects']['accept'])}) at {store.root / p['result_key']}, then run again")
         return 3
     print("\nstage    status    seconds  notes")
     for st in m["stages"]:

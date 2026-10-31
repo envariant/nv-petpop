@@ -28,14 +28,19 @@ then docs/PROVIDERS.md and docs/MANUAL-MODE.md. Decisions 108 to 112 explain the
    Credits are scarce: no second job without Nishant's go.
 4. If a field name is wrong (output URL key, status value, credits path), fix `config/providers/tripo-v3.yaml` only,
    rerun the unit tests, and run `scripts/run_job.py` again with the same `--job` (it resumes from the stored stages).
-5. Then record what was learned: task times (`expected_s`, timeouts), the credits per task, the Stage D IoU against
+5. Multiview, once single view works and Nishant agrees to the credits (about 55 with HD texture):
+   `scripts/run_job.py --breed beagle --seed 1 --pipeline multiview --job j_beagle_mv`. Check which side Tripo's
+   "left" view shows (the pet's own left side has the nose toward image-left); if it is mirrored, swap the left and
+   right result paths in `config/providers/tripo-v3.yaml` (decision 114).
+6. Then record what was learned: task times (`expected_s`, timeouts), the credits per task, the Stage D IoU against
    the front silhouette (`shape.iou_min` is 0.80, provisional), whether Tripo's text-to-image default model and size
    suit (`image.params`), and whether a private-generation request flag exists (decision 110; `create_extras`).
 
 ## Choosing per job
 
 `GENAI_PROFILE` is the default; `PETPOP_STUDIO_PROFILES` (e.g. `tripo-manual,tripo`) lets Studio pick per job or
-batch ("Run on"); each job records its profile (decision 113, API 3.3.0).
+batch ("Run on"), then the profile's pipeline (single view or multiview) and quality switches (HD texture, HD
+geometry, quad), with a credit estimate; each job records all three (decisions 113 to 115, API 3.4.0).
 
 ## Manual mode, for building the library now
 

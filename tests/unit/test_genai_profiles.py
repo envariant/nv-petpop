@@ -19,8 +19,10 @@ def test_profiles_ship_and_validate():
 def test_tripo_profile_rules():
     p = Profile("tripo")
     assert p["host"]["kind"] == "api" and p["image"]["backend"] == p["shape"]["backend"] == "api"
-    assert p["providers"]["tripo"]["key_env"] == "TRIPO_API_KEY" and p["image"]["views"] == "none"
+    assert p["providers"]["tripo"]["key_env"] == "TRIPO_API_KEY" and p["paths"]["default"] == "single_view"
+    assert p["paths"]["single_view"]["views"] == "none" and p["paths"]["multiview"]["views"] == "generate"
     assert p["shape"]["params"]["texture"] is True and p["texture"]["backend"] == "transfer"
+    assert {k: v["default"] for k, v in p["options"].items()} == {"hd_texture": True, "hd_geometry": False, "quad": False}
 
 
 def test_mock_is_the_default(monkeypatch):
@@ -40,7 +42,7 @@ def test_mac_profile_rules():
     assert p["shape"]["params"]["mesh_algorithm"] == "surface net"
     fb = p["shape"]["fallback"]
     assert fb["backend"] == "http" and fb["params"]["octree_resolution"] == 192 and fb["params"]["steps"] == 30
-    assert p["image"]["matting"]["method"] == "birefnet" and p["paths"]["by_kind"] == {"bespoke": "fast"}
+    assert p["image"]["matting"]["method"] == "birefnet" and p["paths"]["by_kind"] == {"bespoke": "single_view"}
     assert "hy_paint" not in p["texture"]["allowed"]  # Hunyuan3D-Paint stays NVIDIA-only
 
 

@@ -34,6 +34,12 @@ shape:
   fallback: {seed_offset: 1, noise_scale: 0.6}
   iou_min: 0.85
   height_mm: 90
+# Pipelines (decision 114): both, so Studio and the tests can exercise the choice without a GenAI host.
+paths:
+  default: multiview
+  multiview: {title: Multiview, views: generate, note: "four views -> shape"}
+  single_view: {title: Single view, views: none, note: "the concept alone -> shape"}
+
 texture:
   backend: projection        # TEXTURE_BACKEND overrides: projection | flat | hy_paint
   allowed: [projection, flat]

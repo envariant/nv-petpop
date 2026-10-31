@@ -5,6 +5,7 @@ options, so switching vendors is a new provider class plus a profile, never a ch
 Capabilities (a provider implements the ones its vendor offers; the rest raise ProviderUnsupported):
 
     text_to_image(ctx, prompt, negative, params, seed)         -> Generated(PNG)       Stage B concept
+    image_to_multiview(ctx, image, params, seed)               -> Generated(files)     Stage C four views
     image_to_model(ctx, image, params, seed)                   -> Generated(GLB)       Stage D, textured if asked
     multiview_to_model(ctx, views, params, seed)               -> Generated(GLB)       Stage D from Stage C views
     balance()                                                  -> {"balance", ...}     genai_check, cost guard
@@ -55,6 +56,7 @@ class Generated:
     task_id: str
     credits: float | None = None
     extra: dict[str, Any] = field(default_factory=dict)
+    files: dict[str, bytes] = field(default_factory=dict)  # several named results (image_to_multiview: per view)
 
     def note(self, provider: str) -> str:
         cost = f", {self.credits:g} credits" if self.credits is not None else ""
@@ -65,6 +67,7 @@ class Provider(Protocol):
     name: str
 
     def text_to_image(self, ctx, prompt: str, negative: str, params: dict[str, Any], seed: int) -> Generated: ...
+    def image_to_multiview(self, ctx, image: bytes, params: dict[str, Any], seed: int) -> Generated: ...
     def image_to_model(self, ctx, image: bytes, params: dict[str, Any], seed: int) -> Generated: ...
     def multiview_to_model(self, ctx, views: dict[str, bytes], params: dict[str, Any], seed: int) -> Generated: ...
     def balance(self) -> dict[str, Any]: ...

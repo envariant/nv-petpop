@@ -122,13 +122,18 @@ class ManifestProvider:
             raise ProviderError(f"{capability} returned no task id")
         task = self._wait(ctx, str(task_id))
         output = dig(task, t["output"]) or {}
-        url = next((u for u in (dig(output, k) for k in cap["result"])
-                    if isinstance(u, str) and urlparse(u).scheme in ("http", "https")), None)
-        if not url:
-            raise ProviderError(f"{self.name} task {task_id} output has none of {cap['result']}: {sorted(output)}")
         credits = dig(task, t["credits"]) if t.get("credits") else None
-        return Generated(self.api.download(url), str(task_id), float(credits) if credits is not None else None,
-                         {"output": output})
+        credits = float(credits) if credits is not None else None
+        if cap.get("results"):  # several named results (image_to_multiview: one URL per view)
+            files = {slot: self.api.download(self._url(output, paths, task_id)) for slot, paths in cap["results"].items()}
+            return Generated(b"", str(task_id), credits, {"output": output}, files)
+        return Generated(self.api.download(self._url(output, cap["result"], task_id)), str(task_id), credits, {"output": output})
+
+    def _url(self, output: dict[str, Any], paths: list[str], task_id: str) -> str:
+        url = next((u for u in (dig(output, k) for k in paths) if isinstance(u, str) and urlparse(u).scheme in ("http", "https")), None)
+        if not url:
+            raise ProviderError(f"{self.name} task {task_id} output has none of {paths}: {sorted(output)}")
+        return url
 
     # ------------------------------------------------------------------ capabilities
     def text_to_image(self, ctx, prompt, negative, params, seed) -> Generated:
@@ -138,6 +143,11 @@ class ManifestProvider:
 
     def image_to_model(self, ctx, image, params, seed) -> Generated:
         return self._run(ctx, "image_to_model", {"image": self.upload(image)}, params, seed)
+
+    def image_to_multiview(self, ctx, image, params, seed) -> Generated:
+        g = self._run(ctx, "image_to_multiview", {"image": self.upload(image)}, params, seed)
+        g.files = {k: _png(v) for k, v in g.files.items()}
+        return g
 
     def multiview_to_model(self, ctx, views, params, seed) -> Generated:
         order = self.m["capabilities"].get("multiview_to_model", {}).get("views", ["front", "left", "back", "right"])

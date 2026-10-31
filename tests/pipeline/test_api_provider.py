@@ -115,3 +115,44 @@ def test_parametric_fallback_paints_flat(env, tripo, tmp_path, monkeypatch):
     m = run_pipeline("j_param", default_spec("cat", "tuxedo", seed=5), LocalStore(tmp_path / "s"), s).data
     assert manifest_errors(m) == [] and m["fallback"] == "parametric"
     assert next(st for st in m["stages"] if st["stage"] == "F")["status"] == "ok"
+
+
+def test_tripo_multiview_pipeline(env, tripo, tmp_path):
+    """Decision 114: the multiview pipeline asks Tripo for four views in Stage C and shapes from all four in D."""
+    s = env()
+    store = LocalStore(tmp_path / "s")
+    m = run_pipeline("j_mv", default_spec("dog", "beagle", seed=33), store, s, pipeline="multiview").data
+    assert manifest_errors(m) == []
+    stages = {st["stage"]: st for st in m["stages"]}
+    assert stages["C"]["status"] == "ok" and "10 credits" in stages["C"]["notes"]
+    assert stages["D"]["status"] == "ok" and "30 credits" in stages["D"]["notes"]
+    posts = [e["path"] for e in tripo.log if e["method"] == "POST"]
+    assert posts == ["/v3/generation/text-to-image", "/v3/files", "/v3/generation/image-to-multiview",
+                     "/v3/files", "/v3/files", "/v3/files", "/v3/files", "/v3/generation/multiview-to-model"]
+    body = next(e["json"] for e in tripo.log if e["path"] == "/v3/generation/multiview-to-model")
+    assert len(body["inputs"]) == 4 and all(t.startswith("file_") for t in body["inputs"]) and body["model"] == "v3.1-20260211"
+    for v in ("front", "left", "back", "right"):
+        assert store.exists(f"jobs/j_mv/views/{v}.png")
+    assert len(m["metrics"]["iou_views"]) == 4  # every view's silhouette checked
+
+
+def test_unknown_pipeline_is_refused():
+    from backend.core.genai import ProfileError, resolve_pipeline
+
+    assert resolve_pipeline("tripo", None) == "single_view" and resolve_pipeline("tripo", "multiview") == "multiview"
+    assert resolve_pipeline("mac-m4pro", None, "bespoke") == "single_view"
+    with pytest.raises(ProfileError, match="no pipeline"):
+        resolve_pipeline("tripo", "turbo")
+
+
+def test_quality_switches_reach_the_request(env, tripo, tmp_path):
+    """Decision 115: a job's switches set the shape request's fields; switches not named keep the profile default."""
+    s = env()
+    run_pipeline("j_hd", default_spec("cat", "siamese", seed=4), LocalStore(tmp_path / "s"), s,
+                 options={"hd_texture": False, "hd_geometry": True, "quad": True})
+    body = next(e["json"] for e in tripo.log if e["path"] == "/v3/generation/image-to-model")
+    assert body["texture_quality"] == "standard" and body["geometry_quality"] == "detailed" and body["quad"] is True
+    tripo.log.clear()
+    run_pipeline("j_default", default_spec("cat", "siamese", seed=4), LocalStore(tmp_path / "s2"), s)
+    body = next(e["json"] for e in tripo.log if e["path"] == "/v3/generation/image-to-model")
+    assert body["texture_quality"] == "detailed" and body["geometry_quality"] == "standard" and body["quad"] is False

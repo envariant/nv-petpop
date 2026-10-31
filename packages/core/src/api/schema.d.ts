@@ -710,6 +710,18 @@ export interface components {
              * @description The GenAI profile its figurines run on (decision 113).
              */
             genai_profile?: string | null;
+            /**
+             * Options
+             * @description Their quality switches (decision 115).
+             */
+            options?: {
+                [key: string]: boolean;
+            } | null;
+            /**
+             * Pipeline
+             * @description Their pipeline (decision 114).
+             */
+            pipeline?: string | null;
             /** Request */
             request: {
                 [key: string]: unknown;
@@ -743,6 +755,18 @@ export interface components {
              * @description GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).
              */
             genai_profile?: string | null;
+            /**
+             * Options
+             * @description Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.
+             */
+            options?: {
+                [key: string]: boolean;
+            } | null;
+            /**
+             * Pipeline
+             * @description Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.
+             */
+            pipeline?: string | null;
             /**
              * Seeds
              * @default 1
@@ -1031,6 +1055,38 @@ export interface components {
             /** Ticket */
             ticket: string;
         };
+        /** GenaiOption */
+        GenaiOption: {
+            /**
+             * Credits
+             * @description API credits it adds per figurine.
+             */
+            credits?: number | null;
+            /** Default */
+            default: boolean;
+            /** Name */
+            name: string;
+            /** Note */
+            note?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** GenaiPipeline */
+        GenaiPipeline: {
+            /**
+             * Credits
+             * @description Estimated API credits per figurine, where the provider prices by credit.
+             */
+            credits?: number | null;
+            /** Default */
+            default: boolean;
+            /** Name */
+            name: string;
+            /** Note */
+            note?: string | null;
+            /** Title */
+            title: string;
+        };
         /** GenaiProfileInfo */
         GenaiProfileInfo: {
             /** Description */
@@ -1052,6 +1108,16 @@ export interface components {
             mode: "mock" | "real";
             /** Name */
             name: string;
+            /**
+             * Options
+             * @description Quality switches a job on it can toggle (decision 115).
+             */
+            options: components["schemas"]["GenaiOption"][];
+            /**
+             * Pipelines
+             * @description What a job on it can run (decision 114); empty = one fixed pipeline.
+             */
+            pipelines: components["schemas"]["GenaiPipeline"][];
             /**
              * Ready
              * @description False when a key it needs is missing from the server's environment.
@@ -1154,10 +1220,22 @@ export interface components {
             kind: "pipeline" | "bespoke" | "export" | "batch";
             /** Message */
             message: string;
+            /**
+             * Options
+             * @description Its quality switches, fixed at creation (decision 115).
+             */
+            options?: {
+                [key: string]: boolean;
+            } | null;
             /** Pct */
             pct: number;
             /** Pet Name */
             pet_name?: string | null;
+            /**
+             * Pipeline
+             * @description Its pipeline, e.g. single_view or multiview, fixed at creation (decision 114).
+             */
+            pipeline?: string | null;
             /**
              * Previews
              * @description Latest preview URL per kind (concept, view_front, shape, glb ...).
@@ -1212,6 +1290,18 @@ export interface components {
              * @description GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).
              */
             genai_profile?: string | null;
+            /**
+             * Options
+             * @description Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.
+             */
+            options?: {
+                [key: string]: boolean;
+            } | null;
+            /**
+             * Pipeline
+             * @description Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.
+             */
+            pipeline?: string | null;
             spec: components["schemas"]["PetSpec"];
         };
         /** JobCreated */
@@ -1539,7 +1629,12 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "image" | "model";
+            kind: "image" | "model" | "views";
+            /**
+             * Slots
+             * @description views: one upload per slot (front, left, back, right).
+             */
+            slots?: string[];
         };
         /** ManualInput */
         ManualInput: {
@@ -1565,13 +1660,18 @@ export interface components {
              * Capability
              * @enum {string}
              */
-            capability: "text_to_image" | "image_to_model" | "multiview_to_model";
+            capability: "text_to_image" | "image_to_model" | "multiview_to_model" | "image_to_multiview";
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
             expects: components["schemas"]["ManualExpects"];
+            /**
+             * Filled
+             * @description views: the slots uploaded so far.
+             */
+            filled?: string[];
             /** Inputs */
             inputs: components["schemas"]["ManualInput"][];
             /** Instructions */
@@ -2069,8 +2169,14 @@ export interface components {
              * @enum {string}
              */
             kind: "pipeline" | "bespoke" | "export" | "batch";
+            /** Options */
+            options?: {
+                [key: string]: boolean;
+            } | null;
             /** Pet Name */
             pet_name: string | null;
+            /** Pipeline */
+            pipeline?: string | null;
             /** Requested By */
             requested_by: string;
             /**
@@ -4154,7 +4260,10 @@ export interface operations {
     };
     studioSubmitManual: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description views tasks: which view this is. */
+                slot?: ("front" | "left" | "back" | "right") | null;
+            };
             header?: {
                 authorization?: string | null;
             };

@@ -87,6 +87,33 @@
       "description": "The GenAI profile its figurines run on (decision 113).",
       "title": "Genai Profile"
      },
+     "options": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "boolean"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Their quality switches (decision 115).",
+      "title": "Options"
+     },
+     "pipeline": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Their pipeline (decision 114).",
+      "title": "Pipeline"
+     },
      "request": {
       "additionalProperties": true,
       "title": "Request",
@@ -157,6 +184,33 @@
       ],
       "description": "GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).",
       "title": "Genai Profile"
+     },
+     "options": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "boolean"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.",
+      "title": "Options"
+     },
+     "pipeline": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.",
+      "title": "Pipeline"
      },
      "seeds": {
       "default": 1,
@@ -977,6 +1031,100 @@
     "title": "FulfilResponse",
     "type": "object"
    },
+   "GenaiOption": {
+    "additionalProperties": false,
+    "properties": {
+     "credits": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "API credits it adds per figurine.",
+      "title": "Credits"
+     },
+     "default": {
+      "title": "Default",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "title",
+     "default"
+    ],
+    "title": "GenaiOption",
+    "type": "object"
+   },
+   "GenaiPipeline": {
+    "additionalProperties": false,
+    "properties": {
+     "credits": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Estimated API credits per figurine, where the provider prices by credit.",
+      "title": "Credits"
+     },
+     "default": {
+      "title": "Default",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "title",
+     "default"
+    ],
+    "title": "GenaiPipeline",
+    "type": "object"
+   },
    "GenaiProfileInfo": {
     "additionalProperties": false,
     "properties": {
@@ -1009,6 +1157,22 @@
       "title": "Name",
       "type": "string"
      },
+     "options": {
+      "description": "Quality switches a job on it can toggle (decision 115).",
+      "items": {
+       "$ref": "#/components/schemas/GenaiOption"
+      },
+      "title": "Options",
+      "type": "array"
+     },
+     "pipelines": {
+      "description": "What a job on it can run (decision 114); empty = one fixed pipeline.",
+      "items": {
+       "$ref": "#/components/schemas/GenaiPipeline"
+      },
+      "title": "Pipelines",
+      "type": "array"
+     },
      "ready": {
       "description": "False when a key it needs is missing from the server's environment.",
       "title": "Ready",
@@ -1021,7 +1185,9 @@
      "mode",
      "host",
      "ready",
-     "missing"
+     "missing",
+     "pipelines",
+     "options"
     ],
     "title": "GenaiProfileInfo",
     "type": "object"
@@ -1246,6 +1412,21 @@
       "title": "Message",
       "type": "string"
      },
+     "options": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "boolean"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Its quality switches, fixed at creation (decision 115).",
+      "title": "Options"
+     },
      "pct": {
       "maximum": 100.0,
       "minimum": 0.0,
@@ -1262,6 +1443,18 @@
        }
       ],
       "title": "Pet Name"
+     },
+     "pipeline": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Its pipeline, e.g. single_view or multiview, fixed at creation (decision 114).",
+      "title": "Pipeline"
      },
      "previews": {
       "additionalProperties": {
@@ -1401,6 +1594,33 @@
       ],
       "description": "GenAI profile to run on (GET /studio/profiles lists them); empty = the server default (GENAI_PROFILE).",
       "title": "Genai Profile"
+     },
+     "options": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "boolean"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Quality switches by name (GenaiProfileInfo.options); omitted ones take the profile default.",
+      "title": "Options"
+     },
+     "pipeline": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Pipeline to run (GenaiProfileInfo.pipelines, e.g. single_view or multiview); empty = the profile default.",
+      "title": "Pipeline"
      },
      "spec": {
       "$ref": "#/components/schemas/PetSpec"
@@ -2346,10 +2566,19 @@
      "kind": {
       "enum": [
        "image",
-       "model"
+       "model",
+       "views"
       ],
       "title": "Kind",
       "type": "string"
+     },
+     "slots": {
+      "description": "views: one upload per slot (front, left, back, right).",
+      "items": {
+       "type": "string"
+      },
+      "title": "Slots",
+      "type": "array"
      }
     },
     "required": [
@@ -2409,7 +2638,8 @@
       "enum": [
        "text_to_image",
        "image_to_model",
-       "multiview_to_model"
+       "multiview_to_model",
+       "image_to_multiview"
       ],
       "title": "Capability",
       "type": "string"
@@ -2421,6 +2651,14 @@
      },
      "expects": {
       "$ref": "#/components/schemas/ManualExpects"
+     },
+     "filled": {
+      "description": "views: the slots uploaded so far.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Filled",
+      "type": "array"
      },
      "inputs": {
       "items": {
@@ -3975,6 +4213,20 @@
       "title": "Kind",
       "type": "string"
      },
+     "options": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "boolean"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Options"
+     },
      "pet_name": {
       "anyOf": [
        {
@@ -3985,6 +4237,17 @@
        }
       ],
       "title": "Pet Name"
+     },
+     "pipeline": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pipeline"
      },
      "requested_by": {
       "title": "Requested By",
@@ -4298,7 +4561,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.3.0"
+  "version": "3.4.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -7248,6 +7511,30 @@
       "schema": {
        "title": "Task Id",
        "type": "string"
+      }
+     },
+     {
+      "description": "views tasks: which view this is.",
+      "in": "query",
+      "name": "slot",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "front",
+          "left",
+          "back",
+          "right"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "views tasks: which view this is.",
+       "title": "Slot"
       }
      },
      {

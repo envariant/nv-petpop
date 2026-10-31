@@ -30,13 +30,21 @@ class StageContext:
     deadline: float = 0.0
     state: dict[str, Any] = field(default_factory=dict)
     kind: str = "pipeline"  # pipeline | bespoke | batch: picks the profile's path (paths.by_kind)
+    pipeline: str | None = None  # the job's own pipeline (decision 114), recorded at creation
+    options: dict[str, bool] | None = None  # its quality switches (decision 115); None = the profile defaults
 
     @property
     def path(self) -> dict[str, Any]:
-        """The profile's path for this job: library quality by default, a faster one for some job kinds."""
+        """The job's pipeline: its own, else its kind's (paths.by_kind), else the profile default."""
         paths = self.settings.genai.get("paths") or {}
-        name = (paths.get("by_kind") or {}).get(self.kind, paths.get("default", "library"))
-        return {"name": name, **(paths.get(name) or {})}
+        name = self.pipeline if self.pipeline in paths else (paths.get("by_kind") or {}).get(self.kind, paths.get("default"))
+        return {"name": name, **(paths.get(name) or {})} if name else {"name": "default"}
+
+    @property
+    def makes_views(self) -> bool:
+        """Whether Stage C runs: the pipeline says (views: none | generate); else the profile's image.views."""
+        views = self.path.get("views") or ("none" if self.settings.genai["image"].get("views") == "none" else "generate")
+        return views != "none"
 
     @property
     def quality(self) -> dict[str, Any]:

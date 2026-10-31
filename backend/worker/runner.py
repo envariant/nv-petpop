@@ -108,10 +108,10 @@ class StageRunner:
         for stage, fn, pct, message in STAGES:
             if self._done(stage):
                 continue
-            if stage == "C" and ctx.settings.genai["image"].get("views") == "none":
-                # The profile shapes from the concept alone (a provider's image-to-model): no turnaround views.
-                self.manifest.stage("C", "skipped", 0, 0, ctx.backends.image.name, "profile image.views: none",
-                                    now_iso(), now_iso())
+            if stage == "C" and not ctx.makes_views:
+                # The pipeline shapes from the concept alone (a provider's image-to-model): no turnaround views.
+                self.manifest.stage("C", "skipped", 0, 0, ctx.backends.image.name,
+                                    f"{ctx.path['name']} pipeline: no views", now_iso(), now_iso())
                 self._save_manifest()
                 continue
             ctx.progress(stage, pct, message)

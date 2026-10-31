@@ -21,8 +21,9 @@ from typing import Any
 from .base import AwaitingOperator, Generated
 from .manifest import ManifestProvider, _png
 
-EXPECTS = {"text_to_image": "image", "image_to_model": "model", "multiview_to_model": "model"}
-ACCEPT = {"image": [".png", ".jpg", ".jpeg", ".webp"], "model": [".glb"]}
+EXPECTS = {"text_to_image": "image", "image_to_model": "model", "multiview_to_model": "model", "image_to_multiview": "views"}
+ACCEPT = {"image": [".png", ".jpg", ".jpeg", ".webp"], "model": [".glb"], "views": [".png", ".jpg", ".jpeg", ".webp"]}
+SLOTS = ["front", "left", "back", "right"]
 INPUT_FIELDS = {"$image", "$views"}
 
 
@@ -49,7 +50,11 @@ class ManualProvider(ManifestProvider):
         rid = f"{capability.replace('_', '-')}-{digest.hexdigest()[:10]}"
         kind = EXPECTS[capability]
         result_key = self._key(ctx, rid, "result")
-        if ctx.store.exists(result_key):
+        slot_keys = {s: self._key(ctx, rid, f"result_{s}") for s in SLOTS} if kind == "views" else {}
+        if slot_keys and all(ctx.store.exists(k) for k in slot_keys.values()):
+            return Generated(b"", f"manual-{rid}", None, {"output": {"manual": True}},
+                             {s: _png(ctx.store.get(k)) for s, k in slot_keys.items()})
+        if not slot_keys and ctx.store.exists(result_key):
             data = ctx.store.get(result_key)
             return Generated(_png(data) if kind == "image" else data, f"manual-{rid}", None,
                              {"output": {"manual": True, "result_key": result_key}})
@@ -65,7 +70,8 @@ class ManualProvider(ManifestProvider):
             "manifest": f"{self.m['manifest']} v{self.m['version']}", "route": cap["route"], "request": body,
             "prompt": values.get("prompt"), "negative_prompt": values.get("negative"),
             "settings": _settings(body, cap), "inputs": stored, "instructions": list(manual.get("steps", [])),
-            "expects": {"kind": kind, "accept": ACCEPT[kind]}, "result_key": result_key,
+            "expects": {"kind": kind, "accept": ACCEPT[kind], "slots": list(slot_keys)}, "result_key": result_key,
+            "result_keys": slot_keys, "filled": [],
             "created_at": datetime.now(UTC).isoformat(),
         }
         ctx.store.put(self._key(ctx, rid, "request.json"), json.dumps(packet, indent=1).encode())
@@ -79,6 +85,10 @@ class ManualProvider(ManifestProvider):
         name = "input.png"
         return self._manual(ctx, "image_to_model", {"image": f"<upload {name}>"}, {name: image}, params, seed)
 
+    def image_to_multiview(self, ctx, image, params, seed) -> Generated:
+        name = "input.png"
+        return self._manual(ctx, "image_to_multiview", {"image": f"<upload {name}>"}, {name: image}, params, seed)
+
     def multiview_to_model(self, ctx, views, params, seed) -> Generated:
         order = self.m["capabilities"].get("multiview_to_model", {}).get("views", ["front", "left", "back", "right"])
         tokens = [f"<upload {v}.png>" if v in views else None for v in order]
@@ -91,6 +101,8 @@ class ManualProvider(ManifestProvider):
 def check_output(kind: str, filename: str, data: bytes) -> str | None:
     """Why an uploaded output cannot be used, or None: an image must decode; a model must be a GLB with faces."""
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if kind == "views":
+        kind = "image"
     if ext not in ACCEPT[kind]:
         return f"expected {' or '.join(ACCEPT[kind])}, got {ext or 'no extension'}"
     try:

@@ -62,6 +62,23 @@ capabilities:
         - Match the settings below where Tripo Studio offers them (model version, texture on, texture quality, PBR, face limit); keep private generation on.
         - Generate, then download the model as GLB with its texture.
         - Upload the GLB here. The job continues with the wrap, texture and print files.
+  image_to_multiview:
+    route: POST /v3/generation/image-to-multiview
+    body: {input: $image}
+    # The SDK 1.0.0 reads the views from output.generate_multiview_image.*_view_url; top-level names as fallback.
+    # Which side Tripo calls "left" (the pet's or the camera's) is to be checked on the first real job.
+    results:
+      front: [generate_multiview_image.front_view_url, front_view_url]
+      left: [generate_multiview_image.left_view_url, left_view_url]
+      back: [generate_multiview_image.back_view_url, back_view_url]
+      right: [generate_multiview_image.right_view_url, right_view_url]
+    manual:
+      title: Four views of the concept (Tripo image to multiview)
+      steps:
+        - Download the input image below (the matted concept).
+        - In Tripo Studio, open multiview generation (image to multiview) and upload it.
+        - Download the front, left, back and right views.
+        - Upload each into its slot here (left is the pet's own left side). The job continues once all four are in.
   multiview_to_model:
     route: POST /v3/generation/multiview-to-model
     body: {inputs: $views}

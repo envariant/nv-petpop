@@ -83,8 +83,8 @@ export const StudioApi = {
     unwrap(await api.GET('/api/v1/studio/breeds', { params: { query: { species, q: q || undefined } }, ...(auth() as object) })),
   parse: async (species: Species, current: PetSpec, text: string, tapped: string[]): Promise<ParseResponse> =>
     unwrap(await api.POST('/api/v1/studio/spec/parse', { body: { species, current_spec: current, text, tapped_fields: tapped }, ...(auth() as object) })),
-  createJob: async (spec: PetSpec, genaiProfile?: string | null): Promise<JobCreated> =>
-    unwrap(await api.POST('/api/v1/studio/jobs', { body: { spec, genai_profile: genaiProfile || null }, ...(auth() as object) })),
+  createJob: async (spec: PetSpec, genaiProfile?: string | null, pipeline?: string | null, options?: Record<string, boolean> | null): Promise<JobCreated> =>
+    unwrap(await api.POST('/api/v1/studio/jobs', { body: { spec, genai_profile: genaiProfile || null, pipeline: pipeline || null, options: options ?? null }, ...(auth() as object) })),
   job: async (id: string): Promise<Job> => unwrap(await api.GET('/api/v1/studio/jobs/{job_id}', { params: { path: { job_id: id } }, ...(auth() as object) })),
   tweak: async (id: string, patch: Record<string, unknown>): Promise<JobCreated> =>
     unwrap(await api.POST('/api/v1/studio/jobs/{job_id}/tweak', { params: { path: { job_id: id } }, body: { patch }, ...(auth() as object) })),
@@ -118,11 +118,12 @@ export const StudioApi = {
     unwrap(await api.GET('/api/v1/studio/manual', { params: { query: { status } }, ...(auth() as object) })),
   manualTask: async (taskId: string): Promise<ManualTask> =>
     unwrap(await api.GET('/api/v1/studio/manual/{task_id}', { params: { path: { task_id: taskId } }, ...(auth() as object) })),
-  submitManual: async (taskId: string, file: Blob, filename: string): Promise<ManualTask> => {
+  submitManual: async (taskId: string, file: Blob, filename: string, slot?: string): Promise<ManualTask> => {
     const form = new FormData();
     form.append('file', file, filename);
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-    const r = await fetch(`${origin}/api/v1/studio/manual/${encodeURIComponent(taskId)}/result`, {
+    const query = slot ? `?slot=${encodeURIComponent(slot)}` : '';
+    const r = await fetch(`${origin}/api/v1/studio/manual/${encodeURIComponent(taskId)}/result${query}`, {
       method: 'POST',
       body: form,
       headers: staffToken ? { Authorization: `Bearer ${staffToken}` } : {},

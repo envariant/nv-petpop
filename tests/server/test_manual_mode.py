@@ -63,7 +63,7 @@ def test_a_job_waits_for_the_operator_and_resumes(studio):
 
     assert worker.run_job(job_id) == "waiting"  # resumed past B, now waits for the 3D model
     model = c.get(f"{S}/manual").json()["items"][0]
-    assert model["capability"] == "image_to_model" and model["expects"] == {"kind": "model", "accept": [".glb"]}
+    assert model["capability"] == "image_to_model" and model["expects"] == {"kind": "model", "accept": [".glb"], "slots": []}
     assert model["request"]["model"] == "v3.1-20260211" and model["request"]["texture"] is True
     assert model["request"]["input"] == "<upload input.png>" and "face_limit: 200000" in model["settings"]
     matted = fetch(c, model["inputs"][0]["url"])  # the matted concept the operator uploads to Tripo Studio

@@ -41,7 +41,6 @@ parser:
 image:
   backend: api
   provider: tripo
-  views: none                        # shape from the concept alone; Stage C is skipped
   lora_trigger: petpop_style         # no style LoRA at a provider: the trigger word is dropped from the prompt
   params: {}                         # text-to-image extras (model, size, aspect_ratio) once tried; {} = Tripo's defaults
   matting: {method: border_key}      # the concept's plain backdrop keyed locally (preview and the D silhouette check)
@@ -49,12 +48,11 @@ image:
 shape:
   backend: api
   provider: tripo
-  views: [front]                     # image-to-model; [front, left, back, right] would use multiview-to-model
+  views: [front, left, back, right]  # every view Stage C made; with none (single view) the concept alone
   params:
     model_version: v3.1-20260211     # newest v-series model the SDK 1.0.0 documents; P1/P2 to be compared
     texture: true
     pbr: false                       # base colour is what the figurine is painted from
-    texture_quality: detailed
     texture_alignment: original_image
     orientation: default             # Tripo works out the subject's front (decision 107)
     face_limit: 200000
@@ -63,6 +61,27 @@ shape:
   height_mm: 90
   max_tris: 300000
   iou_min: 0.80                      # front silhouette only (no views); provisional until real jobs
+
+# Pipelines (decision 114): Studio picks one per job; credits are Tripo API credits per figurine before the quality
+# switches below (developers.tripo3d.ai/en/pricing, 2026-10-31: 1 credit = $0.01; text-to-image 5,
+# image-to-multiview 10, image- or multiview-to-3D with texture 30; add-ons: HD texture +10, HD geometry +20, quad +5).
+# In manual mode Tripo Studio's own credits apply.
+paths:
+  default: single_view
+  single_view: {title: Single view, views: none, credits: 35, note: "concept -> image to 3D"}
+  multiview: {title: Multiview, views: generate, credits: 45, note: "concept -> four views -> multiview to 3D"}
+
+# Quality switches (decision 115): Studio toggles them per job; `set`/`unset` are the shape request fields each
+# side means; credits are the API add-on per figurine. Stage E re-wraps every model onto the base mesh, so quad
+# topology does not reach the figurine and HD geometry is partly smoothed away; HD texture is sampled directly.
+options:
+  hd_texture: {title: HD texture, default: true, credits: 10, set: {texture_quality: detailed}, unset: {texture_quality: standard},
+               note: "sharper texture; transferred onto the figurine as is"}
+  hd_geometry: {title: HD geometry, default: false, credits: 20, set: {geometry_quality: detailed}, unset: {geometry_quality: standard},
+                note: "finer surface; the wrap onto the base mesh smooths some of it away"}
+  quad: {title: Quad mesh, default: false, credits: 5, set: {quad: true}, unset: {quad: false},
+         note: "quad topology; does not reach the figurine (the base mesh's topology is used)"}
+
 
 texture:
   backend: transfer                  # the provider's own texture onto the base UV layout (no view projection)

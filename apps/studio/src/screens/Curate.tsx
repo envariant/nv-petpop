@@ -118,7 +118,12 @@ export function GenerateScreen() {
           >
             <span>
               <b>{b.species}</b> · {b.summary.finished}/{b.summary.figurines} done · {b.summary.passed_qc}/{b.summary.candidates} parts pass QC · by {b.created_by}
-              {b.genai_profile ? <span data-testid={`batch-profile-${b.batch_id}`}> · on {b.genai_profile}</span> : null}
+              {b.genai_profile ? (
+                <span data-testid={`batch-profile-${b.batch_id}`}>
+                  {' '}· on {b.genai_profile}
+                  {b.pipeline ? `, ${b.pipeline.replace('_', ' ')}` : ''}
+                </span>
+              ) : null}
             </span>
             <Status status={b.status} />
           </button>

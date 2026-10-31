@@ -2,6 +2,7 @@
 real provider runs end to end without credits. A protocol stand-in, not a model:
 
 - POST /v3/files -> file_token; POST /v3/generation/text-to-image -> a JPEG "figure" (ellipse on light grey);
+  POST /v3/generation/image-to-multiview -> four such views (wider from the side), under generate_multiview_image;
   POST /v3/generation/{image,multiview}-to-model -> a textured GLB: the front silhouette's visual hull with the
   uploaded image projected on it as its texture (Y-up, front +Z, like Tripo's output).
 - GET /v3/tasks/<id>: "running" on the first poll, then "success" with signed URLs under /dl/ (no key needed) and
@@ -19,7 +20,7 @@ from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 from PIL import Image, ImageDraw
 
-CREDITS = {"text-to-image": 5.0, "image-to-model": 30.0, "multiview-to-model": 40.0}
+CREDITS = {"text-to-image": 5.0, "image-to-model": 30.0, "multiview-to-model": 30.0, "image-to-multiview": 10.0}
 
 
 class FakeTripo:
@@ -35,37 +36,52 @@ class FakeTripo:
 
     # ------------------------------------------------------------------ fake "models"
     @staticmethod
-    def figure(size: int = 1024) -> bytes:
+    def figure(size: int = 1024, view: str = "front") -> bytes:
         img = Image.new("RGB", (size, size), (236, 236, 236))
         d = ImageDraw.Draw(img)
-        d.ellipse([size * 0.30, size * 0.10, size * 0.70, size * 0.92], fill=(200, 140, 80))
+        half = 0.20 if view in ("front", "back") else 0.26  # a body is deeper than it is wide
+        d.ellipse([size * (0.5 - half), size * 0.10, size * (0.5 + half), size * 0.92], fill=(200, 140, 80))
         d.ellipse([size * 0.38, size * 0.25, size * 0.46, size * 0.33], fill=(20, 20, 20))  # an "eye"
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=92)
         return buf.getvalue()
 
     @staticmethod
-    def textured_hull(png: bytes, n: int = 40) -> bytes:
-        import trimesh
-
+    def _mask(png: bytes) -> tuple[np.ndarray, Image.Image, tuple[int, int, int, int]]:
         img = Image.open(io.BytesIO(png)).convert("RGBA")
         a = np.asarray(img)
         m = a[..., 3] > 127 if a[..., 3].min() < 255 else a[..., :3].min(axis=2) < 200
         ys, xs = np.nonzero(m)
         box = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
-        mask = m[box[1]:box[3], box[0]:box[2]]
+        return m[box[1]:box[3], box[0]:box[2]], img, box
+
+    @classmethod
+    def textured_hull(cls, png: bytes, side: bytes | None = None, n: int = 40) -> bytes:
+        """The visual hull of the front silhouette (and the side one, when given), the front image as its texture."""
+        import trimesh
+
+        mask, img, box = cls._mask(png)
         h, w = mask.shape
+        side_mask = cls._mask(side)[0] if side else None
         grid = np.zeros((n, n, n), bool)  # x across, y depth, z up
         for i in range(n):
             for k in range(n):
                 row = int((1 - (k + 0.5) / n) * h)
                 col = int((i + 0.5) / n * w)
-                if mask[min(row, h - 1), min(col, w - 1)]:
+                if not mask[min(row, h - 1), min(col, w - 1)]:
+                    continue
+                if side_mask is None:
                     grid[i, n // 4: 3 * n // 4, k] = True
+                    continue
+                sh, sw = side_mask.shape
+                srow = side_mask[min(int((1 - (k + 0.5) / n) * sh), sh - 1)]
+                for j in range(n):
+                    grid[i, j, k] = srow[min(int((j + 0.5) / n * sw), sw - 1)]
         mesh = trimesh.voxel.VoxelGrid(grid).as_boxes()
         v = mesh.vertices / n
         aspect = w / h  # the grid is a unit cube; the subject is as wide as its silhouette
-        verts = np.stack([(v[:, 0] - 0.5) * aspect, v[:, 2], -(v[:, 1] - 0.5) * aspect], axis=1)  # -> glTF Y-up, front +Z
+        depth = (side_mask.shape[1] / side_mask.shape[0]) if side_mask is not None else aspect
+        verts = np.stack([(v[:, 0] - 0.5) * aspect, v[:, 2], -(v[:, 1] - 0.5) * depth], axis=1)  # -> glTF Y-up, front +Z
         u = np.clip(v[:, 0], 0, 1)
         t = np.clip(v[:, 2], 0, 1)
         tex = img.crop(box).convert("RGB")
@@ -123,8 +139,16 @@ class FakeTripo:
         @app.post("/v3/generation/multiview-to-model")
         async def mv2m(request: Request):
             body = await request.json()
-            png = fake.files[body["inputs"][0]]
-            return fake._task("multiview-to-model", {"model_url": fake._blob(fake.textured_hull(png), "glb")})
+            inputs = body["inputs"]
+            front, left = fake.files[inputs[0]], fake.files[inputs[1]] if len(inputs) > 1 and inputs[1] else None
+            return fake._task("multiview-to-model", {"model_url": fake._blob(fake.textured_hull(front, left), "glb")})
+
+        @app.post("/v3/generation/image-to-multiview")
+        async def i2mv(request: Request):
+            body = await request.json()
+            assert body["input"] in fake.files
+            views = {f"{v}_view_url": fake._blob(fake.figure(768, v), "jpg") for v in ("front", "left", "back", "right")}
+            return fake._task("image-to-multiview", {"generate_multiview_image": views})
 
         @app.get("/v3/tasks/{tid}")
         def task(tid: str):

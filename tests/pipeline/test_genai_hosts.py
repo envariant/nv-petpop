@@ -122,7 +122,7 @@ def test_mac_bespoke_fast_path(env, host, tmp_path):
     shape_paths = [e["path"] for e in host.log if e["path"].startswith("/shape/v1/shape/")]
     assert any(p.endswith("/mesh") for p in shape_paths) and sum(not p.endswith("/mesh") for p in shape_paths) >= 2
     d = next(st for st in m["stages"] if st["stage"] == "D")
-    assert d["status"] == "ok" and "fast path" in d["notes"]
+    assert d["status"] == "ok" and "single_view path" in d["notes"]
 
 
 def test_nvidia_24gb_profile(env, host, tmp_path):
