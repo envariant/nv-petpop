@@ -176,5 +176,5 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   "Same figure shape as ..."; the export composes and paints on that mesh; gate 7
 - [x] Library L2 (decision 119, API 3.7.0): Studio publishes each curated figurine as its own mesh (its family on it,
   its texture as the mesh's base layer, tinted by the base colour), with "shared with" labels for breeds on one
-  mesh; QC from segmentation and print checks; `meshes_published`; gate 8
+  mesh; QC from segmentation and print checks; `meshes_published`; gates 7 and 8 green
 - [ ] Experiment: Tripo segmentation and part completion as `segmentation.method: provider` and as cross-mesh parts

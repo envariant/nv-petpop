@@ -5,6 +5,8 @@ import { expect, test } from '@playwright/test';
 import { typeOnKeyboard } from './helpers';
 
 test('kiosk walkthrough: attract to an ordered figurine from the library', async ({ page }) => {
+  // The export alone may take up to 90 s (the wait below); the whole journey gets the brief's 3-minute target.
+  test.setTimeout(180_000);
   const consoleErrors: string[] = [];
   page.on('pageerror', (e) => consoleErrors.push(String(e)));
   const shot = (n: string) => page.screenshot({ path: `test-results/walkthrough/${n}.png` });
