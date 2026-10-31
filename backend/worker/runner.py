@@ -105,6 +105,12 @@ class StageRunner:
         for stage, fn, pct, message in STAGES:
             if self._done(stage):
                 continue
+            if stage == "C" and ctx.settings.genai["image"].get("views") == "none":
+                # The profile shapes from the concept alone (a provider's image-to-model): no turnaround views.
+                self.manifest.stage("C", "skipped", 0, 0, ctx.backends.image.name, "profile image.views: none",
+                                    now_iso(), now_iso())
+                self._save_manifest()
+                continue
             ctx.progress(stage, pct, message)
             started = now_iso()
             self.on_stage(stage, "running", 0, started)
@@ -151,6 +157,9 @@ class StageRunner:
                 self.on_stage(stage, "failed", ms, started)
                 self._save_manifest()
                 raise JobFailed(stage, err)
+            provider_note = ctx.state.get("provider_notes", {}).pop(stage, "")  # task ids and credits spent
+            if provider_note:
+                notes = f"{notes}; {provider_note}" if notes else provider_note
             self.manifest.stage(stage, status, ms, attempts, backend, notes, started, now_iso())
             self.manifest.data["fallback"] = fallback
             self._record(stage)

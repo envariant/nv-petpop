@@ -37,9 +37,30 @@ def depth_to_alpha(depth_png: bytes) -> bytes:
     return buf.getvalue()
 
 
+def border_key(png: bytes) -> bytes:
+    """Key a plain backdrop of any colour: the top and side border's median colour (the floor is left out),
+    speckle opened away, the largest subject kept, holes filled. Returns RGBA."""
+    from scipy import ndimage
+
+    a = np.asarray(Image.open(io.BytesIO(png)).convert("RGB")).astype(np.int16)
+    b = max(2, a.shape[0] // 25)
+    bg = np.median(np.concatenate([a[:b].reshape(-1, 3), a[:, :b].reshape(-1, 3), a[:, -b:].reshape(-1, 3)]), axis=0)
+    fg = ndimage.binary_opening(np.abs(a - bg).max(axis=2) > 40, iterations=3)
+    lab, n = ndimage.label(fg)
+    if n:
+        fg = lab == (1 + int(np.argmax(ndimage.sum(fg, lab, range(1, n + 1)))))
+    fg = ndimage.binary_fill_holes(fg)
+    buf = io.BytesIO()
+    Image.fromarray(np.dstack([a.astype(np.uint8), (fg * 255).astype(np.uint8)]), "RGBA").save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def matte(png: bytes, cfg: dict, size: int) -> bytes:
     """Matte a generated view per the profile: 'alpha' keeps the image's own alpha; 'white_key' keys the plain
-    white background (largest connected subject, holes filled), then re-centres like matte_square."""
+    white background (largest connected subject, holes filled); 'border_key' keys a plain backdrop of any colour;
+    then re-centres like matte_square."""
+    if cfg.get("method") == "border_key":
+        return matte_square(border_key(png), size)
     if cfg.get("method", "alpha") == "white_key":
         from scipy import ndimage
 

@@ -118,6 +118,14 @@ class Profile:
             models["shape"] = d["shape"]["model"]
         for k, v in (d["shape"].get("models") or {}).items():
             models[f"shape.{k}"] = v
+        for adapter, key in (("image", "model"), ("shape", "model_version")):
+            if d[adapter]["backend"] == "api":  # a provider: record the model the profile asks it for
+                models[f"{adapter}.{d[adapter]['provider']}"] = (d[adapter].get("params") or {}).get(key) or "provider default"
+        for name, cfg in (d.get("providers") or {}).items():  # which API version (manifest) answered
+            if cfg.get("manifest"):
+                path = CONFIG / "providers" / f"{cfg['manifest']}.yaml"
+                version = (yaml.safe_load(path.read_text()) or {}).get("version") if path.exists() else "?"
+                models[f"provider.{name}"] = f"{cfg['manifest']} v{version}"
         if (d["shape"].get("fallback") or {}).get("model"):
             models["shape.fallback"] = d["shape"]["fallback"]["model"]
         if d["texture"]["backend"] == "hy_paint":

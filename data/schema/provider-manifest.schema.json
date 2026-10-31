@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/provider-manifest.schema.json",
+  "title": "ProviderManifest",
+  "description": "config/providers/<manifest>.yaml: one commercial (or your own) GenAI API's wire format, as the generic ManifestProvider executes it (decision 109). Asynchronous task APIs: upload inputs, create a task, poll it, download the result from a URL in its output.",
+  "type": "object",
+  "required": ["manifest", "version", "vendor", "auth", "envelope", "licence", "upload", "tasks", "capabilities"],
+  "additionalProperties": false,
+  "properties": {
+    "manifest": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "version": {"type": "integer", "minimum": 1},
+    "vendor": {"type": "string"},
+    "docs": {"type": "string"},
+    "auth": {"type": "object", "required": ["scheme"], "additionalProperties": false,
+             "properties": {"scheme": {"enum": ["bearer", "header"]}, "header": {"type": "string"}}},
+    "envelope": {"type": "object", "additionalProperties": false, "description": "How a JSON answer says ok and where its payload is; omit code/data for plain answers.",
+                 "properties": {"code": {"type": "string"}, "ok": {"type": "array"}, "data": {"type": "string"},
+                                "message": {"type": "array", "items": {"type": "string"}}}},
+    "licence": {"type": "object", "required": ["private", "commercial"], "additionalProperties": false,
+                "description": "How private generation and commercial use are obtained: per account plan, or by a request flag (then in create_extras).",
+                "properties": {"private": {"enum": ["account", "request", "none"]}, "commercial": {"enum": ["account", "request", "none"]}}},
+    "create_extras": {"type": "object", "description": "Fields added to every task-creating request (e.g. a privacy flag)."},
+    "upload": {"type": "object", "required": ["route", "form_field", "token"], "additionalProperties": false,
+               "properties": {"route": {"$ref": "#/$defs/route"}, "form_field": {"type": "string"}, "token": {"$ref": "#/$defs/path"}}},
+    "tasks": {"type": "object", "required": ["id", "poll", "status", "success", "failed", "output"], "additionalProperties": false,
+              "properties": {"id": {"$ref": "#/$defs/path"}, "poll": {"$ref": "#/$defs/route"}, "status": {"$ref": "#/$defs/path"},
+                             "progress": {"$ref": "#/$defs/path"}, "success": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                             "failed": {"type": "array", "items": {"type": "string"}}, "credits": {"$ref": "#/$defs/path"},
+                             "error": {"type": "array", "items": {"$ref": "#/$defs/path"}}, "output": {"$ref": "#/$defs/path"}}},
+    "balance": {"$ref": "#/$defs/route"},
+    "capabilities": {
+      "type": "object", "minProperties": 1, "additionalProperties": false,
+      "properties": {"text_to_image": {"$ref": "#/$defs/capability"}, "image_to_model": {"$ref": "#/$defs/capability"},
+                     "multiview_to_model": {"$ref": "#/$defs/capability"}}
+    }
+  },
+  "$defs": {
+    "route": {"type": "string", "pattern": "^(GET|POST) /\\S*$"},
+    "path": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$", "description": "Dotted path into a JSON object."},
+    "capability": {
+      "type": "object", "required": ["route", "body", "result"], "additionalProperties": false,
+      "properties": {
+        "route": {"$ref": "#/$defs/route"},
+        "body": {"type": "object", "description": "Request fields; values $prompt, $negative, $image (an uploaded token), $views (tokens in `views` order) and $seed are filled in."},
+        "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}},
+        "rename": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Profile parameter -> request field."},
+        "seeds": {"type": "array", "items": {"type": "string"}, "description": "Request fields that take the job seed unless the profile sets them."},
+        "result": {"type": "array", "items": {"$ref": "#/$defs/path"}, "minItems": 1, "description": "Output fields holding the result URL, in order of preference."}
+      }
+    }
+  }
+}

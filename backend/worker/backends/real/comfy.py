@@ -311,14 +311,22 @@ def normalise_glb(data: bytes, cfg: dict[str, Any]) -> bytes:
     import trimesh
 
     m = trimesh.load(io.BytesIO(data), file_type="glb", force="mesh")
-    v = np.asarray(m.vertices, dtype=np.float64)
     yaw = np.radians(float(cfg.get("orientation", {}).get("yaw_deg", 0)))
+    rot = np.eye(4)
     if yaw:
         c, s = np.cos(yaw), np.sin(yaw)
-        v = v @ np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]]).T
-    v -= [(v[:, 0].max() + v[:, 0].min()) / 2, v[:, 1].min(), (v[:, 2].max() + v[:, 2].min()) / 2]
-    v *= float(cfg["height_mm"]) / max(float(np.ptp(v[:, 1])), 1e-6)
-    m = trimesh.Trimesh(v, m.faces, process=True)
+        rot[:3, :3] = [[c, 0, s], [0, 1, 0], [-s, 0, c]]
+    v = trimesh.transform_points(np.asarray(m.vertices, dtype=np.float64), rot)
+    move = np.eye(4)
+    move[:3, 3] = -np.array([(v[:, 0].max() + v[:, 0].min()) / 2, v[:, 1].min(), (v[:, 2].max() + v[:, 2].min()) / 2])
+    scale = np.eye(4) * (float(cfg["height_mm"]) / max(float(np.ptp(v[:, 1])), 1e-6))
+    scale[3, 3] = 1.0
+    m.apply_transform(scale @ move @ rot)
+    if getattr(m.visual, "kind", None) == "texture":
+        # A provider's textured mesh (decision 108): keep its UVs and material, so no vertex merging or
+        # decimation; the provider's face limit bounds it, and Stage E only reads its geometry.
+        return m.export(file_type="glb")
+    m = trimesh.Trimesh(m.vertices, m.faces, process=True)
     if len(m.faces) > int(cfg.get("max_tris", 300000)):
         m = m.simplify_quadric_decimation(face_count=int(cfg["max_tris"]))
     return m.export(file_type="glb")

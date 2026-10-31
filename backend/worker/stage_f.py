@@ -67,7 +67,8 @@ def run(job_id, spec, manifest, *, ctx) -> list[str]:
     coords = np.load(io.BytesIO(ctx.get("wrapped_coords.npy"))).astype(np.float64)
     keys: list[str] = []
     with Pace("F"):
-        views = {v: ctx.get(f"views/{v}.png") for v in ("front", "left", "back", "right")}
+        views = {v: ctx.get(f"views/{v}.png") for v in ("front", "left", "back", "right")
+                 if ctx.store.exists(ctx.key(f"views/{v}.png"))}
         albedo_png = ctx.backends.texture.paint(ctx, spec, ctx.get("figure_wrapped.obj"), coords, views)
         keys.append(ctx.put(manifest, "albedo.png", "albedo", "F", albedo_png))
         from petpop_library.colouring import vertex_colours

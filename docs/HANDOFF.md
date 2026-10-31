@@ -8,6 +8,7 @@ residency, stage timeouts, expected timings) lives in `config/genai/<profile>.ya
 | --- | --- | --- | --- | --- |
 | `mock` (default) | nowhere: CPU stand-ins in the VM | morphed base mesh + noise | projection | n/a |
 | `mac-m4pro` | Apple Silicon M4 Pro 24 GB, MPS, via tunnel | Hunyuan3D-2mv full via ComfyUI, octree 256 / 50 steps; Hunyuan3D-2.1 shape server (octree 192) as fallback and fast path | projection | none (library ~30 min, fast ~15 min) |
+| `tripo` | Tripo3D apiv3 (commercial API, `TRIPO_API_KEY`; docs/PROVIDERS.md) | Tripo image-to-model with its own texture, transferred onto the base UVs | transfer | provider task time |
 | `nvidia-24gb` | 24 GB NVIDIA box, CUDA | Hunyuan3D-2mv, octree 384 / 50 steps | projection, `hy_paint` optional | 4 min enforced |
 
 The PetPop backend (API, worker, Blender wrap/bake/export) keeps running in the cloud VM. Only ComfyUI, the

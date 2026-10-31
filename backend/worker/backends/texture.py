@@ -4,6 +4,8 @@
   mesh in the fixed UV layout (pipelines/blender/project_texture.py), then per-region colour correction.
 - flat: the PetSpec colours painted over the region masks (no views needed).
 - hy_paint (optional, NVIDIA only): Hunyuan3D-Paint through the profile's ComfyUI workflow.
+- transfer: the texture a provider made for its own mesh (Stage D's shape.glb), carried onto the base UV layout
+  by nearest surface point (pipelines/blender/transfer_texture.py, decision 108).
 """
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ from .mock.pacing import Pace
 sys.path.insert(0, str(PIPELINES / "blender"))
 import bake  # noqa: E402
 import project_texture  # noqa: E402
+import transfer_texture  # noqa: E402
 
 
 class FlatTexture:
@@ -66,6 +69,27 @@ class ProjectionTexture:
             return lowfi.png_bytes(img)
 
 
+class TransferTexture:
+    name = "transfer"
+
+    def __init__(self, cfg: dict) -> None:
+        self.cfg = cfg
+
+    def paint(self, ctx, spec, wrapped_obj, coords, views):
+        base = load_base(spec["species"])
+        if not ctx.store.exists(ctx.key("shape.glb")):  # parametric fallback: no provider mesh to take colour from
+            return FlatTexture().paint(ctx, spec, wrapped_obj, coords, views)
+        with Pace("F"):
+            arr = transfer_texture.transfer(base, spec, coords, ctx.get("shape.glb"), int(ctx.quality["albedo_px"]),
+                                            samples=int(self.cfg.get("samples", 1_500_000)),
+                                            normal_mm=float(self.cfg.get("normal_mm", 4.0)),
+                                            max_mm=float(self.cfg.get("max_mm", 4.0)))
+            img = Image.fromarray((arr * 255).astype(np.uint8))
+            if self.cfg.get("colour_correct", False):
+                img = bake.colour_correct(base, spec, img)
+            return lowfi.png_bytes(img)
+
+
 class HyPaintTexture:
     name = "hy_paint"
 
@@ -94,6 +118,8 @@ def make_texture(profile, comfy_factory=None):
     kind = cfg["backend"]
     if kind == "projection":
         return ProjectionTexture(cfg.get("projection", {}))
+    if kind == "transfer":
+        return TransferTexture(cfg.get("transfer", {}))
     if kind == "hy_paint":
         return HyPaintTexture(cfg, comfy_factory)
     return FlatTexture()

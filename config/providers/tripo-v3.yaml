@@ -1,0 +1,55 @@
+# Provider manifest: Tripo3D apiv3. Everything the pipeline needs to know about this vendor's wire format lives
+# here (data/schema/provider-manifest.schema.json); backend/worker/providers/manifest.py executes it. To move to an
+# equivalent API, write its manifest and point a GenAI profile at it; to build your own GenAI API, implement a wire
+# format a manifest can describe (docs/PROVIDERS.md). Source: Tripo's Python SDK 1.0.0 (2026-10-14), which wraps
+# this API; checked against the live endpoints for auth errors only (no key in the VM yet).
+manifest: tripo-v3
+version: 1
+vendor: Tripo3D
+docs: https://platform.tripo3d.ai/docs
+auth: {scheme: bearer, header: Authorization}
+envelope:
+  code: code                 # every JSON answer: {"code": 0, "data": {...}} on success
+  ok: [0]
+  data: data
+  message: [message, suggestion]
+licence:
+  # Tripo grants private generation and commercial use per account plan (subscribers: private, full commercial
+  # rights; free plan: public, CC BY 4.0). No request flag is documented in SDK 1.0.0; if one is, add it to
+  # create_extras so every generation request carries it.
+  private: account
+  commercial: account
+create_extras: {}
+upload:
+  route: POST /v3/files
+  form_field: file
+  token: file_token
+tasks:
+  id: task_id
+  poll: GET /v3/tasks/{task_id}
+  status: status
+  progress: progress
+  success: [success]
+  failed: [failed, cancelled, banned, expired]
+  credits: credits_consumed
+  error: [error_code, error_msg]
+  output: output
+balance: GET /v3/account/balance
+capabilities:
+  text_to_image:
+    route: POST /v3/generation/text-to-image
+    body: {prompt: $prompt, negative_prompt: $negative}
+    result: [generated_image_url, generated_image, image_url, image]
+  image_to_model:
+    route: POST /v3/generation/image-to-model
+    body: {input: $image}
+    rename: {model_version: model}
+    seeds: [model_seed, texture_seed]
+    result: [model_url, model, pbr_model_url, pbr_model, base_model_url, base_model]
+  multiview_to_model:
+    route: POST /v3/generation/multiview-to-model
+    body: {inputs: $views}
+    views: [front, left, back, right]   # one slot each, null when absent; front required
+    rename: {model_version: model}
+    seeds: [model_seed, texture_seed]
+    result: [model_url, model, pbr_model_url, pbr_model, base_model_url, base_model]

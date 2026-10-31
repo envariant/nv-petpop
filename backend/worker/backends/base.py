@@ -100,7 +100,19 @@ def make_backends(settings) -> Backends:
         from .mock.parser import RuleParser
 
         parser = RuleParser()
-    if image_kind == "comfy":
+    def provider(adapter: str):
+        from ..providers import make_provider
+
+        name = profile[adapter]["provider"]
+        if name not in clients:
+            clients[name] = make_provider(profile, name)
+        return clients[name]
+
+    if image_kind == "api":
+        from .real.api import ApiImageBackend
+
+        image = ApiImageBackend(provider("image"), profile)
+    elif image_kind == "comfy":
         from .real.comfy import ComfyImageBackend
 
         image = ComfyImageBackend(comfy(), profile)
@@ -108,7 +120,11 @@ def make_backends(settings) -> Backends:
         from .mock.image import MockImageBackend
 
         image = MockImageBackend()
-    if shape_kind == "comfy":
+    if shape_kind == "api":
+        from .real.api import ApiShapeBackend
+
+        shape = ApiShapeBackend(provider("shape"), profile)
+    elif shape_kind == "comfy":
         from .real.comfy import ComfyShapeBackend
 
         shape = ComfyShapeBackend(comfy(), profile)

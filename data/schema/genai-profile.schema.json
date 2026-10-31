@@ -9,7 +9,7 @@
     "profile": {"type": "string", "pattern": "^[a-z0-9-]+$"},
     "version": {"type": "integer", "minimum": 1},
     "description": {"type": "string"},
-    "host": {"type": "object", "required": ["kind", "accelerator"], "properties": {"kind": {"enum": ["cpu", "apple-silicon", "nvidia"]}, "accelerator": {"enum": ["none", "mps", "cuda"]}, "memory_gb": {"type": ["number", "null"]}}},
+    "host": {"type": "object", "required": ["kind", "accelerator"], "properties": {"kind": {"enum": ["cpu", "apple-silicon", "nvidia", "api"]}, "accelerator": {"enum": ["none", "mps", "cuda"]}, "memory_gb": {"type": ["number", "null"]}}},
     "mode": {"enum": ["mock", "real"]},
     "quality": {
       "type": "object", "required": ["default", "presets"],
@@ -50,14 +50,18 @@
       }
     },
     "parser": {"type": "object", "required": ["backend", "timeout_s"], "properties": {"backend": {"enum": ["rules", "ollama"]}, "service": {"type": "string"}, "model": {"type": "string"}}},
-    "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key", "birefnet"]}}}}},
-    "shape": {"type": "object", "required": ["backend", "views", "iou_min", "height_mm"], "properties": {"backend": {"enum": ["mock", "comfy", "http"]}, "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}, "minItems": 1}, "iou_min": {"type": "number"}}},
+    "image": {"type": "object", "required": ["backend", "matting"], "properties": {"backend": {"enum": ["mock", "comfy", "api"]}, "provider": {"type": "string"}, "views": {"enum": ["none", "provider", "workflow"]}, "service": {"type": "string"}, "workflows": {"type": "object"}, "models": {"type": "object"}, "params": {"type": "object"}, "matting": {"type": "object", "required": ["method"], "properties": {"method": {"enum": ["alpha", "white_key", "birefnet", "border_key"]}}}}},
+    "shape": {"type": "object", "required": ["backend", "views", "iou_min", "height_mm"], "properties": {"backend": {"enum": ["mock", "comfy", "http", "api"]}, "provider": {"type": "string"}, "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}, "minItems": 1}, "iou_min": {"type": "number"}}},
     "paths": {
       "type": "object", "description": "Library quality by default; job kinds (paths.by_kind) can take a faster path.",
       "properties": {"default": {"type": "string"}, "by_kind": {"type": "object", "additionalProperties": {"type": "string"}}},
       "additionalProperties": {"type": ["object", "string"], "properties": {"shape": {"enum": ["multiview", "single_view"]}}}
     },
-    "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint"]}}}},
+    "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint", "transfer"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint", "transfer"]}}}},
+    "providers": {
+      "type": "object", "description": "Commercial GenAI APIs (decision 108): base URL (url, or url_env to override), the environment variable holding the key, and the provider class (kind).",
+      "additionalProperties": {"type": "object", "required": ["kind", "url", "key_env"], "properties": {"kind": {"type": "string"}, "manifest": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "url": {"type": "string"}, "url_env": {"type": "string", "pattern": "^[A-Z_]+$"}, "key_env": {"type": "string", "pattern": "^[A-Z_]+$"}}}
+    },
     "gates": {"type": "object", "required": ["iou_min", "p50_s", "max_s"]}
   },
   "$defs": {

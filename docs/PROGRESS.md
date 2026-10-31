@@ -130,6 +130,18 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   - [ ] `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and
     isolated behind Caddy at `host.docker.internal:8787`, no tunnel; worker image `linux/amd64` because `bpy`
     has no Linux ARM wheel; one 24 GB memory pool shared with the dev stack)
+## Track D: commercial GenAI API backend (decisions 108 to 110, docs/PROVIDERS.md)
+
+- [x] Provider layer: manifest-driven providers (`config/providers/tripo-v3.yaml`, `ManifestProvider`), `api`
+  image and shape adapters, Stage C skipped when a profile has no views, texture-keeping normalisation, `transfer`
+  texture, profile `tripo`, `genai_check` shows the balance; tested against a fake Tripo apiv3 (2026-10-31)
+- [ ] Real Tripo jobs once `TRIPO_API_KEY` is in the environment: `GENAI_PROFILE=tripo python scripts/genai_check.py`,
+  then one job per species; record times, credits and IoU; settle `shape.iou_min`, `expected_s` and timeouts
+- [ ] Compare Tripo model versions (`v3.1-20260211`, `P1-20260311`, `P2-20260801`) and text-to-image models on the
+  five sweep pets; pick `image.params` (model, size) and `shape.params`
+- [ ] Private generation: confirm with Nishant's Tripo docs whether a request flag exists; if so, `create_extras`
+- [ ] Studio and the regression set on the `tripo` profile (gates 3 to 5 against the API)
+
 - [ ] DINOv2 beyond evaluation, once its scores have been checked against the eye: best-of-N concept selection
   (2 to 3 seeds, scored against the style references with a minimum subject fill), then similarity search and
   de-duplication for the library (M8/M9)

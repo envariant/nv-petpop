@@ -6,7 +6,8 @@ Never install model stacks (torch, ComfyUI, Hunyuan3D) in a cloud session: GenAI
 host chosen by GENAI_PROFILE, and the Mac host is set up by Nishant from the scripts in mac/.
 
 Profiles: GENAI_PROFILE=mock is the default everywhere. The worker never names a model or host; adapters
-read config/genai/<profile>.yaml. Gates 3 to 6 and 8 print "SKIPPED (needs a GenAI host)" on the mock profile.
+read config/genai/<profile>.yaml. GENAI_PROFILE=tripo runs the GenAI stages on the Tripo3D API (docs/PROVIDERS.md):
+a vendor's wire format is a manifest in config/providers/, its key an environment variable, never committed. Gates 3 to 6 and 8 print "SKIPPED (needs a GenAI host)" on the mock profile.
 Commands: make dev (API + worker + SPA), make mock (standalone mock server), make test, make gate-N, make regress.
 
 Loop: take the next unchecked item in docs/PROGRESS.md, implement it, run make test, run the milestone's
@@ -23,4 +24,5 @@ mock-server, the TypeScript client and the backend in the same commit. manifest.
 every GenAI adapter must satisfy, on every profile. A composition JSON is the only input to a library export.
 Front end: every screen has a Storybook story and a Playwright test; gate-1 is the Playwright walkthrough.
 
-Do not: download model weights, add paid services, or commit secrets.
+Do not: download model weights, add paid services (other than the GenAI API providers Nishant chooses, decision
+108), or commit secrets.

@@ -6,13 +6,21 @@ import pytest
 from backend.core.genai import Profile, ProfileError, available
 
 
-def test_three_profiles_ship_and_validate():
-    assert set(available()) >= {"mock", "mac-m4pro", "nvidia-24gb"}
+def test_profiles_ship_and_validate():
+    assert set(available()) >= {"mock", "mac-m4pro", "nvidia-24gb", "tripo"}
     for name in available():
         p = Profile(name)
         assert p.quality()["preset"] == p["quality"]["default"]
-        assert p["texture"]["backend"] == "projection"  # the default on every profile
+        # projection on every GenAI-host profile; an API provider's own texture is transferred instead
+        assert p["texture"]["backend"] == ("transfer" if p["host"]["kind"] == "api" else "projection")
         assert set(p["timeouts_s"]) == {"A", "control", "B", "C", "D", "E", "F"}
+
+
+def test_tripo_profile_rules():
+    p = Profile("tripo")
+    assert p["host"]["kind"] == "api" and p["image"]["backend"] == p["shape"]["backend"] == "api"
+    assert p["providers"]["tripo"]["key_env"] == "TRIPO_API_KEY" and p["image"]["views"] == "none"
+    assert p["shape"]["params"]["texture"] is True and p["texture"]["backend"] == "transfer"
 
 
 def test_mock_is_the_default(monkeypatch):

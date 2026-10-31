@@ -21,6 +21,8 @@ def silhouettes_iou(spec, shape_co, tris, views: dict[str, bytes], size: int) ->
 
     out = []
     for name, az in VIEWS.items():
+        if name not in views:
+            continue
         sil = render(shape_co, tris, az, 256)["alpha"]
         img = Image.fromarray(np.dstack([np.zeros(sil.shape + (3,), np.uint8), (sil * 255).astype(np.uint8)]), "RGBA")
         buf = io.BytesIO()
@@ -47,7 +49,9 @@ def shape_geometry(result) -> tuple[np.ndarray, np.ndarray]:
 def run(job_id, spec, manifest, *, ctx, single_view: bool = False) -> list[str]:
     ctx.check_fault("D")
     spec = json.loads(ctx.get("spec.json"))
-    views = {v: ctx.get(f"views/{v}.png") for v in VIEWS}
+    views = {v: ctx.get(f"views/{v}.png") for v in VIEWS if ctx.store.exists(ctx.key(f"views/{v}.png"))}
+    if not views:  # no Stage C (profile image.views: none): the matted concept is the front view
+        views = {"front": ctx.get("concept.png")}
     shape = ctx.backends.shape
     result = shape.single_view(ctx, spec, views["front"]) if single_view else shape.multiview(ctx, spec, views)
     co, tris = shape_geometry(result)
