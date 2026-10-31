@@ -45,6 +45,7 @@ def golden_stamps(species: str) -> list[dict]:
 
 
 def golden(species: str) -> dict:
+    # The proxy release's one mesh is the template itself (decision 118), so its texel map is the species map.
     base = load_base(species)
     stamps = golden_stamps(species)
     layer = paint.stamp_layer(base, texel_map(species, SIZE), stamps)

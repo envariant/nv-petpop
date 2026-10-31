@@ -172,6 +172,9 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   its own UVs
 - [ ] Regenerate the fixture pack with `make fixtures` once library mode reads figure meshes (its manifests were
   only renamed in place)
-- [ ] Library: releases of meshes keyed by `mesh_id`, families labelled with the breeds that share a mesh, part
-  variants and stamps per mesh, the kiosk viewer loading one mesh per family; Studio publishes meshes
+- [x] Library L1 (decision 118, API 3.6.0): release 2.0 of meshes keyed by `mesh_id`, each listing the breeds that
+  share it; families, part variants and compositions name their mesh; the kiosk loads the family's mesh and shows
+  "Same figure shape as ..."; the export composes and paints on that mesh; gate 7
+- [ ] Library L2: Studio publishes each curated figurine as its own mesh (its family on it, its provider texture as
+  the mesh's base layer), with breed labels for shared meshes; QC from segmentation and print checks; gate 8
 - [ ] Experiment: Tripo segmentation and part completion as `segmentation.method: provider` and as cross-mesh parts

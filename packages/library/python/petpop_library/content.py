@@ -58,14 +58,48 @@ def mesh_thumbnail(vertices: np.ndarray, faces: np.ndarray, colour: str, size: i
     return png(Image.fromarray(np.dstack([out, a]), "RGBA"))
 
 
-def manifest(species: str, number: int, base: BaseMesh, base_version: str, created_by: str, created_at: str,
-             families: list[dict[str, Any]], region_deltas: list[dict[str, Any]], shell_parts: list[dict[str, Any]],
-             pattern_layers: list[dict[str, Any]], atlas: dict[str, Any], notes: str = "") -> dict[str, Any]:
+ATLAS = 1024
+
+
+def mesh_entry(mesh: BaseMesh, name: str, breeds: list[str], version: int = 1, source_job: str | None = None,
+               size: int = ATLAS, texture: bytes | None = None) -> tuple[dict[str, Any], dict[str, bytes]]:
+    """One release mesh (decision 116) and its files under meshes/<mesh_id>/: the viewer's binary and info, the
+    figure package the export reads, the pattern masks in the mesh's own UVs, its texture and a thumbnail."""
+    from . import figure
+    from .atlas import mesh_texel_map
+    from .basebin import base_bin, mesh_json
+    from .patterns import CHANNELS, build_masks, pack_png
+
+    d = f"meshes/{mesh.mesh_id}"
+    files = {f"{d}/mesh.bin": base_bin(mesh), f"{d}/mesh.json": mesh_json(mesh, f"{d}/mesh.bin"),
+             f"{d}/figure_mesh.npz": figure.save(mesh), f"{d}/thumb.png": thumbnail(mesh, mesh.co)}
+    masks = pack_png(build_masks(mesh, mesh_texel_map(mesh, size)))
+    for i, data in enumerate(masks):
+        files[f"{d}/masks_{i}.png"] = data
+    if texture is not None:
+        files[f"{d}/texture.png"] = texture
+    entry = {"id": mesh.mesh_id, "name": name, "source": mesh.source or "template", "bin": f"{d}/mesh.bin",
+             "info": f"{d}/mesh.json", "package": f"{d}/figure_mesh.npz", "texture": f"{d}/texture.png" if texture else None,
+             "atlas": {"size": size, "mask_files": [f"{d}/masks_{i}.png" for i in range(len(masks))],
+                       "channels": {c: i for i, c in enumerate(CHANNELS)}},
+             "breeds": sorted(set(breeds)), "source_job": source_job, "version": version, "thumbnail": f"{d}/thumb.png"}
+    return entry, files
+
+
+def manifest(species: str, number: int, segmentation_version: str, created_by: str, created_at: str,
+             meshes: list[dict[str, Any]], families: list[dict[str, Any]], region_deltas: list[dict[str, Any]],
+             shell_parts: list[dict[str, Any]], pattern_layers: list[dict[str, Any]], notes: str = "") -> dict[str, Any]:
+    """A release 2.0 manifest (decision 118). Each mesh lists the breeds of every family built on it, so breeds that
+    share a mesh say so."""
+    breeds: dict[str, set[str]] = {}
+    for f in families:
+        breeds.setdefault(f["mesh_id"], set()).update(f["breeds"])
+    meshes = [{**m, "breeds": sorted(set(m["breeds"]) | breeds.get(m["id"], set()))} for m in meshes]
     return {
-        "release_schema": "1.0", "release_version": f"release-{species}-{number}", "species": species, "number": number,
-        "base_mesh_version": base_version, "base_topology": base.topology_hash(), "atlas": atlas, "mesh": "mesh.json",
-        "notes": notes, "created_at": created_at, "created_by": created_by, "families": families,
-        "region_deltas": region_deltas, "shell_parts": shell_parts, "pattern_layers": pattern_layers, "files": [],
+        "release_schema": "2.0", "release_version": f"release-{species}-{number}", "species": species, "number": number,
+        "segmentation_version": segmentation_version, "meshes": meshes, "notes": notes, "created_at": created_at,
+        "created_by": created_by, "families": families, "region_deltas": region_deltas, "shell_parts": shell_parts,
+        "pattern_layers": pattern_layers, "files": [],
     }
 
 

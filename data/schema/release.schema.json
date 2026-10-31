@@ -2,48 +2,130 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://petpop.local/schema/release.schema.json",
   "title": "LibraryRelease",
-  "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
+  "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). Release 2.0 (decision 118): every family and part variant names the mesh it is built on; meshes are unique per figurine and labelled to one segmentation schema. The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["release_schema", "release_version", "species", "number", "base_mesh_version", "base_topology", "atlas", "created_at", "created_by", "families", "region_deltas", "shell_parts", "pattern_layers", "files"],
+  "required": [
+    "release_schema",
+    "release_version",
+    "species",
+    "number",
+    "segmentation_version",
+    "meshes",
+    "created_at",
+    "created_by",
+    "families",
+    "region_deltas",
+    "shell_parts",
+    "pattern_layers",
+    "files"
+  ],
   "properties": {
-    "release_schema": {"const": "1.0"},
-    "release_version": {"type": "string", "pattern": "^release-(dog|cat)-[0-9]+$"},
-    "species": {"enum": ["dog", "cat"]},
-    "number": {"type": "integer", "minimum": 1},
-    "base_mesh_version": {"type": "string"},
-    "base_topology": {"type": "string", "description": "topology_hash of the base mesh every delta was extracted on; a kiosk refuses a release whose hash differs from its own base mesh."},
-    "atlas": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["size", "mask_files", "channels"],
-      "properties": {
-        "size": {"type": "integer", "enum": [512, 1024, 2048]},
-        "mask_files": {"type": "array", "items": {"type": "string"}, "description": "RGBA PNGs in the species UV atlas; each channel is one mask."},
-        "channels": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}, "description": "Mask name -> flat channel index (file index * 4 + channel); includes eye and nose."}
+    "release_schema": {
+      "const": "2.0"
+    },
+    "release_version": {
+      "type": "string",
+      "pattern": "^release-(dog|cat)-[0-9]+$"
+    },
+    "species": {
+      "enum": [
+        "dog",
+        "cat"
+      ]
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "segmentation_version": {
+      "type": "string",
+      "pattern": "^seg-[0-9]+$",
+      "description": "The segmentation schema (data/segmentation/) every mesh is labelled to; a kiosk refuses a release for another schema."
+    },
+    "meshes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/mesh"
       }
     },
-    "mesh": {"type": "string", "description": "Path of base.bin: the base mesh the client builds its preview from (positions, triangles, corner UVs, eye and nose masks per vertex)."},
-    "notes": {"type": "string"},
-    "created_at": {"type": "string", "format": "date-time"},
-    "created_by": {"type": "string"},
+    "notes": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string"
+    },
     "families": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "delta", "default_parts", "breeds", "tags", "version", "thumbnail"],
+        "required": [
+          "id",
+          "name",
+          "mesh_id",
+          "delta",
+          "default_parts",
+          "breeds",
+          "tags",
+          "version",
+          "thumbnail"
+        ],
         "properties": {
-          "id": {"$ref": "#/$defs/id"},
-          "name": {"type": "string"},
-          "delta": {"type": "string", "description": "float16 (n, 3) full-mesh vertex offsets, little endian."},
-          "default_parts": {"type": "object", "additionalProperties": {"$ref": "#/$defs/id"}},
-          "breeds": {"type": "array", "items": {"type": "string"}},
-          "tags": {"type": "array", "items": {"type": "string"}},
-          "version": {"type": "integer", "minimum": 1},
-          "thumbnail": {"type": "string"},
-          "source_job": {"type": ["string", "null"]}
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "delta": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "float16 (n, 3) offsets on its mesh, little endian; null when the family is the mesh as published."
+          },
+          "default_parts": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "breeds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "thumbnail": {
+            "type": "string"
+          },
+          "source_job": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mesh_id": {
+            "$ref": "#/$defs/id",
+            "description": "The mesh this family is built on."
+          }
         }
       }
     },
@@ -52,17 +134,65 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "region", "delta", "tags", "version", "thumbnail"],
+        "required": [
+          "id",
+          "name",
+          "region",
+          "mesh_id",
+          "delta",
+          "tags",
+          "version",
+          "thumbnail"
+        ],
         "properties": {
-          "id": {"$ref": "#/$defs/id"},
-          "name": {"type": "string"},
-          "region": {"enum": ["ears", "tail", "muzzle", "head", "legs"]},
-          "delta": {"type": "string", "description": "float16 (n, 3) vertex offsets, zero outside the region and feathered by the region's vertex-group weights."},
-          "tags": {"type": "array", "items": {"type": "string"}},
-          "version": {"type": "integer", "minimum": 1},
-          "thumbnail": {"type": "string"},
-          "source_job": {"type": ["string", "null"]},
-          "curator_score": {"type": ["number", "null"]}
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "enum": [
+              "ears",
+              "tail",
+              "muzzle",
+              "head",
+              "legs"
+            ]
+          },
+          "delta": {
+            "type": "string",
+            "description": "float16 (n, 3) offsets on its mesh, zero outside the region and feathered by the mesh's part weights."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "thumbnail": {
+            "type": "string"
+          },
+          "source_job": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "curator_score": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mesh_id": {
+            "$ref": "#/$defs/id",
+            "description": "The one mesh this part variant applies to (part variants never cross meshes)."
+          }
         }
       }
     },
@@ -71,17 +201,55 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "socket", "kind", "mesh", "default_colour", "version", "thumbnail"],
+        "required": [
+          "id",
+          "name",
+          "socket",
+          "kind",
+          "mesh",
+          "default_colour",
+          "version",
+          "thumbnail"
+        ],
         "properties": {
-          "id": {"$ref": "#/$defs/id"},
-          "name": {"type": "string"},
-          "socket": {"enum": ["neck", "head", "face"]},
-          "kind": {"type": "string", "description": "The accessory-library mesh (collar, bandana, bow, hat, glasses) the export fuses."},
-          "mesh": {"type": "string", "description": "GLB of the shell in its socket frame (unit scale, Z up)."},
-          "default_colour": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
-          "tags": {"type": "array", "items": {"type": "string"}},
-          "version": {"type": "integer", "minimum": 1},
-          "thumbnail": {"type": "string"}
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "socket": {
+            "enum": [
+              "neck",
+              "head",
+              "face"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "description": "The accessory-library mesh (collar, bandana, bow, hat, glasses) the export fuses."
+          },
+          "mesh": {
+            "type": "string",
+            "description": "GLB of the shell in its socket frame (unit scale, Z up)."
+          },
+          "default_colour": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "thumbnail": {
+            "type": "string"
+          }
         }
       }
     },
@@ -90,21 +258,70 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "channel", "default_colour", "coverage", "version", "thumbnail"],
+        "required": [
+          "id",
+          "name",
+          "channel",
+          "default_colour",
+          "coverage",
+          "version",
+          "thumbnail"
+        ],
         "properties": {
-          "id": {"$ref": "#/$defs/id"},
-          "name": {"type": "string"},
-          "channel": {"type": "integer", "minimum": 0, "description": "Flat mask channel (see atlas.channels)."},
-          "default_colour": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Flat mask channel in every mesh's atlas (see meshes[].atlas.channels)."
+          },
+          "default_colour": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
           "coverage": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["min", "max", "default"],
-            "properties": {"min": {"type": "number", "minimum": 0, "maximum": 1}, "max": {"type": "number", "minimum": 0, "maximum": 1}, "default": {"type": "number", "minimum": 0, "maximum": 1}}
+            "required": [
+              "min",
+              "max",
+              "default"
+            ],
+            "properties": {
+              "min": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "max": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "default": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
           },
-          "tags": {"type": "array", "items": {"type": "string"}},
-          "version": {"type": "integer", "minimum": 1},
-          "thumbnail": {"type": "string"}
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "thumbnail": {
+            "type": "string"
+          }
         }
       }
     },
@@ -113,16 +330,135 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "bytes", "sha256"],
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
         "properties": {
-          "path": {"type": "string", "pattern": "^[a-z0-9_./-]+$"},
-          "bytes": {"type": "integer", "minimum": 0},
-          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          "path": {
+            "type": "string",
+            "pattern": "^[a-z0-9_./-]+$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
         }
       }
     }
   },
   "$defs": {
-    "id": {"type": "string", "pattern": "^[a-z0-9_]{1,64}$"}
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,64}$"
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "bin",
+        "info",
+        "package",
+        "atlas",
+        "breeds",
+        "version",
+        "thumbnail"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id",
+          "description": "mesh_id: content hash of the geometry (petpop_library.figure)."
+        },
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "generated",
+            "template"
+          ]
+        },
+        "bin": {
+          "type": "string",
+          "description": "PPB1 binary the viewer builds the preview from (positions, triangles, corner UVs, shells)."
+        },
+        "info": {
+          "type": "string",
+          "description": "JSON: mesh_id, segmentation version, topology, counts and landmarks."
+        },
+        "package": {
+          "type": "string",
+          "description": "figure_mesh.npz: the mesh with its part weights and pattern regions, for the export."
+        },
+        "texture": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The generator's own texture in the mesh's UVs, when it has one."
+        },
+        "atlas": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "size",
+            "mask_files",
+            "channels"
+          ],
+          "properties": {
+            "size": {
+              "type": "integer",
+              "enum": [
+                512,
+                1024,
+                2048
+              ]
+            },
+            "mask_files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "RGBA PNGs in this mesh's UVs; each channel is one mask."
+            },
+            "channels": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "description": "Mask name -> flat channel index (file index * 4 + channel); includes eye and nose."
+            }
+          }
+        },
+        "breeds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every breed whose family uses this mesh: breeds listed together share one mesh (decision 116)."
+        },
+        "source_job": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "thumbnail": {
+          "type": "string"
+        }
+      }
+    }
   }
 }

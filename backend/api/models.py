@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.5.0"
+API_VERSION = "3.6.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -348,7 +348,7 @@ class LibraryRelease(_M):
     """The active release for a species: its manifest (data/schema/release.schema.json) and where its files are."""
     species: Species
     release_version: str
-    base_mesh_version: str
+    segmentation_version: str = Field(description="The segmentation schema every mesh of the release is labelled to.")
     files_url: str = Field(description="Prefix for the release's files: <files_url><path>.")
     manifest: ReleaseManifest
 
@@ -356,11 +356,24 @@ class LibraryRelease(_M):
 class LibraryFamily(_M):
     id: str
     name: str
+    mesh_id: str = Field(description="The mesh the family is built on (LibraryFamilies.meshes).")
     default_parts: dict[str, str]
     breeds: list[str]
     tags: list[str]
     version: int
-    delta_url: str
+    delta_url: str | None = Field(description="float16 offsets on its mesh; null when the family is the mesh as published.")
+    thumbnail_url: str
+
+
+class LibraryMesh(_M):
+    """One library mesh (decision 116): every breed listed here shares it; part variants apply only to it."""
+    id: str
+    name: str
+    breeds: list[str] = Field(description="Every breed whose family is built on this mesh.")
+    family_ids: list[str]
+    bin_url: str
+    info_url: str
+    texture_url: str | None = None
     thumbnail_url: str
 
 
@@ -368,6 +381,7 @@ class LibraryFamilies(_M):
     species: Species
     release_version: str
     items: list[LibraryFamily]
+    meshes: list[LibraryMesh]
 
 
 class LibraryPart(_M):
@@ -375,6 +389,7 @@ class LibraryPart(_M):
     name: str
     kind: Literal["delta", "shell"]
     region: Region | None = Field(None, description="Region of a region-delta part.")
+    mesh_id: str | None = Field(None, description="The one mesh a region part applies to (shell parts fit every mesh).")
     socket: Literal["neck", "head", "face"] | None = Field(None, description="Socket of a shell part.")
     tags: list[str]
     version: int

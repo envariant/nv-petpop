@@ -24,7 +24,7 @@ from petpop_core.breeds import all_breeds
 from petpop_library import release as rel
 from petpop_library.composition import errors as composition_errors
 from petpop_library.composition import to_spec
-from petpop_library.meshkit import load_base
+from petpop_library.figure import schema
 
 from . import models as m
 from .contract import KIOSK, ApiError, make_token, signed_file_url
@@ -52,19 +52,24 @@ def media_type(path: str) -> str:
 # The listing models, from a release manifest alone (shared with the mock server).
 def release_model(man: dict[str, Any]) -> m.LibraryRelease:
     return m.LibraryRelease(species=man["species"], release_version=man["release_version"],
-                            base_mesh_version=man["base_mesh_version"], files_url=files_url(man["species"]), manifest=man)
+                            segmentation_version=man["segmentation_version"], files_url=files_url(man["species"]), manifest=man)
 
 
 def families_model(man: dict[str, Any]) -> m.LibraryFamilies:
     u = files_url(man["species"])
     return m.LibraryFamilies(species=man["species"], release_version=man["release_version"], items=[
-        m.LibraryFamily(id=f["id"], name=f["name"], default_parts=f["default_parts"], breeds=f["breeds"], tags=f["tags"],
-                        version=f["version"], delta_url=u + f["delta"], thumbnail_url=u + f["thumbnail"]) for f in man["families"]])
+        m.LibraryFamily(id=f["id"], name=f["name"], mesh_id=f["mesh_id"], default_parts=f["default_parts"], breeds=f["breeds"],
+                        tags=f["tags"], version=f["version"], delta_url=u + f["delta"] if f["delta"] else None,
+                        thumbnail_url=u + f["thumbnail"]) for f in man["families"]],
+        meshes=[m.LibraryMesh(id=me["id"], name=me["name"], breeds=me["breeds"],
+                              family_ids=[f["id"] for f in man["families"] if f["mesh_id"] == me["id"]],
+                              bin_url=u + me["bin"], info_url=u + me["info"], texture_url=u + me["texture"] if me.get("texture") else None,
+                              thumbnail_url=u + me["thumbnail"]) for me in man["meshes"]])
 
 
 def parts_model(man: dict[str, Any], region: str | None) -> m.LibraryParts:
     u = files_url(man["species"])
-    items = [m.LibraryPart(id=d["id"], name=d["name"], kind="delta", region=d["region"], tags=d["tags"], version=d["version"],
+    items = [m.LibraryPart(id=d["id"], name=d["name"], kind="delta", region=d["region"], mesh_id=d["mesh_id"], tags=d["tags"], version=d["version"],
                            url=u + d["delta"], thumbnail_url=u + d["thumbnail"])
              for d in man["region_deltas"] if region in (None, d["region"])]
     if region in (None, "shells"):
@@ -91,7 +96,7 @@ def aware(dt):
 class KioskLibrary:
     def __init__(self, s: Settings, db, bus, store, secret: str) -> None:
         self.s, self.db, self.bus, self.store, self.secret = s, db, bus, store, secret
-        self.releases = rel.ReleaseStore(s.var / "releases", base_topology={sp: load_base(sp).topology_hash() for sp in ("dog", "cat")})
+        self.releases = rel.ReleaseStore(s.var / "releases", segmentation={sp: schema(sp)["schema_version"] for sp in ("dog", "cat")})
         self._stop = threading.Event()
 
     # ------------------------------------------------------------------ release loading

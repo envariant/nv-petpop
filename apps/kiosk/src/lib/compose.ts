@@ -31,9 +31,10 @@ export function familyFor(manifest: ReleaseManifest, breedId: string): string {
   return (exact ?? manifest.families.find((f) => f.id === 'family_standard') ?? manifest.families[0]).id;
 }
 
-/** The part in a region whose tags best match the breed preset, else the family default. */
-export function partFor(manifest: ReleaseManifest, region: string, preset: unknown, fallback?: string): string | undefined {
-  const parts = manifest.region_deltas.filter((d: DeltaItem) => d.region === region);
+/** The part in a region of one mesh whose tags best match the breed preset, else the family default. Part variants
+ *  never cross meshes (decision 118). */
+export function partFor(manifest: ReleaseManifest, region: string, preset: unknown, fallback?: string, meshId?: string): string | undefined {
+  const parts = manifest.region_deltas.filter((d: DeltaItem) => d.region === region && (!meshId || d.mesh_id === meshId));
   for (const slot of REGION_SLOTS[region] ?? []) {
     const v = get(preset, slot);
     if (v === undefined || v === null) continue;
@@ -50,7 +51,7 @@ export function startingComposition(manifest: ReleaseManifest, breed: Breed, pet
   const family = manifest.families.find((f) => f.id === familyId)!;
   const parts: Composition['parts'] = {};
   for (const region of REGIONS) {
-    const id = partFor(manifest, region, preset, family.default_parts[region]);
+    const id = partFor(manifest, region, preset, family.default_parts[region], family.mesh_id);
     if (id) parts[region] = id;
   }
   const base = (get(preset, 'colour.base.hex') as string) ?? '#C8763A';
@@ -71,10 +72,10 @@ export function startingComposition(manifest: ReleaseManifest, breed: Breed, pet
   for (const m of markings) if (MARKING_LAYERS[m]) add(MARKING_LAYERS[m], m === 'dark_mask' ? undefined : m === 'points' ? undefined : WHITE);
   const nose = NOSE_HEX[(get(preset, 'nose.colour') as string) ?? 'black'] ?? NOSE_HEX.black;
   return {
-    composition_version: '1.0',
+    composition_version: '2.0',
     species: manifest.species,
     release_version: manifest.release_version,
-    base_mesh_version: manifest.base_mesh_version,
+    mesh_id: family.mesh_id,
     pet_name: petName,
     breed_id: breed.id,
     family_id: familyId,
@@ -86,4 +87,10 @@ export function startingComposition(manifest: ReleaseManifest, breed: Breed, pet
     eye_colour: ((get(preset, 'eyes.hex') as string) ?? '#3B2412').toUpperCase(),
     nose_colour: nose.toUpperCase(),
   };
+}
+
+/** Other breeds whose families are built on the same mesh as this one (shown as "shares its shape with"). */
+export function sharedWith(manifest: ReleaseManifest, meshId: string, breedId?: string): string[] {
+  const mesh = manifest.meshes.find((m) => m.id === meshId);
+  return (mesh?.breeds ?? []).filter((b) => b !== breedId);
 }

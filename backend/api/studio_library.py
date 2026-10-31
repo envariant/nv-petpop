@@ -30,7 +30,7 @@ from backend.core.paths import ROOT
 from petpop_core.breeds import all_breeds
 from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch, default_spec, fill_colour_names
-from petpop_library import content, qc, release
+from petpop_library import content, figure, qc, release
 from petpop_library.deltas import REGIONS, decode, encode
 from petpop_library.extract import extract, normalised_weights
 from petpop_library.meshkit import load_base
@@ -60,6 +60,39 @@ def item_key(species: str, kind: str, item_id: str, version: int, name: str) -> 
     return f"library/{species}/{kind}/{item_id}/v{version}/{name}"
 
 
+def mesh_key(species: str, mesh_id: str, name: str) -> str:
+    return f"library/{species}/meshes/{mesh_id}/{name}"
+
+
+def put_mesh(store, mesh, meta: dict[str, Any], texture: bytes | None = None) -> str:
+    """Keep a library mesh in Studio's store (decision 118): its figure package and metadata (name, source job)."""
+    store.put(mesh_key(mesh.species, mesh.mesh_id, "figure_mesh.npz"), figure.save(mesh))
+    store.put(mesh_key(mesh.species, mesh.mesh_id, "meta.json"), json.dumps(meta, sort_keys=True).encode())
+    if texture is not None:
+        store.put(mesh_key(mesh.species, mesh.mesh_id, "texture.png"), texture)
+    return mesh.mesh_id
+
+
+def get_mesh(store, species: str, mesh_id: str):
+    """(mesh, meta) of a stored library mesh; meta carries the texture bytes when the mesh has one."""
+    mesh = figure.load(store.get(mesh_key(species, mesh_id, "figure_mesh.npz")))
+    meta = json.loads(store.get(mesh_key(species, mesh_id, "meta.json")))
+    tex = mesh_key(species, mesh_id, "texture.png")
+    if store.exists(tex):
+        meta["texture"] = store.get(tex)
+    return mesh, meta
+
+
+def template_mesh(store, species: str):
+    """The species template as a library mesh (stored on first use): what curation measures parts on until
+    figurines are published as meshes of their own."""
+    base = load_base(species)
+    mesh = figure.from_template(base, base.co)
+    if not store.exists(mesh_key(species, mesh.mesh_id, "meta.json")):
+        put_mesh(store, mesh, {"name": f"Classic {species}", "source_job": None, "version": 1})
+    return mesh
+
+
 # --------------------------------------------------------------------------- curation (studio worker)
 
 def curate(db_factory, store, job_id: str) -> dict[str, Any]:
@@ -70,8 +103,9 @@ def curate(db_factory, store, job_id: str) -> dict[str, Any]:
         spec, info = job.pet_spec, batch.spec["jobs"][job_id]
     species = spec["species"]
     base = load_base(species)
-    # Until library mode moves to per-mesh releases (decision 116, Track E), parts are measured on the template
-    # as Stage E fitted it to the figurine.
+    mesh_id = template_mesh(store, species).mesh_id
+    # Until Studio publishes figurines as meshes of their own (Track E, L2), parts are measured on the template
+    # as Stage E fitted it to the figurine, and filed as variants of the template mesh.
     coords = np.load(io.BytesIO(store.get(f"jobs/{job_id}/template_fit.npy"))).astype(np.float64)
     manifest = json.loads(store.get(f"jobs/{job_id}/manifest.json"))
     wrap_valid = bool(manifest["metrics"].get("segmentation_valid", True)) and manifest.get("fallback") in ("none", "single_view")
@@ -90,7 +124,7 @@ def curate(db_factory, store, job_id: str) -> dict[str, Any]:
         files = {"delta": item_key(species, "region", rid, 1, "delta.f16"), "thumbnail": item_key(species, "region", rid, 1, "thumb.png")}
         store.put(files["delta"], encode(ps.parts[region]))
         store.put(files["thumbnail"], content.thumbnail(base, base.co + ps.parts[region], content.highlight(base, weights[region])))
-        rows.append(RegionDeltaRow(id=rid, version=1, species=species, base_mesh_version=manifest["versions"]["base_mesh"],
+        rows.append(RegionDeltaRow(id=rid, version=1, species=species, base_mesh_version=figure.schema(species)["schema_version"], mesh_id=mesh_id,
                                    name=f"{label} {region} ({variant})", region=region, status="draft" if q["passed"] else "rejected",
                                    tags=tags, files=files, meta={"qc": q, "auto_rejected": not q["passed"]}, batch_id=batch.id,
                                    source_job=job_id, created_at=now))
@@ -99,7 +133,7 @@ def curate(db_factory, store, job_id: str) -> dict[str, Any]:
     files = {"delta": item_key(species, "family", fid, 1, "delta.f16"), "thumbnail": item_key(species, "family", fid, 1, "thumb.png")}
     store.put(files["delta"], encode(ps.family))
     store.put(files["thumbnail"], content.thumbnail(base, ps.compose(base)))
-    rows.append(FamilyRow(id=fid, version=1, species=species, base_mesh_version=manifest["versions"]["base_mesh"],
+    rows.append(FamilyRow(id=fid, version=1, species=species, base_mesh_version=figure.schema(species)["schema_version"], mesh_id=mesh_id,
                           name=f"{label} ({variant})", status="draft" if q["passed"] else "rejected", tags=tags, files=files,
                           meta={"qc": q, "auto_rejected": not q["passed"], "wrap_valid": wrap_valid}, batch_id=batch.id,
                           source_job=job_id, created_at=now, default_parts={r: f"{r}_{breed}_{tag}" for r in REGIONS},
@@ -134,29 +168,34 @@ class StudioLibrary:
         """Every item of a release becomes a published library item (the proxy release seeds Studio)."""
         manifest, files = release.read(bundle)
         species, now = manifest["species"], utcnow()
-        atlas = manifest["atlas"]
+        for me in manifest["meshes"]:
+            put_mesh(self.store, figure.load(files[me["package"]]),
+                     {"name": me["name"], "source_job": me.get("source_job"), "version": me["version"]},
+                     files[me["texture"]] if me.get("texture") else None)
+        # Pattern thumbnails are drawn on the first mesh (the template in the proxy release).
+        atlas = manifest["meshes"][0]["atlas"]
         for i, path in enumerate(atlas["mask_files"]):
             self.store.put(f"library/{species}/atlas/masks_{i}.png", files[path])
         self.store.put(f"library/{species}/atlas/atlas.json",
                        json.dumps({"size": atlas["size"], "channels": atlas["channels"], "masks": len(atlas["mask_files"]),
-                                   "base_mesh_version": manifest["base_mesh_version"]}).encode())
+                                   "mesh_id": manifest["meshes"][0]["id"]}).encode())
         with self.db() as db:
             for mkind, entries in ((k, manifest[k]) for k in MANIFEST_KIND.values()):
                 kind = KIND_OF[mkind]
                 for e in entries:
                     stored = {}
                     for field in ("delta", "mesh", "thumbnail"):
-                        if field in e:
+                        if e.get(field):
                             key = item_key(species, kind, e["id"], e["version"], Path(e[field]).name)
                             self.store.put(key, files[e[field]])
                             stored[field] = key
-                    common = dict(id=e["id"], version=e["version"], species=species, base_mesh_version=manifest["base_mesh_version"],
+                    common = dict(id=e["id"], version=e["version"], species=species, base_mesh_version=manifest["segmentation_version"],
                                   name=e["name"], status="published", tags=e.get("tags", []), files=stored,
                                   meta={"source": source, "release": manifest["release_version"]}, published_at=now, created_at=now)
                     if kind == "family":
-                        row = FamilyRow(**common, default_parts=e["default_parts"], breeds=e["breeds"])
+                        row = FamilyRow(**common, mesh_id=e["mesh_id"], default_parts=e["default_parts"], breeds=e["breeds"])
                     elif kind == "region":
-                        row = RegionDeltaRow(**common, region=e["region"], score=e.get("curator_score"))
+                        row = RegionDeltaRow(**common, mesh_id=e["mesh_id"], region=e["region"], score=e.get("curator_score"))
                     elif kind == "shell":
                         row = ShellPartRow(**common, socket=e["socket"], kind=e["kind"], default_colour=e["default_colour"])
                     else:
@@ -414,14 +453,14 @@ class StudioLibrary:
             return self._item(db, row)
 
     def _thumbnail(self, kind: str, row) -> bytes:
-        base = load_base(row.species)
-        n = len(base.co)
-        if kind == "region":
-            d = decode(self.store.get(row.files["delta"]), n)
-            return content.thumbnail(base, base.co + d, content.highlight(base, normalised_weights(base)[row.region]))
-        if kind == "family":
-            d = decode(self.store.get(row.files["delta"]), n)
+        if kind in ("region", "family"):
+            base = get_mesh(self.store, row.species, row.mesh_id)[0] if row.mesh_id else load_base(row.species)
+            n = len(base.co)
+            d = decode(self.store.get(row.files["delta"]), n) if row.files.get("delta") else np.zeros((n, 3))
+            if kind == "region":
+                return content.thumbnail(base, base.co + d, content.highlight(base, normalised_weights(base)[row.region]))
             return content.thumbnail(base, base.co + d)
+        base = load_base(row.species)
         if kind == "pattern":
             atlas = json.loads(self.store.get(f"library/{row.species}/atlas/atlas.json"))
             from petpop_library.paint import read_masks
@@ -441,14 +480,11 @@ class StudioLibrary:
                 rows = db.scalars(select(Row).where(Row.species == species, Row.status == "published").order_by(Row.id)).all()
                 latest[kind] = rows
             number = (db.scalar(select(func.max(LibraryReleaseRow.number)).where(LibraryReleaseRow.species == species)) or 0) + 1
-        atlas = json.loads(self.store.get(f"library/{species}/atlas/atlas.json"))
         items, problems = release_entries(latest)
         if problems:
             raise ApiError(409, {"release": problems})
-        masks = [self.store.get(f"library/{species}/atlas/masks_{i}.png") for i in range(atlas["masks"])]
-        bundle, manifest = pack(species, number, atlas["base_mesh_version"], items, self.store.get,
-                                {"size": atlas["size"], "channels": atlas["channels"]}, masks, created_by=f"studio:{user.username}",
-                                notes=f"Published by {user.username} in PetPop Studio.")
+        bundle, manifest = pack(species, number, items, self.store.get, lambda mid: get_mesh(self.store, species, mid),
+                                created_by=f"studio:{user.username}", notes=f"Published by {user.username} in PetPop Studio.")
         version = manifest["release_version"]
         key = f"releases/{species}/{version}.tar"
         self.store.put(key, bundle)
@@ -488,12 +524,12 @@ def release_entries(latest: dict[str, list]) -> tuple[dict[str, list[dict[str, A
     if not latest["pattern"]:
         problems.append("no published pattern layer")
     items: dict[str, list[dict[str, Any]]] = {}
-    items["families"] = [{"id": r.id, "name": r.name, "delta": r.files["delta"], "breeds": r.breeds, "tags": r.tags,
+    items["families"] = [{"id": r.id, "name": r.name, "mesh_id": r.mesh_id, "delta": r.files.get("delta"), "breeds": r.breeds, "tags": r.tags,
                           "version": r.version, "thumbnail": r.files["thumbnail"], "source_job": r.source_job,
                           # A default part that is not published falls back to the region's first published part.
                           "default_parts": {reg: (pid if pid in regions.get(reg, []) else (regions[reg] or [pid])[0])
                                             for reg, pid in r.default_parts.items()}} for r in latest["family"]]
-    items["region_deltas"] = [{"id": r.id, "name": r.name, "region": r.region, "delta": r.files["delta"], "tags": r.tags,
+    items["region_deltas"] = [{"id": r.id, "name": r.name, "region": r.region, "mesh_id": r.mesh_id, "delta": r.files["delta"], "tags": r.tags,
                                "version": r.version, "thumbnail": r.files["thumbnail"], "source_job": r.source_job,
                                "curator_score": r.score} for r in latest["region"]]
     items["shell_parts"] = [{"id": r.id, "name": r.name, "socket": r.socket, "kind": r.kind, "mesh": r.files["mesh"],

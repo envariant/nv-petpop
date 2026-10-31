@@ -588,14 +588,10 @@
    },
    "Composition": {
     "additionalProperties": false,
-    "description": "What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the species base mesh plus the family delta plus one region delta per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.",
+    "description": "What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the family's mesh (decision 116) plus the family delta plus one part variant of that mesh per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.",
     "properties": {
      "base_colour": {
       "$ref": "#/components/schemas/Composition_hex"
-     },
-     "base_mesh_version": {
-      "description": "Must equal the release's base mesh version.",
-      "type": "string"
      },
      "breed_id": {
       "description": "The breed the customer started from (informational).",
@@ -603,7 +599,7 @@
       "type": "string"
      },
      "composition_version": {
-      "const": "1.0"
+      "const": "2.0"
      },
      "eye_colour": {
       "$ref": "#/components/schemas/Composition_hex"
@@ -640,6 +636,11 @@
       },
       "maxItems": 10,
       "type": "array"
+     },
+     "mesh_id": {
+      "description": "The mesh the family and every part are built on; stamps are positions on this mesh.",
+      "pattern": "^[a-z0-9_]{1,64}$",
+      "type": "string"
      },
      "nose_colour": {
       "$ref": "#/components/schemas/Composition_hex"
@@ -708,7 +709,7 @@
       ]
      },
      "stamps": {
-      "description": "Spots, patches and brush dabs, painted after the layers in this order. Positions are in base-mesh space (mm), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly.",
+      "description": "Spots, patches and brush dabs, painted after the layers in this order. Positions are on the undeformed mesh (mm, the mesh the composition names), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly.",
       "items": {
        "additionalProperties": false,
        "properties": {
@@ -746,7 +747,7 @@
      "composition_version",
      "species",
      "release_version",
-     "base_mesh_version",
+     "mesh_id",
      "family_id",
      "parts",
      "shells",
@@ -1908,6 +1909,13 @@
       "title": "Items",
       "type": "array"
      },
+     "meshes": {
+      "items": {
+       "$ref": "#/components/schemas/LibraryMesh"
+      },
+      "title": "Meshes",
+      "type": "array"
+     },
      "release_version": {
       "title": "Release Version",
       "type": "string"
@@ -1924,7 +1932,8 @@
     "required": [
      "species",
      "release_version",
-     "items"
+     "items",
+     "meshes"
     ],
     "title": "LibraryFamilies",
     "type": "object"
@@ -1947,11 +1956,24 @@
       "type": "object"
      },
      "delta_url": {
-      "title": "Delta Url",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "float16 offsets on its mesh; null when the family is the mesh as published.",
+      "title": "Delta Url"
      },
      "id": {
       "title": "Id",
+      "type": "string"
+     },
+     "mesh_id": {
+      "description": "The mesh the family is built on (LibraryFamilies.meshes).",
+      "title": "Mesh Id",
       "type": "string"
      },
      "name": {
@@ -1977,6 +1999,7 @@
     "required": [
      "id",
      "name",
+     "mesh_id",
      "default_parts",
      "breeds",
      "tags",
@@ -2309,6 +2332,69 @@
     "title": "LibraryItemPatch",
     "type": "object"
    },
+   "LibraryMesh": {
+    "additionalProperties": false,
+    "description": "One library mesh (decision 116): every breed listed here shares it; part variants apply only to it.",
+    "properties": {
+     "bin_url": {
+      "title": "Bin Url",
+      "type": "string"
+     },
+     "breeds": {
+      "description": "Every breed whose family is built on this mesh.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Breeds",
+      "type": "array"
+     },
+     "family_ids": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Family Ids",
+      "type": "array"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "info_url": {
+      "title": "Info Url",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "texture_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Texture Url"
+     },
+     "thumbnail_url": {
+      "title": "Thumbnail Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "breeds",
+     "family_ids",
+     "bin_url",
+     "info_url",
+     "thumbnail_url"
+    ],
+    "title": "LibraryMesh",
+    "type": "object"
+   },
    "LibraryPart": {
     "additionalProperties": false,
     "properties": {
@@ -2334,6 +2420,18 @@
       ],
       "title": "Kind",
       "type": "string"
+     },
+     "mesh_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The one mesh a region part applies to (shell parts fit every mesh).",
+      "title": "Mesh Id"
      },
      "name": {
       "title": "Name",
@@ -2517,10 +2615,6 @@
     "additionalProperties": false,
     "description": "The active release for a species: its manifest (data/schema/release.schema.json) and where its files are.",
     "properties": {
-     "base_mesh_version": {
-      "title": "Base Mesh Version",
-      "type": "string"
-     },
      "files_url": {
       "description": "Prefix for the release's files: <files_url><path>.",
       "title": "Files Url",
@@ -2531,6 +2625,11 @@
      },
      "release_version": {
       "title": "Release Version",
+      "type": "string"
+     },
+     "segmentation_version": {
+      "description": "The segmentation schema every mesh of the release is labelled to.",
+      "title": "Segmentation Version",
       "type": "string"
      },
      "species": {
@@ -2545,7 +2644,7 @@
     "required": [
      "species",
      "release_version",
-     "base_mesh_version",
+     "segmentation_version",
      "files_url",
      "manifest"
     ],
@@ -3585,49 +3684,8 @@
    },
    "ReleaseManifest": {
     "additionalProperties": false,
-    "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
+    "description": "manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). Release 2.0 (decision 118): every family and part variant names the mesh it is built on; meshes are unique per figurine and labelled to one segmentation schema. The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.",
     "properties": {
-     "atlas": {
-      "additionalProperties": false,
-      "properties": {
-       "channels": {
-        "additionalProperties": {
-         "minimum": 0,
-         "type": "integer"
-        },
-        "description": "Mask name -> flat channel index (file index * 4 + channel); includes eye and nose.",
-        "type": "object"
-       },
-       "mask_files": {
-        "description": "RGBA PNGs in the species UV atlas; each channel is one mask.",
-        "items": {
-         "type": "string"
-        },
-        "type": "array"
-       },
-       "size": {
-        "enum": [
-         512,
-         1024,
-         2048
-        ],
-        "type": "integer"
-       }
-      },
-      "required": [
-       "size",
-       "mask_files",
-       "channels"
-      ],
-      "type": "object"
-     },
-     "base_mesh_version": {
-      "type": "string"
-     },
-     "base_topology": {
-      "description": "topology_hash of the base mesh every delta was extracted on; a kiosk refuses a release whose hash differs from its own base mesh.",
-      "type": "string"
-     },
      "created_at": {
       "format": "date-time",
       "type": "string"
@@ -3652,11 +3710,18 @@
          "type": "object"
         },
         "delta": {
-         "description": "float16 (n, 3) full-mesh vertex offsets, little endian.",
-         "type": "string"
+         "description": "float16 (n, 3) offsets on its mesh, little endian; null when the family is the mesh as published.",
+         "type": [
+          "string",
+          "null"
+         ]
         },
         "id": {
          "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "mesh_id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id",
+         "description": "The mesh this family is built on."
         },
         "name": {
          "type": "string"
@@ -3684,6 +3749,7 @@
        "required": [
         "id",
         "name",
+        "mesh_id",
         "delta",
         "default_parts",
         "breeds",
@@ -3722,9 +3788,12 @@
       },
       "type": "array"
      },
-     "mesh": {
-      "description": "Path of base.bin: the base mesh the client builds its preview from (positions, triangles, corner UVs, eye and nose masks per vertex).",
-      "type": "string"
+     "meshes": {
+      "items": {
+       "$ref": "#/components/schemas/ReleaseManifest_mesh"
+      },
+      "minItems": 1,
+      "type": "array"
      },
      "notes": {
       "type": "string"
@@ -3738,7 +3807,7 @@
        "additionalProperties": false,
        "properties": {
         "channel": {
-         "description": "Flat mask channel (see atlas.channels).",
+         "description": "Flat mask channel in every mesh's atlas (see meshes[].atlas.channels).",
          "minimum": 0,
          "type": "integer"
         },
@@ -3816,11 +3885,15 @@
          ]
         },
         "delta": {
-         "description": "float16 (n, 3) vertex offsets, zero outside the region and feathered by the region's vertex-group weights.",
+         "description": "float16 (n, 3) offsets on its mesh, zero outside the region and feathered by the mesh's part weights.",
          "type": "string"
         },
         "id": {
          "$ref": "#/components/schemas/ReleaseManifest_id"
+        },
+        "mesh_id": {
+         "$ref": "#/components/schemas/ReleaseManifest_id",
+         "description": "The one mesh this part variant applies to (part variants never cross meshes)."
         },
         "name": {
          "type": "string"
@@ -3858,6 +3931,7 @@
         "id",
         "name",
         "region",
+        "mesh_id",
         "delta",
         "tags",
         "version",
@@ -3868,10 +3942,15 @@
       "type": "array"
      },
      "release_schema": {
-      "const": "1.0"
+      "const": "2.0"
      },
      "release_version": {
       "pattern": "^release-(dog|cat)-[0-9]+$",
+      "type": "string"
+     },
+     "segmentation_version": {
+      "description": "The segmentation schema (data/segmentation/) every mesh is labelled to; a kiosk refuses a release for another schema.",
+      "pattern": "^seg-[0-9]+$",
       "type": "string"
      },
      "shell_parts": {
@@ -3943,9 +4022,8 @@
      "release_version",
      "species",
      "number",
-     "base_mesh_version",
-     "base_topology",
-     "atlas",
+     "segmentation_version",
+     "meshes",
      "created_at",
      "created_by",
      "families",
@@ -3960,6 +4038,109 @@
    "ReleaseManifest_id": {
     "pattern": "^[a-z0-9_]{1,64}$",
     "type": "string"
+   },
+   "ReleaseManifest_mesh": {
+    "additionalProperties": false,
+    "properties": {
+     "atlas": {
+      "additionalProperties": false,
+      "properties": {
+       "channels": {
+        "additionalProperties": {
+         "minimum": 0,
+         "type": "integer"
+        },
+        "description": "Mask name -> flat channel index (file index * 4 + channel); includes eye and nose.",
+        "type": "object"
+       },
+       "mask_files": {
+        "description": "RGBA PNGs in this mesh's UVs; each channel is one mask.",
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "size": {
+        "enum": [
+         512,
+         1024,
+         2048
+        ],
+        "type": "integer"
+       }
+      },
+      "required": [
+       "size",
+       "mask_files",
+       "channels"
+      ],
+      "type": "object"
+     },
+     "bin": {
+      "description": "PPB1 binary the viewer builds the preview from (positions, triangles, corner UVs, shells).",
+      "type": "string"
+     },
+     "breeds": {
+      "description": "Every breed whose family uses this mesh: breeds listed together share one mesh (decision 116).",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "id": {
+      "$ref": "#/components/schemas/ReleaseManifest_id",
+      "description": "mesh_id: content hash of the geometry (petpop_library.figure)."
+     },
+     "info": {
+      "description": "JSON: mesh_id, segmentation version, topology, counts and landmarks.",
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "package": {
+      "description": "figure_mesh.npz: the mesh with its part weights and pattern regions, for the export.",
+      "type": "string"
+     },
+     "source": {
+      "enum": [
+       "generated",
+       "template"
+      ]
+     },
+     "source_job": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "texture": {
+      "description": "The generator's own texture in the mesh's UVs, when it has one.",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "thumbnail": {
+      "type": "string"
+     },
+     "version": {
+      "minimum": 1,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "bin",
+     "info",
+     "package",
+     "atlas",
+     "breeds",
+     "version",
+     "thumbnail"
+    ],
+    "type": "object"
    },
    "ResultPage": {
     "additionalProperties": false,
@@ -4561,7 +4742,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.5.0"
+  "version": "3.6.0"
  },
  "openapi": "3.1.0",
  "paths": {

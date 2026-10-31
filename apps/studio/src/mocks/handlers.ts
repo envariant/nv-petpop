@@ -159,7 +159,7 @@ const userOf = (request: Request) => {
 const unauthorised = () => HttpResponse.json({ detail: 'staff login required' }, { status: 401 });
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.5.0', server: 'mock-server' })),
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.6.0', server: 'mock-server' })),
   http.post('/api/v1/studio/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (!ROLES.includes(body.username) || body.password !== MOCK_PASSWORD) return HttpResponse.json({ detail: 'wrong username or password' }, { status: 401 });

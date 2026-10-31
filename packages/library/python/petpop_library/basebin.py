@@ -1,4 +1,4 @@
-"""base.bin + mesh.json: the base mesh as the kiosk's viewer consumes it (packages/viewer/src/library.ts).
+"""<mesh>.bin + <mesh>.json: one library mesh as the kiosk's viewer consumes it (packages/viewer/src/library.ts).
 
 The preview is built from the same vertex order the deltas are keyed on (the GLB splits vertices at UV seams, so
 it cannot be used for deltas). Layout of base.bin, little endian:
@@ -47,8 +47,8 @@ def read_base_bin(data: bytes) -> dict[str, np.ndarray]:
     return {"co": co, "tri": tri, "uv": uv, "shell": shell}
 
 
-def mesh_json(base: BaseMesh, version: str) -> bytes:
-    doc = {"base_mesh_version": version, "topology": base.topology_hash(), "vertices": int(len(base.co)),
-           "triangles": int(len(base.tri_verts)), "bin": "base.bin",
+def mesh_json(base: BaseMesh, bin_path: str) -> bytes:
+    doc = {"mesh_id": base.mesh_id, "segmentation_version": base.schema_version, "topology": base.topology_hash(),
+           "vertices": int(len(base.co)), "triangles": int(len(base.tri_verts)), "bin": bin_path,
            "landmarks": {k: int(v) for k, v in sorted(base.landmarks.items())}}
     return (json.dumps(doc, indent=1, sort_keys=True) + "\n").encode()

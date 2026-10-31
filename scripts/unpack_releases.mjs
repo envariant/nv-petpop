@@ -1,7 +1,7 @@
 // Unpack the committed proxy library releases (fixtures/library/release-<species>-<n>.tar) into an app's public/
 // folder for standalone mode and Storybook; the real kiosk serves releases from its API. Used by both apps'
 // scripts/sync-assets.mjs. A minimal ustar reader: regular files only, no absolute or parent paths.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 function untar(buf, dst) {
@@ -23,6 +23,8 @@ export function unpackReleases(root, pub) {
   const lib = join(root, 'fixtures/library');
   if (!existsSync(lib)) return;
   for (const f of readdirSync(lib).filter((n) => /^release-(dog|cat)-\d+\.tar$/.test(n))) {
-    untar(readFileSync(join(lib, f)), join(pub, 'library', f.split('-')[1]));
+    const dst = join(pub, 'library', f.split('-')[1]);
+    rmSync(dst, { recursive: true, force: true }); // no files left over from an older release
+    untar(readFileSync(join(lib, f)), dst);
   }
 }

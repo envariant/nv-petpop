@@ -57,14 +57,15 @@ def test_stamp_crosses_a_seam_correctly(species, near):
 def test_coverage_grows_smoothly_and_monotonically():
     base = load_base("dog")
     m, files = release.read((ROOT / "fixtures/library/release-dog-1.tar").read_bytes())
-    masks = paint.read_masks([files[f] for f in m["atlas"]["mask_files"]])
+    atlas = m["meshes"][0]["atlas"]
+    masks = paint.read_masks([files[f] for f in atlas["mask_files"]])
     ch = {p["id"]: p["channel"] for p in m["pattern_layers"]}
     stamps = paint.stamp_layer(base, texel_map("dog", SIZE), [])
     covered = []
     for cov in np.linspace(0.05, 1.0, 20):
         comp = {"base_colour": "#000000", "layers": [{"pattern_id": "pattern_chest", "coverage": float(cov), "colour": "#FFFFFF"}],
                 "eye_colour": "#000000", "nose_colour": "#000000"}
-        covered.append(int((paint.composite(masks, m["atlas"]["channels"], comp, ch, stamps)[..., 0] > 127).sum()))
+        covered.append(int((paint.composite(masks, atlas["channels"], comp, ch, stamps)[..., 0] > 127).sum()))
     steps = np.diff(covered)
     assert (steps >= 0).all()  # markings grow, never jump back
     assert steps.max() < 0.15 * covered[-1]  # and grow in small steps, not by snapping between presets
@@ -107,7 +108,7 @@ def test_release_signature_and_hashes_are_checked(tmp_path):
 
 
 def test_store_keeps_two_and_switches_atomically(tmp_path):
-    store = release.ReleaseStore(tmp_path, base_topology={"dog": load_base("dog").topology_hash()})
+    store = release.ReleaseStore(tmp_path, segmentation={"dog": "seg-1"})
     manifest, files = release.read((ROOT / "fixtures/library/release-dog-1.tar").read_bytes())
     bare = {k: v for k, v in manifest.items() if k != "files"}
     for n in (1, 2, 3):
@@ -115,7 +116,7 @@ def test_store_keeps_two_and_switches_atomically(tmp_path):
         assert store.install(release.pack(m, files)).version == f"release-dog-{n}"
         assert store.active("dog").version == f"release-dog-{n}"
     assert store.installed("dog") == ["release-dog-2", "release-dog-3"]
-    wrong = {**bare, "number": 4, "release_version": "release-dog-4", "base_topology": "0" * 16}
-    with pytest.raises(release.ReleaseError, match="base topology"):
+    wrong = {**bare, "number": 4, "release_version": "release-dog-4", "segmentation_version": "seg-9"}
+    with pytest.raises(release.ReleaseError, match="segmentation"):
         store.install(release.pack(wrong, files))
     assert store.active("dog").version == "release-dog-3"  # a refused bundle never replaces the active one

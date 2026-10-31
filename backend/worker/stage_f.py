@@ -102,7 +102,9 @@ def finish_export(ctx, manifest, spec, base, coords, albedo_png: bytes, thumb_co
     np.save(work / "coords.npy", coords.astype(np.float32))
     job = {"species": spec["species"], "coords": str(work / "coords.npy")}
     if base.mesh_id:  # a figurine mesh: the Blender stages build it from the package, not from the template
-        (work / "figure_mesh.npz").write_bytes(figure.save(base))
+        from dataclasses import replace
+
+        (work / "figure_mesh.npz").write_bytes(figure.save(replace(base, co=np.asarray(coords, np.float64))))
         job["mesh"] = str(work / "figure_mesh.npz")
     metrics: dict = {}
     import trimesh

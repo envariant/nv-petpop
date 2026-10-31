@@ -104,7 +104,8 @@ class EventRow(Base):
 
 
 # --------------------------------------------------------------------------- library mode (BRIEF Section 16)
-# The Studio's library: every item is versioned and keyed by base-mesh version; only published items are packed
+# The Studio's library: every item is versioned (base_mesh_version holds the segmentation schema version since
+# decision 118; families and part variants name their mesh); only published items are packed
 # into a release. The kiosk never reads these tables: it reads its installed release bundles and writes only
 # compositions (the order record).
 
@@ -154,6 +155,7 @@ class CurationBatchRow(Base):
 class FamilyRow(_LibraryItem, Base):
     """A body or head variant: a full-mesh delta with its default parts set and breed tags."""
     __tablename__ = "families"
+    mesh_id: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the mesh it is built on (decision 118)
     default_parts: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
     breeds: Mapped[list[str]] = mapped_column(JSON, default=list)
 
@@ -161,6 +163,7 @@ class FamilyRow(_LibraryItem, Base):
 class RegionDeltaRow(_LibraryItem, Base):
     """Vertex offsets for one vertex group (float16), with QC metrics and the curator's score."""
     __tablename__ = "region_deltas"
+    mesh_id: Mapped[str | None] = mapped_column(String(40), nullable=True)  # the one mesh it applies to
     region: Mapped[str] = mapped_column(String(12), index=True)
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
@@ -218,7 +221,8 @@ _engines: dict[str, Engine] = {}
 # existing database (a local var/petpop.db, a Postgres volume) gets them here. Additive and nullable only.
 ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", "genai_profile", "VARCHAR(40)"),
                  ("jobs", "pipeline", "VARCHAR(40)"), ("curation_batches", "pipeline", "VARCHAR(40)"),
-                 ("jobs", "options", "JSON"), ("curation_batches", "options", "JSON")]
+                 ("jobs", "options", "JSON"), ("curation_batches", "options", "JSON"),
+                 ("families", "mesh_id", "VARCHAR(40)"), ("region_deltas", "mesh_id", "VARCHAR(40)")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

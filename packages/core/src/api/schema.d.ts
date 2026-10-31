@@ -914,16 +914,14 @@ export interface components {
         };
         /**
          * Composition
-         * @description What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the species base mesh plus the family delta plus one region delta per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.
+         * @description What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the family's mesh (decision 116) plus the family delta plus one part variant of that mesh per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.
          */
         Composition: {
             base_colour: components["schemas"]["Composition_hex"];
-            /** @description Must equal the release's base mesh version. */
-            base_mesh_version: string;
             /** @description The breed the customer started from (informational). */
             breed_id?: string;
             /** @constant */
-            composition_version: "1.0";
+            composition_version: "2.0";
             eye_colour: components["schemas"]["Composition_hex"];
             family_id: string;
             /** @description Pattern layers, composited in this order over the base colour. */
@@ -933,6 +931,8 @@ export interface components {
                 coverage: number;
                 pattern_id: string;
             }[];
+            /** @description The mesh the family and every part are built on; stamps are positions on this mesh. */
+            mesh_id: string;
             nose_colour: components["schemas"]["Composition_hex"];
             /** @description One region-delta part id per region; a region left out keeps the family's shape. */
             parts: {
@@ -951,7 +951,7 @@ export interface components {
             }[];
             /** @enum {unknown} */
             species: "dog" | "cat";
-            /** @description Spots, patches and brush dabs, painted after the layers in this order. Positions are in base-mesh space (mm), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly. */
+            /** @description Spots, patches and brush dabs, painted after the layers in this order. Positions are on the undeformed mesh (mm, the mesh the composition names), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly. */
             stamps: {
                 colour: components["schemas"]["Composition_hex"];
                 p: number[];
@@ -1413,6 +1413,8 @@ export interface components {
         LibraryFamilies: {
             /** Items */
             items: components["schemas"]["LibraryFamily"][];
+            /** Meshes */
+            meshes: components["schemas"]["LibraryMesh"][];
             /** Release Version */
             release_version: string;
             /**
@@ -1429,10 +1431,18 @@ export interface components {
             default_parts: {
                 [key: string]: string;
             };
-            /** Delta Url */
-            delta_url: string;
+            /**
+             * Delta Url
+             * @description float16 offsets on its mesh; null when the family is the mesh as published.
+             */
+            delta_url: string | null;
             /** Id */
             id: string;
+            /**
+             * Mesh Id
+             * @description The mesh the family is built on (LibraryFamilies.meshes).
+             */
+            mesh_id: string;
             /** Name */
             name: string;
             /** Tags */
@@ -1522,6 +1532,31 @@ export interface components {
             /** Tags */
             tags?: string[] | null;
         };
+        /**
+         * LibraryMesh
+         * @description One library mesh (decision 116): every breed listed here shares it; part variants apply only to it.
+         */
+        LibraryMesh: {
+            /** Bin Url */
+            bin_url: string;
+            /**
+             * Breeds
+             * @description Every breed whose family is built on this mesh.
+             */
+            breeds: string[];
+            /** Family Ids */
+            family_ids: string[];
+            /** Id */
+            id: string;
+            /** Info Url */
+            info_url: string;
+            /** Name */
+            name: string;
+            /** Texture Url */
+            texture_url?: string | null;
+            /** Thumbnail Url */
+            thumbnail_url: string;
+        };
         /** LibraryPart */
         LibraryPart: {
             /** Default Colour */
@@ -1533,6 +1568,11 @@ export interface components {
              * @enum {string}
              */
             kind: "delta" | "shell";
+            /**
+             * Mesh Id
+             * @description The one mesh a region part applies to (shell parts fit every mesh).
+             */
+            mesh_id?: string | null;
             /** Name */
             name: string;
             /**
@@ -1602,8 +1642,6 @@ export interface components {
          * @description The active release for a species: its manifest (data/schema/release.schema.json) and where its files are.
          */
         LibraryRelease: {
-            /** Base Mesh Version */
-            base_mesh_version: string;
             /**
              * Files Url
              * @description Prefix for the release's files: <files_url><path>.
@@ -1612,6 +1650,11 @@ export interface components {
             manifest: components["schemas"]["ReleaseManifest"];
             /** Release Version */
             release_version: string;
+            /**
+             * Segmentation Version
+             * @description The segmentation schema every mesh of the release is labelled to.
+             */
+            segmentation_version: string;
             /**
              * Species
              * @enum {string}
@@ -1977,22 +2020,9 @@ export interface components {
         };
         /**
          * LibraryRelease
-         * @description manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.
+         * @description manifest.json of a library release bundle, release-<species>-<n>.tar (BRIEF Section 17, contract 1: Studio to Kiosk). Release 2.0 (decision 118): every family and part variant names the mesh it is built on; meshes are unique per figurine and labelled to one segmentation schema. The tar holds manifest.json, manifest.sig (HMAC-SHA256 of manifest.json with the release key) and every file listed, each checked by sha256 on load. Drafts and rejected parts never appear here.
          */
         ReleaseManifest: {
-            atlas: {
-                /** @description Mask name -> flat channel index (file index * 4 + channel); includes eye and nose. */
-                channels: {
-                    [key: string]: number;
-                };
-                /** @description RGBA PNGs in the species UV atlas; each channel is one mask. */
-                mask_files: string[];
-                /** @enum {integer} */
-                size: 512 | 1024 | 2048;
-            };
-            base_mesh_version: string;
-            /** @description topology_hash of the base mesh every delta was extracted on; a kiosk refuses a release whose hash differs from its own base mesh. */
-            base_topology: string;
             /** Format: date-time */
             created_at: string;
             created_by: string;
@@ -2001,9 +2031,11 @@ export interface components {
                 default_parts: {
                     [key: string]: components["schemas"]["ReleaseManifest_id"];
                 };
-                /** @description float16 (n, 3) full-mesh vertex offsets, little endian. */
-                delta: string;
+                /** @description float16 (n, 3) offsets on its mesh, little endian; null when the family is the mesh as published. */
+                delta: string | null;
                 id: components["schemas"]["ReleaseManifest_id"];
+                /** @description The mesh this family is built on. */
+                mesh_id: components["schemas"]["ReleaseManifest_id"];
                 name: string;
                 source_job?: string | null;
                 tags: string[];
@@ -2015,12 +2047,11 @@ export interface components {
                 path: string;
                 sha256: string;
             }[];
-            /** @description Path of base.bin: the base mesh the client builds its preview from (positions, triangles, corner UVs, eye and nose masks per vertex). */
-            mesh?: string;
+            meshes: components["schemas"]["ReleaseManifest_mesh"][];
             notes?: string;
             number: number;
             pattern_layers: {
-                /** @description Flat mask channel (see atlas.channels). */
+                /** @description Flat mask channel in every mesh's atlas (see meshes[].atlas.channels). */
                 channel: number;
                 coverage: {
                     default: number;
@@ -2036,9 +2067,11 @@ export interface components {
             }[];
             region_deltas: {
                 curator_score?: number | null;
-                /** @description float16 (n, 3) vertex offsets, zero outside the region and feathered by the region's vertex-group weights. */
+                /** @description float16 (n, 3) offsets on its mesh, zero outside the region and feathered by the mesh's part weights. */
                 delta: string;
                 id: components["schemas"]["ReleaseManifest_id"];
+                /** @description The one mesh this part variant applies to (part variants never cross meshes). */
+                mesh_id: components["schemas"]["ReleaseManifest_id"];
                 name: string;
                 /** @enum {unknown} */
                 region: "ears" | "tail" | "muzzle" | "head" | "legs";
@@ -2048,8 +2081,10 @@ export interface components {
                 version: number;
             }[];
             /** @constant */
-            release_schema: "1.0";
+            release_schema: "2.0";
             release_version: string;
+            /** @description The segmentation schema (data/segmentation/) every mesh is labelled to; a kiosk refuses a release for another schema. */
+            segmentation_version: string;
             shell_parts: {
                 default_colour: string;
                 id: components["schemas"]["ReleaseManifest_id"];
@@ -2068,6 +2103,36 @@ export interface components {
             species: "dog" | "cat";
         };
         ReleaseManifest_id: string;
+        ReleaseManifest_mesh: {
+            atlas: {
+                /** @description Mask name -> flat channel index (file index * 4 + channel); includes eye and nose. */
+                channels: {
+                    [key: string]: number;
+                };
+                /** @description RGBA PNGs in this mesh's UVs; each channel is one mask. */
+                mask_files: string[];
+                /** @enum {integer} */
+                size: 512 | 1024 | 2048;
+            };
+            /** @description PPB1 binary the viewer builds the preview from (positions, triangles, corner UVs, shells). */
+            bin: string;
+            /** @description Every breed whose family uses this mesh: breeds listed together share one mesh (decision 116). */
+            breeds: string[];
+            /** @description mesh_id: content hash of the geometry (petpop_library.figure). */
+            id: components["schemas"]["ReleaseManifest_id"];
+            /** @description JSON: mesh_id, segmentation version, topology, counts and landmarks. */
+            info: string;
+            name: string;
+            /** @description figure_mesh.npz: the mesh with its part weights and pattern regions, for the export. */
+            package: string;
+            /** @enum {unknown} */
+            source?: "generated" | "template";
+            source_job?: string | null;
+            /** @description The generator's own texture in the mesh's UVs, when it has one. */
+            texture?: string | null;
+            thumbnail: string;
+            version: number;
+        };
         /** ResultPage */
         ResultPage: {
             /** Breed Label */

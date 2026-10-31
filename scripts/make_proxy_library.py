@@ -2,10 +2,12 @@
 """Build the proxy library releases from the proxy base meshes (BRIEF Section 16, M7):
 fixtures/library/release-dog-1.tar and release-cat-1.tar.
 
-No GenAI: every part is a region delta made from the base mesh's own shape keys, one per enumeration value the
-breed presets use (vocab.json maps each value to shape-key weights), so every preset has a matching part. Families
-are full-mesh body and head variants; shells are the accessory library on its sockets; pattern layers are the ten
-masks of petpop_library.patterns. Studio replaces this with curated parts in M8; the kiosk cannot tell the
+No GenAI: the proxy library has one mesh per species, the template itself (decision 118), and every family and
+part variant is built on it: part variants are region deltas made from the template's own shape keys, one per
+enumeration value the breed presets use (vocab.json maps each value to shape-key weights), so every preset has a
+matching part; families are full-mesh body and head variants, so every breed shares this one mesh and the release
+says so. Shells are the accessory library on its sockets; pattern layers are the ten masks of
+petpop_library.patterns, rasterised in the mesh's UVs. Studio replaces this with curated parts in M8; the kiosk cannot tell the
 difference because both arrive as signed release bundles.
 
     python scripts/make_proxy_library.py [dog|cat ...]
@@ -23,12 +25,11 @@ import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 
 from petpop_core.breeds import all_breeds  # noqa: E402
 from petpop_core.vocab import vocab  # noqa: E402
-from petpop_library import accessories, content, release  # noqa: E402
-from petpop_library.atlas import texel_map  # noqa: E402
-from petpop_library.basebin import base_bin, mesh_json  # noqa: E402
+from petpop_library import accessories, content, figure, release  # noqa: E402
+from petpop_library.atlas import mesh_texel_map  # noqa: E402
 from petpop_library.deltas import encode, region_weights  # noqa: E402
 from petpop_library.meshkit import load_base  # noqa: E402
-from petpop_library.patterns import CHANNELS, PATTERNS, build_masks, pack_png  # noqa: E402
+from petpop_library.patterns import CHANNELS, PATTERNS, build_masks  # noqa: E402
 
 OUT = ROOT / "fixtures" / "library"
 ATLAS = 1024
@@ -70,16 +71,16 @@ def label(slot: str, value) -> str:
 
 def build(species: str) -> Path:
     base = load_base(species)
-    version = "proxy-1.0"
+    mesh = figure.from_template(base, base.co)
     breeds = all_breeds(species)
-    files: dict[str, bytes] = {"base.bin": base_bin(base), "mesh.json": mesh_json(base, version)}
+    files: dict[str, bytes] = {}
     region_deltas, families, shell_parts, pattern_layers = [], [], [], []
 
     def add_delta(pid: str, name: str, region: str, weights: dict[str, float], tags: list[str]) -> None:
         d = content.delta_from_weights(base, weights, region)
         files[f"deltas/{pid}.f16"] = encode(d)
         files[f"thumbs/{pid}.png"] = content.thumbnail(base, base.co + d, content.highlight(base, region_weights(base, region)))
-        region_deltas.append({"id": pid, "name": name, "region": region, "delta": f"deltas/{pid}.f16", "tags": tags, "version": 1,
+        region_deltas.append({"id": pid, "name": name, "region": region, "mesh_id": mesh.mesh_id, "delta": f"deltas/{pid}.f16", "tags": tags, "version": 1,
                               "thumbnail": f"thumbs/{pid}.png", "source_job": None, "curator_score": None})
 
     # Region deltas: one per slot value the species' presets use (plus the neutral "classic" part per region).
@@ -114,7 +115,7 @@ def build(species: str) -> Path:
             fam = "brachy" if brachy and any(f[0] == "brachy" for f in fam_defs) else build_
             if fam == fid:
                 members.append(b["id"])
-        families.append({"id": f"family_{fid}", "name": name, "delta": f"deltas/family_{fid}.f16", "default_parts": defaults,
+        families.append({"id": f"family_{fid}", "name": name, "mesh_id": mesh.mesh_id, "delta": f"deltas/family_{fid}.f16", "default_parts": defaults,
                          "breeds": members, "tags": [f"body.build:{fid}"] if fid != "brachy" else ["head.brachycephalic:true"],
                          "version": 1, "thumbnail": f"thumbs/family_{fid}.png", "source_job": None})
 
@@ -131,14 +132,10 @@ def build(species: str) -> Path:
         shell_parts.append({"id": f"shell_{kind}", "name": name, "socket": socket, "kind": kind, "mesh": f"shells/{kind}.glb",
                             "default_colour": colour, "tags": [f"accessory:{kind}"], "version": 1, "thumbnail": f"thumbs/shell_{kind}.png"})
 
-    # Pattern layers: the masks, packed four to a PNG, with eye and nose in the last file.
-    tm = texel_map(species, ATLAS)
-    masks = build_masks(base, tm)
-    packed = pack_png(masks)
-    mask_files = []
-    for i, data in enumerate(packed):
-        files[f"masks/masks_{i}.png"] = data
-        mask_files.append(f"masks/masks_{i}.png")
+    # The mesh, with its pattern masks packed four to a PNG (eye and nose in the last file).
+    entry, mfiles = content.mesh_entry(mesh, f"Classic {species}", [], size=ATLAS)
+    files.update(mfiles)
+    masks = build_masks(mesh, mesh_texel_map(mesh, ATLAS))
     channels = {name: i for i, name in enumerate(CHANNELS)}
     for p in PATTERNS:
         ch = channels[p.id]
@@ -147,9 +144,9 @@ def build(species: str) -> Path:
                                "coverage": {"min": p.coverage[0], "max": p.coverage[1], "default": p.coverage[2]},
                                "tags": [f"marking:{p.id}"], "version": 1, "thumbnail": f"thumbs/pattern_{p.id}.png"})
 
-    m = content.manifest(species, 1, base, version, "make_proxy_library.py", CREATED_AT, families, region_deltas, shell_parts,
-                         pattern_layers, {"size": ATLAS, "mask_files": mask_files, "channels": channels},
-                         notes="Proxy library from the proxy base meshes (no GenAI). Replaced by Studio releases (M8).")
+    m = content.manifest(species, 1, mesh.schema_version, "make_proxy_library.py", CREATED_AT, [entry], families,
+                         region_deltas, shell_parts, pattern_layers,
+                         notes="Proxy library on the proxy template mesh (no GenAI). Replaced by Studio releases (M8).")
     bundle = release.pack(m, files, key=release.DEV_RELEASE_KEY.encode())
     OUT.mkdir(parents=True, exist_ok=True)
     out = OUT / f"release-{species}-1.tar"

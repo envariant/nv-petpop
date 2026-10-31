@@ -25,7 +25,8 @@ function untar(buf: Buffer): Map<string, Buffer> {
 describe('stamps', () => {
   const golden = JSON.parse(readFileSync(new URL('fixtures/library/golden.json', root), 'utf8'));
   const files = untar(readFileSync(new URL(`fixtures/library/${golden.release}`, root)));
-  const bin = files.get('base.bin')!;
+  const manifest = JSON.parse(files.get('manifest.json')!.toString('utf8'));
+  const bin = files.get(manifest.meshes[0].bin)!; // the proxy release's one mesh (decision 118)
   const base = parseBaseBin(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) as ArrayBuffer);
 
   for (const c of golden.cases as { species: string; size: number; stamps: Stamp[]; rgba_sha256: string; painted_texels: number }[]) {

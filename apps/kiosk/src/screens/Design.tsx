@@ -9,6 +9,7 @@ import { GlbFigure, LibraryFigure, REGIONS, type Composition, type LoadedLibrary
 import { Button, Chip, Keyboard, Row, Section, Swatch, TextDisplay, Tile, Title, cx } from '@petpop/ui';
 import { MAX_LAYERS, MAX_STAMPS, SPOT_MM, useDesign, type ShapeRegion, type Tab } from '../store/design';
 import { useSession } from '../store/session';
+import { sharedWith } from '../lib/compose';
 
 const FUR = PALETTE_ORDER.map((n) => ({ name: n, hex: PALETTE[n].hex }));
 const EYES = Object.entries(EYE_PALETTE).map(([n, e]) => ({ name: n, hex: e.hex }));
@@ -43,11 +44,14 @@ function ShapePanel() {
   const lib = d.lib!;
   const c = d.composition!;
   const m = lib.manifest;
-  const regions: ShapeRegion[] = ['family', ...REGIONS.filter((r) => m.region_deltas.some((p) => p.region === r))];
+  // Part variants belong to one mesh (decision 118): only this figurine's mesh offers them.
+  const own = m.region_deltas.filter((p) => p.mesh_id === c.mesh_id);
+  const regions: ShapeRegion[] = ['family', ...REGIONS.filter((r) => own.some((p) => p.region === r))];
+  const shared = sharedWith(m, c.mesh_id, c.breed_id).map((b) => label(b));
   const items =
     d.region === 'family'
-      ? m.families.map((f) => ({ id: f.id, name: f.name, thumb: f.thumbnail, selected: c.family_id === f.id, pick: () => d.setFamily(f.id) }))
-      : m.region_deltas
+      ? m.families.map((f) => ({ id: f.id, name: f.name, thumb: f.thumbnail, selected: c.family_id === f.id, pick: () => void d.setFamily(f.id) }))
+      : own
           .filter((p) => p.region === d.region)
           .map((p) => ({ id: p.id, name: p.name, thumb: p.thumbnail, selected: c.parts[d.region as Region] === p.id, pick: () => d.setPart(d.region as Region, p.id) }));
   return (
@@ -59,6 +63,11 @@ function ShapePanel() {
           </Chip>
         ))}
       </Row>
+      {d.region === 'family' && shared.length > 0 && (
+        <p className="mt-4 text-lg opacity-70" data-testid="shared-mesh">
+          Same figure shape as {shared.slice(0, 3).join(', ')}{shared.length > 3 ? ` and ${shared.length - 3} more` : ''}
+        </p>
+      )}
       <div className="mt-6 grid grid-cols-4 gap-4" data-testid="part-tiles">
         {items.map((it) => (
           <Tile key={it.id} label={it.name} selected={it.selected} onClick={it.pick} testId={`part-${it.id}`} className="h-[220px]">

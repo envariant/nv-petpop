@@ -89,6 +89,19 @@ def texel_map(species: str, size: int) -> TexelMap:
     return build_texel_map(load_base(species), size)
 
 
+_MESH_MAPS: dict[tuple[str, int], TexelMap] = {}
+
+
+def mesh_texel_map(mesh: BaseMesh, size: int) -> TexelMap:
+    """The texel map of one library mesh in its own UVs (decision 116), cached by mesh_id."""
+    key = (mesh.mesh_id or mesh.topology_hash() + mesh.uv_hash(), size)
+    if key not in _MESH_MAPS:
+        if len(_MESH_MAPS) >= 8:
+            _MESH_MAPS.pop(next(iter(_MESH_MAPS)))
+        _MESH_MAPS[key] = build_texel_map(mesh, size)
+    return _MESH_MAPS[key]
+
+
 def texel_values(base: BaseMesh, tm: TexelMap, values: np.ndarray) -> np.ndarray:
     """Per-vertex values (n,) or (n, C) interpolated to every covered texel: (S, S) or (S, S, C); 0 elsewhere."""
     vals = values if values.ndim == 2 else values[:, None]

@@ -17,7 +17,7 @@ export const HANDLED_PATHS = [
   '/api/v1/kiosk/compositions/{composition_id}/bespoke',
 ];
 
-const API_VERSION = '3.5.0';
+const API_VERSION = '3.6.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();
@@ -76,8 +76,15 @@ function order(c: MockComp) {
 function compositionErrors(m: ReleaseManifest, c: CompositionBody): string[] {
   const errs: string[] = [];
   if (c.release_version !== m.release_version) errs.push(`release_version: this kiosk serves ${m.release_version}`);
-  if (!m.families.some((f) => f.id === c.family_id)) errs.push(`family_id: unknown ${c.family_id}`);
-  for (const [region, id] of Object.entries(c.parts ?? {})) if (m.region_deltas.find((d) => d.id === id)?.region !== region) errs.push(`parts.${region}: unknown ${id}`);
+  if (!m.meshes.some((x) => x.id === c.mesh_id)) errs.push(`mesh_id: unknown ${c.mesh_id}`);
+  const fam = m.families.find((f) => f.id === c.family_id);
+  if (!fam) errs.push(`family_id: unknown ${c.family_id}`);
+  else if (fam.mesh_id !== c.mesh_id) errs.push(`family_id: ${c.family_id} is built on another mesh`);
+  for (const [region, id] of Object.entries(c.parts ?? {})) {
+    const d = m.region_deltas.find((x) => x.id === id);
+    if (d?.region !== region) errs.push(`parts.${region}: unknown ${id}`);
+    else if (d.mesh_id !== c.mesh_id) errs.push(`parts.${region}: ${id} belongs to another mesh (part variants never cross meshes)`);
+  }
   for (const s of c.shells ?? []) if (!m.shell_parts.some((p) => p.id === s.part_id)) errs.push(`shells: unknown ${s.part_id}`);
   for (const l of c.layers ?? []) if (!m.pattern_layers.some((p) => p.id === l.pattern_id)) errs.push(`layers: unknown ${l.pattern_id}`);
   if ((c.stamps ?? []).length > 400) errs.push('stamps: at most 400');
@@ -110,20 +117,25 @@ export const handlers = [
     const sp = String(params.species);
     if (!breedDocs[sp]) return HttpResponse.json({ detail: 'bad species' }, { status: 422 });
     const m = await manifest(sp);
-    return HttpResponse.json({ species: sp, release_version: m.release_version, base_mesh_version: m.base_mesh_version, files_url: filesUrl(sp), manifest: m });
+    return HttpResponse.json({ species: sp, release_version: m.release_version, segmentation_version: m.segmentation_version, files_url: filesUrl(sp), manifest: m });
   }),
   http.get('/api/v1/kiosk/library/:species/families', async ({ params }) => {
     const sp = String(params.species);
     const m = await manifest(sp);
     const u = filesUrl(sp);
-    return HttpResponse.json({ species: sp, release_version: m.release_version, items: m.families.map((f) => ({ id: f.id, name: f.name, default_parts: f.default_parts, breeds: f.breeds, tags: f.tags, version: f.version, delta_url: u + f.delta, thumbnail_url: u + f.thumbnail })) });
+    return HttpResponse.json({
+      species: sp,
+      release_version: m.release_version,
+      items: m.families.map((f) => ({ id: f.id, name: f.name, mesh_id: f.mesh_id, default_parts: f.default_parts, breeds: f.breeds, tags: f.tags, version: f.version, delta_url: f.delta ? u + f.delta : null, thumbnail_url: u + f.thumbnail })),
+      meshes: m.meshes.map((x) => ({ id: x.id, name: x.name, breeds: x.breeds, family_ids: m.families.filter((f) => f.mesh_id === x.id).map((f) => f.id), bin_url: u + x.bin, info_url: u + x.info, texture_url: x.texture ? u + x.texture : null, thumbnail_url: u + x.thumbnail })),
+    });
   }),
   http.get('/api/v1/kiosk/library/:species/parts', async ({ params, request }) => {
     const sp = String(params.species);
     const region = new URL(request.url).searchParams.get('region');
     const m = await manifest(sp);
     const u = filesUrl(sp);
-    const items: unknown[] = m.region_deltas.filter((d) => !region || d.region === region).map((d) => ({ id: d.id, name: d.name, kind: 'delta', region: d.region, socket: null, tags: d.tags, version: d.version, url: u + d.delta, thumbnail_url: u + d.thumbnail, default_colour: null }));
+    const items: unknown[] = m.region_deltas.filter((d) => !region || d.region === region).map((d) => ({ id: d.id, name: d.name, kind: 'delta', region: d.region, mesh_id: d.mesh_id, socket: null, tags: d.tags, version: d.version, url: u + d.delta, thumbnail_url: u + d.thumbnail, default_colour: null }));
     if (!region || region === 'shells') items.push(...m.shell_parts.map((s) => ({ id: s.id, name: s.name, kind: 'shell', region: null, socket: s.socket, tags: s.tags ?? [], version: s.version, url: u + s.mesh, thumbnail_url: u + s.thumbnail, default_colour: s.default_colour })));
     return HttpResponse.json({ species: sp, release_version: m.release_version, items });
   }),

@@ -1,36 +1,48 @@
-// Library mode in the viewer (BRIEF Section 16): a release's base mesh, region and family deltas, shell parts and
-// pattern masks, composed exactly as the export composes them (petpop_library.deltas / paint / accessories).
+// Library mode in the viewer (BRIEF Section 16): one release mesh (decision 118: every family is built on a mesh of
+// its own, labelled to one segmentation schema), its family delta and part variants, shell parts and pattern masks,
+// composed exactly as the export composes them (petpop_library.deltas / paint / accessories).
 import * as THREE from 'three';
 import type { BaseData } from './atlas';
 
 export type Region = 'ears' | 'tail' | 'muzzle' | 'head' | 'legs';
 export const REGIONS: Region[] = ['ears', 'tail', 'muzzle', 'head', 'legs'];
 
-export interface FamilyItem { id: string; name: string; delta: string; default_parts: Record<string, string>; breeds: string[]; tags: string[]; version: number; thumbnail: string }
-export interface DeltaItem { id: string; name: string; region: Region; delta: string; tags: string[]; version: number; thumbnail: string }
+export interface FamilyItem { id: string; name: string; mesh_id: string; delta: string | null; default_parts: Record<string, string>; breeds: string[]; tags: string[]; version: number; thumbnail: string }
+export interface DeltaItem { id: string; name: string; region: Region; mesh_id: string; delta: string; tags: string[]; version: number; thumbnail: string }
+export interface MeshEntry {
+  id: string;
+  name: string;
+  source?: 'generated' | 'template';
+  bin: string;
+  info: string;
+  package: string;
+  texture?: string | null;
+  atlas: { size: number; mask_files: string[]; channels: Record<string, number> };
+  breeds: string[]; // every breed whose family is built on this mesh: they share it
+  version: number;
+  thumbnail: string;
+}
 export interface ShellItem { id: string; name: string; socket: 'neck' | 'head' | 'face'; kind: string; mesh: string; default_colour: string; tags?: string[]; version: number; thumbnail: string }
 export interface PatternItem { id: string; name: string; channel: number; default_colour: string; coverage: { min: number; max: number; default: number }; tags?: string[]; version: number; thumbnail: string }
 export interface ReleaseManifest {
   release_version: string;
   species: 'dog' | 'cat';
   number: number;
-  base_mesh_version: string;
-  base_topology: string;
-  atlas: { size: number; mask_files: string[]; channels: Record<string, number> };
-  mesh: string;
+  segmentation_version: string;
+  meshes: MeshEntry[];
   families: FamilyItem[];
   region_deltas: DeltaItem[];
   shell_parts: ShellItem[];
   pattern_layers: PatternItem[];
 }
-export interface MeshInfo { base_mesh_version: string; topology: string; vertices: number; triangles: number; bin: string; landmarks: Record<string, number> }
+export interface MeshInfo { mesh_id: string; segmentation_version: string; topology: string; vertices: number; triangles: number; bin: string; landmarks: Record<string, number> }
 
 /** Composition (data/schema/composition.schema.json): the order record and the export's only input. */
 export interface Composition {
-  composition_version: '1.0';
+  composition_version: '2.0';
   species: 'dog' | 'cat';
   release_version: string;
-  base_mesh_version: string;
+  mesh_id: string; // the family and every part are built on this mesh; stamps are positions on it
   pet_name?: string;
   breed_id?: string;
   family_id: string;
@@ -162,7 +174,7 @@ function percentile(sorted: number[], q: number): number {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
 }
 
-/** Map a hit on the composed mesh (triangle, point) back to base-mesh space, where stamps live. */
+/** Map a hit on the composed mesh (triangle, point) back to the undeformed mesh, where stamps live. */
 export function hitToBase(base: BaseData, co: Float64Array, tri: number, point: THREE.Vector3): [number, number, number] {
   const ids = [base.tri[tri * 3], base.tri[tri * 3 + 1], base.tri[tri * 3 + 2]];
   const P = ids.map((v) => new THREE.Vector3(co[v * 3], co[v * 3 + 1], co[v * 3 + 2]));

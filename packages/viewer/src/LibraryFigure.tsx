@@ -1,4 +1,4 @@
-// The kiosk's Design preview (BRIEF Section 16): the release's base mesh with the family and region deltas applied
+// The kiosk's Design preview (BRIEF Section 16): one release mesh with its family delta and part variants applied
 // as vertex offsets, shell parts on their sockets, pattern layers in the shader and stamps in an atlas texture.
 // It is the final asset, not a proxy: the export composes the same deltas and paints the same atlas.
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -10,13 +10,14 @@ import { buildTexelMap, parseBaseBin, type BaseData, type TexelMap } from './atl
 import { Fit, Spin, Stage } from './Figure3D';
 import {
   buildGeometry, composeCoords, decodeF16, hitToBase, socketFrames, updateGeometry, type Composition, type MeshInfo, type ReleaseManifest,
-  type SplitGeometry,
+  type MeshEntry, type SplitGeometry,
 } from './library';
 import { atlasTexture, bakeAtlas, makeUniforms, patternMaterial, setPattern, stampTexture, type AtlasTextures } from './PatternMaterial';
 import { StampLayer, triangleSpheres } from './stamps';
 
 export interface LoadedLibrary {
   manifest: ReleaseManifest;
+  meshEntry: MeshEntry;
   mesh: MeshInfo;
   base: BaseData;
   tm: TexelMap;
@@ -27,23 +28,27 @@ export interface LoadedLibrary {
   shell: (path: string) => Promise<THREE.BufferGeometry>;
 }
 
-/** Load a release's base mesh, masks and texel map; deltas and shells load on demand and are cached. */
-export async function loadLibrary(manifest: ReleaseManifest, url: (path: string) => string): Promise<LoadedLibrary> {
+/** Load one release mesh (the first family's when none is named), its masks and texel map; deltas and shells
+ *  load on demand and are cached. */
+export async function loadLibrary(manifest: ReleaseManifest, url: (path: string) => string, meshId?: string): Promise<LoadedLibrary> {
+  const id = meshId ?? manifest.families[0]?.mesh_id ?? manifest.meshes[0].id;
+  const meshEntry = manifest.meshes.find((m) => m.id === id);
+  if (!meshEntry) throw new Error(`the release has no mesh ${id}`);
   const [mesh, bin] = await Promise.all([
-    fetch(url(manifest.mesh)).then((r) => r.json() as Promise<MeshInfo>),
-    fetch(url('base.bin')).then((r) => r.arrayBuffer()),
+    fetch(url(meshEntry.info)).then((r) => r.json() as Promise<MeshInfo>),
+    fetch(url(meshEntry.bin)).then((r) => r.arrayBuffer()),
   ]);
   const base = parseBaseBin(bin);
-  const size = manifest.atlas.size;
+  const size = meshEntry.atlas.size;
   const loader = new THREE.TextureLoader();
-  const masks = await Promise.all(manifest.atlas.mask_files.map((f) => loader.loadAsync(url(f)).then(atlasTexture)));
+  const masks = await Promise.all(meshEntry.atlas.mask_files.map((f) => loader.loadAsync(url(f)).then(atlasTexture)));
   const tm = buildTexelMap(base, size);
   const stamps = new StampLayer(base, tm, triangleSpheres(base));
   const deltaCache = new Map<string, Promise<Float32Array>>();
   const shellCache = new Map<string, Promise<THREE.BufferGeometry>>();
   const gltf = new GLTFLoader();
   return {
-    manifest, mesh, base, tm, stamps, url,
+    manifest, meshEntry, mesh, base, tm, stamps, url,
     textures: { masks, stamps: stampTexture(size) },
     delta: (path) => {
       if (!deltaCache.has(path)) deltaCache.set(path, fetch(url(path)).then((r) => r.arrayBuffer()).then(decodeF16));
@@ -86,7 +91,7 @@ export interface PaintHit {
 function Composed({ lib, composition, onPaint, onBake }: { lib: LoadedLibrary; composition: Composition; onPaint?: (h: PaintHit) => void; onBake?: (bake: () => Uint8Array) => void }) {
   const gl = useThree((s) => s.gl);
   const split = useMemo<SplitGeometry>(() => buildGeometry(lib.base), [lib]);
-  const uniforms = useMemo(() => makeUniforms(lib.textures, lib.manifest.atlas.channels), [lib]);
+  const uniforms = useMemo(() => makeUniforms(lib.textures, lib.meshEntry.atlas.channels), [lib]);
   const material = useMemo(() => patternMaterial(uniforms), [uniforms]);
   const group = useMemo(() => new THREE.Group(), []); // fitted by <Fit> in its own (Y up) frame
   const zUp = useMemo(() => {
@@ -108,16 +113,16 @@ function Composed({ lib, composition, onPaint, onBake }: { lib: LoadedLibrary; c
     };
   }, [group, zUp, body]);
 
-  // Geometry: family + region deltas (loaded on demand), recomposed on every part swap.
+  // Geometry: family delta + part variants of this mesh (loaded on demand), recomposed on every part swap.
   const deltaKey = JSON.stringify([composition.family_id, composition.parts]);
   useEffect(() => {
     let live = true;
     const m = lib.manifest;
-    const fam = m.families.find((f) => f.id === composition.family_id);
+    const fam = m.families.find((f) => f.id === composition.family_id && f.mesh_id === lib.meshEntry.id);
     const parts = Object.values(composition.parts)
-      .map((id) => m.region_deltas.find((d) => d.id === id))
+      .map((id) => m.region_deltas.find((d) => d.id === id && d.mesh_id === lib.meshEntry.id))
       .filter((d): d is NonNullable<typeof d> => !!d);
-    Promise.all([fam ? lib.delta(fam.delta) : Promise.resolve(null), ...parts.map((p) => lib.delta(p.delta))]).then((ds) => {
+    Promise.all([fam?.delta ? lib.delta(fam.delta) : Promise.resolve(null), ...parts.map((p) => lib.delta(p.delta))]).then((ds) => {
       if (!live) return;
       const c = composeCoords(lib.base, ds);
       updateGeometry(lib.base, split, c);
@@ -173,7 +178,7 @@ function Composed({ lib, composition, onPaint, onBake }: { lib: LoadedLibrary; c
   }, [uniforms, composition.base_colour, composition.eye_colour, composition.nose_colour, composition.layers, channels]);
 
   useEffect(() => {
-    onBake?.(() => bakeAtlas(gl, uniforms, lib.manifest.atlas.size));
+    onBake?.(() => bakeAtlas(gl, uniforms, lib.meshEntry.atlas.size));
   }, [gl, uniforms, lib, onBake]);
 
   const hit = (e: ThreeEvent<PointerEvent>, dragging: boolean) => {

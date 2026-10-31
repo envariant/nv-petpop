@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from backend.worker.export import render_albedo
-from petpop_library.atlas import texel_map
+from petpop_library.atlas import mesh_texel_map
 from petpop_library.release import Release, read
 
 MAX_MEAN = 0.5   # mean absolute difference per channel, 0..255
@@ -33,9 +33,9 @@ def main(out_dir: str) -> int:
 
     rel = Mem(manifest, Path("."))
     server = render_albedo(rel, comp).astype(np.int16)
-    size = manifest["atlas"]["size"]
+    size = rel.item("meshes", comp["mesh_id"])["atlas"]["size"]
     screen = np.frombuffer((d / "bake.rgba").read_bytes(), np.uint8).reshape(size, size, 4)[..., :3].astype(np.int16)
-    covered = texel_map(comp["species"], size).tri >= 0
+    covered = mesh_texel_map(rel.mesh(comp["mesh_id"]), size).tri >= 0
     diff = np.abs(server - screen)[covered]
     mean, p999 = float(diff.mean()), float(np.percentile(diff, 99.9))
     exact = float((diff.max(axis=1) <= 1).mean())

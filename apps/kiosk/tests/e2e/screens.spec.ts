@@ -45,6 +45,8 @@ test('4 design: the library assembler swaps parts live on the kiosk GPU', async 
   await expect(tiles.and(page.locator('[aria-pressed=true]'))).toHaveCount(1);
   await page.getByTestId('region-family').tap();
   await expect(page.getByTestId('part-tiles').locator('[aria-pressed=true]')).toHaveCount(1);
+  // Breeds built on the same mesh are labelled so (decision 118); the proxy library has one mesh per species.
+  await expect(page.getByTestId('shared-mesh')).toContainText('Same figure shape as');
 });
 
 test('design tools: pattern layers with a coverage slider and a colour per layer', async ({ page }) => {

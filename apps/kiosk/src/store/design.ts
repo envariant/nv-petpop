@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { ApiFailure, KioskApi } from '@petpop/core';
 import type { Breed, CompositionBody, CompositionStatus, Species } from '@petpop/core';
 import { loadLibrary, syncStamps, uploadStamps, type Composition, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/viewer';
-import { startingComposition } from '../lib/compose';
+import { partFor, startingComposition } from '../lib/compose';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
 export type ShapeRegion = 'family' | Region;
@@ -34,7 +34,7 @@ export interface DesignState {
   load: (species: Species) => Promise<void>;
   begin: (breed: Breed) => Promise<void>;
   set: (p: Partial<DesignState>) => void;
-  setFamily: (id: string) => void;
+  setFamily: (id: string) => Promise<void>;
   setPart: (region: Region, id: string) => void;
   setBase: (hex: string) => void;
   toggleLayer: (patternId: string) => void;
@@ -70,7 +70,17 @@ const initial = {
 };
 
 let libSpecies: Species | null = null;
+let release: { manifest: ReleaseManifest; url: (path: string) => string } | null = null;
 let lastDab: [number, number, number] | null = null;
+const libs = new Map<string, Promise<LoadedLibrary>>(); // one per mesh of the active release
+
+let breedPreset: unknown = null;
+
+function meshLibrary(meshId: string): Promise<LoadedLibrary> {
+  if (!release) return Promise.reject(new Error('no release loaded'));
+  if (!libs.has(meshId)) libs.set(meshId, loadLibrary(release.manifest, release.url, meshId));
+  return libs.get(meshId)!;
+}
 
 export const useDesign = create<DesignState>((set, get) => {
   const edit = (f: (c: Composition) => Composition) => {
@@ -84,7 +94,9 @@ export const useDesign = create<DesignState>((set, get) => {
       set({ loading: true, libError: null });
       try {
         const rel = await KioskApi.libraryRelease(species);
-        const lib = await loadLibrary(rel.manifest as unknown as ReleaseManifest, (path) => `${rel.files_url}${path}`);
+        release = { manifest: rel.manifest as unknown as ReleaseManifest, url: (path) => `${rel.files_url}${path}` };
+        libs.clear();
+        const lib = await meshLibrary(release.manifest.families[0]?.mesh_id ?? release.manifest.meshes[0].id);
         libSpecies = species;
         set({ lib, loading: false });
       } catch {
@@ -93,13 +105,32 @@ export const useDesign = create<DesignState>((set, get) => {
     },
     begin: async (breed) => {
       await get().load(breed.species);
-      const lib = get().lib;
-      if (!lib) return;
+      if (!get().lib || !release) return;
+      const composition = startingComposition(release.manifest, breed);
+      const lib = await meshLibrary(composition.mesh_id);
       syncStamps(lib, []);
-      set({ composition: startingComposition(lib.manifest, breed), strokes: [], tab: 'shape', region: 'family', order: null, orderError: null });
+      breedPreset = breed.preset;
+      set({ lib, composition, strokes: [], tab: 'shape', region: 'family', order: null, orderError: null });
     },
     set: (p) => set(p),
-    setFamily: (id) => edit((c) => ({ ...c, family_id: id })),
+    setFamily: async (id) => {
+      const c = get().composition;
+      const fam = release?.manifest.families.find((f) => f.id === id);
+      if (!c || !fam || !release) return;
+      if (fam.mesh_id === c.mesh_id) {
+        edit((x) => ({ ...x, family_id: id }));
+        return;
+      }
+      // Another mesh (decision 118): its own part variants, and stamps start afresh because they live on the mesh.
+      const lib = await meshLibrary(fam.mesh_id);
+      syncStamps(lib, []);
+      const parts: Composition['parts'] = {};
+      for (const region of Object.keys(fam.default_parts) as Region[]) {
+        const pid = partFor(release.manifest, region, breedPreset, fam.default_parts[region], fam.mesh_id);
+        if (pid) parts[region] = pid;
+      }
+      set({ lib, composition: { ...c, family_id: id, mesh_id: fam.mesh_id, parts, stamps: [] }, strokes: [] });
+    },
     setPart: (region, id) => edit((c) => ({ ...c, parts: { ...c.parts, [region]: id } })),
     setBase: (hex) => edit((c) => ({ ...c, base_colour: hex })),
     toggleLayer: (pid) =>

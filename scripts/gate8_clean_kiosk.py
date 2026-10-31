@@ -69,7 +69,10 @@ def main() -> int:
     rel = kiosk.library.active("dog").manifest
     from petpop_library.composition import sample
 
-    comp = sample(rel, layers=3, stamps=20, pet_name="Fresh")
+    from petpop_library import release as rel_mod
+
+    _, rel_files = rel_mod.read((kiosk_var / "inbox" / f"{info.release_version}.tar").read_bytes())
+    comp = sample(rel, layers=3, stamps=20, pet_name="Fresh", files=rel_files)
     fams = [c for c in new_parts if c.kind == "family"]
     if fams:
         comp["family_id"] = fams[0].id

@@ -123,20 +123,25 @@ def wait_composition(client, cid: str, timeout: float = 300) -> dict:
 def test_kiosk_library_listing(client, species):
     rel = library(client, species)
     fams = check(f"{K}/library/{{species}}/families", "get", client.get(f"{K}/library/{species}/families"))
-    assert fams["items"] and all(f["delta_url"].startswith(rel["files_url"]) for f in fams["items"])
+    assert fams["items"] and all(f["delta_url"] is None or f["delta_url"].startswith(rel["files_url"]) for f in fams["items"])
+    # Every family names a mesh the listing describes, and each mesh lists the breeds that share it (decision 118).
+    meshes = {me["id"]: me for me in fams["meshes"]}
+    for f in fams["items"]:
+        assert f["id"] in meshes[f["mesh_id"]]["family_ids"] and set(f["breeds"]) <= set(meshes[f["mesh_id"]]["breeds"])
+    bin_url = fams["meshes"][0]["bin_url"]
     ears = check(f"{K}/library/{{species}}/parts", "get", client.get(f"{K}/library/{species}/parts", params={"region": "ears"}))
-    assert ears["items"] and {p["region"] for p in ears["items"]} == {"ears"}
+    assert ears["items"] and {p["region"] for p in ears["items"]} == {"ears"} and all(p["mesh_id"] in meshes for p in ears["items"])
     shells = check(f"{K}/library/{{species}}/parts", "get", client.get(f"{K}/library/{species}/parts", params={"region": "shells"}))
     assert shells["items"] and {p["kind"] for p in shells["items"]} == {"shell"}
     assert client.get(f"{K}/library/{species}/parts", params={"region": "wings"}).status_code == 422
     pats = check(f"{K}/library/{{species}}/patterns", "get", client.get(f"{K}/library/{species}/patterns"))
     assert len(pats["items"]) == 10
-    for url in (pats["items"][0]["thumbnail_url"], ears["items"][0]["url"], rel["files_url"] + "base.bin"):
+    for url in (pats["items"][0]["thumbnail_url"], ears["items"][0]["url"], bin_url):
         r = client.get(url)
         assert r.status_code == 200 and r.content, url
     listed = {f["path"]: f for f in rel["manifest"]["files"]}
-    data = client.get(rel["files_url"] + "base.bin").content
-    assert hashlib.sha256(data).hexdigest() == listed["base.bin"]["sha256"]
+    data = client.get(bin_url).content
+    assert hashlib.sha256(data).hexdigest() == listed[bin_url[len(rel["files_url"]):]]["sha256"]
     assert client.get(rel["files_url"] + "manifest.sig").status_code == 404  # only files the manifest lists
     assert client.get(rel["files_url"] + "nope.png").status_code == 404
 

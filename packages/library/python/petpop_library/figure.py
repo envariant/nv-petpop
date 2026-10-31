@@ -85,9 +85,18 @@ def save(mesh: BaseMesh) -> bytes:
     meta = {"species": mesh.species, "group_names": mesh.group_names, "mask_names": mesh.mask_names,
             "landmarks": mesh.landmarks, "mesh_id": mesh.mesh_id, "schema_version": mesh.schema_version,
             "source": mesh.source}
+    import zipfile
+
+    arrays = {"meta": np.frombuffer(json.dumps(meta, sort_keys=True).encode(), np.uint8),
+              **{k: np.ascontiguousarray(getattr(mesh, k)) for k in _ARRAYS}}
     buf = io.BytesIO()
-    np.savez_compressed(buf, meta=np.frombuffer(json.dumps(meta).encode(), np.uint8),
-                        **{k: getattr(mesh, k) for k in _ARRAYS})
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:  # fixed timestamps: equal meshes, equal bytes
+        for name, arr in arrays.items():
+            one = io.BytesIO()
+            np.save(one, arr, allow_pickle=False)
+            info = zipfile.ZipInfo(f"{name}.npy", date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, one.getvalue())
     return buf.getvalue()
 
 

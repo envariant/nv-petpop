@@ -116,6 +116,12 @@ class Release:
             raise KeyError(path)
         return (self.root / path).read_bytes()
 
+    def mesh(self, mesh_id: str):
+        """A release mesh as a figure mesh (petpop_library.figure), with its part weights and pattern regions."""
+        from . import figure
+
+        return figure.load(self.file(self.item("meshes", mesh_id)["package"]))
+
     def item(self, kind: str, item_id: str) -> dict[str, Any]:
         for it in self.manifest[kind]:
             if it["id"] == item_id:
@@ -126,9 +132,9 @@ class Release:
 class ReleaseStore:
     """The kiosk's installed releases: <root>/<species>/<release-version>/ plus an ACTIVE pointer per species."""
 
-    def __init__(self, root: Path, base_topology: dict[str, str] | None = None) -> None:
+    def __init__(self, root: Path, segmentation: dict[str, str] | None = None) -> None:
         self.root = Path(root)
-        self.base_topology = base_topology or {}
+        self.segmentation = segmentation or {}  # species -> the schema version this kiosk paints and prints to
         self._lock = threading.Lock()
         self._cache: dict[str, Release] = {}
 
@@ -161,9 +167,9 @@ class ReleaseStore:
         """Verify, extract beside the active release, switch ACTIVE atomically, keep the last KEEP releases."""
         manifest, files = read(bundle, key)
         species = manifest["species"]
-        want = self.base_topology.get(species)
-        if want and manifest["base_topology"] != want:
-            raise ReleaseError(f"release is for base topology {manifest['base_topology']}, this kiosk has {want}")
+        want = self.segmentation.get(species)
+        if want and manifest["segmentation_version"] != want:
+            raise ReleaseError(f"release is for segmentation {manifest['segmentation_version']}, this kiosk has {want}")
         with self._lock:
             sdir = self._species_dir(species)
             sdir.mkdir(parents=True, exist_ok=True)

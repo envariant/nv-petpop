@@ -22,10 +22,10 @@ export interface TexelMap {
   starts: Int32Array; // t + 1 offsets into order
 }
 
-/** Parse base.bin (see petpop_library/basebin.py). */
+/** Parse a mesh binary, PPB1 (see petpop_library/basebin.py). */
 export function parseBaseBin(buf: ArrayBuffer): BaseData {
   const magic = new TextDecoder().decode(new Uint8Array(buf, 0, 4));
-  if (magic !== 'PPB1') throw new Error('not a base.bin');
+  if (magic !== 'PPB1') throw new Error('not a PPB1 mesh binary');
   const dv = new DataView(buf);
   const n = dv.getUint32(4, true);
   const t = dv.getUint32(8, true);
