@@ -7,18 +7,21 @@ import { LoginScreen } from '../screens/Login';
 import { Offline, QueuePanel } from '../screens/Overlays';
 import { useSession, type Screen, type SessionState } from '../store/session';
 import { useCurate, type CurateState } from '../store/curate';
+import { useManual, type ManualState } from '../store/manual';
+import { MANUAL_TASKS } from '../mocks/manual';
 import { BATCH, CORGI, PATTERN_ITEM, RELEASES, SPEC, VIEW_PREVIEWS, job } from './fixtures';
 
 const OPERATOR = { username: 'operator', role: 'operator' as const };
 
-function Hydrate({ state, curate, children }: { state: Partial<SessionState>; curate?: Partial<CurateState>; children: ReactNode }) {
+function Hydrate({ state, curate, manual, children }: { state: Partial<SessionState>; curate?: Partial<CurateState>; manual?: Partial<ManualState>; children: ReactNode }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     useSession.getState().reset();
     useSession.getState().hydrate({ user: OPERATOR, ...state });
     if (curate) useCurate.getState().set(curate);
+    if (manual) useManual.getState().set(manual);
     setReady(true);
-  }, [state, curate]);
+  }, [state, curate, manual]);
   return ready ? <>{children}</> : null;
 }
 
@@ -30,10 +33,10 @@ const withFrame: Decorator = (Story, ctx) => (
   </div>
 );
 
-function ScreenStory({ screen, state = {}, curate }: { screen: Screen; state?: Partial<SessionState>; curate?: Partial<CurateState> }) {
+function ScreenStory({ screen, state = {}, curate, manual }: { screen: Screen; state?: Partial<SessionState>; curate?: Partial<CurateState>; manual?: Partial<ManualState> }) {
   const Current = SCREENS[screen];
   return (
-    <Hydrate state={{ screen, ...state }} curate={curate}>
+    <Hydrate state={{ screen, ...state }} curate={curate} manual={manual}>
       <Current />
       <StudioBar onQueue={() => undefined} />
     </Hydrate>
@@ -51,6 +54,7 @@ export const Generate: Story = { args: { screen: 'generate', curate: { breeds: [
 export const Review: Story = { args: { screen: 'review', curate: { batch: BATCH } } };
 export const Library: Story = { args: { screen: 'library', curate: { kind: 'pattern', items: [PATTERN_ITEM], selected: PATTERN_ITEM } } };
 export const Releases: Story = { args: { screen: 'releases', state: { user: ADMIN }, curate: { releases: RELEASES } } };
+export const Manual: Story = { args: { screen: 'manual', manual: { tasks: MANUAL_TASKS, pending: 2, selectedId: MANUAL_TASKS[1].task_id } } };
 export const Species: Story = { args: { screen: 'species' } };
 export const Breed: Story = { args: { screen: 'breed', state: { species: 'dog' } } };
 export const Build: Story = { args: { screen: 'build', state: built } };

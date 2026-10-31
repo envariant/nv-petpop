@@ -37,6 +37,7 @@ from petpop_core.schemas import spec_errors
 from petpop_core.spec import apply_patch
 
 from .library import MockLibrary
+from .manual import MockManual
 from .studio import MockStudio
 
 SCRIPTS_DIR = ROOT / "mock-server" / "scripts"
@@ -119,6 +120,7 @@ class MockApi:
         self.index = json.loads((FIXTURES / "index.json").read_text())["pets"]
         self.library = MockLibrary(self.secret)
         self.studio = MockStudio(self.secret)
+        self.manual = MockManual(self.secret, self.studio.store)
 
     # ----------------------------------------------------------------- helpers
     def _pick_script(self, spec: dict[str, Any]) -> dict[str, Any]:
@@ -445,6 +447,16 @@ class MockApi:
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated:
         old = self._job(job_id)
         return self._created(self._enqueue(old.session_id, user.username, old.spec, self.scripts["normal"], kind=old.kind))
+
+    # ----------------------------------------------------------------- manual mode (decision 111)
+    async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList:
+        return self.manual.list(status)
+
+    async def manual_task(self, task_id: str, base: str) -> m.ManualTask:
+        return self.manual.get(task_id)
+
+    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str) -> m.ManualTask:
+        return await asyncio.to_thread(self.manual.submit, task_id, filename, data)
 
     # ----------------------------------------------------------------- studio library (M8)
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch:

@@ -52,6 +52,13 @@ concept (Tripo text-to-image) -> border-key matte (local) -> [no Stage C] -> Tri
   both per account plan (subscribers' models are private with full commercial rights); no per-request flag is
   documented in its SDK 1.0.0. If a vendor has one, `create_extras` puts it on every generation request.
 
+## Manual mode
+
+`GENAI_PROFILE=tripo-manual` builds exactly these requests but hands each one to the operator in PetPop Studio
+(Manual) instead of sending it; the job waits until the output is uploaded (docs/MANUAL-MODE.md, decision 111).
+A provider entry with `kind: manual` does this for any manifest; a capability's optional `manual` block holds the
+vendor app's steps the inbox shows.
+
 ## Swapping to an equivalent API
 
 1. Write `config/providers/<vendor>-<api>.yaml` from its docs: routes, the field paths of the upload token, task

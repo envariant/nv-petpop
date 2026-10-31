@@ -552,6 +552,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/studio/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manual Tasks */
+        get: operations["studioManualTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/manual/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manual Task */
+        get: operations["studioManualTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/manual/{task_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Manual */
+        post: operations["studioSubmitManual"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/studio/queue": {
         parameters: {
             query?: never;
@@ -704,7 +755,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
             /** Thumbnail Url */
             thumbnail_url: string | null;
             /** Turntable Url */
@@ -769,6 +820,11 @@ export interface components {
              * @description How to reach the customer when it is ready.
              */
             contact?: string | null;
+        };
+        /** Body_studioSubmitManual */
+        Body_studioSubmitManual: {
+            /** File */
+            file: string;
         };
         /** Breed */
         Breed: {
@@ -937,7 +993,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
         };
         /** FulfilResponse */
         FulfilResponse: {
@@ -1074,7 +1130,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
             /** Ticket */
             ticket?: string | null;
             /** Timings */
@@ -1094,7 +1150,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
         };
         /**
          * KioskOps
@@ -1398,6 +1454,114 @@ export interface components {
              */
             species: "dog" | "cat";
         };
+        /** ManualExpects */
+        ManualExpects: {
+            /**
+             * Accept
+             * @description File extensions the upload may have, e.g. ['.glb'].
+             */
+            accept: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "image" | "model";
+        };
+        /** ManualInput */
+        ManualInput: {
+            /**
+             * Name
+             * @description File to upload to the vendor's app, e.g. input.png.
+             */
+            name: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * ManualTask
+         * @description A provider request in manual mode: exactly what the API would have been sent, for the operator to run in the
+         *     vendor's own app; uploading the output resumes the job (status `waiting` until then).
+         */
+        ManualTask: {
+            /** Batch Id */
+            batch_id?: string | null;
+            /** Breed Label */
+            breed_label?: string | null;
+            /**
+             * Capability
+             * @enum {string}
+             */
+            capability: "text_to_image" | "image_to_model" | "multiview_to_model";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            expects: components["schemas"]["ManualExpects"];
+            /** Inputs */
+            inputs: components["schemas"]["ManualInput"][];
+            /** Instructions */
+            instructions: string[];
+            /** Job Id */
+            job_id: string;
+            /**
+             * Manifest
+             * @description Provider manifest and version that built the request, e.g. 'tripo-v3 v1'.
+             */
+            manifest: string;
+            /** Negative Prompt */
+            negative_prompt?: string | null;
+            /** Pet Name */
+            pet_name?: string | null;
+            /** Prompt */
+            prompt?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Request
+             * @description The JSON body the API would have received (inputs shown as <upload name>).
+             */
+            request: {
+                [key: string]: unknown;
+            };
+            /** Result Name */
+            result_name?: string | null;
+            /**
+             * Route
+             * @description The API route the request would have gone to.
+             */
+            route: string;
+            /**
+             * Settings
+             * @description The request's options as 'field: value' lines.
+             */
+            settings: string[];
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "submitted";
+            /** Submitted At */
+            submitted_at?: string | null;
+            /** Task Id */
+            task_id: string;
+            /** Title */
+            title: string;
+            /** Vendor */
+            vendor: string;
+        };
+        /** ManualTaskList */
+        ManualTaskList: {
+            /** Items */
+            items: components["schemas"]["ManualTask"][];
+            /** Pending */
+            pending: number;
+        };
         /** ParseRequest */
         ParseRequest: {
             current_spec: components["schemas"]["PetSpec"];
@@ -1590,7 +1754,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
         };
         /** ReleaseCreate */
         ReleaseCreate: {
@@ -1847,7 +2011,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running" | "done" | "failed" | "fulfilled";
+            status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
             /** Thumbnail Url */
             thumbnail_url: string | null;
             /** Total Ms */
@@ -3774,6 +3938,208 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioManualTasks: {
+        parameters: {
+            query?: {
+                status?: "pending" | "submitted" | "all";
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualTaskList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioManualTask: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualTask"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioSubmitManual: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_studioSubmitManual"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualTask"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };

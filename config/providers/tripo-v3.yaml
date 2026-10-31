@@ -40,12 +40,28 @@ capabilities:
     route: POST /v3/generation/text-to-image
     body: {prompt: $prompt, negative_prompt: $negative}
     result: [generated_image_url, generated_image, image_url, image]
+    manual:
+      title: Concept image (Tripo text to image)
+      steps:
+        - In Tripo Studio, open image generation (text to image).
+        - Paste the prompt; paste the negative prompt if the tool has a field for it.
+        - Use the settings below where Tripo Studio offers them (a square image if it asks for a size).
+        - Generate, pick the image that best matches the prompt, and download it (PNG, JPG or WebP).
+        - Upload it here. The job continues to the 3D model step.
   image_to_model:
     route: POST /v3/generation/image-to-model
     body: {input: $image}
     rename: {model_version: model}
     seeds: [model_seed, texture_seed]
     result: [model_url, model, pbr_model_url, pbr_model, base_model_url, base_model]
+    manual:
+      title: 3D model from the concept (Tripo image to 3D)
+      steps:
+        - Download the input image below (the matted concept).
+        - In Tripo Studio, open image to 3D and upload that image.
+        - Match the settings below where Tripo Studio offers them (model version, texture on, texture quality, PBR, face limit); keep private generation on.
+        - Generate, then download the model as GLB with its texture.
+        - Upload the GLB here. The job continues with the wrap, texture and print files.
   multiview_to_model:
     route: POST /v3/generation/multiview-to-model
     body: {inputs: $views}
@@ -53,3 +69,10 @@ capabilities:
     rename: {model_version: model}
     seeds: [model_seed, texture_seed]
     result: [model_url, model, pbr_model_url, pbr_model, base_model_url, base_model]
+    manual:
+      title: 3D model from four views (Tripo multiview to 3D)
+      steps:
+        - Download the view images below.
+        - In Tripo Studio, open multiview to 3D and upload each view in its slot (front, left, back, right).
+        - Match the settings below where Tripo Studio offers them; keep private generation on.
+        - Generate, then download the model as GLB with its texture and upload it here.

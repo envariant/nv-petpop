@@ -8,8 +8,10 @@ import { GenerateScreen, LibraryScreen, ReleasesScreen, ReviewScreen } from './s
 import { BriefScreen, NameScreen } from './screens/Brief';
 import { BreedScreen, SpeciesScreen } from './screens/Intro';
 import { LoginScreen } from './screens/Login';
+import { ManualScreen } from './screens/Manual';
 import { GeneratingScreen, ResultScreen } from './screens/Outcome';
 import { Offline, QueuePanel, useOnline } from './screens/Overlays';
+import { useManual } from './store/manual';
 import { useSession, type Screen } from './store/session';
 
 export const SCREENS: Record<Screen, () => JSX.Element | null> = {
@@ -17,6 +19,7 @@ export const SCREENS: Record<Screen, () => JSX.Element | null> = {
   review: ReviewScreen,
   library: LibraryScreen,
   releases: ReleasesScreen,
+  manual: ManualScreen,
   species: SpeciesScreen,
   breed: BreedScreen,
   build: BuildScreen,
@@ -31,6 +34,7 @@ const AREAS: { screen: Screen; title: string }[] = [
   { screen: 'review', title: 'Review' },
   { screen: 'library', title: 'Library' },
   { screen: 'releases', title: 'Releases' },
+  { screen: 'manual', title: 'Manual' },
 ];
 
 export function StudioBar({ onQueue }: { onQueue: () => void }) {
@@ -38,6 +42,13 @@ export function StudioBar({ onQueue }: { onQueue: () => void }) {
   const logout = useSession((s) => s.logout);
   const screen = useSession((s) => s.screen);
   const go = useSession((s) => s.go);
+  const pending = useManual((s) => s.pending);
+  useEffect(() => {
+    if (!user) return;
+    void useManual.getState().load();
+    const t = setInterval(() => void useManual.getState().load(), 15000);
+    return () => clearInterval(t);
+  }, [user]);
   return (
     <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-8 py-4 text-2xl text-muted" data-testid="studio-bar">
       <div className="flex items-center gap-5">
@@ -47,6 +58,11 @@ export function StudioBar({ onQueue }: { onQueue: () => void }) {
         {AREAS.map((a) => (
           <button key={a.screen} onClick={() => go(a.screen)} className={`hit ${screen === a.screen ? 'font-semibold text-ink' : ''}`} data-testid={`nav-${a.screen}`}>
             {a.title}
+            {a.screen === 'manual' && pending > 0 && (
+              <span className="ml-2 rounded-full bg-accent2 px-3 text-xl text-white" data-testid="manual-pending">
+                {pending}
+              </span>
+            )}
           </button>
         ))}
       </div>

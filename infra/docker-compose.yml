@@ -3,10 +3,15 @@
 #   GENAI_PROFILE=mock          everything here, GenAI stand-ins on CPU (smoke-tested in the cloud VM)
 #   GENAI_PROFILE=mac-m4pro     GenAI on the Mac, reached through COMFY_URL / SHAPE_URL / OLLAMA_URL
 #   GENAI_PROFILE=nvidia-24gb   add infra/docker-compose.nvidia.yml (ComfyUI + Ollama on the local GPU)
+#   GENAI_PROFILE=tripo         the Tripo3D API (TRIPO_API_KEY); tripo-manual: you run each request in Tripo Studio
+#                               and upload the output in PetPop Studio (Manual); no key needed (docs/MANUAL-MODE.md)
+# The app image is linux/amd64 because Blender's bpy wheel has no Linux ARM build; on Apple Silicon Docker Desktop
+# runs it under emulation (PETPOP_PLATFORM overrides).
 name: petpop
 x-app: &app
   build: { context: .., dockerfile: infra/Dockerfile.app, secrets: [build_ca] }
   image: petpop-app:local
+  platform: ${PETPOP_PLATFORM:-linux/amd64}
   env_file: ${PETPOP_ENV_FILE:-../.env}
   environment:
     GENAI_PROFILE: ${GENAI_PROFILE:-mock}
@@ -15,6 +20,8 @@ x-app: &app
     SHAPE_URL: ${SHAPE_URL:-}
     OLLAMA_URL: ${OLLAMA_URL:-}
     GENAI_TOKEN: ${GENAI_TOKEN:-}
+    TRIPO_API_KEY: ${TRIPO_API_KEY:-}
+    TRIPO_API_URL: ${TRIPO_API_URL:-}
     TEXTURE_BACKEND: ${TEXTURE_BACKEND:-}
     PETPOP_VAR: /var/petpop
     PETPOP_BPY_PYTHON: /usr/local/bin/python

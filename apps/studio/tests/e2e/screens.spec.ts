@@ -195,6 +195,33 @@ test('11 releases: only an admin publishes a release, and it lists with its coun
   await expect(page.locator('[data-testid^=release-release-dog-]')).toHaveCount(2);
 });
 
+test('12 manual: the inbox shows what the API would get; uploading an output resumes the job', async ({ page }) => {
+  await signInHome(page);
+  await expect(page.getByTestId('manual-pending')).toHaveText('2');
+  await page.getByTestId('nav-manual').tap();
+  await expect(page.locator('[data-screen=manual]')).toBeVisible();
+  await page.getByTestId('manual-task-j_manual_demo.text-to-image-demo').tap();
+  await expect(page.getByTestId('manual-prompt')).toContainText('chibi vinyl collectible figurine');
+  await expect(page.getByTestId('manual-negative')).toBeVisible();
+  await expect(page.getByTestId('manual-steps')).toContainText('Tripo Studio');
+  await page.getByTestId('manual-file').setInputFiles({ name: 'concept.txt', mimeType: 'text/plain', buffer: Buffer.from('nope') });
+  await page.getByTestId('manual-submit').tap();
+  await expect(page.getByTestId('manual-error')).toBeVisible(); // a text file is not an image
+  await page.getByTestId('manual-file').setInputFiles('../../fixtures/pets/biscuit/concept.png');
+  await page.getByTestId('manual-submit').tap();
+  await expect(page.getByTestId('manual-notice')).toContainText('the job carries on');
+  await expect(page.getByTestId('manual-pending')).toHaveText('1', { timeout: 20_000 });
+  await page.getByTestId('manual-task-j_manual_demo.image-to-model-demo').tap();
+  await expect(page.getByTestId('manual-settings')).toContainText('model: v3.1-20260211');
+  await expect(page.getByTestId('manual-input-input.png')).toBeVisible();
+  await expect(page.getByTestId('manual-request')).toBeAttached();
+  await page.getByTestId('manual-file').setInputFiles('../../fixtures/pets/biscuit/figure.glb');
+  await page.getByTestId('manual-submit').tap();
+  await expect(page.getByTestId('manual-notice')).toContainText('figure.glb received');
+  await page.getByTestId('manual-filter-submitted').tap();
+  await expect(page.getByTestId('manual-list')).toContainText('submitted');
+});
+
 test('offline: "Back in a moment" while the API is down, auto-recovers', async ({ page }) => {
   await signIn(page);
   await page.route('**/api/v1/health', (r) => r.abort());

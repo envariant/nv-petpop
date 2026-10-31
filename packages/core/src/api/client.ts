@@ -4,6 +4,7 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema';
 import type {
+  ManualTask, ManualTaskList,
   Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
   ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
@@ -109,6 +110,24 @@ export const StudioApi = {
   releases: async (): Promise<ReleaseList> => unwrap(await api.GET('/api/v1/studio/releases', auth())),
   createRelease: async (species: Species): Promise<ReleaseInfo> =>
     unwrap(await api.POST('/api/v1/studio/releases', { body: { species }, ...(auth() as object) })),
+  // manual mode (decision 111): run a provider request in the vendor's app, upload its output
+  manualTasks: async (status: 'pending' | 'submitted' | 'all' = 'pending'): Promise<ManualTaskList> =>
+    unwrap(await api.GET('/api/v1/studio/manual', { params: { query: { status } }, ...(auth() as object) })),
+  manualTask: async (taskId: string): Promise<ManualTask> =>
+    unwrap(await api.GET('/api/v1/studio/manual/{task_id}', { params: { path: { task_id: taskId } }, ...(auth() as object) })),
+  submitManual: async (taskId: string, file: Blob, filename: string): Promise<ManualTask> => {
+    const form = new FormData();
+    form.append('file', file, filename);
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    const r = await fetch(`${origin}/api/v1/studio/manual/${encodeURIComponent(taskId)}/result`, {
+      method: 'POST',
+      body: form,
+      headers: staffToken ? { Authorization: `Bearer ${staffToken}` } : {},
+    });
+    const body = (await r.json().catch(() => ({}))) as { detail?: unknown };
+    if (!r.ok) throw new ApiFailure(r.status, body.detail ?? body);
+    return body as ManualTask;
+  },
 };
 
 export function eventsUrl(jobId: string): string {

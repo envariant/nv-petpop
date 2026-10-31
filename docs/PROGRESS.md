@@ -127,7 +127,8 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
     view by how well the wrapped silhouette matches it; fix the fast path's invalid wraps (inverted triangles)
   - [ ] Stage A: one availability probe instead of two, a smaller patch-only output schema, re-measure
   - [ ] Gates 3 to 5 on the new settings, one pet at a time (`PETPOP_REGRESS_LIMIT=1`)
-  - [ ] `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and
+  - [x] Local setups: docs/LOCAL.md (native `make dev` recommended, Docker Compose `make up` with the image pinned to
+    linux/amd64), decision 112; was `docs/HANDOFF-LOCAL.md`: development on the Mac itself in Docker (Compose stack; GenAI stays native and
     isolated behind Caddy at `host.docker.internal:8787`, no tunnel; worker image `linux/amd64` because `bpy`
     has no Linux ARM wheel; one 24 GB memory pool shared with the dev stack)
 ## Track D: commercial GenAI API backend (decisions 108 to 110, docs/PROVIDERS.md)
@@ -135,7 +136,11 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 - [x] Provider layer: manifest-driven providers (`config/providers/tripo-v3.yaml`, `ManifestProvider`), `api`
   image and shape adapters, Stage C skipped when a profile has no views, texture-keeping normalisation, `transfer`
   texture, profile `tripo`, `genai_check` shows the balance; tested against a fake Tripo apiv3 (2026-10-31)
-- [ ] Real Tripo jobs once `TRIPO_API_KEY` is in the environment: `GENAI_PROFILE=tripo python scripts/genai_check.py`,
+- [x] Manual mode (decision 111, API 3.2.0): profile `tripo-manual`, the `manual` provider, job status `waiting`,
+  Studio Manual inbox (story, Playwright test 12), `scripts/run_job.py`; docs/MANUAL-MODE.md, docs/LOCAL.md,
+  docs/HANDOFF-TRIPO.md (2026-10-31)
+- [ ] Build the first library batch by hand in manual mode (Nishant, Tripo Studio): one breed per species first
+- [ ] Real Tripo jobs once `TRIPO_API_KEY` is in the environment (docs/HANDOFF-TRIPO.md, first steps): `GENAI_PROFILE=tripo python scripts/genai_check.py`,
   then one job per species; record times, credits and IoU; settle `shape.iou_min`, `expected_s` and timeouts
 - [ ] Compare Tripo model versions (`v3.1-20260211`, `P1-20260311`, `P2-20260801`) and text-to-image models on the
   five sweep pets; pick `image.params` (model, size) and `shape.params`

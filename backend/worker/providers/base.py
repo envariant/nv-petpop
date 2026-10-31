@@ -40,6 +40,15 @@ class ProviderUnsupported(ProviderError):
     pass
 
 
+class AwaitingOperator(Exception):
+    """Manual mode (decision 111): the request is written for the operator, who runs it in the vendor's own app and
+    uploads the output. Not a failure: the job pauses (status `waiting`) and resumes from its stored stages."""
+
+    def __init__(self, packet: dict[str, Any]) -> None:
+        super().__init__(f"waiting for the operator: {packet.get('title', packet.get('capability'))}")
+        self.packet = packet
+
+
 @dataclass
 class Generated:
     data: bytes

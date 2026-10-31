@@ -1,0 +1,72 @@
+# GenAI profile: tripo-manual. Manual mode (decision 111): exactly the tripo profile's requests, but each one is
+# handed to the operator in PetPop Studio (Manual), who runs it in Tripo Studio and uploads the output; the job
+# waits meanwhile. Same manifest, models and options as `tripo`, so switching to the API later changes nothing else.
+#
+# From the tripo profile: a commercial API backend (decision 108): Tripo3D's apiv3 makes the concept (text-to-image)
+# and the textured shape (image-to-model from the concept alone); the VM does the rest (wrap onto the base mesh,
+# texture transfer onto its UV layout, print export). No GenAI host to run: the key in TRIPO_API_KEY is all.
+# Another provider is a manifest in config/providers and a profile like this one (decision 109).
+profile: tripo-manual
+version: 1
+description: Tripo3D in manual mode. The operator runs each request in Tripo Studio and uploads the output; the rest runs as on the API profile.
+host: {kind: api, accelerator: none, memory_gb: null}
+mode: real
+
+quality:
+  default: api
+  presets:
+    api: {concept_px: 1024, view_px: 768, control_px: 512, samples: 16, albedo_px: 2048, voxel_mm: 0.25, print_tris: 250000, turntable_frames: 36, turntable_px: 512, mask_px: 2048}
+    test: {concept_px: 512, view_px: 512, control_px: 256, samples: 4, albedo_px: 512, voxel_mm: 0.5, print_tris: 60000, turntable_frames: 8, turntable_px: 128, mask_px: 512}
+
+# A manual stage returns at once (the job waits outside the runner until the output is uploaded).
+timeouts_s: {A: 10, control: 60, B: 240, C: 30, D: 900, E: 240, F: 600}
+expected_s: {A: 1, control: 5, B: 40, C: 1, D: 150, E: 30, F: 120, total: [240, 480]}
+latency: {target_s: null, enforce: false}
+
+residency: {}                        # nothing resident: the provider runs the models
+services: {}
+
+providers:
+  tripo:
+    kind: manual                       # requests go to the Studio Manual inbox instead of the API
+    manifest: tripo-v3                 # config/providers/tripo-v3.yaml: the wire format, rights and field names
+    url: https://openapi.tripo3d.ai
+    url_env: TRIPO_API_URL           # optional override (e.g. the China endpoint or a test double)
+    key_env: TRIPO_API_KEY           # tsk_... from platform.tripo3d.ai; never committed
+
+parser:
+  backend: rules                     # deterministic rule parser; an LLM provider can be added the same way
+  timeout_s: 3
+
+image:
+  backend: api
+  provider: tripo
+  views: none                        # shape from the concept alone; Stage C is skipped
+  lora_trigger: petpop_style         # no style LoRA at a provider: the trigger word is dropped from the prompt
+  params: {}                         # text-to-image extras (model, size, aspect_ratio) once tried; {} = Tripo's defaults
+  matting: {method: border_key}      # the concept's plain backdrop keyed locally (preview and the D silhouette check)
+
+shape:
+  backend: api
+  provider: tripo
+  views: [front]                     # image-to-model; [front, left, back, right] would use multiview-to-model
+  params:
+    model_version: v3.1-20260211     # newest v-series model the SDK 1.0.0 documents; P1/P2 to be compared
+    texture: true
+    pbr: false                       # base colour is what the figurine is painted from
+    texture_quality: detailed
+    texture_alignment: original_image
+    orientation: default             # Tripo works out the subject's front (decision 107)
+    face_limit: 200000
+  fallback: {seed_offset: 1, params: {}}
+  orientation: {yaw_deg: 0}
+  height_mm: 90
+  max_tris: 300000
+  iou_min: 0.80                      # front silhouette only (no views); provisional until real jobs
+
+texture:
+  backend: transfer                  # the provider's own texture onto the base UV layout (no view projection)
+  allowed: [transfer, flat]
+  transfer: {samples: 1500000, normal_mm: 4.0, max_mm: 4.0, colour_correct: false}
+
+gates: {iou_min: 0.80, p50_s: null, max_s: null}

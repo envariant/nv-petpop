@@ -20,7 +20,7 @@ from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Any, Literal, Protocol
 
-from fastapi import APIRouter, Depends, FastAPI, Header, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, FastAPI, File, Header, Query, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 
@@ -31,6 +31,7 @@ API_PREFIX = "/api/v1"
 KIOSK = f"{API_PREFIX}/kiosk"
 STUDIO = f"{API_PREFIX}/studio"
 ROLE_RANK = {"operator": 1, "curator": 2, "admin": 3}
+MANUAL_MAX_BYTES = 150 * 2**20  # a textured GLB from the vendor's app
 STAFF_TOKEN_TTL_S = 12 * 3600
 
 
@@ -74,6 +75,10 @@ class ApiImpl(Protocol):
     async def fulfil(self, job_id: str) -> m.FulfilResponse: ...
     async def staff_queue(self, base: str) -> m.StaffQueue: ...
     async def staff_retry(self, job_id: str, user: m.StaffUser) -> m.JobCreated: ...
+    # manual mode (decision 111): provider requests the operator runs in the vendor's app
+    async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList: ...
+    async def manual_task(self, task_id: str, base: str) -> m.ManualTask: ...
+    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str) -> m.ManualTask: ...
     # studio library (M8): batches, review, editors, publish, releases
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch: ...
     async def list_batches(self) -> m.BatchList: ...
@@ -301,6 +306,25 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
     @studio.get("/queue", response_model=m.StaffQueue, operation_id="studioQueue", responses=AUTH)
     async def queue(request: Request, _: m.StaffUser = operator) -> m.StaffQueue:
         return await impl.staff_queue(_base(request))
+
+    # ------------------------------------------------------------------ manual mode (decision 111)
+    @studio.get("/manual", response_model=m.ManualTaskList, operation_id="studioManualTasks", responses=AUTH)
+    async def manual_tasks(request: Request, status: Literal["pending", "submitted", "all"] = Query("pending"),
+                           _: m.StaffUser = operator) -> m.ManualTaskList:
+        return await impl.manual_tasks(status, _base(request))
+
+    @studio.get("/manual/{task_id}", response_model=m.ManualTask, operation_id="studioManualTask", responses={**ERR, **AUTH})
+    async def manual_task(task_id: str, request: Request, _: m.StaffUser = operator) -> m.ManualTask:
+        return await impl.manual_task(task_id, _base(request))
+
+    @studio.post("/manual/{task_id}/result", response_model=m.ManualTask, operation_id="studioSubmitManual",
+                 responses={**ERR, **AUTH, 409: {"model": m.ErrorBody}, 413: {"model": m.ErrorBody}})
+    async def submit_manual(task_id: str, request: Request, file: UploadFile = File(...),
+                            user: m.StaffUser = operator) -> m.ManualTask:
+        data = await file.read()
+        if len(data) > MANUAL_MAX_BYTES:
+            raise ApiError(413, f"file over {MANUAL_MAX_BYTES // 2**20} MB")
+        return await impl.submit_manual(task_id, file.filename or "upload", data, user, _base(request))
 
     # ------------------------------------------------------------------ studio library (M8)
     @studio.post("/batches", response_model=m.Batch, status_code=201, operation_id="studioCreateBatch", responses={**ERR, **AUTH})

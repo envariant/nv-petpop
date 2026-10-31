@@ -45,7 +45,9 @@
         "views": {"type": "array", "items": {"enum": ["front", "left", "back", "right"]}},
         "rename": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Profile parameter -> request field."},
         "seeds": {"type": "array", "items": {"type": "string"}, "description": "Request fields that take the job seed unless the profile sets them."},
-        "result": {"type": "array", "items": {"$ref": "#/$defs/path"}, "minItems": 1, "description": "Output fields holding the result URL, in order of preference."}
+        "result": {"type": "array", "items": {"$ref": "#/$defs/path"}, "minItems": 1, "description": "Output fields holding the result URL, in order of preference."},
+        "manual": {"type": "object", "additionalProperties": false, "description": "Manual mode (decision 111): the vendor's own app's equivalent, shown to the operator.",
+                   "properties": {"title": {"type": "string"}, "steps": {"type": "array", "items": {"type": "string"}}}}
       }
     }
   }

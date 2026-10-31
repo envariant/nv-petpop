@@ -99,7 +99,8 @@ class ManifestProvider:
             time.sleep(wait)
             n += 1
 
-    def _run(self, ctx, capability: str, values: dict[str, Any], params: dict[str, Any], seed: int | None) -> Generated:
+    def request(self, capability: str, values: dict[str, Any], params: dict[str, Any], seed: int | None) -> tuple[dict, dict]:
+        """The capability's manifest entry and the exact JSON body the API receives."""
         cap = self.m["capabilities"].get(capability)
         if cap is None:
             raise ProviderUnsupported(f"{self.name} ({self.m['manifest']}) has no {capability}")
@@ -111,6 +112,10 @@ class ManifestProvider:
             if seed is not None and field not in body:
                 body[field] = seed
         body.update(self.m.get("create_extras") or {})
+        return cap, body
+
+    def _run(self, ctx, capability: str, values: dict[str, Any], params: dict[str, Any], seed: int | None) -> Generated:
+        cap, body = self.request(capability, values, params, seed)
         t = self.m["tasks"]
         task_id = dig(self._call(cap["route"], capability, json=body), t["id"])
         if not task_id:

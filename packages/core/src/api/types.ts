@@ -49,3 +49,8 @@ export type ItemKind = LibraryItem['kind'];
 export type ItemStatus = LibraryItem['status'];
 export type ReleaseInfo = S['ReleaseInfo'];
 export type ReleaseList = S['ReleaseList'];
+// Manual mode (decision 111, API 3.2.0): provider requests the operator runs in the vendor's app.
+export type ManualTask = S['ManualTask'];
+export type ManualTaskList = S['ManualTaskList'];
+export type ManualInput = S['ManualInput'];
+export type ManualCapability = ManualTask['capability'];

@@ -24,6 +24,7 @@ from petpop_library.meshkit import load_base
 from backend.core.paths import BASE_DIR
 
 from . import control, stage_a, stage_b, stage_c, stage_d, stage_e, stage_f
+from .providers.base import AwaitingOperator
 from .context import StageContext, StageFailed
 
 log = logging.getLogger("petpop.worker")
@@ -93,6 +94,8 @@ class StageRunner:
             try:
                 self._call(stage, fn, **kw)
                 return True, attempt, ""
+            except AwaitingOperator:
+                raise  # manual mode: the job pauses for the operator; not a failure, no retry, no fallback
             except Exception as exc:  # noqa: BLE001 - every failure is recorded and retried once
                 err = str(exc).splitlines()[0][:300] if str(exc) else type(exc).__name__
                 log.warning("job %s stage %s attempt %d failed: %s", self.ctx.job_id, stage, attempt, err)

@@ -25,6 +25,7 @@ from backend.api.store import make_store
 from backend.core.config import Settings, settings
 
 from .context import StageContext
+from .providers.base import AwaitingOperator
 from .runner import JobFailed, StageRunner
 
 log = logging.getLogger("petpop.worker")
@@ -184,8 +185,26 @@ class Worker:
         except JobFailed as exc:
             log.error("job %s failed: %s", job_id, exc)
             return self._fail(job_id, exc.stage, str(exc))
+        except AwaitingOperator as w:
+            return self._wait(job_id, w.packet)
         finally:
             shutil.rmtree(ctx.tmp, ignore_errors=True)
+
+    def _wait(self, job_id: str, packet: dict[str, Any]) -> str:
+        """Manual mode: file the request for the operator and park the job until the output is uploaded."""
+        from backend.api.db import ManualTaskRow
+
+        with self.db() as db:
+            if db.get(ManualTaskRow, packet["task_id"]) is None:
+                db.add(ManualTaskRow(id=packet["task_id"], job_id=job_id, status="pending", packet=packet, created_at=utcnow()))
+            job = db.get(JobRow, job_id)
+            job.status, job.message = "waiting", f"Waiting for you: {packet['title']}"[:200]
+            pct, stage = job.pct, job.stage
+            db.commit()
+        log.info("job %s waits for the operator: %s", job_id, packet["task_id"])
+        self.bus.publish(job_id, {"job_id": job_id, "status": "waiting", "stage": stage, "pct": pct,
+                                  "message": f"Waiting for you: {packet['title']}", "queue_position": 0})
+        return "waiting"
 
     def watchdog(self, period: float = 5.0, limit: float = 30.0) -> None:
         """GPU host: restart ComfyUI if /system_stats has not answered for 30 s (PETPOP_COMFY_RESTART_CMD)."""

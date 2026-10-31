@@ -230,6 +230,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -415,6 +416,20 @@
      }
     },
     "title": "BespokeRequest",
+    "type": "object"
+   },
+   "Body_studioSubmitManual": {
+    "properties": {
+     "file": {
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "type": "string"
+     }
+    },
+    "required": [
+     "file"
+    ],
+    "title": "Body_studioSubmitManual",
     "type": "object"
    },
    "Breed": {
@@ -892,6 +907,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -1214,6 +1230,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -1290,6 +1307,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -2194,6 +2212,270 @@
     "title": "LibraryRelease",
     "type": "object"
    },
+   "ManualExpects": {
+    "additionalProperties": false,
+    "properties": {
+     "accept": {
+      "description": "File extensions the upload may have, e.g. ['.glb'].",
+      "items": {
+       "type": "string"
+      },
+      "title": "Accept",
+      "type": "array"
+     },
+     "kind": {
+      "enum": [
+       "image",
+       "model"
+      ],
+      "title": "Kind",
+      "type": "string"
+     }
+    },
+    "required": [
+     "kind",
+     "accept"
+    ],
+    "title": "ManualExpects",
+    "type": "object"
+   },
+   "ManualInput": {
+    "additionalProperties": false,
+    "properties": {
+     "name": {
+      "description": "File to upload to the vendor's app, e.g. input.png.",
+      "title": "Name",
+      "type": "string"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "url"
+    ],
+    "title": "ManualInput",
+    "type": "object"
+   },
+   "ManualTask": {
+    "additionalProperties": false,
+    "description": "A provider request in manual mode: exactly what the API would have been sent, for the operator to run in the\nvendor's own app; uploading the output resumes the job (status `waiting` until then).",
+    "properties": {
+     "batch_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Batch Id"
+     },
+     "breed_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Breed Label"
+     },
+     "capability": {
+      "enum": [
+       "text_to_image",
+       "image_to_model",
+       "multiview_to_model"
+      ],
+      "title": "Capability",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "expects": {
+      "$ref": "#/components/schemas/ManualExpects"
+     },
+     "inputs": {
+      "items": {
+       "$ref": "#/components/schemas/ManualInput"
+      },
+      "title": "Inputs",
+      "type": "array"
+     },
+     "instructions": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Instructions",
+      "type": "array"
+     },
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "manifest": {
+      "description": "Provider manifest and version that built the request, e.g. 'tripo-v3 v1'.",
+      "title": "Manifest",
+      "type": "string"
+     },
+     "negative_prompt": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Negative Prompt"
+     },
+     "pet_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pet Name"
+     },
+     "prompt": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Prompt"
+     },
+     "provider": {
+      "title": "Provider",
+      "type": "string"
+     },
+     "request": {
+      "additionalProperties": true,
+      "description": "The JSON body the API would have received (inputs shown as <upload name>).",
+      "title": "Request",
+      "type": "object"
+     },
+     "result_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result Name"
+     },
+     "route": {
+      "description": "The API route the request would have gone to.",
+      "title": "Route",
+      "type": "string"
+     },
+     "settings": {
+      "description": "The request's options as 'field: value' lines.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Settings",
+      "type": "array"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "pending",
+       "submitted"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "submitted_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Submitted At"
+     },
+     "task_id": {
+      "title": "Task Id",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     },
+     "vendor": {
+      "title": "Vendor",
+      "type": "string"
+     }
+    },
+    "required": [
+     "task_id",
+     "job_id",
+     "status",
+     "capability",
+     "title",
+     "provider",
+     "vendor",
+     "manifest",
+     "route",
+     "request",
+     "settings",
+     "inputs",
+     "instructions",
+     "expects",
+     "species",
+     "created_at"
+    ],
+    "title": "ManualTask",
+    "type": "object"
+   },
+   "ManualTaskList": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ManualTask"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "pending": {
+      "title": "Pending",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "pending",
+     "items"
+    ],
+    "title": "ManualTaskList",
+    "type": "object"
+   },
    "ParseRequest": {
     "additionalProperties": false,
     "properties": {
@@ -2820,6 +3102,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -3603,6 +3886,7 @@
       "enum": [
        "queued",
        "running",
+       "waiting",
        "done",
        "failed",
        "fulfilled"
@@ -3883,7 +4167,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.1.0"
+  "version": "3.2.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -6635,6 +6919,306 @@
      }
     },
     "summary": "Unpublish Item",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/manual": {
+   "get": {
+    "operationId": "studioManualTasks",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "default": "pending",
+       "enum": [
+        "pending",
+        "submitted",
+        "all"
+       ],
+       "title": "Status",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ManualTaskList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Manual Tasks",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/manual/{task_id}": {
+   "get": {
+    "operationId": "studioManualTask",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "task_id",
+      "required": true,
+      "schema": {
+       "title": "Task Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ManualTask"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Manual Task",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/manual/{task_id}/result": {
+   "post": {
+    "operationId": "studioSubmitManual",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "task_id",
+      "required": true,
+      "schema": {
+       "title": "Task Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_studioSubmitManual"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ManualTask"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "413": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Request Entity Too Large"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Submit Manual",
     "tags": [
      "studio"
     ]

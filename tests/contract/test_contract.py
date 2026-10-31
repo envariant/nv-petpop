@@ -309,6 +309,36 @@ def test_studio_queue_and_retry(client):
     wait_terminal(client, auth, retried["job_id"])
 
 
+def test_manual_tasks(client):
+    """Manual mode (decision 111, API 3.2.0): the inbox, one task, and uploading its output."""
+    import io
+
+    from PIL import Image
+
+    auth = login(client)
+    listing = check(f"{S}/manual", "get", client.get(f"{S}/manual", params={"status": "all"}, headers=auth))
+    assert listing["pending"] == sum(t["status"] == "pending" for t in listing["items"])
+    missing = client.get(f"{S}/manual/no-such-task", headers=auth)
+    assert missing.status_code == 404 and check(f"{S}/manual/{{task_id}}", "get", missing)
+    gone = client.post(f"{S}/manual/no-such-task/result", files={"file": ("x.png", b"x", "image/png")}, headers=auth)
+    assert gone.status_code == 404 and check(f"{S}/manual/{{task_id}}/result", "post", gone)
+    image = next((t for t in listing["items"] if t["status"] == "pending" and t["expects"]["kind"] == "image"), None)
+    if image is None:
+        return  # the backend on the mock profile raises no manual tasks; tests/server covers its round trip
+    task = check(f"{S}/manual/{{task_id}}", "get", client.get(f"{S}/manual/{image['task_id']}", headers=auth))
+    assert task["prompt"] and task["expects"]["accept"]
+    url = f"{S}/manual/{image['task_id']}/result"
+    bad = client.post(url, files={"file": ("concept.png", b"not an image", "image/png")}, headers=auth)
+    assert bad.status_code == 422 and check(f"{S}/manual/{{task_id}}/result", "post", bad)
+    buf = io.BytesIO()
+    Image.new("RGB", (64, 64), (200, 140, 80)).save(buf, format="PNG")
+    done = check(f"{S}/manual/{{task_id}}/result", "post",
+                 client.post(url, files={"file": ("concept.png", buf.getvalue(), "image/png")}, headers=auth))
+    assert done["status"] == "submitted" and done["result_name"] == "concept.png"
+    again = client.post(url, files={"file": ("concept.png", buf.getvalue(), "image/png")}, headers=auth)
+    assert again.status_code == 409
+
+
 def test_every_documented_path_is_exercised():
     exercised = {f"{P}/health", f"{P}/r/{{token}}", f"{P}/files/{{key}}",
                  f"{K}/sessions", f"{K}/breeds", f"{K}/ops", f"{K}/ops/orders/{{composition_id}}/reprint",
@@ -321,7 +351,7 @@ def test_every_documented_path_is_exercised():
                  f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",
                  f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
                  f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
-                 f"{S}/releases"}
+                 f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result"}
     assert set(doc()["paths"]) == exercised
 
 

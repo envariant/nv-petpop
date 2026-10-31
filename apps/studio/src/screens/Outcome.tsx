@@ -43,6 +43,14 @@ export function GeneratingScreen() {
   return (
     <div className="flex h-full flex-col px-16 pt-20" data-testid="generating" data-status={status}>
       <Title sub={failed ? undefined : 'This takes two to four minutes. Watch it come together.'}>{failed ? 'That one got stuck' : done ? `${name} is ready!` : `Making ${name}…`}</Title>
+      {status === 'waiting' && (
+        <div className="mb-8 flex items-center justify-between gap-6 rounded-tile bg-card p-8 text-3xl shadow-soft" data-testid="waiting-operator">
+          <span>This figurine is waiting for you: run its request in Tripo Studio and upload the output.</span>
+          <button className="hit font-display text-accent underline" onClick={() => s.go('manual')} data-testid="open-manual">
+            Manual tasks ›
+          </button>
+        </div>
+      )}
       {status === 'queued' && (
         <div className="mb-8 rounded-tile bg-card p-8 text-4xl shadow-soft" data-testid="queue-position">
           You're <b>#{last?.queue_position ?? s.job?.queue_position ?? 1}</b> in the queue. Another figurine is being made first.

@@ -121,6 +121,19 @@ class _LibraryItem:
     published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
+class ManualTaskRow(Base):
+    """Manual mode (decision 111): a provider request waiting for the operator to run it in the vendor's app."""
+    __tablename__ = "manual_tasks"
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)  # <job_id>.<request_id>
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"), index=True)
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)  # pending | submitted
+    packet: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    submitted_by: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    result_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+
 class CurationBatchRow(Base):
     """A Studio batch: breeds x variants x seeds through stages A to E (M8)."""
     __tablename__ = "curation_batches"

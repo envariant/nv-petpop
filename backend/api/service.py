@@ -28,7 +28,7 @@ from .bus import make_bus
 from .fulfilment import copy_bundle
 from .library import KioskLibrary
 from .studio_library import StudioLibrary
-from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
+from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, ManualTaskRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
                  seed_staff, session_factory, utcnow)
 from .store import make_store
 
@@ -311,6 +311,58 @@ class BackendApi:
         if key.endswith(".glb"):
             media = "model/gltf-binary"
         return Response(data, media_type=media, headers={"Cache-Control": "private, max-age=3600"})
+
+    # ------------------------------------------------------------------ manual mode (decision 111)
+    def _manual(self, row: ManualTaskRow, job: JobRow) -> m.ManualTask:
+        p = row.packet
+        return m.ManualTask(task_id=row.id, job_id=row.job_id, status=row.status, capability=p["capability"], title=p["title"],
+                            provider=p["provider"], vendor=p["vendor"], manifest=p["manifest"], route=p["route"],
+                            request=p["request"], prompt=p.get("prompt"), negative_prompt=p.get("negative_prompt"),
+                            settings=p.get("settings", []), inputs=[m.ManualInput(name=i["name"], url=self._url(i["key"]))
+                                                                    for i in p.get("inputs", [])],
+                            instructions=p.get("instructions", []), expects=m.ManualExpects(**p["expects"]),
+                            species=job.pet_spec["species"], pet_name=job.pet_spec.get("pet_name"),
+                            breed_label=(job.pet_spec.get("breed") or {}).get("label"), batch_id=job.batch_id,
+                            created_at=aware(row.created_at), submitted_at=aware(row.submitted_at), result_name=row.result_name)
+
+    async def manual_tasks(self, status: str, base: str) -> m.ManualTaskList:
+        with self.db() as db:
+            q = select(ManualTaskRow, JobRow).join(JobRow, JobRow.id == ManualTaskRow.job_id)
+            if status != "all":
+                q = q.where(ManualTaskRow.status == status)
+            rows = db.execute(q.order_by(ManualTaskRow.created_at)).all()
+            pending = db.scalar(select(func.count()).select_from(ManualTaskRow).where(ManualTaskRow.status == "pending")) or 0
+            items = [self._manual(r, j) for r, j in rows]
+        return m.ManualTaskList(pending=int(pending), items=items)
+
+    async def manual_task(self, task_id: str, base: str) -> m.ManualTask:
+        with self.db() as db:
+            row = db.get(ManualTaskRow, task_id)
+            if not row:
+                raise ApiError(404, f"unknown manual task {task_id}")
+            return self._manual(row, self._job(db, row.job_id))
+
+    async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str) -> m.ManualTask:
+        """The operator's output for a waiting job: checked, stored where the job looks for it, and the job re-queued
+        to resume from its stored stages."""
+        from backend.worker.providers.manual import check_output
+
+        with self.db() as db:
+            row = db.get(ManualTaskRow, task_id)
+            if not row:
+                raise ApiError(404, f"unknown manual task {task_id}")
+            if row.status != "pending":
+                raise ApiError(409, "this task already has its output")
+            why = check_output(row.packet["expects"]["kind"], filename, data)
+            if why:
+                raise ApiError(422, why)
+            await asyncio.to_thread(self.store.put, row.packet["result_key"], data)
+            row.status, row.submitted_at, row.submitted_by, row.result_name = "submitted", utcnow(), user.username, filename[:120]
+            job = self._job(db, row.job_id)
+            job.status, job.message = "queued", "Waiting for the studio"
+            db.commit()
+            self.bus.enqueue(job.id, job.queue)
+            return self._manual(row, job)
 
     # ------------------------------------------------------------------ staff
     def _staff_job(self, job: JobRow) -> m.StaffJob:

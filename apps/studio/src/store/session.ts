@@ -4,7 +4,7 @@ import { ApiFailure, StudioApi, applyPatch, clone, randomSeed, setPath, setStaff
 import type { Breed, Job, ParseResponse, PetSpec, ProgressEvent, Species, StaffUser } from '@petpop/core';
 
 // The Generate workspace (batch builder), Review, Library and Releases (M8), and the one-off figurine flow.
-export type Screen = 'generate' | 'review' | 'library' | 'releases' | 'species' | 'breed' | 'build' | 'brief' | 'name' | 'generating' | 'result';
+export type Screen = 'generate' | 'review' | 'library' | 'releases' | 'manual' | 'species' | 'breed' | 'build' | 'brief' | 'name' | 'generating' | 'result';
 export const FLOW: Screen[] = ['species', 'breed', 'build', 'brief', 'name', 'generating', 'result'];
 const TOKEN_KEY = 'pp-studio-token';
 

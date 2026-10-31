@@ -23,10 +23,12 @@ dependencies = [
   "rtree>=1.2",
   "lxml>=5",
   "fast-simplification>=0.1.7",  # trimesh quadric decimation of generated meshes (normalise_glb)
+  "python-multipart>=0.0.9",     # Studio uploads (manual mode, decision 111)
+  "DracoPy>=1.4",                # Draco-compressed GLBs from a vendor's app or API decode instead of loading as zeros
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "python-multipart>=0.0.9"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
 stack = ["arq>=0.26", "redis>=5", "boto3>=1.34", "psycopg[binary]>=3.1"]
 
 [tool.pytest.ini_options]

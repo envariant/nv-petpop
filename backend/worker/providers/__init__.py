@@ -2,10 +2,12 @@
 profile entry; a class here only for an API a manifest cannot describe."""
 from __future__ import annotations
 
-from .base import Generated, Provider, ProviderError, ProviderUnsupported, provider_config  # noqa: F401
+from .base import AwaitingOperator, Generated, Provider, ProviderError, ProviderUnsupported, provider_config  # noqa: F401
 
 # A provider kind is a class; "manifest" (decision 109) runs any API described by config/providers/<manifest>.yaml.
-KINDS = {"manifest": "backend.worker.providers.manifest:ManifestProvider"}
+# "manual" (decision 111) builds the same requests but hands them to the operator instead of sending them.
+KINDS = {"manifest": "backend.worker.providers.manifest:ManifestProvider",
+         "manual": "backend.worker.providers.manual:ManualProvider"}
 
 
 def make_provider(profile, name: str) -> Provider:

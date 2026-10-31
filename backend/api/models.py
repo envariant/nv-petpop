@@ -9,13 +9,13 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.1.0"
+API_VERSION = "3.2.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
 PetSpecPatch = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpecPatch"})]
 Species = Literal["dog", "cat"]
-JobStatus = Literal["queued", "running", "done", "failed", "fulfilled"]
+JobStatus = Literal["queued", "running", "waiting", "done", "failed", "fulfilled"]
 Stage = Literal["queued", "A", "control", "B", "C", "D", "E", "F", "done"]
 Fallback = Literal["none", "single_view", "parametric", "unwrapped"]
 Role = Literal["operator", "curator", "admin"]
@@ -241,6 +241,54 @@ class StaffQueue(_M):
     queued: list[StaffJob]
     recent: list[StaffJob]
     gpu: GpuStatus
+
+
+# --------------------------------------------------------------------------- manual mode (decision 111, API 3.2.0)
+
+ManualCapability = Literal["text_to_image", "image_to_model", "multiview_to_model"]
+
+
+class ManualInput(_M):
+    name: str = Field(description="File to upload to the vendor's app, e.g. input.png.")
+    url: str
+
+
+class ManualExpects(_M):
+    kind: Literal["image", "model"]
+    accept: list[str] = Field(description="File extensions the upload may have, e.g. ['.glb'].")
+
+
+class ManualTask(_M):
+    """A provider request in manual mode: exactly what the API would have been sent, for the operator to run in the
+    vendor's own app; uploading the output resumes the job (status `waiting` until then)."""
+    task_id: str
+    job_id: str
+    status: Literal["pending", "submitted"]
+    capability: ManualCapability
+    title: str
+    provider: str
+    vendor: str
+    manifest: str = Field(description="Provider manifest and version that built the request, e.g. 'tripo-v3 v1'.")
+    route: str = Field(description="The API route the request would have gone to.")
+    request: dict[str, Any] = Field(description="The JSON body the API would have received (inputs shown as <upload name>).")
+    prompt: str | None = None
+    negative_prompt: str | None = None
+    settings: list[str] = Field(description="The request's options as 'field: value' lines.")
+    inputs: list[ManualInput]
+    instructions: list[str]
+    expects: ManualExpects
+    species: Species
+    pet_name: str | None = None
+    breed_label: str | None = None
+    batch_id: str | None = None
+    created_at: datetime
+    submitted_at: datetime | None = None
+    result_name: str | None = None
+
+
+class ManualTaskList(_M):
+    pending: int
+    items: list[ManualTask]
 
 
 # --------------------------------------------------------------------------- library mode (BRIEF Section 16, API 3.0.0)
