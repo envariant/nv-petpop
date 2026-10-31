@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/segmentation.schema.json",
+  "title": "SegmentationSchema",
+  "description": "The parts, landmarks, sockets and pattern regions every figurine mesh of one species is labelled to (BRIEF Sections 5, 6.5 and 10; decision 116). Meshes differ per figurine; this schema does not. Frozen before M9: changing a name or removing an entry is a version bump and a library migration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "species",
+    "parts",
+    "regions",
+    "landmarks",
+    "sockets",
+    "pattern_regions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^seg-[0-9]+$"
+    },
+    "species": {
+      "enum": [
+        "dog",
+        "cat"
+      ]
+    },
+    "parts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "shell",
+          "side"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z_A-Z]+$"
+          },
+          "shell": {
+            "type": "string",
+            "description": "The template shell the part belongs to (body, ear_L, ear_R, tail, eye_L, eye_R, nose); a generated mesh is one surface, so this names the part's role, not a separate object."
+          },
+          "side": {
+            "enum": [
+              "L",
+              "R",
+              "centre"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "regions": {
+      "type": "object",
+      "description": "Library regions (part-variant slots) as unions of parts.",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "landmarks": {
+      "type": "object",
+      "description": "Landmark name -> the parts it may lie in (it lies on a boundary when several are listed).",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "sockets": {
+      "type": "object",
+      "description": "Accessory socket -> the landmarks that place it and the accessories it takes.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "landmarks",
+          "accessories"
+        ],
+        "properties": {
+          "landmarks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "accessories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "pattern_regions": {
+      "type": "array",
+      "description": "Per-vertex pattern masks every mesh carries (transferred from the template).",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

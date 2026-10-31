@@ -1,6 +1,6 @@
 # PetPop Kiosk — Product & Engineering Brief (PoC)
 
-Oct 28, 2026 · @Nishant Vats
+Oct 28, 2026 · @Nishant Vats · revised Oct 31, 2026: every figurine has its own mesh, segmented to one schema (decision 116)
 
 ## 1. Product summary
 
@@ -12,7 +12,7 @@ The whole AI stack is self-hosted: prototyped on an Apple Silicon Mac and run in
 
 - Species: dog and cat. Breed presets for \~60 dog and \~25 cat breeds, with free text for anything else.
 - Inputs: breed + modular visual selectors + a free-text brief (a photo of the pet is a stretch goal, used only as a style reference).
-- Outputs per session: `figure.glb` (preview, textured), `figure.3mf` and `figure.stl` (print, sitting pose, flat base with mandrel socket), `albedo.png` + `figure_uv.obj` (same UV layout every time, for the painter kernel), and a QR code that opens the result on the user's phone.
+- Outputs per session: `figure.glb` (preview, textured), `figure.3mf` and `figure.stl` (print, sitting pose, flat base with mandrel socket), `albedo.png` + `figure_uv.obj` + `parts.png` (the figurine's own mesh and UVs with its part labels, for the painter kernel), and a QR code that opens the result on the user's phone.
 - One kiosk, one GPU, sequential jobs with a queue display.
 
 **Non-goals for the PoC**: payments and fulfilment, user accounts, multi-language, true likeness from photos, rigging or animation, other species.
@@ -119,13 +119,13 @@ The pattern and marking tiles are pre-rendered PNGs of the neutral base mesh wit
 
 ## 5. AI pipeline overview
 
-The generator is trusted for form and surface detail only; proportions come from a parametric base mesh and topology comes from wrapping that base mesh onto the generated shape. That is what makes every output share one topology and one UV layout, which the painter kernel and the print checks depend on.
+The generator is trusted for form and surface detail: every figurine keeps the generated mesh itself, at full detail, with its own UVs and texture. What every figurine shares is a **segmentation schema**, not a mesh: the species' named parts (`head`, `muzzle`, `ear_L`, `ear_R`, `body`, `leg_FL/FR/BL/BR`, `tail`, `base`, `eye_L`, `eye_R`, `nose`), 14 landmarks, accessory sockets and pattern regions, defined once in `data/segmentation/{species}.json`. Stage E labels each generated mesh to that schema, and the painter kernel, the pattern tools, the accessories and the library all address a figurine by part name, never by vertex index. Each mesh has a `mesh_id`; breeds or variations that share one mesh are labelled as sharing it (decision 116).
 
-&#91;embedded content: generation pipeline · 6 stages, one shared base mesh\]
+&#91;embedded content: generation pipeline · 6 stages, one segmentation schema\]
 
-Stages A to C run in ComfyUI, D in ComfyUI with the Hunyuan3D nodes, E and F in Blender headless. The base mesh is rendered once per job from `PetSpec` morph weights; its depth maps steer the image stages so the four views already agree with the geometry the wrap will target.
+Stages A to C run in ComfyUI, D in ComfyUI with the Hunyuan3D nodes, E and F in Blender headless. The species template mesh (Section 10) is rendered once per job from `PetSpec` morph weights; on the self-hosted profiles its depth maps steer the image stages, so the views share one framing and pose.
 
-**Fallbacks, in order**: if the four views disagree (Stage D confidence check fails), re-run D from the front view alone; if D fails twice, skip D and ship the parametric base mesh with the baked concept texture. The user always gets a figurine.
+**Fallbacks, in order**: if the four views disagree (Stage D confidence check fails), re-run D from the front view alone; if D fails twice, skip D and ship the morphed template mesh (it is already segmented) with the baked concept texture. The user always gets a figurine.
 
 ## 6. Stage detail
 
@@ -138,7 +138,7 @@ A local instruct LLM (Qwen2.5-7B-Instruct or Llama 3.1 8B via Ollama, Q4, \~5 GB
 One 1024×1024 SDXL image of the figurine, front view, orthographic framing on plain white.
 
 - Base: SDXL 1.0 (or a chibi/collectible-tuned checkpoint if one proves cleaner) with a style LoRA trained in-house on \~150 renders of the base meshes plus curated reference figurines, trigger word `petpop_style`.
-- ControlNet Depth at 0.6–0.75 strength from the base-mesh depth render, so head/body ratio, pose and framing match the mesh the wrap will target.
+- ControlNet Depth at 0.6–0.75 strength from the base-mesh depth render, so head/body ratio, pose and framing match the template the segmentation fits.
 - Colour fidelity: the positive prompt names the hex colours in words and the base-mesh render is also passed as a low-weight (0.3) img2img init with the flat colours from `PetSpec` pre-filled, so coat colour is already right before the texture stage.
 - Background removed with BiRefNet, alpha-matted, re-centred, 1024 square with 8 % margin.
 
@@ -157,25 +157,24 @@ Hunyuan3D-2 multi-view (`hunyuan3d-dit-v2-mv`) through the ComfyUI `Hunyuan3Dv2C
 
 Confidence check: render the generated mesh from the same four cameras as silhouettes, compute IoU against the alpha of each Stage C view; mean IoU below 0.85 triggers the single-view fallback (Hunyuan3D-2.1 shape model on the front view only), and a second failure triggers the parametric fallback.
 
-### 6.5 Stage E — Template wrap (topology)
+### 6.5 Stage E — Segmentation (part labels on the generated mesh)
 
-Blender 4.x headless (`bpy`) wraps the species base mesh onto the Stage D mesh so every figurine ships with the same vertex order, edge loops and UVs.
+Stage E keeps the Stage D mesh as it is (normalised to 90 mm, front -Y, up +Z, with its own UVs and texture) and labels it to the species segmentation schema. It does not move a vertex of the figurine.
 
-1. Load the base mesh, apply `PetSpec` morph weights (ears, muzzle, tail, body) so it is already close in proportion.
-2. Rigid + scale alignment: ICP between the two meshes' body regions (base mesh has vertex groups for head, body, each ear, tail, legs).
-3. Landmark pull: 14 named landmarks on the base mesh (nose tip, eye centres, ear tips, ear bases, chin, tail tip, paw fronts, back of head, base centre) are matched to the generated mesh by nearest-point search within each vertex group; a Surface Deform binding using these drives the coarse fit.
-4. Shrinkwrap (project along normals, 3 iterations with increasing resolution via a multires on the base mesh) for the fine fit, then a Smooth-corrective pass weighted by vertex group to protect loops around the eyes and mouth.
-5. Replace the eye region with the base mesh's eye inserts (separate shells, not wrapped) and snap accessory meshes (collar, bandana, etc.) from the accessory library onto their anchor empties.
-6. Validate: no self-intersections, no inverted faces, Laplacian smoothness within 2× the base-mesh median; failures retry with higher shrinkwrap smoothing, then fall back to the morphed base mesh without wrap.
+1. Fit the species template mesh to the generated mesh: similarity ICP, then a landmark pull propagated by RBF (the template's 14 landmarks matched by nearest-point search within each part), with a light shrinkwrap so the template lies on the generated surface. The fit is a measuring tool only; it is never shipped.
+2. Transfer the schema by nearest surface point from the fitted template: each vertex of the generated mesh gets its part weights (feathered at part boundaries), its pattern-region values and, for the 14 landmarks, the nearest vertex. Sockets (neck, head, face) are placed from the landmarks.
+3. Meshes without UVs (self-hosted shape models) are unwrapped (Blender Smart UV Project, part-aware seams) before Stage F; provider meshes keep their UVs.
+4. Validate: every schema part present and contiguous, landmarks inside their parts, left and right parts on their own sides; a failure falls back to the morphed template (parametric fallback).
+5. A profile can choose `segmentation.method: provider` instead (the GenAI API's own segmentation, mapped to schema names by the manifest), once one is proven against the template method.
 
-Output: `figure_wrapped.obj` with the base mesh's UV map intact.
+Output: `figure_mesh.npz` (positions, faces, UVs, part weights, region values, landmarks, `mesh_id`, schema version) and `parts.png` (the part label of every texel in the figurine's UV layout).
 
 ### 6.6 Stage F — Texture bake and export
 
-- Texture source, preferred: Hunyuan3D-Paint (v2.0 texture model) run on the wrapped mesh using the Stage C views as reference, producing a 2048 albedo already in the base-mesh UV layout. Alternative: project the four Stage C views onto the wrapped mesh in Blender (camera projection, view-angle weighted blend, seam-aware), which is faster and often cleaner for flat-shaded styles.
-- Colour correction: per-region (vertex-group) histogram match toward the `PetSpec` hex values, nose and eye regions painted flat, then 2-px UV seam padding.
-- Print mesh: join shells, boolean-add the flat base disc (Ø 48 mm) and the mandrel socket (parametric, from `config/mandrel.json`), remesh at 0.15 mm voxel size for watertightness, decimate to \~250 k tris, min-wall check at 1.5 mm, export `figure.3mf` + `figure.stl`.
-- Paint check: for each face, the free-space distance along the normal to the next surface; faces with less than the head stand-off (5 mm) are flagged and written to `paint_mask.png` in UV space, so the painter kernel knows what the base-coat airbrush pass must cover.
+- Texture source: the provider's own texture when the shape model returns one (commercial APIs), kept in the mesh's own UVs. Otherwise Hunyuan3D-Paint (v2.0 texture model) on the generated mesh with the Stage C views as reference, or projection of the four Stage C views onto the mesh in Blender (camera projection, view-angle weighted blend, seam-aware), which is faster and often cleaner for flat-shaded styles.
+- Colour correction: per-part (segmentation) histogram match toward the `PetSpec` hex values, nose and eye regions painted flat, then 2-px UV seam padding.
+- Print mesh: the figurine's own mesh at full detail, joined with its accessory shells; boolean-add the flat base disc (Ø 48 mm) and the mandrel socket (parametric, from `config/mandrel.json`), remesh at 0.15 mm voxel size for watertightness, decimate to \~250 k tris, min-wall check at 1.5 mm, export `figure.3mf` + `figure.stl`.
+- Paint check: for each face, the free-space distance along the normal to the next surface; faces with less than the head stand-off (5 mm) are flagged and written to `paint_mask.png` in the figurine's UV space, so the painter kernel knows what the base-coat airbrush pass must cover.
 - Preview: `figure.glb` (Draco, 2048 albedo, metallic 0, roughness 0.55 for the vinyl look), thumbnail turntable `turntable.mp4` (36 frames) for the attract loop and the phone page.
 
 All artefacts are written under `jobs/{job_id}/` with a `manifest.json` listing every file, its stage, timings and the seeds used.
@@ -263,7 +262,7 @@ The kiosk and the phone page talk only to the API; the API and the worker share 
 | `api` | Python 3.12, FastAPI, uvicorn | REST + WebSocket, serves the built SPA, signs result URLs, writes jobs to Postgres and enqueues to Redis |
 | `worker` | Python 3.12, `arq` on Redis | Runs stages A–F in order, calls ComfyUI HTTP/WS, Blender via subprocess, Ollama HTTP; publishes progress events; uploads artefacts |
 | `comfyui` | CUDA 12.x, ComfyUI pinned commit | Stages B, C, D and texture; models mounted from a host volume |
-| `blender` | Blender 4.2 LTS headless + `bpy` scripts | Control renders, template wrap, bake, print export, paint check |
+| `blender` | Blender 4.2 LTS headless + `bpy` scripts | Control renders, segmentation fit, UV unwrap, bake, print export, paint check |
 | `ollama` | Ollama with Qwen2.5-7B-Instruct Q4 | Stage A parsing; stopped and started by the worker around image stages |
 | `postgres` / `redis` / `minio` | Official images | Durable state, queue + pub/sub, S3-compatible artefact store |
 
@@ -273,7 +272,7 @@ The kiosk and the phone page talk only to the API; the API and the worker share 
 | --- | --- |
 | `sessions` | id, kiosk\_id, started\_at, ended\_at, generate\_count |
 | `jobs` | id, session\_id, pet\_spec (jsonb), status (queued/running/done/failed/fulfilled), stage, seed, created\_at, finished\_at, error |
-| `artefacts` | id, job\_id, stage, kind (concept/view/shape/wrapped/albedo/glb/3mf/stl/mask/turntable/manifest), object\_key, bytes |
+| `artefacts` | id, job\_id, stage, kind (concept/view/shape/segmented/albedo/glb/3mf/stl/mask/turntable/manifest), object\_key, bytes |
 | `stage_timings` | job\_id, stage, started\_at, ended\_at, ms |
 | `breeds` | id, species, label, preset (jsonb), prompt\_hint |
 
@@ -296,25 +295,25 @@ The kiosk and the phone page talk only to the API; the API and the worker share 
 
 **Infra**: `infra/docker-compose.yml` with GPU reservation on `comfyui`, `blender` (Cycles bake uses CUDA) and `ollama`; model weights in `/srv/models` mounted read-only; `.env` for ports, bucket names and the staff token; `make up`, `make models` (downloads pinned weights with checksums), `make regress` (runs the 30-pet set). Minimum host: 1× 24 GB GPU (RTX 4090 / L4-class), 16-core CPU, 64 GB RAM, 500 GB NVMe.
 
-## 10. Template meshes
+## 10. Template meshes and the segmentation schema
 
-The two base meshes are the most valuable hand-made assets in the project and the only part that cannot be generated. They are built once in Blender, versioned in `assets/base/{dog,cat}/`, and every generated figurine is a deformed copy of one of them.
+Every figurine has its own mesh (decision 116). The two template meshes, versioned in `assets/base/{dog,cat}/`, are no longer the topology of every output; they are the reference that defines and transfers the **segmentation schema**, the live preview of the Build screen, the control renders of the self-hosted image stages, and the parametric fallback. The schema itself, `data/segmentation/{species}.json` (validated by `data/schema/segmentation.schema.json`), is what is frozen before M9: part names, landmark names, sockets and pattern regions. Meshes are not frozen.
 
-**Construction**
+**Construction of a template**
 
 - Sitting pose, 90 mm tall at scale 1.0, front facing -Y, symmetric about X, origin at the base centre.
-- All-quad body shell of 8–12 k faces with edge loops around the eye sockets, mouth, ear bases, leg roots and tail root; dense enough that shrinkwrap captures a flop ear or a pug muzzle, sparse enough to subdivide cleanly.
-- Separate shells, each its own object and vertex group: body (head and body as one shell), eye inserts ×2, nose cap, each ear, tail, collar anchor. Eye inserts and nose cap are never wrapped.
-- Vertex groups for the wrap: `head`, `muzzle`, `ear_L`, `ear_R`, `body`, `leg_FL/FR/BL/BR`, `tail`, `base`; weights feathered 3 loops at every boundary.
-- 14 landmark empties parented to the mesh (Section 6.5), names fixed in `landmarks.json`.
-- Morph targets (shape keys) driven from `PetSpec` via `vocab.json`: `head_scale`, `muzzle_len`, `muzzle_width`, `brachy`, `ear_erect`, `ear_drop`, `ear_fold`, `ear_size`, `tail_len`, `tail_curl`, `tail_plume`, `body_stocky`, `body_slim`, `leg_len`, `fluff` (dog: 15; cat: 12, no `brachy` split, add `ear_tuft`).
-- Breed presets map to morph weights and were tuned by eye against \~10 reference photos per breed; the regression set checks that a preset-only render is still recognisable.
+- All-quad body shell of 8–12 k faces with edge loops around the eye sockets, mouth, ear bases, leg roots and tail root, so the fit in Stage E follows a flop ear or a pug muzzle.
+- Separate shells, each its own object and vertex group: body (head and body as one shell), eye inserts ×2, nose cap, each ear, tail, collar anchor.
+- Vertex groups named exactly as the schema's parts: `head`, `muzzle`, `ear_L`, `ear_R`, `body`, `leg_FL/FR/BL/BR`, `tail`, `base`, `eye_L`, `eye_R`, `nose`; weights feathered 3 loops at every boundary. Pattern regions as per-vertex values (the masks), named as in the schema.
+- 14 landmark empties parented to the mesh (Section 6.5), names fixed by the schema.
+- Morph targets (shape keys) driven from `PetSpec` via `vocab.json`: `head_scale`, `muzzle_len`, `muzzle_width`, `brachy`, `ear_erect`, `ear_drop`, `ear_fold`, `ear_size`, `tail_len`, `tail_curl`, `tail_plume`, `body_stocky`, `body_slim`, `leg_len`, `fluff` (dog: 15; cat: 12, no `brachy` split, add `ear_tuft`). They shape the preview, the control renders and the fit's starting point.
+- Breed presets map to morph weights and were tuned by eye against \~10 reference photos per breed.
 
 **UV layout**
 
-One 2048 atlas per species, fixed for the life of the product so the painter kernel's toolpaths can be cached per island: head front (1 island, 40 % of the atlas, nose-to-crown continuous for the face), head back, body, each leg, each ear, tail, base disc; 8 px padding; seams hidden under the chin, along the back of the ears and the inside of the legs. `figure_uv.obj` written per job is this layout verbatim.
+Each figurine has its own UVs: the provider's, or a part-aware unwrap for meshes that arrive without them. `figure_uv.obj` is the figurine's mesh with those UVs, `albedo.png` is its texture and `parts.png` gives the schema part of every texel, so the painter kernel plans toolpaths per figurine and can still treat the face, ears and tail by name. The template keeps its own 2048 atlas for the preview and the parametric fallback.
 
-**Accessory library** (`assets/accessories/`): collar, bandana, bow, hat, glasses as low-poly quad meshes with their own small UV islands in a second 1024 atlas, each with an anchor empty that snaps to the base mesh's neck or head landmark after wrap; tag text on the collar is generated as a decal in the texture, not geometry.
+**Accessory library** (`assets/accessories/`): collar, bandana, bow, hat, glasses as low-poly quad meshes with their own small UV islands in a second 1024 atlas, each with an anchor empty that snaps to the figurine's neck, head or face socket (placed from its landmarks in Stage E); tag text on the collar is generated as a decal in the texture, not geometry.
 
 **Print geometry added at export** (`config/mandrel.json`): a 48 mm flat base disc 4 mm thick fused to the body, with the mandrel socket cut as a blind hole at its centre (diameter, depth and keying flat read from the config so the socket matches the painter's kinematic mandrel); the base is deliberately wider than the mandrel tip so the part, not the table, is the first collision at any pose.
 
@@ -380,7 +379,7 @@ tests/regression/      30-pet PetSpec set + expected metrics
 - [ ] ComfyUI workflows are generated by scripts/make\_comfy\_workflows.py with model names bound from the active profile and committed with a `meta.version` bump; never hand-edit the generated JSON, and meta.validated flips to true only after a run on a live host.
 - [ ] The base meshes are built by hand in Blender from Section 10; Claude Code writes `scripts/check_base_mesh.py` (quad count, vertex groups, landmarks, UV islands, symmetry) and the morph wiring, and flags any spec gap rather than guessing geometry.
 - [ ] The style LoRA is trained once the base meshes exist: `assets/lora/make_training_set.py` renders 150 morphed, coloured variants; training runs on the same GPU box (Kohya, SDXL, 20 epochs) and is gated on a side-by-side with and without LoRA on 10 prompts.
-- [ ] Regression set: `tests/regression/pets.json` holds 30 `PetSpec`s (15 dog, 15 cat, every ear, tail and coat enumeration at least once); `make regress` runs them and writes a metrics table (per-stage time, IoU, wrap validity, print validity, paint-mask %) that the M4 to M6 gates read.
+- [ ] Regression set: `tests/regression/pets.json` holds 30 `PetSpec`s (15 dog, 15 cat, every ear, tail and coat enumeration at least once); `make regress` runs them and writes a metrics table (per-stage time, IoU, segmentation validity, print validity, paint-mask %) that the M4 to M6 gates read.
 - [ ] Fallbacks are tested by fault injection (`PETPOP_FAIL_STAGE=D` env var) so the parametric path is exercised in CI, not just in theory.
 - [ ] Secrets and the staff token never enter the repo; `.env.example` lists every variable.
 
@@ -402,7 +401,7 @@ Everything except the three GenAI services runs CPU-only, and those three sit be
 | Stages B, C | `MockImageBackend`: Blender (Cycles CPU) renders of the morphed, flat-coloured base mesh | ComfyUI SDXL graphs on the GenAI host |
 | Texture | Projection of the four views in Blender (the default on every profile) | Projection; Hunyuan3D-Paint optional on NVIDIA only |
 | Stage D shape | `MockShapeBackend`: the morphed base mesh with low-frequency noise and small random ear and tail perturbation, triangulated | Hunyuan3D-2mv in ComfyUI (NVIDIA) or Hunyuan3D-2.1 on the Mac shape server |
-| Stages E, F, control renders | Real: Blender CPU via the `bpy` pip package (Python 3.11); if `bpy` cannot install, a `trimesh` stand-in (linear morph, nearest-point wrap, flat albedo, 3MF via trimesh) marked `fidelity: low` in the manifest | Real: Blender container, Cycles on CUDA |
+| Stages E, F, control renders | Real: Blender CPU via the `bpy` pip package (Python 3.11); if `bpy` cannot install, a `trimesh` stand-in (linear morph, nearest-point segmentation transfer, flat albedo, 3MF via trimesh) marked `fidelity: low` in the manifest | Real: Blender container, Cycles on CUDA |
 
 **Mock server, built first**: `mock-server/` is a standalone FastAPI process with no database, queue or Blender (about 300 lines) that implements the committed OpenAPI exactly: breed search over the real preset files, `/spec/parse` with the rule-based parser, and jobs that follow a script (`mock-server/scripts/*.json`: stage, delay, preview artefact) drawn from the fixture pack, including a slow-queue script, a failed-stage script and a fallback-figurine script so the front end meets every state it will ever see. It is the only backend the front end talks to during S1, it is frozen once S1 starts, and the real backend in `make dev` mode replaces it in S2 by passing the identical contract test.
 
@@ -422,7 +421,7 @@ Everything except the three GenAI services runs CPU-only, and those three sit be
 | `mac-m4pro` | Apple Silicon M4 Pro, 24 GB unified, MPS (prototype) | ComfyUI: SDXL fp16 + depth ControlNet + IP-Adapter Plus | Hunyuan3D-2.1 via the MPS fork, octree 192 / 30 steps | projection | one model at a time | 12-16 min, latency gate waived |
 | `nvidia-24gb` | one 24 GB NVIDIA card, CUDA (production) | as above, fp8 UNet allowed | Hunyuan3D-2mv, octree 384 / 50 steps | projection, Hunyuan3D-Paint optional | SDXL stack freed before Stage D | 4-min target enforced |
 
-`TEXTURE_BACKEND` overrides the texture source where the profile allows it. The Mac host runs ComfyUI, a small shape server and Ollama under launchd (`mac/`), behind a bearer-token proxy and a Cloudflare tunnel; the VM reaches them through `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL` and `GENAI_TOKEN` (`docs/HANDOFF.md`). The six ComfyUI workflows are generated by `scripts/make_comfy_workflows.py` with model names bound from the profile and stay `meta.validated: false` until they have run on a live host. Quality thresholds (view consistency, wrap validity, print and paint checks) are the same on every profile; only timings, timeouts, residency rules and optional backends differ, and development can stay on the Mac profile through M6 because moving to production is a swap of endpoints and a re-run of the same gates.
+`TEXTURE_BACKEND` overrides the texture source where the profile allows it. The Mac host runs ComfyUI, a small shape server and Ollama under launchd (`mac/`), behind a bearer-token proxy and a Cloudflare tunnel; the VM reaches them through `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL` and `GENAI_TOKEN` (`docs/HANDOFF.md`). The six ComfyUI workflows are generated by `scripts/make_comfy_workflows.py` with model names bound from the profile and stay `meta.validated: false` until they have run on a live host. Quality thresholds (view consistency, segmentation validity, print and paint checks) are the same on every profile; only timings, timeouts, residency rules and optional backends differ, and development can stay on the Mac profile through M6 because moving to production is a swap of endpoints and a re-run of the same gates.
 
 **Staging**
 
@@ -433,11 +432,11 @@ Everything except the three GenAI services runs CPU-only, and those three sit be
 | S2 Real backend, parametric path | Claude Code cloud | Claude Code alone | API, worker, SQLite and local store, mock adapters, proxy base meshes, Blender CPU wrap, bake, export, paint check, QR page, staff panel | `make gate-2`; demo on a laptop |
 | M2.5 Host-agnostic GenAI (done) | Claude Code cloud | Claude Code alone | GenAI profiles (`mock`, `mac-m4pro`, `nvidia-24gb`), projection texture, the six workflows, `mac/` host kit, Compose stack proven on the mock profile | `make gate-0..2`, `scripts/smoke_stack.sh` |
 | S3 GenAI host bring-up | The Mac first (`GENAI_PROFILE=mac-m4pro`); the cloud session reaches the host through the tunnel URLs | Nishant + Claude Code | `make -C mac setup`, `make -C mac models` (writes the SHA256 pins), adapters swapped in one at a time with `PETPOP_ADAPTERS`: A, B, C, D | `make gate-3`, `gate-4`, `gate-5` on the profile |
-| S4 Real assets | Blender by hand; LoRA on the Mac (slow) or on the NVIDIA box | Nishant | Hand-built base meshes, `petpop_style` LoRA; the base mesh is frozen here, before the library is seeded | `check_base_mesh.py`; LoRA side-by-side |
+| S4 Real assets | Blender by hand; LoRA on the Mac (slow) or on the NVIDIA box | Nishant | Hand-built template meshes, `petpop_style` LoRA; the segmentation schema is frozen here, before the library is seeded | `check_base_mesh.py`; LoRA side-by-side |
 | S5 Kiosk hardening on the Mac profile | Kiosk screen + the Mac | Both | Attract loop, idle wipe, regression set (10 pets on the Mac), print and paint of three demo pets | `make gate-6` on `mac-m4pro`, latency target waived |
 | S6 Production host | NVIDIA box, Claude Code over SSH | Nishant + Claude Code | Compose with `comfyui` and `ollama`, pinned weights, the same generated workflows on CUDA, Hunyuan3D-Paint optional; nothing in the app changes except `GENAI_PROFILE=nvidia-24gb` | `make gate-3` to `gate-6` re-run on `nvidia-24gb`, including the 4-minute target; `make regress` on 30 pets |
 | S7 Kiosk library mode (M7) | Claude Code cloud, in parallel with S3 | Claude Code alone | Library schema and API, assembler, pattern tools, instant preview, composition export, against a proxy library from the proxy base meshes (Section 16) | `make gate-7` |
-| S8 Studio: generation workspace and curation (M8) | Code in the cloud session; batches on the Mac profile | Claude Code + Nishant | Batch runner, region-delta extraction, QC, review UI, publish, versioning | `make gate-8` on `mac-m4pro` |
+| S8 Studio: generation workspace and curation (M8) | Code in the cloud session; batches on the GenAI profile Studio picks | Claude Code + Nishant | Batch runner, segmentation QC, review UI, publish meshes with breed labels, versioning | `make gate-8` on `mac-m4pro` |
 | S9 Seed library (M9) | The Mac, staff time | Nishant | Every breed preset covered by a family and parts set; a pattern layer per marking enumeration | `make gate-9`; library-mode walkthrough under 3 min |
 
 Milestones M0 to M2.5, M7 and most of M6 need no GenAI host; M3 to M5 and M8 run against the Mac profile in S3, S4 and S8, and S6 re-runs gates 3 to 6 on the NVIDIA profile. Gates 3 to 6 and 8 print `SKIPPED (needs a GenAI host)` on the mock profile rather than passing, so a cloud session can never report a GenAI milestone as done; on a real profile they probe the profile's services and apply its thresholds (latency only where the profile enforces it).
@@ -446,13 +445,13 @@ Milestones M0 to M2.5, M7 and most of M6 need no GenAI host; M3 to M5 and M8 run
 
 ## 14. Risks and open questions
 
-The two risks that can sink the PoC are view consistency (Stage C) and wrap robustness (Stage E); both have a fallback that still ships a figurine, so the real exposure is quality, not availability.
+The two risks that can sink the PoC are view consistency (Stage C) and segmentation robustness (Stage E); both have a fallback that still ships a figurine, so the real exposure is quality, not availability.
 
 | Risk | Likelihood | Fallback / mitigation |
 | --- | --- | --- |
 | Four SD views disagree on markings or ear pose | High on first LoRA | MV-Adapter path; stronger depth ControlNet; IoU gate rejects before Stage D |
-| Hunyuan3D-2mv blurs small parts (ears, tails, collars) | Medium | Accessories and eyes come from the library, not the generator; ears and tail are protected by morph targets in the wrap |
-| Shrinkwrap folds on concave regions (under chin, between legs) | Medium | Vertex-group-weighted corrective smoothing; sitting pose keeps legs tucked; parametric fallback |
+| Hunyuan3D-2mv blurs small parts (ears, tails, collars) | Medium | Accessories come from the library, not the generator; HD geometry or a commercial API where it matters |
+| Segmentation mislabels a part (ear merged into the head, tail into a leg) | Medium | Landmark pull within parts; validation of contiguity and sides; review in Studio; parametric fallback |
 | 24 GB VRAM too tight for SDXL + IP-Adapter + ControlNet at 1024 | Medium | Run Stage C at 768; fp8 UNet; split onto two GPUs |
 | Hunyuan3D community licence terms for a commercial kiosk | Unknown | Read before launch; TRELLIS.2 or TripoSG as licence-clean alternatives for Stage D |
 | Hunyuan3D-2mv node needs weights from the 2.0 line, not 2.1 | Medium | Verify in M3; fall back to 2.1 single-view if 2mv is unmaintained |
@@ -528,7 +527,7 @@ Git: work on branch poc and push after every green gate. Open one PR per milesto
 working on poc without waiting for review.
 
 Ownership: never hand-edit assets/base/ or the generated workflow JSONs in pipelines/comfy/ (regenerate them
-with scripts/make_comfy_workflows.py); generate proxies by script. The base mesh is frozen before M9.
+with scripts/make_comfy_workflows.py); generate proxies by script. The segmentation schema is frozen before M9; meshes are not.
 Contract: data/schema/openapi.json is the source of truth; change it only with a version bump that updates
 mock-server, the TypeScript client and the backend in the same commit. manifest.schema.json is the contract
 every GenAI adapter must satisfy, on every profile. A composition JSON is the only input to a library export.
@@ -556,37 +555,38 @@ docs/HANDOFF.md listing what I must run on the Mac for S3, then stop.
 
 ## 16. Library mode: a pre-generated asset library for a true kiosk experience
 
-Library mode takes AI generation off the kiosk's critical path: staff generate and curate parts in batches, and the kiosk assembles, customises and previews from that library instantly. The template wrap is what makes this cheap. After Stage E every figurine is the base mesh with moved vertices, so a part is a **region delta**: the vertex offsets inside one vertex group (ears, tail, muzzle, head, body, legs) relative to the base mesh, feathered at the group boundary by the weights that already exist. Deltas from different figurines combine on one chassis, a pug's muzzle on a spaniel's head, because the boundary loops are identical, and the live preview applies them as morph targets. Topology never needs refining per part because it is the base mesh's; refinement happens once per base-mesh version and propagates to the whole library.
+Library mode takes AI generation off the kiosk's critical path: staff generate and curate figurines in batches, and the kiosk assembles, customises and previews from that library instantly. Every library figurine is a **mesh**: its own geometry at full detail, its own UVs and texture, labelled to the species segmentation schema (decision 116). Different breeds have different meshes; breeds or variations that share one mesh are labelled so (`mesh_id`, and on each family the breeds it serves), and Studio and the kiosk show the label. What makes the library composable is the shared schema: patterns, stamps, accessories and part choices are all addressed by part name, so the same tools work on every mesh.
 
 &#91;embedded content: library mode - offline curation lane, instant kiosk lane, the library between them\]
 
-Extremes a delta cannot express within the vertex budget (very large or very fluffy ears, long plume tails) and all accessories are **shell parts**: separate quad meshes with their own UV islands in the parts atlas that attach at named sockets on the base mesh; the print export's remesh fuses them.
+A **part variant** is a choice within one mesh: vertex offsets inside one schema part (ears, tail, muzzle, head, body, legs), feathered by that mesh's part weights, valid only for that `mesh_id` (for example ear set or tail curl variants generated or sculpted on the same mesh). Parts are not swapped between different meshes in the PoC; when they are (a provider's part segmentation and part completion, or a transplant along the schema's part boundary), it will be a new kind of part keyed by part name. Accessories are **shell parts**: separate quad meshes with their own UV islands in the parts atlas that attach at the schema's named sockets on any mesh; the print export's remesh fuses them.
 
 **Library content model**
 
 | Entity | What it holds |
 | --- | --- |
-| Family | A body or head variant as a full-mesh delta on the species base (stocky, slim, long, brachy), with its default parts set and breed tags |
-| Region delta | Vertex offsets for one vertex group, stored as float16 keyed by base-mesh version; metadata: species, region, source job, breed tags, curator score, version |
+| Mesh | One figurine's geometry, UVs, texture, part weights, region values, landmarks and sockets; `mesh_id`, schema version, source job, the breeds and variations that share it |
+| Family | A breed-facing entry on one mesh: breed tags, default colours, patterns and part variants |
+| Part variant | Vertex offsets for one schema part of one mesh (float16), with breed tags, curator score and version |
 | Shell part | Separate mesh with socket id, UV islands in the parts atlas, collision bounds for the paint check |
-| Pattern layer | A greyscale signed-distance mask in the species UV atlas (blaze, socks, chest, mask, saddle, tuxedo, points, tabby, brindle, merle) with default colours and a coverage range |
-| Composition | What a customer assembled: family ids, part ids, pattern layers with coverage and colours, stamps (3D position, radius, colour), pet name; this is the order record and the sole input to export |
+| Pattern layer | A pattern defined on schema regions (blaze, socks, chest, mask, saddle, tuxedo, points, tabby, brindle, merle), rasterised per mesh as a signed-distance mask in that mesh's UVs, with default colours and a coverage range |
+| Composition | What a customer assembled: mesh and family id, part variant ids, pattern layers with coverage and colours, stamps (3D position on that mesh, radius, colour), pet name; this is the order record and the sole input to export |
 
 **Customer tools (instant, on the kiosk GPU)**: parts tiles per region with live swap; pattern layers toggled with a coverage slider (the signed-distance mask is thresholded in the shader, so markings grow and shrink smoothly instead of snapping between presets); colour swatches per layer; tap-to-stamp spots and patches projected onto the mesh in 3D and rasterised into the atlas per triangle, so a stamp that crosses a UV seam lands correctly; symmetry toggle; a small brush for freehand patches; undo. Everything renders in the existing three.js viewer, and the preview is the final asset.
 
-**Export without AI**: `POST /compositions/{id}/export` runs Stage F only. The worker re-renders the composition's layers and stamps server-side into the 2048 albedo (deterministic from the composition JSON, so the print matches the screen), applies the deltas and shells in Blender, fuses, adds the base and mandrel socket, runs the print and paint checks and writes the usual bundle. Target: under 60 s on CPU.
+**Export without AI**: `POST /compositions/{id}/export` runs Stage F only. The worker re-renders the composition's layers and stamps server-side into the mesh's albedo (deterministic from the composition JSON, so the print matches the screen), applies the part variants and shells in Blender, fuses, adds the base and mandrel socket, runs the print and paint checks and writes the usual bundle. Target: under 60 s on CPU.
 
-**Offline curation pipeline** (`apps/studio/`, staff only): a batch is breeds × variants × seeds run through stages A to E on any GenAI profile, overnight on the Mac or faster on NVIDIA. Per figurine the pipeline extracts the region deltas and a full-mesh family delta, computes QC metrics (wrap validity, symmetry error, boundary strain, self-intersection), auto-rejects below thresholds and queues the rest for review. Studio shows a grid of variants with turntables, accept, reject and tag per region, a "fix in Blender" round-trip for hero parts, and publish, which versions the part and regenerates its thumbnail and pattern previews. Studio is the staff generator app described in Section 17; the kiosk only ever sees what Studio publishes.
+**Offline curation pipeline** (`apps/studio/`, staff only): a batch is breeds × variants × seeds run through stages A to E on any GenAI profile, overnight on the Mac or faster on NVIDIA. Per figurine the pipeline keeps the mesh and its segmentation, computes QC metrics (segmentation validity, symmetry error, self-intersection, print and paint checks), auto-rejects below thresholds and queues the rest for review. Studio shows a grid of figurines with turntables, accept, reject and breed labels (including "shares this mesh with"), a "fix in Blender" round-trip for hero meshes, and publish, which versions the mesh and regenerates its thumbnail and pattern previews. Studio is the staff generator app described in Section 17; the kiosk only ever sees what Studio publishes.
 
-**Data model and API additions**: tables `families`, `region_deltas`, `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`; endpoints `GET /library/{species}/families`, `GET /library/{species}/parts?region=`, `GET /library/{species}/patterns`, `POST /compositions`, `POST /compositions/{id}/export`, `POST /compositions/{id}/bespoke` (hands the composition to the generated pipeline as its starting spec), plus staff endpoints for batches and review. A base-mesh version bump invalidates every delta, so the base mesh is frozen before M9 and changes only with a library migration.
+**Data model and API additions**: tables `meshes`, `families`, `region_deltas` (part variants), `shell_parts`, `pattern_layers`, `compositions`, `curation_batches`; endpoints `GET /library/{species}/families`, `GET /library/{species}/parts?region=`, `GET /library/{species}/patterns`, `POST /compositions`, `POST /compositions/{id}/export`, `POST /compositions/{id}/bespoke` (hands the composition to the generated pipeline as its starting spec), plus staff endpoints for batches and review. A part variant is keyed by its mesh's `mesh_id`; a segmentation-schema version bump needs a library migration, so the schema is frozen before M9. Meshes are added and replaced freely.
 
 **Milestones** (none needs a GPU except M8's batch runs)
 
-- M7 Kiosk library mode: library schema and API, the release loader, the Design screen (assembler and pattern tools), instant preview, composition API, Stage-F-only export, built against a proxy library made from the proxy base meshes. Gate: composition to print bundle in under 60 s; stamps cross seams correctly; coverage slider smooth with 10 layers active; the kiosk runs with the GenAI host unreachable.
-- M8 Studio: the Generate workspace rebuilt from the M1 screens as a batch spec builder, batch runner, delta extraction, QC, review grid, parts and pattern editors, publish, versioning, release packer. Gate: 20 generated figurines yield at least 15 published parts sets with no manual mesh edits, and a release bundle loads on a clean kiosk.
-- M9 Seed library through Studio: every breed preset covered by at least one family and parts set; a pattern layer for every marking enumeration. Gate: library-mode walkthrough from attract to order in under 3 minutes; 70 % breed recognisability on library figurines.
+- M7 Kiosk library mode: library schema and API, the release loader, the Design screen (assembler and pattern tools), instant preview, composition API, Stage-F-only export, built against a proxy library made from the proxy template meshes. Gate: composition to print bundle in under 60 s; stamps cross seams correctly; coverage slider smooth with 10 layers active; the kiosk runs with the GenAI host unreachable.
+- M8 Studio: the Generate workspace rebuilt from the M1 screens as a batch spec builder, batch runner, segmentation QC, review grid with breed and shared-mesh labels, parts and pattern editors, publish, versioning, release packer. Gate: 20 generated figurines yield at least 15 published meshes with valid segmentation and no manual mesh edits, and a release bundle loads on a clean kiosk.
+- M9 Seed library through Studio: every breed preset covered by at least one family on a labelled mesh; a pattern layer for every marking enumeration. Gate: library-mode walkthrough from attract to order in under 3 minutes; 70 % breed recognisability on library figurines.
 
-Staging: M7 starts as soon as M2.5 is merged and runs in the cloud session against proxy parts (S7, no GenAI host, in parallel with S3); M8 runs its batches on the Mac profile (S8); M9 is staff time on the Mac (S9). The base mesh must be frozen (S4) before M9 seeds the library. Bespoke mode remains as the "Make it unique" path and as the source of new library content, so the two modes share every stage and every gate.
+Staging: M7 starts as soon as M2.5 is merged and runs in the cloud session against proxy parts (S7, no GenAI host, in parallel with S3); M8 runs its batches on the Mac profile (S8); M9 is staff time on the Mac (S9). The segmentation schema must be frozen (S4) before M9 seeds the library. Bespoke mode remains as the "Make it unique" path and as the source of new library content, so the two modes share every stage and every gate.
 
 ## 17. Two apps, one core: Studio and Kiosk
 
@@ -604,7 +604,7 @@ The generation workflow and the customer workflow are different products with di
 
 **Shared core** (`packages/`): `core` (PetSpec, manifest, composition and release schemas, vocab, breed presets, prompt compiler), `viewer` (three.js viewer, pattern material, delta and morph application, stamp rasteriser; used by both apps so a part looks the same in the Studio review grid and on the kiosk), `library` (delta extraction, QC metrics, release packer and loader), and the pipeline itself (`StageRunner`, adapters, profiles). Apps import packages; packages never import apps.
 
-**Contract 1, the library release**: `POST /studio/releases` packs every published family, region delta, shell part, pattern layer and thumbnail for one base-mesh version into a signed, versioned bundle (`release-<species>-<n>.tar`: manifest, GLBs, float16 delta arrays, mask PNGs, previews). The kiosk loads a release at start, keeps the last two, switches atomically, and reads nothing else from Studio; drafts and rejected parts never leave Studio. The release schema lives in `data/schema/` beside the others and has its own contract test.
+**Contract 1, the library release**: `POST /studio/releases` packs every published mesh (with its segmentation, labels and the breeds that share it), family, part variant, shell part, pattern layer and thumbnail for one segmentation-schema version into a signed, versioned bundle (`release-<species>-<n>.tar`: manifest, mesh binaries, textures, float16 part-variant arrays, mask PNGs, previews). The kiosk loads a release at start, keeps the last two, switches atomically, and reads nothing else from Studio; drafts and rejected parts never leave Studio. The release schema lives in `data/schema/` beside the others and has its own contract test.
 
 **Contract 2, the composition**: the kiosk's order record (Section 16). `POST /kiosk/compositions/{id}/export` runs Stage F only on the kiosk's CPU worker; compositions are written to the fulfilment folder today and synced to a Studio orders table later. A composition is also the seed for a bespoke job.
 

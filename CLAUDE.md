@@ -20,7 +20,8 @@ Git: work on branch poc and push after every green gate. Open one PR per milesto
 working on poc without waiting for review.
 
 Ownership: never hand-edit assets/base/ or the generated workflow JSONs in pipelines/comfy/ (regenerate them
-with scripts/make_comfy_workflows.py); generate proxies by script. The base mesh is frozen before M9.
+with scripts/make_comfy_workflows.py); generate proxies by script. Every figurine keeps its own mesh, labelled
+to the segmentation schema in data/segmentation/ (decision 116); the schema is frozen before M9, meshes are not.
 Contract: data/schema/openapi.json is the source of truth; change it only with a version bump that updates
 mock-server, the TypeScript client and the backend in the same commit. manifest.schema.json is the contract
 every GenAI adapter must satisfy, on every profile. A composition JSON is the only input to a library export.

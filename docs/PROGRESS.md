@@ -72,7 +72,7 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 - [x] Gate 8 on the mock profile with stand-ins (the 20-figurine yield runs on the Mac profile in S8): parts that need a GenAI host print SKIPPED; "a release bundle
   loads on a clean kiosk"
 
-### B3 M9 Seed the library (S9, staff time on the Mac; needs the frozen base mesh from S4)
+### B3 M9 Seed the library (S9, staff time on the Mac; needs the frozen segmentation schema from S4)
 
 - [ ] `docs/HANDOFF-M9.md`: what Nishant does on the Mac to seed the library through Studio
 - [ ] Every breed preset covered by a family and a parts set; a pattern layer per marking enumeration
@@ -161,3 +161,14 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 - [ ] S4 real assets: hand-built base meshes (frozen before M9), `petpop_style` LoRA (Nishant)
 - [ ] S5 kiosk hardening on the Mac profile (`make gate-6`)
 - [ ] S6 production host: Compose on the NVIDIA box, gates 3 to 6 on `nvidia-24gb`, `make regress`
+
+## Track E: unique meshes, one segmentation schema (decision 116)
+
+- [x] Spec: brief Sections 1, 5, 6.5, 6.6, 10, 13, 14 and 16 and CLAUDE.md rewritten; `data/segmentation/{dog,cat}.json`
+  (`seg-1`) and `data/schema/segmentation.schema.json`, checked against the template meshes
+- [ ] Pipeline: Stage E labels the generated mesh (template fit, nearest-point transfer of parts, regions and
+  landmarks; UV unwrap where a mesh has none); Stage F textures, exports and paint-checks the figurine's own mesh
+  (`figure_mesh.npz`, `parts.png`, `mesh_id` in the manifest); the provider texture is kept in its own UVs
+- [ ] Library: releases of meshes keyed by `mesh_id`, families labelled with the breeds that share a mesh, part
+  variants and stamps per mesh, the kiosk viewer loading one mesh per family; Studio publishes meshes
+- [ ] Experiment: Tripo segmentation and part completion as `segmentation.method: provider` and as cross-mesh parts

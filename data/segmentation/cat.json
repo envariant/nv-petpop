@@ -1,0 +1,206 @@
+{
+ "schema_version": "seg-1",
+ "species": "cat",
+ "parts": [
+  {
+   "name": "head",
+   "shell": "body",
+   "side": "centre",
+   "description": "cranium and cheeks"
+  },
+  {
+   "name": "muzzle",
+   "shell": "body",
+   "side": "centre",
+   "description": "snout and jaw"
+  },
+  {
+   "name": "ear_L",
+   "shell": "ear_L",
+   "side": "L",
+   "description": "the pet's own left ear"
+  },
+  {
+   "name": "ear_R",
+   "shell": "ear_R",
+   "side": "R",
+   "description": "the pet's own right ear"
+  },
+  {
+   "name": "body",
+   "shell": "body",
+   "side": "centre",
+   "description": "neck, chest, back and belly"
+  },
+  {
+   "name": "leg_FL",
+   "shell": "body",
+   "side": "L",
+   "description": "front left leg and paw"
+  },
+  {
+   "name": "leg_FR",
+   "shell": "body",
+   "side": "R",
+   "description": "front right leg and paw"
+  },
+  {
+   "name": "leg_BL",
+   "shell": "body",
+   "side": "L",
+   "description": "back left leg and paw"
+  },
+  {
+   "name": "leg_BR",
+   "shell": "body",
+   "side": "R",
+   "description": "back right leg and paw"
+  },
+  {
+   "name": "tail",
+   "shell": "tail",
+   "side": "centre"
+  },
+  {
+   "name": "base",
+   "shell": "body",
+   "side": "centre",
+   "description": "underside the figurine sits on"
+  },
+  {
+   "name": "eye_L",
+   "shell": "eye_L",
+   "side": "L"
+  },
+  {
+   "name": "eye_R",
+   "shell": "eye_R",
+   "side": "R"
+  },
+  {
+   "name": "nose",
+   "shell": "nose",
+   "side": "centre",
+   "description": "nose leather"
+  }
+ ],
+ "regions": {
+  "ears": [
+   "ear_L",
+   "ear_R"
+  ],
+  "tail": [
+   "tail"
+  ],
+  "muzzle": [
+   "muzzle"
+  ],
+  "head": [
+   "head"
+  ],
+  "legs": [
+   "leg_FL",
+   "leg_FR",
+   "leg_BL",
+   "leg_BR"
+  ]
+ },
+ "landmarks": {
+  "nose_tip": [
+   "nose",
+   "muzzle"
+  ],
+  "eye_L": [
+   "eye_L",
+   "head"
+  ],
+  "eye_R": [
+   "eye_R",
+   "head"
+  ],
+  "ear_tip_L": [
+   "ear_L"
+  ],
+  "ear_tip_R": [
+   "ear_R"
+  ],
+  "ear_base_L": [
+   "ear_L",
+   "head"
+  ],
+  "ear_base_R": [
+   "ear_R",
+   "head"
+  ],
+  "chin": [
+   "muzzle",
+   "head"
+  ],
+  "back_of_head": [
+   "head"
+  ],
+  "tail_tip": [
+   "tail"
+  ],
+  "paw_FL": [
+   "leg_FL",
+   "base"
+  ],
+  "paw_FR": [
+   "leg_FR",
+   "base"
+  ],
+  "base_centre": [
+   "base",
+   "body"
+  ],
+  "neck_front": [
+   "body",
+   "head",
+   "muzzle"
+  ]
+ },
+ "sockets": {
+  "neck": {
+   "landmarks": [
+    "neck_front"
+   ],
+   "accessories": [
+    "collar",
+    "bandana"
+   ]
+  },
+  "head": {
+   "landmarks": [
+    "ear_base_L",
+    "ear_base_R",
+    "back_of_head"
+   ],
+   "accessories": [
+    "bow",
+    "hat"
+   ]
+  },
+  "face": {
+   "landmarks": [
+    "eye_L",
+    "eye_R",
+    "nose_tip"
+   ],
+   "accessories": [
+    "glasses"
+   ]
+  }
+ },
+ "pattern_regions": [
+  "chest",
+  "socks",
+  "blaze",
+  "points",
+  "saddle",
+  "face_mask",
+  "coat",
+  "eye",
+  "nose"
+ ]
+}
