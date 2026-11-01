@@ -183,3 +183,17 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   manual mode), Stage E snaps the schema labels to Tripo's parts; tested against the fake Tripo
 - [ ] Judge it on real jobs (Nishant's credits): `parts.png` with the switch off and on for a few breeds; then decide
   on cross-mesh parts with Tripo's part completion
+
+## Track F: one customer app for kiosks and the app stores (decision 122)
+
+- [x] `@petpop/scene`: the framework-free three.js layer (release meshes, pattern material, stamps, stage, composed
+  figure), shared by the Vue app and the React Studio viewer
+- [x] `apps/customer` in Vue 3 + Pinia + Tailwind: every screen, responsive from phone portrait to desktop landscape,
+  `kiosk` and `app` modes; Capacitor 8 Android and iOS projects
+- [x] Playwright on kiosk, phone, tablet and desktop; Storybook stories with a coverage test; gates 0, 1, 2 and 7 on
+  the customer app; the React kiosk retired
+- [ ] Device spike (Nishant): `npm run build:native`, run on an iPhone, an Android phone and a tablet; check the 3D
+  frame rate and touch painting
+- [ ] Native bundle with the showcase assets only (not the fixture pack)
+- [ ] Studio in Vue, responsive (desktop first)
+- [ ] Hosted backend for app-store orders (accounts, payments, fulfilment): a separate decision

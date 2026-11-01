@@ -10,10 +10,13 @@ make setup && make mock          # standalone mock server on :8000 (frozen contr
 ```bash
 cd apps/studio && VITE_MOCK=1 npm run dev     # or: the Studio SPA against MSW, no server at all
 ```
+```bash
+cd apps/customer && npm run dev:mock          # the customer app against MSW, no server at all
+```
 
 ## 2. Native: `make dev` (recommended for day-to-day)
 
-Everything as local processes: the API, the studio and kiosk workers and both SPAs. No Postgres, Redis or MinIO:
+Everything as local processes: the API, the studio and kiosk workers, the customer app and Studio. No Postgres, Redis or MinIO:
 `make dev` uses SQLite, a folder store and an in-process queue under `var/` (`DATABASE_URL`, `REDIS_URL` and
 `S3_ENDPOINT` empty).
 
@@ -45,7 +48,8 @@ ports.
   web tests only (`npx playwright install chromium`, cached under `~/.cache/ms-playwright` or
   `~/Library/Caches/ms-playwright`). Python packages go into `.venv` and npm packages into `node_modules`, both
   inside the repo; nothing is installed into the system Python or globally with npm.
-- Kiosk http://127.0.0.1:5173, Studio http://127.0.0.1:5174/studio/ (logins operator, curator, admin; password
+- Customer app http://127.0.0.1:5173 (add `?mode=kiosk` for kiosk mode, `?mode=app` to go back), Studio
+  http://127.0.0.1:5174/studio/ (logins operator, curator, admin; password
   `PETPOP_STUDIO_PASSWORD`, or the generated one in `var/.petpop_studio_password`).
 - `make test` runs the Python and web tests; `make help` lists the rest.
 
@@ -62,10 +66,43 @@ cp .env.example .env    # set GENAI_PROFILE, POSTGRES_PASSWORD, S3_ACCESS_KEY, S
 make up        # builds petpop-app, starts everything, waits for health; make down stops it
 ```
 
-- Kiosk and Studio are served by the API on http://127.0.0.1:8000 (`/` and `/studio/`).
+- The customer app and Studio are served by the API on http://127.0.0.1:8000 (`/` and `/studio/`).
 - The app image is `linux/amd64` because `bpy` has no Linux ARM wheel; on Apple Silicon Docker Desktop runs it
   under emulation (slower Blender stages). `PETPOP_PLATFORM` overrides.
 - `make smoke-stack` builds the stack, pushes one mock job through it and tears it down.
+
+## 4. The customer app on devices: Capacitor (decision 122)
+
+`apps/customer` is one Vue build for the browser, the app stores and the kiosk. Two runtime modes:
+
+- `app` (default): the store app and the browser. System keyboard, normal navigation, no idle wipe.
+- `kiosk`: the in-store touchscreen. On-screen keyboard, "Still there?" idle wipe, five taps in the top-right
+  corner for the staff panel, type scaled to the screen.
+
+The mode comes from `?mode=kiosk` (remembered on the device, so a kiosk is set up once), else the build's
+`VITE_MODE`. A dedicated kiosk build: `VITE_MODE=kiosk npm run build`.
+
+Native builds need Xcode (iOS, macOS only) or Android Studio; nothing else is installed globally (the Capacitor
+CLI is a dev dependency, and the iOS project uses Swift Package Manager, no CocoaPods).
+
+```bash
+cd apps/customer && VITE_API_ORIGIN=http://192.168.1.20:8000 npm run build:native   # build, then copy into ios/ and android/
+```
+```bash
+cd apps/customer && npm run open:ios        # or open:android; run on a simulator or a device from the IDE
+```
+
+- `VITE_API_ORIGIN` is the backend the app talks to: inside the native shell there is no same-origin API. For a
+  phone on your LAN use your computer's address and start the API with `--host 0.0.0.0`; the backend already
+  allows the Capacitor origins (`capacitor://localhost`, `https://localhost`, `http://localhost`), and
+  `PETPOP_CORS_ORIGINS` (comma separated) adds others.
+- iOS and Android refuse plain `http://` to other hosts by default; for a LAN test, allow it in the app's
+  `Info.plist` (NSAppTransportSecurity) or Android network security config, or put the API behind HTTPS.
+- App id: `PETPOP_APP_ID` (default `com.petpop.app`) when you run `npx cap add`; change it before the first store
+  upload.
+- Kiosk hardware: an Android tablet with screen pinning or a device-owner launcher, or an iPad with Guided Access,
+  running the native build in kiosk mode; or Chromium in `--kiosk` on a PC, pointed at the API's `/?mode=kiosk`.
+- The native bundle currently includes the fixture pack; trimming it to the showcase assets is a follow-up.
 
 ## Which GenAI profile
 
