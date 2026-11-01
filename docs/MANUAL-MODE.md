@@ -37,8 +37,8 @@ A parse -> control -> B concept: WAITS (you: Tripo text to image -> upload the i
      input files to download (the matted concept for image to 3D);
    - "The API request this replaces": the exact JSON body, route and manifest version;
    - choose the output file and **Send to the job**. Images: PNG, JPG or WebP. Models: GLB with its texture.
-5. Batch figurines then appear in **Review** as they finish; accept parts, publish in **Library**, cut a
-   **Release** for the kiosk, all as before.
+5. Batch figurines then appear in **Review** as they finish, each as a family on its own mesh (decision 119); accept
+   and publish them, cut a **Release** for the kiosk (docs/HANDOFF-M9.md has the full routine).
 
 ## Checks on an upload
 

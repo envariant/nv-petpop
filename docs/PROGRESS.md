@@ -72,13 +72,15 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 - [x] Gate 8 on the mock profile with stand-ins (the 20-figurine yield runs on the Mac profile in S8): parts that need a GenAI host print SKIPPED; "a release bundle
   loads on a clean kiosk"
 
-### B3 M9 Seed the library (S9, staff time on the Mac; needs the frozen segmentation schema from S4)
+### B3 M9 Seed the library (S9, staff time in Studio on a Tripo profile; needs the frozen segmentation schema)
 
-- [ ] `docs/HANDOFF-M9.md`: what Nishant does on the Mac to seed the library through Studio
-- [ ] Every breed preset covered by a family and a parts set; a pattern layer per marking enumeration
+- [x] `docs/HANDOFF-M9.md`: how Nishant seeds the library through Studio on `tripo` or `tripo-manual` (2026-11-01)
+- [ ] Every breed preset covered by a family on a labelled mesh; a pattern layer per marking enumeration
 - [ ] Gate 9: library walkthrough attract to order under 3 min; 70 % breed recognisability
 
 ## Track C: GenAI host (Section 13)
+
+Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac can serve as a fallback profile.
 
 - [ ] S3 Mac bring-up (after Nishant sets `COMFY_URL`, `SHAPE_URL`, `OLLAMA_URL`, `EMBED_URL`, `GENAI_TOKEN`): gate-3
   precheck, then `PETPOP_ADAPTERS` swaps A, B, C, D one at a time; gates 3 to 5 one pet at a time in the
@@ -121,10 +123,9 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
     `scripts/make_comfy_workflows.py`): 01, 02 (2026-10-29), 01b, 02b, 03, 05 (2026-10-30); 03b and 04 are NVIDIA-only
   - [x] Single view from a 3/4 vs a front concept (decision 107, docs/s3/19): mixed on two pets; it follows
     whether the concept shows the tail. Open: "tail visible" prompt test on five pets; no whiskers for cats
-  - [ ] Stages E and F now limit the figurine (docs/s3/16, 18): the raw 2mv or 2.1 shape is good, but the wrap onto
-    the base topology rounds the head and the four-view projection onto the wrapped mesh ghosts the face (doubled
-    eyes and nose) and smears colour. Next: project onto the raw shape and transfer to the base UVs, or weight each
-    view by how well the wrapped silhouette matches it; fix the fast path's invalid wraps (inverted triangles)
+  - [x] Stages E and F limited the figurine (docs/s3/16, 18: the wrap onto the base topology rounded the head, the
+    projection ghosted the face). Resolved by decision 116/117: no wrap; Stage E labels the generated mesh and Stage
+    F projects onto it in its own UVs
   - [ ] Stage A: one availability probe instead of two, a smaller patch-only output schema, re-measure
   - [ ] Gates 3 to 5 on the new settings, one pet at a time (`PETPOP_REGRESS_LIMIT=1`)
   - [x] Local setups: docs/LOCAL.md (native `make dev` recommended, Docker Compose `make up` with the image pinned to
@@ -158,7 +159,8 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
   de-duplication for the library (M8/M9)
 - [ ] Style LoRA from Nishant's curated image set (`assets/lora/DATASET.md`): captions, Kohya layout, Mac training
   config, then `image_sweep.py --lora` for the before/after
-- [ ] S4 real assets: hand-built base meshes (frozen before M9), `petpop_style` LoRA (Nishant)
+- [ ] S4 real assets: hand-built template meshes (the segmentation reference; the schema, not a mesh, is frozen
+  before M9), `petpop_style` LoRA (Nishant)
 - [ ] S5 kiosk hardening on the Mac profile (`make gate-6`)
 - [ ] S6 production host: Compose on the NVIDIA box, gates 3 to 6 on `nvidia-24gb`, `make regress`
 
