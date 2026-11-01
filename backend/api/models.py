@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.7.0"
+API_VERSION = "3.8.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -288,7 +288,7 @@ class GenaiProfiles(_M):
 
 # --------------------------------------------------------------------------- manual mode (decision 111, API 3.2.0)
 
-ManualCapability = Literal["text_to_image", "image_to_model", "multiview_to_model", "image_to_multiview"]
+ManualCapability = Literal["text_to_image", "image_to_model", "multiview_to_model", "image_to_multiview", "segment_model"]
 
 
 class ManualInput(_M):

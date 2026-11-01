@@ -156,3 +156,35 @@ def test_quality_switches_reach_the_request(env, tripo, tmp_path):
     run_pipeline("j_default", default_spec("cat", "siamese", seed=4), LocalStore(tmp_path / "s2"), s)
     body = next(e["json"] for e in tripo.log if e["path"] == "/v3/generation/image-to-model")
     assert body["texture_quality"] == "detailed" and body["geometry_quality"] == "standard" and body["quad"] is False
+
+
+def test_tripo_part_segmentation_switch(env, tripo, tmp_path):
+    """Decision 121: with the switch on, Stage E sends the model to Tripo's segmentation (40 credits, the switch's
+    request fields), keeps the segmented GLB, and snaps the schema labels to Tripo's parts; off by default."""
+    from petpop_library import figure
+
+    s = env()
+    tripo.log.clear()
+    store = LocalStore(tmp_path / "s")
+    m = run_pipeline("j_parts", default_spec("dog", "beagle", seed=3), store, s, options={"tripo_parts": True}).data
+    body = next(e["json"] for e in tripo.log if e["path"] == "/v3/mesh/segment")
+    assert body["model"] == "v2.0-20260430" and body["input"].startswith("file_")
+    e = next(st for st in m["stages"] if st["stage"] == "E")
+    assert "provider segmentation: tripo" in e["notes"] and "40 credits" in e["notes"]
+    assert "segmented_parts.glb" in {f["name"] for f in m["files"]}
+    mesh = figure.load(store.get("jobs/j_parts/figure_mesh.npz"))
+    assert mesh.source == "generated" and m["metrics"]["mesh_id"] == mesh.mesh_id
+    tripo.log.clear()
+    run_pipeline("j_noparts", default_spec("dog", "beagle", seed=3), LocalStore(tmp_path / "s2"), s)
+    assert not any(e["path"] == "/v3/mesh/segment" for e in tripo.log)
+
+
+def test_snap_to_parts_follows_clear_parts_only():
+    from petpop_library.segment import snap_to_parts
+
+    labels = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 3])
+    parts = np.array([0, 0, 0, 0, 1, 1, 1, 2, 2, 2])  # part 0 mostly label 0; part 2 mixes labels 2 and 3
+    out, adopted = snap_to_parts(labels, parts)
+    assert out.tolist() == [0, 0, 0, 0, 1, 1, 1, 2, 2, 2] and adopted == 3
+    out, adopted = snap_to_parts(labels, parts, share=0.9)
+    assert out[3] == 1 and adopted == 1  # only the pure part is adopted

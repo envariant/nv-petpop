@@ -21,7 +21,8 @@ from typing import Any
 from .base import AwaitingOperator, Generated
 from .manifest import ManifestProvider, _png
 
-EXPECTS = {"text_to_image": "image", "image_to_model": "model", "multiview_to_model": "model", "image_to_multiview": "views"}
+EXPECTS = {"text_to_image": "image", "image_to_model": "model", "multiview_to_model": "model", "image_to_multiview": "views",
+           "segment_model": "model"}
 ACCEPT = {"image": [".png", ".jpg", ".jpeg", ".webp"], "model": [".glb"], "views": [".png", ".jpg", ".jpeg", ".webp"]}
 SLOTS = ["front", "left", "back", "right"]
 INPUT_FIELDS = {"$image", "$views"}
@@ -93,6 +94,10 @@ class ManualProvider(ManifestProvider):
         order = self.m["capabilities"].get("multiview_to_model", {}).get("views", ["front", "left", "back", "right"])
         tokens = [f"<upload {v}.png>" if v in views else None for v in order]
         return self._manual(ctx, "multiview_to_model", {"views": tokens}, {f"{v}.png": views[v] for v in views}, params, seed)
+
+    def segment_model(self, ctx, model, params) -> Generated:
+        name = "input.glb"
+        return self._manual(ctx, "segment_model", {"model": f"<upload {name}>"}, {name: model}, params, None)
 
     def balance(self) -> dict[str, Any]:
         return {"mode": "manual", "note": "credits are spent in the vendor's own app"}

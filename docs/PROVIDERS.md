@@ -22,6 +22,7 @@ capabilities:
 | `image_to_model(image, params, seed)` | D shape (profile `shape.views: [front]`) | textured GLB |
 | `multiview_to_model(views, params, seed)` | D shape (four views) | textured GLB |
 | `image_to_multiview(image, params, seed)` | C views (multiview pipeline) | four PNGs (front, left, back, right) |
+| `segment_model(model, params)` | E parts (the "Tripo part segmentation" switch) | one GLB, parts as separate meshes |
 | `balance()` | `scripts/genai_check.py` | credits left |
 
 ## The `tripo` profile (Tripo3D apiv3)
@@ -56,6 +57,7 @@ Studio picks per job: the profile ("Run on"), its pipeline and its quality switc
 | HD texture | on | +10 | the figurine's texture as Tripo made it |
 | HD geometry | off | +20 | reaches the print: the figurine is Tripo's mesh (decision 116) |
 | Quad mesh | off | +5 | reaches the figurine's mesh (the print is re-meshed for watertightness either way) |
+| Tripo part segmentation | off | +40 | experimental: Tripo cuts the parts, the schema names them (decision 121) |
 
 Prices from developers.tripo3d.ai/en/pricing on 2026-10-31 (1 credit = $0.01; image models other than the default
 cost more). In manual mode the same requests run in Tripo Studio on its own credits.

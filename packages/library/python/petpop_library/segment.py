@@ -156,8 +156,46 @@ def _feather(labels: np.ndarray, adj, n_parts: int, iters: int = 3) -> np.ndarra
     return np.clip(w, 0, 1).T.astype(np.float32)
 
 
-def segment(base: BaseMesh, morphed: np.ndarray, co: np.ndarray, tris: np.ndarray) -> dict:
-    """Part weights, pattern-region values and landmarks for the generated mesh (co, tris), from the template."""
+def snap_to_parts(labels: np.ndarray, parts: np.ndarray, share: float = 0.6) -> tuple[np.ndarray, int]:
+    """Provider segmentation (decision 121): a provider part whose vertices mostly (>= `share`) carry one schema label
+    takes that label throughout, so the schema's boundary follows the provider's cut; a part that mixes labels
+    (e.g. one piece for the whole body and legs) keeps ours. Returns (labels, provider parts adopted)."""
+    out = labels.copy()
+    adopted = 0
+    for p in np.unique(parts):
+        idx = np.nonzero(parts == p)[0]
+        counts = np.bincount(labels[idx])
+        top = int(np.argmax(counts))
+        if counts[top] >= share * len(idx):
+            out[idx] = top
+            adopted += 1
+    return out, adopted
+
+
+def provider_parts(glb: bytes, co: np.ndarray) -> np.ndarray:
+    """(n,) part index for every vertex of our mesh from a provider's segmented GLB (parts as separate meshes),
+    by nearest vertex; the GLB is in the same frame as the model it segmented (glTF Y-up)."""
+    import io
+
+    import trimesh
+    from scipy.spatial import cKDTree
+
+    scene = trimesh.load(io.BytesIO(glb), file_type="glb", force="scene")
+    pts, ids = [], []
+    for i, geom in enumerate(g for g in scene.dump() if len(getattr(g, "vertices", [])) and len(getattr(g, "faces", []))):
+        v = np.asarray(geom.vertices, np.float64)
+        pts.append(np.stack([v[:, 0], -v[:, 2], v[:, 1]], axis=1))  # glTF Y-up -> Z-up
+        ids.append(np.full(len(v), i))
+    if not pts:
+        raise ValueError("the segmented model has no parts")
+    _, j = cKDTree(np.concatenate(pts)).query(co)
+    return np.concatenate(ids)[j]
+
+
+def segment(base: BaseMesh, morphed: np.ndarray, co: np.ndarray, tris: np.ndarray,
+            parts: np.ndarray | None = None) -> dict:
+    """Part weights, pattern-region values and landmarks for the generated mesh (co, tris), from the template; with
+    a provider's `parts` (per vertex), the labels snap to its cuts (snap_to_parts)."""
     from scipy.spatial import cKDTree
 
     sch = schema(base.species)
@@ -175,6 +213,10 @@ def segment(base: BaseMesh, morphed: np.ndarray, co: np.ndarray, tris: np.ndarra
     ranked[inserts] += 0.5 * (groups[inserts] >= 0.5)
     adj = _adjacency(len(co), tris)
     labels, relabelled = _clean_labels(np.argmax(ranked, axis=0), adj, len(names))
+    adopted = None
+    if parts is not None:
+        labels, adopted = snap_to_parts(labels, parts)
+        labels, _ = _clean_labels(labels, adj, len(names))
     weights = _feather(labels, adj, len(names))
     landmarks, notes = {}, []
     tree_all = cKDTree(co)
@@ -201,4 +243,5 @@ def segment(base: BaseMesh, morphed: np.ndarray, co: np.ndarray, tris: np.ndarra
     return {"group_names": names, "groups": weights, "mask_names": base.mask_names, "masks": masks.astype(np.float32),
             "landmarks": landmarks, "labels": labels, "fit": fit,
             "info": {"valid": bool(valid), "notes": note, "relabelled_pct": round(relabelled * 100, 2),
-                     "parts": counts}}
+                     "parts": counts, **({"provider_parts": int(len(np.unique(parts))), "provider_parts_adopted": adopted}
+                                         if parts is not None else {})}}

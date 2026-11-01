@@ -77,7 +77,8 @@ class ManifestProvider:
 
     def upload(self, data: bytes, name: str = "image.png") -> str:
         up = self.m["upload"]
-        token = dig(self._call(up["route"], "upload", files={up["form_field"]: (name, data, "image/png")}), up["token"])
+        kind = "model/gltf-binary" if name.endswith(".glb") else "image/png"
+        token = dig(self._call(up["route"], "upload", files={up["form_field"]: (name, data, kind)}), up["token"])
         if not token:
             raise ProviderError("upload returned no token")
         return str(token)
@@ -155,6 +156,10 @@ class ManifestProvider:
             raise ProviderError("multiview_to_model needs the front view")
         tokens = [self.upload(views[v], f"{v}.png") if v in views else None for v in order]
         return self._run(ctx, "multiview_to_model", {"views": tokens}, params, seed)
+
+    def segment_model(self, ctx, model: bytes, params) -> Generated:
+        """The model cut into parts (one GLB, parts as separate meshes, unnamed): decision 121."""
+        return self._run(ctx, "segment_model", {"model": self.upload(model, "model.glb")}, params, None)
 
     def balance(self) -> dict[str, Any]:
         if not self.m.get("balance"):

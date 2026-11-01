@@ -1718,7 +1718,7 @@ export interface components {
              * Capability
              * @enum {string}
              */
-            capability: "text_to_image" | "image_to_model" | "multiview_to_model" | "image_to_multiview";
+            capability: "text_to_image" | "image_to_model" | "multiview_to_model" | "image_to_multiview" | "segment_model";
             /**
              * Created At
              * Format: date-time

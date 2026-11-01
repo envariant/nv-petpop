@@ -243,6 +243,14 @@ def option_params(genai: Profile, chosen: dict[str, bool] | None) -> dict[str, A
     return out
 
 
+def option_segmentation(genai: Profile, chosen: dict[str, bool] | None) -> dict[str, Any] | None:
+    """The provider segmentation a job's switches ask for (decision 121): the switched-on option's request fields."""
+    for k, o in (genai.get("options") or {}).items():
+        if o.get("segmentation") is not None and (chosen or {}).get(k, o["default"]):
+            return dict(o["segmentation"].get("params") or {})
+    return None
+
+
 def profiles_offered() -> dict[str, Any]:
     """GET /studio/profiles: the default and every profile Studio may choose, with readiness and pipelines."""
     items = []

@@ -93,3 +93,16 @@ capabilities:
         - In Tripo Studio, open multiview to 3D and upload each view in its slot (front, left, back, right).
         - Match the settings below where Tripo Studio offers them; keep private generation on.
         - Generate, then download the model as GLB with its texture and upload it here.
+  segment_model:
+    # Tripo mesh segmentation (developers.tripo3d.ai/en/docs/mesh-segment, 2026-11-01): the model by file token,
+    # task id or URL; v1.0-20250506 is geometric, v2.0-20260430 (beta) semantic. The result is one GLB whose parts
+    # are separate meshes, with no part names: Stage E names them from the segmentation schema (decision 121).
+    route: POST /v3/mesh/segment
+    body: {input: $model}
+    result: [model_url, model]
+    manual:
+      title: Parts of the 3D model (Tripo segmentation)
+      steps:
+        - Download the input model below (the generated figurine, GLB).
+        - In Tripo Studio, open the model tools and run segmentation on it (match the settings below).
+        - Download the segmented model as GLB (parts as separate meshes) and upload it here. The job continues with the parts and print files.

@@ -1,6 +1,6 @@
 # GenAI profile: tripo. A commercial API backend (decision 108): Tripo3D's apiv3 makes the concept (text-to-image)
-# and the textured shape (image-to-model from the concept alone); the VM does the rest (wrap onto the base mesh,
-# texture transfer onto its UV layout, print export). No GenAI host to run: the key in TRIPO_API_KEY is all.
+# and the textured shape (image-to-model from the concept alone); the VM does the rest (labels Tripo's mesh to the
+# segmentation schema and keeps its texture, decision 116; print export). No GenAI host to run: the key in TRIPO_API_KEY is all.
 # Another provider is a manifest in config/providers and a profile like this one (decision 109).
 profile: tripo
 version: 1
@@ -68,15 +68,21 @@ paths:
   multiview: {title: Multiview, views: generate, credits: 45, note: "concept -> four views -> multiview to 3D"}
 
 # Quality switches (decision 115): Studio toggles them per job; `set`/`unset` are the shape request fields each
-# side means; credits are the API add-on per figurine. Stage E re-wraps every model onto the base mesh, so quad
-# topology does not reach the figurine and HD geometry is partly smoothed away; HD texture is sampled directly.
+# side means; credits are the API add-on per figurine. Every figurine keeps Tripo's own mesh and texture
+# (decision 116), so all three reach it.
 options:
   hd_texture: {title: HD texture, default: true, credits: 10, set: {texture_quality: detailed}, unset: {texture_quality: standard},
-               note: "sharper texture; transferred onto the figurine as is"}
+               note: "sharper texture; the figurine keeps it as Tripo made it"}
   hd_geometry: {title: HD geometry, default: false, credits: 20, set: {geometry_quality: detailed}, unset: {geometry_quality: standard},
-                note: "finer surface; the wrap onto the base mesh smooths some of it away"}
+                note: "finer surface; reaches the figurine and the print (decision 116)"}
   quad: {title: Quad mesh, default: false, credits: 5, set: {quad: true}, unset: {quad: false},
-         note: "quad topology; does not reach the figurine (the base mesh's topology is used)"}
+         note: "quad topology in the figurine's own mesh; the print is re-meshed either way"}
+  tripo_parts:
+    title: Tripo part segmentation
+    default: false
+    credits: 40
+    segmentation: {params: {model: v2.0-20260430, segmentation_granularity: balanced}}
+    note: "experimental: Tripo cuts the parts, our schema names them (decision 121)"
 
 
 texture:

@@ -22,7 +22,7 @@ def test_tripo_profile_rules():
     assert p["providers"]["tripo"]["key_env"] == "TRIPO_API_KEY" and p["paths"]["default"] == "single_view"
     assert p["paths"]["single_view"]["views"] == "none" and p["paths"]["multiview"]["views"] == "generate"
     assert p["shape"]["params"]["texture"] is True and p["texture"]["backend"] == "transfer"
-    assert {k: v["default"] for k, v in p["options"].items()} == {"hd_texture": True, "hd_geometry": False, "quad": False}
+    assert {k: v["default"] for k, v in p["options"].items()} == {"hd_texture": True, "hd_geometry": False, "quad": False, "tripo_parts": False}
 
 
 def test_mock_is_the_default(monkeypatch):

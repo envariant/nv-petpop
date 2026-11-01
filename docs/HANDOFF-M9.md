@@ -28,8 +28,8 @@ docs/MANUAL-MODE.md). This document is the staff routine; docs/HANDOFF-TRIPO.md 
    star heroes.
 4. **Publish** the accepted families (per candidate, or **Publish N accepted**).
 5. **Share meshes where breeds look alike**: in **Library**, Families, open a family and add breed ids (comma
-   separated). Every breed on a family shares its mesh; the editor shows "Mesh m_... shared with ..." and the kiosk
-   tells customers "Same figure shape as ...". Prefer a breed's own mesh when it has a distinct silhouette (ears,
+   separated). Every breed on a family shares its mesh, and the kiosk tells customers "Same figure shape as ...";
+   the editor's "Mesh m_... shared with ..." line lists breeds on other families built on the same mesh. Prefer a breed's own mesh when it has a distinct silhouette (ears,
    muzzle, tail); share only close look-alikes, or to fill gaps while their own figurine is pending.
 6. **Release** (admin): Releases, **Publish a dog release** (or cat). The bundle lands in the kiosk's release inbox
    (`PETPOP_RELEASE_INBOX`, default `var/releases/inbox`) and the kiosk switches to it within 30 s.

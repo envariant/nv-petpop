@@ -179,4 +179,7 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [x] Library L2 (decision 119, API 3.7.0): Studio publishes each curated figurine as its own mesh (its family on it,
   its texture as the mesh's base layer, tinted by the base colour), with "shared with" labels for breeds on one
   mesh; QC from segmentation and print checks; `meshes_published`; gates 7 and 8 green
-- [ ] Experiment: Tripo segmentation and part completion as `segmentation.method: provider` and as cross-mesh parts
+- [x] Tripo part segmentation as a per-job switch (decision 121, API 3.8.0): `segment_model` in the manifest (API and
+  manual mode), Stage E snaps the schema labels to Tripo's parts; tested against the fake Tripo
+- [ ] Judge it on real jobs (Nishant's credits): `parts.png` with the switch off and on for a few breeds; then decide
+  on cross-mesh parts with Tripo's part completion

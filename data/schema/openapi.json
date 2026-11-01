@@ -2777,7 +2777,8 @@
        "text_to_image",
        "image_to_model",
        "multiview_to_model",
-       "image_to_multiview"
+       "image_to_multiview",
+       "segment_model"
       ],
       "title": "Capability",
       "type": "string"
@@ -4789,7 +4790,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.7.0"
+  "version": "3.8.0"
  },
  "openapi": "3.1.0",
  "paths": {

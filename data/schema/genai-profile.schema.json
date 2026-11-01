@@ -64,7 +64,8 @@
       "type": "object", "description": "Quality switches Studio toggles per job (decision 115): request fields for each side and the add-on credits.",
       "additionalProperties": {"type": "object", "required": ["title", "default"], "additionalProperties": false, "properties": {
         "title": {"type": "string"}, "default": {"type": "boolean"}, "credits": {"type": "integer", "minimum": 0}, "note": {"type": "string"},
-        "set": {"type": "object"}, "unset": {"type": "object"}}}
+        "set": {"type": "object"}, "unset": {"type": "object"},
+        "segmentation": {"type": "object", "description": "When on, Stage E asks the shape provider to segment the model (its segment_model capability) with these request fields; the schema names the parts (decision 121).", "properties": {"params": {"type": "object"}}}}}
     },
     "texture": {"type": "object", "required": ["backend", "allowed"], "properties": {"backend": {"enum": ["projection", "flat", "hy_paint", "transfer"]}, "allowed": {"type": "array", "items": {"enum": ["projection", "flat", "hy_paint", "transfer"]}}}},
     "providers": {

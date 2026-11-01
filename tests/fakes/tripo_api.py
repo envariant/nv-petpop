@@ -20,7 +20,8 @@ from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 from PIL import Image, ImageDraw
 
-CREDITS = {"text-to-image": 5.0, "image-to-model": 30.0, "multiview-to-model": 30.0, "image-to-multiview": 10.0}
+CREDITS = {"text-to-image": 5.0, "image-to-model": 30.0, "multiview-to-model": 30.0, "image-to-multiview": 10.0,
+           "mesh-segmentation": 40.0}
 
 
 def surface(grid: np.ndarray):
@@ -184,6 +185,24 @@ class FakeTripo:
             assert body["input"] in fake.files
             views = {f"{v}_view_url": fake._blob(fake.figure(768, v), "jpg") for v in ("front", "left", "back", "right")}
             return fake._task("image-to-multiview", {"generate_multiview_image": views})
+
+        @app.post("/v3/mesh/segment")
+        async def segment(request: Request):
+            """The uploaded model cut into parts as separate meshes (no names): head, body, and a piece per side
+            below the body, by height and side, like a coarse semantic segmentation."""
+            import trimesh
+
+            body = await request.json()
+            m = trimesh.load(io.BytesIO(fake.files[body["input"]]), file_type="glb", force="mesh")
+            c = m.triangles_center
+            y = c[:, 1]
+            lo, hi = np.percentile(y, 30), np.percentile(y, 65)
+            label = np.where(y > hi, 0, np.where(y > lo, 1, np.where(c[:, 0] > 0, 2, 3)))
+            scene = trimesh.Scene()
+            for k in np.unique(label):
+                part = m.submesh([np.nonzero(label == k)[0]], append=True)
+                scene.add_geometry(part, node_name=f"part_{k}")
+            return fake._task("mesh-segmentation", {"model_url": fake._blob(scene.export(file_type="glb"), "glb")})
 
         @app.get("/v3/tasks/{tid}")
         def task(tid: str):

@@ -13,7 +13,7 @@ from backend.core import lowfi
 from petpop_core.vocab import morph_weights
 from petpop_library import figure
 from petpop_library.meshkit import load_base
-from petpop_library.segment import segment
+from petpop_library.segment import provider_parts, segment
 
 from . import blender
 from .backends.mock.pacing import Pace
@@ -32,6 +32,31 @@ def unwrap(ctx, co: np.ndarray, tris: np.ndarray) -> tuple[np.ndarray, str]:
     return figure.grid_uvs(len(tris)), "grid"
 
 
+def provider_segmentation(ctx, manifest, co: np.ndarray) -> tuple[np.ndarray | None, str]:
+    """The shape provider's own segmentation when the job switched it on (decision 121): its parts per vertex, or
+    None with a note when it is off, unsupported or fails (the template labels then stand; the job goes on)."""
+    from backend.core.genai import option_segmentation
+
+    from .providers import AwaitingOperator
+
+    params = option_segmentation(ctx.settings.genai, getattr(ctx, "options", None))
+    provider = getattr(ctx.backends.shape, "p", None)
+    if params is None:
+        return None, ""
+    if provider is None or not hasattr(provider, "segment_model"):
+        return None, "provider segmentation: the shape backend has none"
+    try:
+        g = provider.segment_model(ctx, ctx.get("shape.glb"), params)
+        notes = ctx.state.setdefault("provider_notes", {})
+        notes["E"] = "; ".join(x for x in (notes.get("E"), g.note(provider.name)) if x)
+        ctx.put(manifest, "segmented_parts.glb", "segmented", "E", g.data)
+        return provider_parts(g.data, co), f"provider segmentation: {provider.name}"
+    except AwaitingOperator:
+        raise
+    except Exception as exc:  # noqa: BLE001 - an experiment never fails the job
+        return None, f"provider segmentation failed ({exc}); template labels kept"
+
+
 def run(job_id, spec, manifest, *, ctx, parametric: bool = False) -> list[str]:
     spec = json.loads(ctx.get("spec.json"))
     base = load_base(spec["species"])
@@ -47,7 +72,8 @@ def run(job_id, spec, manifest, *, ctx, parametric: bool = False) -> list[str]:
             info = {"valid": False, "fallback": "unwrapped", "notes": "fault injection: morphed template shipped"}
         else:
             co, tris, corner_uv, albedo = figure.read_glb(ctx.get("shape.glb"))
-            seg = segment(base, morphed, co, tris)
+            parts, provider_note = provider_segmentation(ctx, manifest, co)
+            seg = segment(base, morphed, co, tris, parts)
             uv_source = "provider"
             if corner_uv is None:
                 corner_uv, uv_source = unwrap(ctx, co, tris)
@@ -55,6 +81,8 @@ def run(job_id, spec, manifest, *, ctx, parametric: bool = False) -> list[str]:
                                seg["masks"], seg["landmarks"])
             fit = seg["fit"]
             info = {**seg["info"], "fallback": "none", "uv": uv_source}
+            if provider_note:
+                info["notes"] = f"{info['notes']}; {provider_note}"
             if albedo is not None:
                 keys.append(ctx.put(manifest, "provider_albedo.png", "albedo", "E", lowfi.png_bytes(albedo)))
     info.update(mesh_id=mesh.mesh_id, schema_version=mesh.schema_version, tris=int(len(mesh.tri_verts)),
