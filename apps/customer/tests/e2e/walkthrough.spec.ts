@@ -9,6 +9,10 @@ test('walkthrough: attract to an ordered figurine from the library', async ({ pa
   test.setTimeout(180_000);
   const consoleErrors: string[] = [];
   page.on('pageerror', (e) => consoleErrors.push(String(e)));
+  // Every static file the journey asks for must exist (with PP_NATIVE=1: in the pruned native bundle).
+  const missing: string[] = [];
+  page.on('response', (r) => r.status() >= 400 && !new URL(r.url()).pathname.startsWith('/api/') && missing.push(`${r.status()} ${r.url()}`));
+  page.on('requestfailed', (r) => !r.url().includes('/api/') && missing.push(`failed ${r.url()}`));
   const shot = (n: string) => page.screenshot({ path: `test-results/walkthrough-${test.info().project.name}/${n}.png` });
   const t0 = Date.now();
 
@@ -69,4 +73,5 @@ test('walkthrough: attract to an ordered figurine from the library', async ({ pa
   await page.getByTestId('order-done').tap();
   await expect(page.locator('[data-screen=attract]')).toBeVisible();
   expect(consoleErrors).toEqual([]);
+  expect(missing).toEqual([]);
 });

@@ -1,0 +1,11 @@
+{
+ "//": "The attract loop figurines (fixtures/pets ids). The native bundle ships only these (scripts/prune-native.mjs).",
+ "pets": [
+  "biscuit",
+  "sunny",
+  "nova",
+  "gus",
+  "pepper",
+  "mochi"
+ ]
+}

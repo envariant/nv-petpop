@@ -194,6 +194,7 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   the customer app; the React kiosk retired
 - [ ] Device spike (Nishant): `npm run build:native`, run on an iPhone, an Android phone and a tablet; check the 3D
   frame rate and touch painting
-- [ ] Native bundle with the showcase assets only (not the fixture pack)
+- [x] Native bundle with the showcase assets only (`npm run bundle:native`, about 7 MB, was 82 MB); gate 1 runs the
+  walkthrough on it
 - [ ] Studio in Vue, responsive (desktop first)
 - [ ] Hosted backend for app-store orders (accounts, payments, fulfilment): a separate decision

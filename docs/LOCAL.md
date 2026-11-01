@@ -102,7 +102,10 @@ cd apps/customer && npm run open:ios        # or open:android; run on a simulato
   upload.
 - Kiosk hardware: an Android tablet with screen pinning or a device-owner launcher, or an iPad with Guided Access,
   running the native build in kiosk mode; or Chromium in `--kiosk` on a PC, pointed at the API's `/?mode=kiosk`.
-- The native bundle currently includes the fixture pack; trimming it to the showcase assets is a follow-up.
+- `npm run bundle:native` builds into `dist-native/` (Capacitor's `webDir`) and prunes it to what a device needs:
+  the app, the Draco decoder and the attract loop's figurines (`src/showcase.json`), about 7 MB. The library and
+  every order come from the API. It fails if a needed file is missing or the bundle is over 12 MB.
+  `PP_NATIVE=1 npx playwright test` runs the tests against that bundle.
 
 ## Which GenAI profile
 

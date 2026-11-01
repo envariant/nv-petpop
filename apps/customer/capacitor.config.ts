@@ -6,7 +6,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: process.env.PETPOP_APP_ID ?? 'com.petpop.app',
   appName: 'PetPop',
-  webDir: 'dist',
+  webDir: 'dist-native', // npm run bundle:native: the web build pruned to what a device needs
   backgroundColor: '#FFF7F0',
   ios: { contentInset: 'never' },
   android: { allowMixedContent: false },

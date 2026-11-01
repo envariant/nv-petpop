@@ -14,11 +14,12 @@
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "build:native": "npm run build && npx cap sync",
+    "build:native": "npm run bundle:native && npx cap sync",
     "open:android": "npx cap open android",
     "open:ios": "npx cap open ios",
     "storybook": "storybook dev -p 6007",
-    "build-storybook": "storybook build -o storybook-static --quiet"
+    "build-storybook": "storybook build -o storybook-static --quiet",
+    "bundle:native": "npm run sync-assets && vue-tsc --noEmit && vite build --outDir dist-native --emptyOutDir && node scripts/prune-native.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

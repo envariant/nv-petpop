@@ -2,11 +2,12 @@
 // The start: an attract loop of finished figurines on a kiosk, a welcome on phones and desktops.
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import fixtureIndex from '@fixtures/pets/index.json';
+import showcase from '../showcase.json';
 import { assetUrl } from '@petpop/core';
 import { GlbView, isKiosk } from '@petpop/ui-vue';
 import { useSession } from '../stores/session';
 const s = useSession();
-const SHOWCASE = fixtureIndex.pets.slice(0, 6);
+const SHOWCASE = showcase.pets.map((id) => fixtureIndex.pets.find((p) => p.id === id)!);
 const i = ref(0);
 let t = 0;
 onMounted(() => (t = window.setInterval(() => (i.value = (i.value + 1) % SHOWCASE.length), 6000)));

@@ -42,7 +42,10 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: `npm run -s sync-assets && VITE_API_TARGET=http://127.0.0.1:${MOCK_PORT} npx vite --port ${WEB_PORT} --strictPort`,
+      // PP_NATIVE=1 serves the pruned native bundle (npm run bundle:native) instead of the dev server: what a device runs.
+      command: process.env.PP_NATIVE === '1'
+        ? `VITE_API_TARGET=http://127.0.0.1:${MOCK_PORT} npx vite preview --outDir dist-native --port ${WEB_PORT} --strictPort`
+        : `npm run -s sync-assets && VITE_API_TARGET=http://127.0.0.1:${MOCK_PORT} npx vite --port ${WEB_PORT} --strictPort`,
       url: `http://127.0.0.1:${WEB_PORT}/`,
       reuseExistingServer: false,
       timeout: 120_000,

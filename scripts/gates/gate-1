@@ -11,5 +11,6 @@ step "Storybook builds (a story per screen, three directions), both apps" bash -
 step "Playwright: per-screen tests (customer: kiosk, phone, tablet, desktop)" bash -c 'cd apps/customer && npx playwright test tests/e2e/screens.spec.ts'
 step "Playwright: per-screen tests (studio)" bash -c 'cd apps/studio && npx playwright test tests/e2e/screens.spec.ts'
 step "Playwright: touch walkthrough (gate-1, customer: kiosk, phone, tablet, desktop)" bash -c 'cd apps/customer && npx playwright test tests/e2e/walkthrough.spec.ts'
+step "native bundle (Capacitor): showcase assets only, under budget, the walkthrough runs on it" bash -c 'cd apps/customer && npm run -s bundle:native && PP_NATIVE=1 npx playwright test --project=phone tests/e2e/walkthrough.spec.ts'
 step "Playwright: touch walkthrough (gate-1, studio)" bash -c 'cd apps/studio && npx playwright test tests/e2e/walkthrough.spec.ts'
 echo "GATE 1 PASSED"
