@@ -1,0 +1,10 @@
+{
+  "name": "@petpop/ui-vue",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Vue 3 UI kit (decision 122): the responsive app frame, touch primitives, the on-screen keyboard and the three.js views over @petpop/scene. Styles come from @petpop/ui/styles.css.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": { "@petpop/core": "*", "@petpop/scene": "*", "three": "*", "vue": "*", "qrcode": "*" }
+}

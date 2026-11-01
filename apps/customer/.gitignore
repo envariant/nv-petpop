@@ -1,0 +1,10 @@
+public/assets/
+public/draco/
+public/fixtures/
+public/mockServiceWorker.js
+dist/
+storybook-static/
+test-results/
+playwright-report/
+public/library/
+tsconfig.tsbuildinfo

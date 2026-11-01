@@ -15,6 +15,7 @@ import asyncio
 import hashlib
 import hmac
 import json
+import os
 import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -407,6 +408,13 @@ def make_app(impl: ApiImpl, title: str = "PetPop API", lifespan=None) -> FastAPI
                   openapi_url=f"{API_PREFIX}/openapi.json", lifespan=lifespan)
     for router in make_routers(impl):
         app.include_router(router)
+    # The customer app in its Capacitor shell runs at capacitor://localhost (iOS) or https://localhost (Android)
+    # and calls this API across origins (decision 122). PETPOP_CORS_ORIGINS adds others (a hosted web app).
+    from fastapi.middleware.cors import CORSMiddleware
+
+    origins = ["capacitor://localhost", "https://localhost", "http://localhost"]
+    origins += [o.strip() for o in os.environ.get("PETPOP_CORS_ORIGINS", "").split(",") if o.strip()]
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["*"], allow_headers=["*"])
 
     @app.exception_handler(ApiError)
     async def api_error(_: Request, exc: ApiError) -> JSONResponse:

@@ -12,7 +12,17 @@ import type {
   Species, StaffQueue, StaffToken, StaffUser,
 } from './types';
 
-export const api = createClient<paths>({ baseUrl: typeof window !== 'undefined' ? window.location.origin : 'http://localhost' });
+/** Where the API is: the page's own origin, or VITE_API_ORIGIN when the app runs elsewhere (its Capacitor shell,
+ *  decision 122). */
+export const API_ORIGIN: string =
+  (import.meta.env.VITE_API_ORIGIN as string | undefined) || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+
+/** An API path the server returned (library files, previews, signed artefacts) as a URL the app can fetch. */
+export function apiUrl(path: string): string {
+  return /^[a-z][a-z0-9+.-]*:/i.test(path) ? path : new URL(path, API_ORIGIN).toString();
+}
+
+export const api = createClient<paths>({ baseUrl: API_ORIGIN });
 
 export class ApiFailure extends Error {
   constructor(

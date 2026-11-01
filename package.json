@@ -9,7 +9,9 @@
     "packages/viewer",
     "packages/ui",
     "apps/kiosk",
-    "apps/studio"
+    "apps/studio",
+    "packages/ui-vue",
+    "apps/customer"
   ],
   "scripts": {
     "gen:client": "npm run -s gen:client -w @petpop/core"

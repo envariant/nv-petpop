@@ -1,0 +1,16 @@
+/* The responsive frame (decision 122). Sizes are rem, so the type scale follows the mode: a kiosk scales with its
+   screen (about 24 px on a 1080x1920 portrait kiosk), the app keeps the platform's 16 px. */
+html[data-mode='kiosk'] { font-size: clamp(16px, calc(min(100vw, 56.25vh) / 45), 32px); }
+html[data-mode='app'] { font-size: 16px; }
+html[data-mode='app'] body { -webkit-user-select: auto; user-select: auto; }
+.pp-frame {
+  position: fixed; inset: 0; overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.press { transition: transform 0.12s ease; }
+.press:active { transform: scale(0.96); }
+.screen-enter-active, .screen-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.screen-enter-from { opacity: 0; transform: translateX(2rem); }
+.screen-leave-to { opacity: 0; transform: translateX(-2rem); }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
