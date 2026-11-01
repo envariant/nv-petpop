@@ -1,12 +1,12 @@
-// Gate 1 (Studio): the automated touch walkthrough of the Generate workspace against the mock server, from staff
+// Gate 1 (Studio): the automated walkthrough of the Generate workspace against the mock server, from staff
 // sign-in to a printed ticket.
 import { expect, test } from '@playwright/test';
-import { PASSWORD, typeOnKeyboard } from './helpers';
+import { PASSWORD, typeInto } from './helpers';
 
 test('gate-1 studio walkthrough: sign in, generate, print, new figurine', async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on('pageerror', (e) => consoleErrors.push(String(e)));
-  const shot = (n: string) => page.screenshot({ path: `test-results/walkthrough/${n}.png` });
+  const shot = (n: string) => page.screenshot({ path: `test-results/walkthrough-${test.info().project.name}/${n}.png` });
 
   await page.goto('/studio/');
   await expect(page.getByTestId('login')).toBeVisible();
@@ -21,9 +21,7 @@ test('gate-1 studio walkthrough: sign in, generate, print, new figurine', async 
   await page.getByTestId('species-dog').tap();
   await shot('1-species');
 
-  await page.getByTestId('breed-search').tap();
-  await typeOnKeyboard(page, 'corgi');
-  await page.getByTestId('key-done').tap();
+  await typeInto(page, 'breed-search', 'corgi');
   await shot('2-breed');
   await page.getByTestId('breed-corgi_pembroke').tap();
 
@@ -40,7 +38,7 @@ test('gate-1 studio walkthrough: sign in, generate, print, new figurine', async 
   await shot('4-brief');
   await page.getByTestId('nav-next').tap();
 
-  await typeOnKeyboard(page, 'biscuit');
+  await typeInto(page, 'name-text', 'Biscuit');
   await expect(page.getByTestId('summary-card')).toContainText('Biscuit');
   await shot('5-name');
   await page.getByTestId('nav-next').tap();

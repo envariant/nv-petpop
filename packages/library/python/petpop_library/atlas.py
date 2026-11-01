@@ -3,7 +3,7 @@
 Library mode paints in the atlas (BRIEF Section 16): pattern masks, stamps and the export's albedo. Every one of
 them is evaluated per texel from the texel's 3D position on the base mesh, which is what makes a stamp that
 crosses a UV seam land correctly on both islands. The rules here are mirrored exactly by
-packages/viewer/src/atlas.ts (same texel-centre convention, triangle order and barycentric formula, all in
+packages/scene/src/atlas.ts (same texel-centre convention, triangle order and barycentric formula, all in
 float64), so the kiosk's preview and the export paint the same texels.
 
 Convention (WebGL's): texel (x, y), row 0 at the top, has its centre at u = (x + 0.5) / S, v = 1 - (y + 0.5) / S.

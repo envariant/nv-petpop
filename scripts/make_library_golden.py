@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Write fixtures/library/golden.json: stamps painted with the Python rasteriser (the export's) and the sha256 of
-the resulting RGBA stamp layer. packages/viewer/src/stamps.test.ts paints the same stamps with the kiosk's
+the resulting RGBA stamp layer. packages/scene/src/stamps.test.ts paints the same stamps with the kiosk's
 TypeScript port and must produce the same bytes, which is what makes the print match the screen.
 tests/unit/test_library_paint.py fails if this file is stale.
 

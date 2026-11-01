@@ -6,6 +6,9 @@ export type Mode = 'kiosk' | 'app';
 const KEY = 'pp-mode';
 
 export function detectMode(): Mode {
+  // An app that has one mode only (Studio: staff at a desk) locks it at build time: VITE_MODE_LOCK.
+  const locked = import.meta.env.VITE_MODE_LOCK;
+  if (locked === 'kiosk' || locked === 'app') return locked;
   const q = new URLSearchParams(location.search).get('mode');
   if (q === 'kiosk' || q === 'app') {
     try {

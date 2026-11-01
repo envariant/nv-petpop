@@ -1,6 +1,7 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
-// The Studio SPA (Vite, base /studio/) against the standalone mock server; PP_BACKEND=real swaps in the real backend.
+// The Studio SPA (Vue, Vite, base /studio/) against the standalone mock server; PP_BACKEND=real swaps in the real backend.
+// Studio is a desk app (decision 122): the tests run on a desktop and on a tablet in portrait.
 const MOCK_PORT = 8012;
 const WEB_PORT = 5182;
 
@@ -13,13 +14,16 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: `http://127.0.0.1:${WEB_PORT}`,
-    ...devices['Pixel 7'],
-    viewport: { width: 540, height: 960 },
     hasTouch: true,
-    isMobile: false,
     launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
     trace: 'retain-on-failure',
   },
+  projects: [
+    { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
+    // The tablet run skips the tests that change the shared mock server's library, releases and manual inbox (the
+    // desktop run already made those changes); their screens' layouts are covered by the stories.
+    { name: 'tablet', testIgnore: /gate8/, grepInvert: / (10 library|11 releases|12 manual):/, use: { viewport: { width: 820, height: 1180 } } },
+  ],
   webServer: [
     {
       // PP_BACKEND=real runs the same tests against the real backend (make dev mode, embedded worker).

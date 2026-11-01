@@ -3,8 +3,18 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Vue 3 UI kit (decision 122): the responsive app frame, touch primitives, the on-screen keyboard and the three.js views over @petpop/scene. Styles come from @petpop/ui/styles.css.",
+  "description": "Vue 3 UI kit and theme for both apps (decision 122): the responsive app frame and mode, touch primitives, the on-screen keyboard, the three.js views over @petpop/scene, and the theme CSS (styles.css).",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "peerDependencies": { "@petpop/core": "*", "@petpop/scene": "*", "three": "*", "vue": "*", "qrcode": "*" }
+  "peerDependencies": {
+    "@petpop/core": "*",
+    "@petpop/scene": "*",
+    "three": "*",
+    "vue": "*",
+    "qrcode": "*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  }
 }

@@ -6,8 +6,6 @@
   "workspaces": [
     "packages/core",
     "packages/scene",
-    "packages/viewer",
-    "packages/ui",
     "apps/studio",
     "packages/ui-vue",
     "apps/customer"

@@ -346,10 +346,11 @@ Each gate is a script under `scripts/gates/` that Claude Code runs before moving
 **Repository layout** (`nv-petpop/`, monorepo; the product stays PetPop in code and UI)
 
 ```markdown
-apps/kiosk/            customer SPA: library mode, kiosk mode, result page, Storybook
-apps/studio/           staff SPA: Generate workspace, batches, review grid, parts and pattern editors, publish
-packages/core/         PetSpec, manifest and composition schemas, vocab, breed presets, prompt compiler
-packages/viewer/       three.js viewer, pattern material, delta/morph application, stamp rasteriser (both apps)
+apps/customer/         customer app (Vue, Capacitor): library mode, kiosk and app modes, result page, Storybook (decision 122)
+apps/studio/           staff app (Vue, desktop first): batches, review grid, parts and pattern editors, publish, one-off figurines
+packages/core/         PetSpec, manifest and composition schemas, vocab, breed presets, prompt compiler, API client
+packages/scene/        framework-free three.js: release meshes, pattern material, delta/morph application, stamp rasteriser
+packages/ui-vue/       Vue components and theme for both apps: frame and mode, touch primitives, keyboard, 3D views
 packages/library/      delta extraction, QC metrics, release packer and loader
 mock-server/           standalone OpenAPI mock: scripted jobs, fixture artefacts, no DB
 backend/api/           FastAPI app: routers kiosk/ and studio/, schemas, auth

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cx } from './mode';
-defineProps<{ selected?: boolean; testId?: string }>();
+defineProps<{ selected?: boolean; highlight?: boolean; testId?: string }>();
 defineEmits<{ click: [] }>();
 </script>
 
@@ -8,7 +8,7 @@ defineEmits<{ click: [] }>();
   <button
     :aria-pressed="selected"
     :data-testid="testId"
-    :class="cx('press hit shrink-0 rounded-full border-4 px-4 py-1.5 font-display text-base md:text-lg', selected ? 'border-accent bg-accent text-white' : 'border-line bg-card text-ink')"
+    :class="cx('press hit shrink-0 rounded-full border-4 px-4 py-1.5 font-display text-base md:text-lg', selected ? 'border-accent bg-accent text-white' : 'border-line bg-card text-ink', highlight && 'ring-highlight')"
     @click="$emit('click')"
   >
     <slot />

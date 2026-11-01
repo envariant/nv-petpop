@@ -10,6 +10,8 @@ html[data-mode='app'] body { -webkit-user-select: auto; user-select: auto; }
 .press { transition: transform 0.12s ease; }
 .press:active { transform: scale(0.96); }
 .screen-enter-active, .screen-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+/* A screen on its way out takes no taps: a quick second tap lands on the new screen, not the old one. */
+.screen-leave-active, .fade-leave-active { pointer-events: none; }
 .screen-enter-from { opacity: 0; transform: translateX(2rem); }
 .screen-leave-to { opacity: 0; transform: translateX(-2rem); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }

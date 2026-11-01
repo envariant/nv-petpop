@@ -1,15 +1,17 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 
 const apiTarget = process.env.VITE_API_TARGET ?? 'http://127.0.0.1:8000';
 
 export default defineConfig({
   base: '/studio/',
-  plugins: [react()],
+  plugins: [vue()],
+  // Studio is a desk app for staff: always app mode (system keyboard, normal type scale), whatever a kiosk on the
+  // same origin remembered (decision 122).
+  define: { 'import.meta.env.VITE_MODE_LOCK': JSON.stringify('app') },
   resolve: {
-    // One copy of React and three across the app and the workspace packages.
-    dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'],
+    dedupe: ['vue', 'three'],
     alias: {
       '@data': fileURLToPath(new URL('../../data', import.meta.url)),
       '@fixtures': fileURLToPath(new URL('../../fixtures', import.meta.url)),
@@ -21,9 +23,7 @@ export default defineConfig({
     port: 5174,
     host: '127.0.0.1',
     fs: { allow: ['../..'] },
-    proxy: {
-      '/api': { target: apiTarget, ws: true, changeOrigin: false },
-    },
+    proxy: { '/api': { target: apiTarget, ws: true, changeOrigin: false } },
   },
   preview: { port: 7174, host: '127.0.0.1', proxy: { '/api': { target: apiTarget, ws: true } } },
   build: { outDir: 'dist', chunkSizeWarningLimit: 2000 },

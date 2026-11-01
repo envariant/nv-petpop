@@ -1,9 +1,10 @@
+dist/
+playwright-report/
 public/assets/
 public/draco/
 public/fixtures/
+public/library/
 public/mockServiceWorker.js
-dist/
+storybook-static
 storybook-static/
 test-results/
-playwright-report/
-public/library/

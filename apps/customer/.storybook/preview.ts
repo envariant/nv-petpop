@@ -2,7 +2,7 @@ import type { Preview } from '@storybook/vue3';
 import { setup } from '@storybook/vue3';
 import { createPinia } from 'pinia';
 import { setupWorker } from 'msw/browser';
-import '@petpop/ui/styles.css';
+import '@petpop/ui-vue/styles.css';
 import { applyMode, mode } from '@petpop/ui-vue';
 import { handlers } from '../src/mocks/handlers';
 

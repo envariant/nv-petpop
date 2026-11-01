@@ -26,7 +26,7 @@ export const VIEW_PREVIEWS = { concept: f('concept.png'), view_front: f('views/f
 const qc = (ok: boolean) => ({ segmentation_valid: ok, print_watertight: true, min_wall_mm: 2.1, figure_tris: 14512, passed: ok, reasons: ok ? [] : ['segmentation: missing muzzle'] });
 const cand = (id: string, status: LibraryCandidate['status'], ok = true): LibraryCandidate => ({
   id, version: 1, kind: 'family', region: null, mesh_id: 'm_0a1b2c3d4e5f6789', name: id, status, tags: ['breed:pug'], qc: qc(ok), auto_rejected: !ok,
-  thumbnail_url: '/studio/fixtures/mochi/thumbnail.png',
+  thumbnail_url: assetUrl('fixtures/mochi/thumbnail.png'),
 });
 export const BATCH: Batch = {
   batch_id: 'b_story', species: 'dog', status: 'review', created_by: 'operator', created_at: '2026-10-29T10:00:00Z',
@@ -35,12 +35,12 @@ export const BATCH: Batch = {
   figurines: [
     {
       job_id: 'j_story1', breed_id: 'pug', variant: 'preset', seed: 1, status: 'done', stage: 'done', error: null,
-      glb_url: '/studio/fixtures/mochi/figure.glb', thumbnail_url: '/studio/fixtures/mochi/thumbnail.png', turntable_url: null,
+      glb_url: assetUrl('fixtures/mochi/figure.glb'), thumbnail_url: assetUrl('fixtures/mochi/thumbnail.png'), turntable_url: null,
       candidates: [cand('family_pug_a1', 'published')],
     },
     {
       job_id: 'j_story3', breed_id: 'pug', variant: 'preset', seed: 2, status: 'done', stage: 'done', error: null,
-      glb_url: '/studio/fixtures/mochi/figure.glb', thumbnail_url: '/studio/fixtures/mochi/thumbnail.png', turntable_url: null,
+      glb_url: assetUrl('fixtures/mochi/figure.glb'), thumbnail_url: assetUrl('fixtures/mochi/thumbnail.png'), turntable_url: null,
       candidates: [cand('family_pug_b2', 'rejected', false)],
     },
     { job_id: 'j_story2', breed_id: 'beagle', variant: 'preset', seed: 1, status: 'running', stage: 'D', error: null, glb_url: null, thumbnail_url: null, turntable_url: null, candidates: [] },
@@ -49,7 +49,7 @@ export const BATCH: Batch = {
 export const PATTERN_ITEM: LibraryItem = {
   kind: 'pattern', id: 'pattern_blaze', version: 2, versions: [1, 2], published_version: 1, species: 'dog', name: 'Big blaze', status: 'draft', tags: ['marking:blaze'],
   region: null, socket: null, default_colour: '#F4EFE6', coverage: { min: 0.1, max: 0.9, default: 0.5 }, breeds: null, default_parts: null, qc: null,
-  source_job: null, batch_id: null, thumbnail_url: '/studio/library/dog/thumbs/pattern_blaze.png', published_at: null,
+  source_job: null, batch_id: null, thumbnail_url: assetUrl('library/dog/thumbs/pattern_blaze.png'), published_at: null,
 };
 export const RELEASES: ReleaseInfo[] = [
   { release_version: 'release-dog-2', species: 'dog', number: 2, created_by: 'admin', created_at: '2026-10-29T11:00:00Z', counts: { families: 5, region_deltas: 29, shell_parts: 5, pattern_layers: 10 }, bytes: 3900000, sha256: '', url: null },

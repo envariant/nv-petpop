@@ -7,8 +7,6 @@ FROM node:22-bookworm-slim AS spa
 WORKDIR /src
 COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
-COPY packages/viewer/package.json packages/viewer/
-COPY packages/ui/package.json packages/ui/
 COPY packages/scene/package.json packages/scene/
 COPY packages/ui-vue/package.json packages/ui-vue/
 COPY apps/customer/package.json apps/customer/

@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import '@petpop/ui/styles.css';
+import '@petpop/ui-vue/styles.css';
 import { applyMode } from '@petpop/ui-vue';
 
 async function boot() {

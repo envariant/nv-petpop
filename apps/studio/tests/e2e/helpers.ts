@@ -2,11 +2,9 @@ import { expect, type Page } from '@playwright/test';
 
 export const PASSWORD = 'petpop-dev';
 
-export async function typeOnKeyboard(page: Page, text: string) {
-  for (const ch of text.toLowerCase()) {
-    const id = ch === ' ' ? 'key-space' : ch === ',' ? 'key-comma' : ch === '.' ? 'key-dot' : `key-${ch}`;
-    await page.getByTestId(id).first().tap();
-  }
+/** Type into a Studio text field (the system keyboard: Studio is a desk app, decision 122). */
+export async function typeInto(page: Page, testId: string, text: string) {
+  await page.getByTestId(testId).fill(text);
 }
 
 /** Sign in and stay in the Generate workspace (the batch builder). */
@@ -49,7 +47,7 @@ export async function toGenerate(page: Page, name: string, breed = 'corgi_pembro
   await toBuild(page, 'dog', breed);
   await page.getByTestId('nav-next').tap();
   await page.getByTestId('nav-next').tap();
-  await typeOnKeyboard(page, name);
+  await typeInto(page, 'name-text', name);
   await page.getByTestId('nav-next').tap();
   await expect(page.locator('[data-screen=generating]')).toBeVisible();
 }

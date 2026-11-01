@@ -8,9 +8,9 @@ const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
 describe('studio screen coverage', () => {
   it('every screen has a story', () => {
-    const stories = read('./Screens.stories.tsx');
+    const stories = read('./Screens.stories.ts');
     for (const s of SCREENS) expect(stories).toMatch(new RegExp(`export const ${STORY_NAMES[s]}: Story = \\{ args: \\{ screen: '${s}'`));
-    for (const o of ['Login', 'QueueOverlay', 'OfflineOverlay']) expect(stories).toContain(`export const ${o}`);
+    for (const o of ['Login', 'QueueOverlay', 'OfflineOverlay']) expect(stories).toMatch(new RegExp(`export const ${o}_?: StoryObj`));
   });
   it('every screen has a Playwright test', () => {
     const spec = read('../../tests/e2e/screens.spec.ts');

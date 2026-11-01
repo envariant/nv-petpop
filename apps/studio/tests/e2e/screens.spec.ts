@@ -1,6 +1,6 @@
 // One Playwright test per Studio screen and behaviour (BRIEF Sections 2, 4 and 17).
 import { expect, test } from '@playwright/test';
-import { PASSWORD, runBatch, signIn, signInHome, toBuild, toGenerate, typeOnKeyboard } from './helpers';
+import { PASSWORD, runBatch, signIn, signInHome, toBuild, toGenerate, typeInto } from './helpers';
 
 test('0 sign in: a wrong password is refused, a staff login opens the Generate workspace', async ({ page }) => {
   await page.goto('/studio/');
@@ -24,12 +24,11 @@ test('1 species tiles set the species accent', async ({ page }) => {
   await expect(page.getByTestId('breed-siamese')).toBeVisible();
 });
 
-test('2 breed search with the on-screen keyboard and the Mixed tile', async ({ page }) => {
+test('2 breed search and the Mixed tile', async ({ page }) => {
   await signIn(page);
   await page.getByTestId('species-dog').tap();
   await expect(page.getByTestId('breed-mixed')).toBeAttached();
-  await page.getByTestId('breed-search').tap();
-  await typeOnKeyboard(page, 'cor');
+  await typeInto(page, 'breed-search', 'cor');
   await expect(page.getByTestId('breed-corgi_pembroke')).toBeVisible();
   await expect(page.getByTestId('breed-beagle')).toHaveCount(0);
   await page.getByTestId('breed-corgi_pembroke').tap();
@@ -59,7 +58,7 @@ test('4 brief: parsed words update swatches but never a tapped one', async ({ pa
   await toBuild(page, 'dog', 'beagle');
   await page.getByTestId('tile-ears.shape-erect').tap(); // a tap always wins
   await page.getByTestId('nav-next').tap();
-  await typeOnKeyboard(page, 'floppy ears, blue eyes, red collar');
+  await typeInto(page, 'brief-text', 'floppy ears, blue eyes, red collar');
   await page.getByTestId('brief-apply').tap();
   await expect(page.getByTestId('brief-result')).toContainText('Eyes');
   await expect(page.getByTestId('brief-result')).toContainText('Accessories');
@@ -73,7 +72,7 @@ test('4 brief: parsed words update swatches but never a tapped one', async ({ pa
 test('4b brief with nothing mappable is used for flavour only', async ({ page }) => {
   await toBuild(page);
   await page.getByTestId('nav-next').tap();
-  await typeOnKeyboard(page, 'the best boy');
+  await typeInto(page, 'brief-text', 'the best boy');
   await page.getByTestId('brief-apply').tap();
   await expect(page.getByTestId('brief-result')).toContainText('flavour only');
 });
@@ -83,7 +82,7 @@ test('5 name and generate: summary card, name required', async ({ page }) => {
   await page.getByTestId('nav-next').tap();
   await page.getByTestId('nav-next').tap();
   await expect(page.getByTestId('nav-next')).toBeDisabled();
-  await typeOnKeyboard(page, 'biscuit');
+  await typeInto(page, 'name-text', 'biscuit');
   await expect(page.getByTestId('summary-card')).toContainText('Pembroke Welsh Corgi');
   // Run on: the server default is picked; a profile missing its key is listed but cannot be chosen
   await expect(page.getByTestId('profile-mock')).toHaveAttribute('aria-pressed', 'true');

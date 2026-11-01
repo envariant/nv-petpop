@@ -7,4 +7,5 @@ declare module '*.vue' {
 interface ImportMetaEnv {
   readonly VITE_MOCK?: string;
   readonly VITE_MODE?: 'kiosk' | 'app';
+  readonly VITE_MODE_LOCK?: 'kiosk' | 'app';
 }

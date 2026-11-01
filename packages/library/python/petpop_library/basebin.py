@@ -1,4 +1,4 @@
-"""<mesh>.bin + <mesh>.json: one library mesh as the kiosk's viewer consumes it (packages/viewer/src/library.ts).
+"""<mesh>.bin + <mesh>.json: one library mesh as the kiosk's viewer consumes it (packages/scene/src/library.ts).
 
 The preview is built from the same vertex order the deltas are keyed on (the GLB splits vertices at UV seams, so
 it cannot be used for deltas). Layout of base.bin, little endian:

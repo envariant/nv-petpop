@@ -1,9 +1,9 @@
 """Library-mode painting in the UV atlas (BRIEF Section 16): pattern layers, stamps, eyes and nose.
 
 The export re-renders a composition's layers and stamps here, deterministically from the composition JSON, so
-the print matches the kiosk screen. The kiosk does the same maths: stamps with packages/viewer/src/stamps.ts
+the print matches the kiosk screen. The kiosk does the same maths: stamps with packages/scene/src/stamps.ts
 (the same algorithm in float64, quantised the same way) and layers in the pattern shader
-(packages/viewer/src/PatternMaterial.ts). Rules shared by both:
+(packages/scene/src/PatternMaterial.ts). Rules shared by both:
 
 - A layer covers a texel when its mask value m is below coverage * MASK_MAX (masks rank 0..250; 255 means
   outside the pattern's region), with a 2-step soft edge: a = clamp((coverage * MASK_MAX - m) / 2 + 0.5, 0, 1);

@@ -25,12 +25,10 @@ make regress        # 30-pet regression set -> tests/regression/metrics.md
 | Path | What |
 | --- | --- |
 | `apps/customer/` | customer app (Vue 3, Capacitor): library mode, kiosk and app modes, phone result page, Storybook, Playwright on kiosk, phone, tablet and desktop |
-| `apps/studio/` | staff SPA: sign-in, Generate workspace, queue, Storybook, Playwright |
+| `apps/studio/` | staff app (Vue 3, desktop first): sign-in, batches, review, library, releases, manual inbox, one-off figurines, Storybook, Playwright |
 | `packages/core/` | `@petpop/core` (generated API client, PetSpec helpers) and `petpop_core` (schemas, vocab, breeds, parser, manifest, prompt compiler) |
 | `packages/scene/` | `@petpop/scene`: framework-free three.js (release loading, composed figure, pattern material, stamps, stage) |
-| `packages/ui-vue/` | `@petpop/ui-vue`: Vue components (frame, tiles, swatches, keyboard, text entry, 3D views), kiosk/app mode |
-| `packages/viewer/` | `@petpop/viewer`: React three.js views for the studio, on `@petpop/scene` |
-| `packages/ui/` | `@petpop/ui`: theme CSS for both apps, and the studio's React components |
+| `packages/ui-vue/` | `@petpop/ui-vue`: Vue components (frame, tiles, swatches, keyboard, text entry, 3D views), kiosk/app mode, theme CSS |
 | `packages/library/` | `petpop_library`: base-mesh geometry, accessories, colouring; delta extraction, QC, releases |
 | `mock-server/` | standalone OpenAPI mock with scripted jobs |
 | `backend/api/` | FastAPI app: contract routers (`/kiosk`, `/studio`), auth, DB, artefact store, queue/event bus |

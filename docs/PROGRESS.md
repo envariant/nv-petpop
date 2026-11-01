@@ -196,5 +196,8 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   frame rate and touch painting
 - [x] Native bundle with the showcase assets only (`npm run bundle:native`, about 7 MB, was 82 MB); gate 1 runs the
   walkthrough on it
-- [ ] Studio in Vue, responsive (desktop first)
-- [ ] Hosted backend for app-store orders (accounts, payments, fulfilment): a separate decision
+- [x] Studio in Vue, desktop first and usable on a tablet; Playwright on desktop and tablet; `@petpop/viewer` and the
+  React half of `@petpop/ui` deleted (no React left in the apps)
+- [ ] Hosted backend for app-store orders (decision 123, proposed): this FastAPI backend deployed, plus a public `/app`
+  surface, customer identity, payment for physical goods, shipping and fulfilment; waits on Nishant's choice of host
+  and payment provider

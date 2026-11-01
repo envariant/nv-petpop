@@ -29,7 +29,6 @@
     "@fontsource/inter": "^5.0.0",
     "@petpop/core": "0.2.0",
     "@petpop/scene": "0.3.0",
-    "@petpop/ui": "0.2.0",
     "@petpop/ui-vue": "0.1.0",
     "openapi-fetch": "^0.13.0",
     "pinia": "^4.1.0",
