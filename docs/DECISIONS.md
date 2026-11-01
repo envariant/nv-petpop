@@ -170,3 +170,7 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    via `bpy`) fit a small VM or a container platform. Open for Nishant: the host (a VM with Compose is the shortest
    path), the payment provider, and whether Studio runs hosted or stays in the shop; each is a paid service, so each
    is his call (CLAUDE.md). Nothing is built until those are chosen.
+   Chosen so far (Nishant, 2026-11-01): AWS, Singapore region, an EC2 instance running the Compose stack (x86: `bpy`
+   has no Linux ARM wheel, so no Graviton); Studio self-hosted in the shop, chosen by a deployment setting that
+   `make up` honours; PayNow must be offered. Open: the CDN (CloudFront recommended: free origin fetches from S3
+   and EC2, private buckets, one bill) and the payment provider (Stripe or HitPay, both with PayNow).
