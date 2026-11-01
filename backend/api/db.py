@@ -250,10 +250,27 @@ def engine(url: str) -> Engine:
                 cur.execute("PRAGMA journal_mode=WAL")
                 cur.execute("PRAGMA busy_timeout=30000")
                 cur.close()
-        Base.metadata.create_all(eng)
-        _add_missing_columns(eng)
+        _create_schema(eng)
         _engines[url] = eng
     return _engines[url]
+
+
+def _create_schema(eng: Engine, attempts: int = 5) -> None:
+    """Create missing tables and columns. `make dev` starts the API and both workers at once on a fresh database, so
+    another process may create a table between our check and our CREATE: that loser retries and finds it done."""
+    import time
+
+    from sqlalchemy.exc import OperationalError, ProgrammingError
+
+    for n in range(attempts):
+        try:
+            Base.metadata.create_all(eng)
+            _add_missing_columns(eng)
+            return
+        except (OperationalError, ProgrammingError) as exc:
+            if "already exists" not in str(exc) and "duplicate column" not in str(exc).lower() or n == attempts - 1:
+                raise
+            time.sleep(0.2 * (n + 1))
 
 
 def session_factory(url: str):
