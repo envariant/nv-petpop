@@ -34,6 +34,13 @@ set -a && source .env && set +a && make dev
 
 - Blender: the stages run under a Python 3.11 interpreter with the `bpy` wheel (wheels exist for macOS arm64 and
   x86-64, Linux x86-64 and Windows). Without it the pipeline still runs, on a trimesh stand-in (`fidelity: low`).
+- What lives outside the repo: the `bpy` environment (`~/.petpop-bpy`, a uv venv, delete it to remove), and the
+  tools you install yourself: uv, Node and git; `ffmpeg` (optional: without it no `turntable.mp4`; macOS
+  `brew install ffmpeg`, Debian/Ubuntu `apt install ffmpeg`); on Linux, the X/GL libraries `bpy` loads
+  (`apt install libgl1 libxi6 libxrender1 libxkbcommon0 libsm6`; macOS needs none); Playwright's browsers for the
+  web tests only (`npx playwright install chromium`, cached under `~/.cache/ms-playwright` or
+  `~/Library/Caches/ms-playwright`). Python packages go into `.venv` and npm packages into `node_modules`, both
+  inside the repo; nothing is installed into the system Python or globally with npm.
 - Kiosk http://127.0.0.1:5173, Studio http://127.0.0.1:5174/studio/ (logins operator, curator, admin; password
   `PETPOP_STUDIO_PASSWORD`, or the generated one in `var/.petpop_studio_password`).
 - `make test` runs the Python and web tests; `make help` lists the rest.
