@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 const apiTarget = process.env.VITE_API_TARGET ?? 'http://127.0.0.1:8000';
 
 export default defineConfig({
-  base: './', // relative, so the same build runs from a web server and inside the Capacitor shell
+  base: '/', // absolute: the phone page lives at /r/<token>; Capacitor serves the build at its origin's root too
   plugins: [vue()],
   resolve: {
     dedupe: ['vue', 'three'],

@@ -4,6 +4,7 @@ apps/studio/dist (npm run build)."""
 from __future__ import annotations
 
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -66,7 +67,10 @@ def test_one_origin_job_qr_fulfil_staff_metrics(server):
         time.sleep(0.5)
     assert j["status"] == "done", j.get("error")
     path = httpx.URL(j["result_url"]).path
-    assert "<div id=\"root\">" in c.get(path).text  # the phone page route is served by the SPA
+    page = c.get(path).text
+    assert "<div id=\"app\">" in page  # the phone page route is served by the SPA
+    scripts = re.findall(r'src="([^"]+\.js)"', page)  # absolute, so they load from /r/<token> too
+    assert scripts and all(u.startswith("/assets/") and c.get(u).status_code == 200 for u in scripts), scripts
     page = c.get(f"/api/v1/r/{path.split('/r/')[1]}").json()
     assert page["pet_name"] == "Tiger" and c.get(page["glb_url"]).content[:4] == b"glTF"
     ful = c.post(f"/api/v1/studio/jobs/{job['job_id']}/fulfil").json()
