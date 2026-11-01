@@ -12,10 +12,15 @@ step() {
   local name="$1"; shift
   local log="$LOG_DIR/$(echo "$name" | tr -c 'a-zA-Z0-9' '_' | cut -c1-60).log"
   local t0=$SECONDS
-  if "$@" >"$log" 2>&1; then
+  # A stuck step fails after PETPOP_GATE_STEP_TIMEOUT seconds (default 30 min) instead of hanging the gate. macOS
+  # has no `timeout` unless coreutils is installed (gtimeout); without either, steps run unbounded.
+  local limit="${PETPOP_GATE_STEP_TIMEOUT:-1800}" tmo=()
+  if command -v timeout >/dev/null; then tmo=(timeout -k 15 "$limit"); elif command -v gtimeout >/dev/null; then tmo=(gtimeout -k 15 "$limit"); fi
+  if ${tmo[@]+"${tmo[@]}"} "$@" >"$log" 2>&1; then
     printf '  [PASS] %s (%ss)\n' "$name" "$((SECONDS - t0))"
   else
     printf '  [FAIL] %s (%ss) - log: %s\n' "$name" "$((SECONDS - t0))" "${log#$ROOT/}"
+    [ "$((SECONDS - t0))" -ge "$limit" ] && [ -n "${tmo[*]-}" ] && echo "        (stopped after ${limit} s: PETPOP_GATE_STEP_TIMEOUT)"
     tail -n 25 "$log" | sed 's/^/        /'
     echo "GATE FAILED"
     exit 1
