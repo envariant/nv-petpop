@@ -17,5 +17,5 @@
     "baseUrl": ".",
     "paths": { "@data/*": ["../../data/*"], "@fixtures/*": ["../../fixtures/*"], "@mockscripts/*": ["../../mock-server/scripts/*"], "@assets/*": ["../../assets/*"] }
   },
-  "include": ["src", "src/**/*.vue", "../../packages/ui-vue/src/**/*.ts", "../../packages/ui-vue/src/**/*.vue", "tests", "vite.config.ts", "playwright.config.ts"]
+  "include": ["src", ".storybook", "src/**/*.vue", "../../packages/ui-vue/src/**/*.ts", "../../packages/ui-vue/src/**/*.vue", "tests", "vite.config.ts", "playwright.config.ts"]
 }

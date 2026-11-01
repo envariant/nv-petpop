@@ -1,4 +1,4 @@
-"""FastAPI app: the /api/v1 contract, both built SPAs from the same origin (kiosk at /, studio at /studio/), and
+"""FastAPI app: the /api/v1 contract, both built SPAs from the same origin (customer app at /, studio at /studio/), and
 Prometheus /metrics."""
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from backend.core.paths import ROOT
 from .db import JobRow, StageTimingRow
 from .service import BackendApi
 
-SPA = ROOT / "apps" / "kiosk" / "dist"
+SPA = ROOT / "apps" / "customer" / "dist"
 STUDIO_SPA = ROOT / "apps" / "studio" / "dist"
 
 

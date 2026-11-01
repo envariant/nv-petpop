@@ -6,9 +6,9 @@ const SCREENS = ['attract', 'species', 'breed', 'design', 'name', 'order', 'besp
 const STORY_NAMES: Record<string, string> = { attract: 'Attract', species: 'Species', breed: 'Breed', design: 'Design', name: 'Name', order: 'Order', bespoke: 'Bespoke' };
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
-describe('kiosk screen coverage', () => {
+describe('customer screen coverage', () => {
   it('every screen has a story', () => {
-    const stories = read('./Screens.stories.tsx');
+    const stories = read('./Screens.stories.ts');
     for (const s of SCREENS) expect(stories).toMatch(new RegExp(`export const ${STORY_NAMES[s]}: Story = \\{ args: \\{ screen: '${s}'`));
     for (const o of ['StillThereOverlay', 'OfflineOverlay', 'StaffPanelLocked', 'PhoneResultPage']) expect(stories).toContain(`export const ${o}`);
   });

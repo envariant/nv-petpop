@@ -2,16 +2,18 @@
 
 Touch-first kiosk that turns a description of a dog or cat into a chibi vinyl-collectible-style figurine:
 a textured GLB preview, a watertight print mesh and a fixed-layout UV atlas for the inkjet painter. Two apps on
-one core (BRIEF Section 17): **PetPop Kiosk** for customers (library mode: assemble, customise, order) and
+one core (BRIEF Section 17): the **PetPop customer app** (library mode: assemble, customise, order), a Vue app
+for phones, tablets and desktops that runs in kiosk mode on the in-store touchscreen and ships to the app stores
+with Capacitor (decision 122), and
 **PetPop Studio** for staff (generate, curate, publish). The kiosk never depends on the GenAI host.
 The spec is [docs/BRIEF.md](docs/BRIEF.md). The GenAI stages run on a remote host chosen by `GENAI_PROFILE`
 (see [config/genai/](config/genai/README.md) and [docs/HANDOFF.md](docs/HANDOFF.md)). Progress is tracked in [docs/PROGRESS.md](docs/PROGRESS.md),
 choices in [docs/DECISIONS.md](docs/DECISIONS.md), and the GPU bring-up in [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ```bash
-make setup          # .venv (Python 3.12) + npm workspaces (packages/*, apps/kiosk, apps/studio)
+make setup          # .venv (Python 3.12) + npm workspaces (packages/*, apps/customer, apps/studio)
 make dev            # API + studio and kiosk workers + both SPAs on CPU (GENAI_PROFILE=mock):
-                    #   kiosk http://127.0.0.1:5173, studio http://127.0.0.1:5174/studio/ (logins operator,
+                    #   customer app http://127.0.0.1:5173 (?mode=kiosk), studio http://127.0.0.1:5174/studio/ (logins operator,
                     #   curator, admin; password in var/.petpop_studio_password)
 make mock           # standalone mock server on :8000 (the frozen contract)
 make test           # Python and web tests
@@ -22,11 +24,13 @@ make regress        # 30-pet regression set -> tests/regression/metrics.md
 
 | Path | What |
 | --- | --- |
-| `apps/kiosk/` | customer SPA: library mode, kiosk behaviour, phone result page, Storybook, Playwright |
+| `apps/customer/` | customer app (Vue 3, Capacitor): library mode, kiosk and app modes, phone result page, Storybook, Playwright on kiosk, phone, tablet and desktop |
 | `apps/studio/` | staff SPA: sign-in, Generate workspace, queue, Storybook, Playwright |
 | `packages/core/` | `@petpop/core` (generated API client, PetSpec helpers) and `petpop_core` (schemas, vocab, breeds, parser, manifest, prompt compiler) |
-| `packages/viewer/` | `@petpop/viewer`: three.js viewer, morph application, pattern material |
-| `packages/ui/` | `@petpop/ui`: portrait frame, tiles, swatches, chips, on-screen keyboard, theme CSS |
+| `packages/scene/` | `@petpop/scene`: framework-free three.js (release loading, composed figure, pattern material, stamps, stage) |
+| `packages/ui-vue/` | `@petpop/ui-vue`: Vue components (frame, tiles, swatches, keyboard, text entry, 3D views), kiosk/app mode |
+| `packages/viewer/` | `@petpop/viewer`: React three.js views for the studio, on `@petpop/scene` |
+| `packages/ui/` | `@petpop/ui`: theme CSS for both apps, and the studio's React components |
 | `packages/library/` | `petpop_library`: base-mesh geometry, accessories, colouring; delta extraction, QC, releases |
 | `mock-server/` | standalone OpenAPI mock with scripted jobs |
 | `backend/api/` | FastAPI app: contract routers (`/kiosk`, `/studio`), auth, DB, artefact store, queue/event bus |

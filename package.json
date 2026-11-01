@@ -8,7 +8,6 @@
     "packages/scene",
     "packages/viewer",
     "packages/ui",
-    "apps/kiosk",
     "apps/studio",
     "packages/ui-vue",
     "apps/customer"

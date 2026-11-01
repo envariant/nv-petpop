@@ -21,7 +21,7 @@ import backend  # noqa: E402,F401  (puts packages/*/python on sys.path)
 from petpop_core.breeds import all_breeds  # noqa: E402
 from petpop_library import release  # noqa: E402
 
-# Markings and coat patterns -> the pattern layers the kiosk starts a breed with (apps/kiosk/src/lib/compose.ts).
+# Markings and coat patterns -> the pattern layers the kiosk starts a breed with (packages/scene/src/compose.ts).
 MARKING_LAYERS = {"white_blaze": "pattern_blaze", "white_socks": "pattern_socks", "white_chest": "pattern_chest",
                   "dark_mask": "pattern_mask", "points": "pattern_points"}
 PATTERN_LAYERS = {"saddle_with_white_chest": ["pattern_saddle", "pattern_chest"], "tricolour": ["pattern_saddle", "pattern_chest"],

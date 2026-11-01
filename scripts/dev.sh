@@ -22,9 +22,9 @@ for _ in $(seq 1 120); do
 done
 start "studio worker" "$PY" -m backend.worker --queue studio
 start "kiosk worker" "$PY" -m backend.worker --queue kiosk
-start kiosk bash -c 'cd apps/kiosk && exec npm run -s dev -- --port 5173'
+start customer bash -c 'cd apps/customer && exec npm run -s dev -- --port 5173'
 start studio bash -c 'cd apps/studio && exec npm run -s dev -- --port 5174'
-echo "PetPop dev: kiosk http://127.0.0.1:5173  studio http://127.0.0.1:5174/studio/  API http://127.0.0.1:${API_PORT:-8000}/api/v1/docs  (GenAI profile $GENAI_PROFILE)"
+echo "PetPop dev: customer app http://127.0.0.1:5173 (kiosk mode: ?mode=kiosk)  studio http://127.0.0.1:5174/studio/  API http://127.0.0.1:${API_PORT:-8000}/api/v1/docs  (GenAI profile $GENAI_PROFILE)"
 echo "Studio logins: operator, curator, admin; password in var/.petpop_studio_password unless PETPOP_STUDIO_PASSWORD is set"
 # Run until any process exits, then stop the rest. A polling loop, not `wait -n`: macOS ships bash 3.2, which has
 # no `wait -n` (it failed at once there and left the SPAs running without an API).

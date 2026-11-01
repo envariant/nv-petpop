@@ -1,5 +1,5 @@
 """The backend as a real process (make dev mode): both SPAs and the API from one origin, QR result page, signed
-files, fulfilment folder, studio queue, kiosk ops panel and Prometheus metrics. Requires apps/kiosk/dist and
+files, fulfilment folder, studio queue, kiosk ops panel and Prometheus metrics. Requires apps/customer/dist and
 apps/studio/dist (npm run build)."""
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import pytest
 from backend.core.paths import ROOT
 from petpop_core.spec import default_spec
 
-DIST = ROOT / "apps/kiosk/dist/index.html"
+DIST = ROOT / "apps/customer/dist/index.html"
 STUDIO_DIST = ROOT / "apps/studio/dist/index.html"
 
 
@@ -29,7 +29,7 @@ def free_port() -> int:
 @pytest.fixture(scope="module")
 def server(tmp_path_factory):
     if not DIST.exists() or not STUDIO_DIST.exists():
-        pytest.skip("SPAs not built (npm run build in apps/kiosk and apps/studio)")
+        pytest.skip("SPAs not built (npm run build in apps/customer and apps/studio)")
     var = tmp_path_factory.mktemp("var")
     port = free_port()
     env = {**os.environ, "PYTHONPATH": f"{ROOT}:{ROOT / 'mock-server'}", "PETPOP_VAR": str(var), "PETPOP_EMBED_WORKER": "1",
@@ -53,7 +53,7 @@ def server(tmp_path_factory):
 def test_one_origin_job_qr_fulfil_staff_metrics(server):
     base, var = server
     c = httpx.Client(base_url=base, timeout=30)
-    assert "<div id=\"root\">" in c.get("/").text  # kiosk SPA from the API origin
+    assert "<div id=\"app\">" in c.get("/").text  # customer SPA from the API origin
     assert "PetPop Studio" in c.get("/studio/").text  # studio SPA from the same origin
     assert c.post("/api/v1/kiosk/sessions", json={}).status_code == 201
     token = c.post("/api/v1/studio/auth/login", json={"username": "operator", "password": "studio-smoke"}).json()["token"]

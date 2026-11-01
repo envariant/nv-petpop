@@ -3,7 +3,7 @@ SHELL := /bin/bash
 export GENAI_PROFILE ?= mock
 export PETPOP_MOCK_SPEED ?= 0.1
 PY ?= .venv/bin/python
-KIOSK := apps/kiosk
+KIOSK := apps/customer
 STUDIO := apps/studio
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
@@ -13,7 +13,7 @@ export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/pyt
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
-setup: ## create .venv, install Python and the npm workspaces (packages/*, apps/kiosk, apps/studio)
+setup: ## create .venv, install Python and the npm workspaces (packages/*, apps/customer, apps/studio)
 	uv venv .venv --python 3.12 -q || python3 -m venv .venv
 	uv pip install --python $(PY) -q -e '.[dev]' || $(PY) -m pip install -e '.[dev]'
 	npm install --no-audit --no-fund
@@ -33,7 +33,7 @@ api: ## backend API only on :8000
 worker: ## studio worker only (QUEUE=kiosk for the kiosk worker)
 	$(PY) -m backend.worker --queue $${QUEUE:-studio}
 
-kiosk: ## kiosk SPA dev server on :5173 (proxies /api to :8000); VITE_MOCK=1 for no backend at all
+kiosk: ## customer app dev server on :5173 (?mode=kiosk for kiosk mode) (proxies /api to :8000); VITE_MOCK=1 for no backend at all
 	cd $(KIOSK) && npm run dev
 
 studio: ## studio SPA dev server on :5174/studio/ (proxies /api to :8000)
@@ -45,7 +45,7 @@ test-py:
 	PETPOP_MOCK_SPEED=0 $(PY) -m pytest
 
 test-web:
-	for a in $(KIOSK) $(STUDIO); do (cd $$a && npx vitest run && npx tsc -b --noEmit) || exit 1; done
+	for a in $(KIOSK) $(STUDIO); do (cd $$a && npx vitest run && npm run -s typecheck) || exit 1; done
 
 openapi: ## regenerate data/schema/openapi.json and the TypeScript client (packages/core)
 	$(PY) scripts/export_openapi.py

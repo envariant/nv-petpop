@@ -1,8 +1,8 @@
 """Gate 7: print matches screen (BRIEF Section 16). The kiosk's shader atlas, baked in the browser for a real
-composition (apps/kiosk/tests/gate7), against the export's albedo rendered from the same composition JSON by
+composition (apps/customer/tests/gate7), against the export's albedo rendered from the same composition JSON by
 backend.worker.export.render_albedo. Texel for texel over the covered UV atlas.
 
-    python scripts/gate7_print_matches_screen.py apps/kiosk/test-results/gate7
+    python scripts/gate7_print_matches_screen.py apps/customer/test-results/gate7
 """
 from __future__ import annotations
 
@@ -47,4 +47,4 @@ def main(out_dir: str) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "apps/kiosk/test-results/gate7"))
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "apps/customer/test-results/gate7"))
