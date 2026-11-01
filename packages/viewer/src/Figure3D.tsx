@@ -6,8 +6,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { assetUrl, type PetSpec } from '@petpop/core';
-import { loadMasks, paintAlbedo, type Masks } from './albedo';
-import { morphWeights } from './morph';
+import { loadMasks, morphWeights, paintAlbedo, type Masks } from '@petpop/scene';
 
 const DRACO = assetUrl('draco/');
 

@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { ApiFailure, KioskApi } from '@petpop/core';
 import type { Breed, CompositionBody, CompositionStatus, Species } from '@petpop/core';
 import { loadLibrary, syncStamps, uploadStamps, type Composition, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/viewer';
-import { partFor, startingComposition } from '../lib/compose';
+import { partFor, startingComposition } from '@petpop/viewer';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
 export type ShapeRegion = 'family' | Region;

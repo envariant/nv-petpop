@@ -1,7 +1,8 @@
 // A breed's starting composition (BRIEF Section 2, shipped journey): the breed picks a family and a default parts
 // set from the library, and its preset colours and markings become the first pattern layers. Pure functions.
 import type { Breed } from '@petpop/core';
-import { NOSE_HEX, REGIONS, type Composition, type DeltaItem, type ReleaseManifest } from '@petpop/viewer';
+import { NOSE_HEX } from './albedo';
+import { REGIONS, type Composition, type DeltaItem, type ReleaseManifest } from './library';
 
 const REGION_SLOTS: Record<string, string[]> = {
   ears: ['ears.shape', 'ears.size'],

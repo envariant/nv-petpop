@@ -9,7 +9,7 @@ import { GlbFigure, LibraryFigure, REGIONS, type Composition, type LoadedLibrary
 import { Button, Chip, Keyboard, Row, Section, Swatch, TextDisplay, Tile, Title, cx } from '@petpop/ui';
 import { MAX_LAYERS, MAX_STAMPS, SPOT_MM, useDesign, type ShapeRegion, type Tab } from '../store/design';
 import { useSession } from '../store/session';
-import { sharedWith } from '../lib/compose';
+import { sharedWith } from '@petpop/viewer';
 
 const FUR = PALETTE_ORDER.map((n) => ({ name: n, hex: PALETTE[n].hex }));
 const EYES = Object.entries(EYE_PALETTE).map(([n, e]) => ({ name: n, hex: e.hex }));

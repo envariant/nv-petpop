@@ -1,0 +1,10 @@
+{
+  "name": "@petpop/scene",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Framework-free three.js: release meshes, deltas, the pattern material, the stamp rasteriser, the figure stage, GLB viewing, picking and the atlas bake. Used by the Vue customer app (decision 122) and, until it retires, the React viewer.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": { "@petpop/core": "*", "three": "*" }
+}
