@@ -5,9 +5,20 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PATTERN="$ROOT/(\.venv/bin/python[0-9.]* -m (backend|mock_server)|node_modules/)"
+# Started with a relative path (make mock, a hand-run worker): ours only if its working folder is this checkout.
+RELATIVE="(^|[ /])\.venv/bin/python[0-9.]* -m (backend|mock_server)|node_modules/\.bin/vite"
 quiet="${1:-}"
-list() { pgrep -f "$PATTERN" 2>/dev/null | grep -v "^$$\$" || true; }
-pids="$(list)"
+cwd_of() {
+  if [ -e "/proc/$1/cwd" ]; then readlink "/proc/$1/cwd"
+  else lsof -a -d cwd -p "$1" -Fn 2>/dev/null | sed -n 's/^n//p'; fi
+}
+list() {
+  pgrep -f "$PATTERN" 2>/dev/null | grep -v "^$$\$" || true
+  for p in $(pgrep -f "$RELATIVE" 2>/dev/null); do
+    case "$(cwd_of "$p")" in "$ROOT"|"$ROOT"/*) echo "$p" ;; esac
+  done
+}
+pids="$(list | sort -u)"
 if [ -z "$pids" ]; then
   [ "$quiet" = "--quiet" ] || echo "PetPop: nothing running"
   exit 0

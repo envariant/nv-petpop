@@ -247,12 +247,31 @@ def engine(url: str) -> Engine:
             @event.listens_for(eng, "connect")
             def _pragma(conn, _):  # WAL lets the API read while the worker writes
                 cur = conn.cursor()
-                cur.execute("PRAGMA journal_mode=WAL")
                 cur.execute("PRAGMA busy_timeout=30000")
+                _wal(cur)
                 cur.close()
         _create_schema(eng)
         _engines[url] = eng
     return _engines[url]
+
+
+def _wal(cur, attempts: int = 50) -> None:
+    """Switch a SQLite database to WAL once (the mode is stored in the file). Switching takes an exclusive lock and
+    SQLite does not wait on a busy lock for it, so when `make dev` starts several processes on a fresh database the
+    others retry briefly instead of failing with "database is locked"."""
+    import sqlite3
+    import time
+
+    for n in range(attempts):
+        try:
+            if str(cur.execute("PRAGMA journal_mode").fetchone()[0]).lower() == "wal":
+                return
+            cur.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc) or n == attempts - 1:
+                raise
+            time.sleep(0.1 + 0.05 * n)
 
 
 def _create_schema(eng: Engine, attempts: int = 5) -> None:
@@ -268,7 +287,8 @@ def _create_schema(eng: Engine, attempts: int = 5) -> None:
             _add_missing_columns(eng)
             return
         except (OperationalError, ProgrammingError) as exc:
-            if "already exists" not in str(exc) and "duplicate column" not in str(exc).lower() or n == attempts - 1:
+            text = str(exc).lower()
+            if not any(k in text for k in ("already exists", "duplicate column", "database is locked")) or n == attempts - 1:
                 raise
             time.sleep(0.2 * (n + 1))
 

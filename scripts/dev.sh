@@ -14,6 +14,12 @@ trap cleanup EXIT INT TERM
 # Each process notes its own exit in $EXITED; the loop below watches that file.
 start() { local name="$1"; shift; ( "$@" || true; echo "$name" >> "$EXITED" ) & }
 start api "$PY" -m backend.api --port "${API_PORT:-8000}"
+# The API creates the database; the workers start once it answers, so they never race it on a fresh var/.
+for _ in $(seq 1 120); do
+  curl -sf -o /dev/null "http://127.0.0.1:${API_PORT:-8000}/api/v1/health" && break
+  [ -s "$EXITED" ] && break
+  sleep 0.5
+done
 start "studio worker" "$PY" -m backend.worker --queue studio
 start "kiosk worker" "$PY" -m backend.worker --queue kiosk
 start kiosk bash -c 'cd apps/kiosk && exec npm run -s dev -- --port 5173'
