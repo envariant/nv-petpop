@@ -32,6 +32,10 @@ cp .env.example .env    # then set GENAI_PROFILE=tripo-manual, PETPOP_BPY_PYTHON
 set -a && source .env && set +a && make dev
 ```
 
+Ctrl-C stops everything `make dev` started. `make stop` stops any PetPop dev processes of this checkout that are
+still running (a crashed or interrupted run, `make mock`); `make dev` runs it first, so a stale run never holds the
+ports.
+
 - Blender: the stages run under a Python 3.11 interpreter with the `bpy` wheel (wheels exist for macOS arm64 and
   x86-64, Linux x86-64 and Windows). Without it the pipeline still runs, on a trimesh stand-in (`fidelity: low`).
 - What lives outside the repo: the `bpy` environment (`~/.petpop-bpy`, a uv venv, delete it to remove), and the

@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export GENAI_PROFILE="${GENAI_PROFILE:-mock}" PYTHONPATH="$ROOT:$ROOT/mock-server:$ROOT/packages/core/python:$ROOT/packages/library/python"
 PY="${PY:-$ROOT/.venv/bin/python}"
+"$ROOT/scripts/stop.sh" --quiet   # a previous run's leftovers would hold the ports
 EXITED="$(mktemp -t petpop-dev.XXXXXX)"
 # Stop everything we started, Vite's node processes included (they run below npm, so kill the process group).
 cleanup() { trap - EXIT INT TERM; rm -f "$EXITED"; kill 0 2>/dev/null || true; }

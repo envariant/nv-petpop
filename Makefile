@@ -7,7 +7,7 @@ KIOSK := apps/kiosk
 STUDIO := apps/studio
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
-.PHONY: help setup dev mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
+.PHONY: help setup dev stop mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
         regress up down smoke-stack workflows models gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
 
 help:
@@ -18,8 +18,11 @@ setup: ## create .venv, install Python and the npm workspaces (packages/*, apps/
 	uv pip install --python $(PY) -q -e '.[dev]' || $(PY) -m pip install -e '.[dev]'
 	npm install --no-audit --no-fund
 
-dev: ## API + studio and kiosk workers + both SPAs (no Docker): kiosk :5173, studio :5174/studio/
+dev: ## API + studio and kiosk workers + both SPAs (no Docker): kiosk :5173, studio :5174/studio/; Ctrl-C stops all
 	scripts/dev.sh
+
+stop: ## stop every make dev / make mock process of this checkout, including ones a crashed run left behind
+	scripts/stop.sh
 
 mock: ## standalone mock server on :8000 (frozen contract)
 	$(PY) -m mock_server --port 8000
