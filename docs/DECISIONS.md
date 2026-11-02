@@ -174,3 +174,19 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    has no Linux ARM wheel, so no Graviton); Studio self-hosted in the shop, chosen by a deployment setting that
    `make up` honours; PayNow must be offered. Open: the CDN (CloudFront recommended: free origin fetches from S3
    and EC2, private buckets, one bill) and the payment provider (Stripe or HitPay, both with PayNow).
+124. **Deployment roles and the shop-to-cloud sync (Nishant, 2026-11-02).** One setting, `PETPOP_DEPLOY` (`all` |
+   `cloud` | `studio`), decides what a process serves and runs: the cloud serves the customer app and `/kiosk` and
+   runs the kiosk export worker; the studio serves Studio and `/studio` and runs the studio worker; `all` is one box.
+   A route of the other role answers 404 (one contract, one app; nothing is compiled out). `make up` reads the role
+   from `.env` and starts the matching Compose profiles (`scripts/compose.sh`), with Postgres and MinIO only when
+   `DATABASE_URL` and `S3_ENDPOINT` do not point elsewhere (RDS, `S3_ENDPOINT=aws` with the EC2 instance role) and
+   Caddy for TLS when `PETPOP_TLS_DOMAIN` is set. Kiosks talk to the cloud. The shop only calls out: a sync agent in
+   the studio's API process pushes release bundles (the cloud verifies them with the shared `PETPOP_RELEASE_KEY`),
+   pulls bespoke requests and runs them under the cloud's job id, returns their customer-facing files (the result
+   page stays on the cloud, Studio shows its link), and pulls finished orders' print bundles into the shop's
+   fulfilment folder. The `/sync` routes sit behind a shared bearer token (`PETPOP_SYNC_TOKEN`) and are a protocol
+   between two copies of this backend, which always ship together, so they are not in `openapi.json` (the app
+   contract) or the mock server; `tests/server/test_deploy_roles.py` runs both roles in one process. Polling every
+   15 s keeps the shop free of inbound ports; a bespoke request is minutes of work, so the delay does not matter.
+   Studio's own one-offs keep their result pages on the shop machine. docs/DEPLOY.md is the runbook.
+

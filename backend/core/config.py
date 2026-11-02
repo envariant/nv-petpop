@@ -65,6 +65,12 @@ class Settings:
     seed_proxy_library: bool  # a fresh kiosk also loads the committed proxy releases (fixtures/library/)
     genai: Profile
     quality: dict
+    # Where this process runs (decision 124): "all" (one box: make dev, demos), "cloud" (the customer app, kiosks and
+    # print exports on AWS) or "studio" (Studio and its GenAI worker in the shop, syncing with the cloud).
+    deploy: str = "all"
+    cloud_url: str = ""  # studio: the cloud API it syncs with
+    sync_token: str = ""  # cloud and studio: the shared bearer token of the /sync routes
+    sync_interval_s: float = 15.0
 
     @property
     def profile(self) -> str:
@@ -109,4 +115,18 @@ def settings() -> Settings:
         seed_proxy_library=os.environ.get("PETPOP_SEED_PROXY_LIBRARY", "1") == "1",
         genai=genai,
         quality=genai.quality(),
+        deploy=deploy_role(),
+        cloud_url=os.environ.get("PETPOP_CLOUD_URL", "").rstrip("/"),
+        sync_token=os.environ.get("PETPOP_SYNC_TOKEN", ""),
+        sync_interval_s=float(os.environ.get("PETPOP_SYNC_INTERVAL", "15")),
     )
+
+
+DEPLOY_ROLES = ("all", "cloud", "studio")
+
+
+def deploy_role() -> str:
+    role = os.environ.get("PETPOP_DEPLOY", "all").strip() or "all"
+    if role not in DEPLOY_ROLES:
+        raise ValueError(f"PETPOP_DEPLOY={role!r}: use one of {', '.join(DEPLOY_ROLES)}")
+    return role

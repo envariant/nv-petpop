@@ -74,11 +74,11 @@ COMPOSE_FILES := -f infra/docker-compose.yml $(if $(filter nvidia-24gb,$(GENAI_P
 ENV_FILE ?= .env
 COMPOSE := PETPOP_ENV_FILE=../$(ENV_FILE) docker compose $(COMPOSE_FILES) --env-file $(ENV_FILE)
 
-up: ## Docker Compose stack for GENAI_PROFILE (api, worker/arq, postgres, redis, minio [+ comfyui, ollama on nvidia])
-	$(COMPOSE) up -d --build --wait
+up: ## Docker Compose for this box's PETPOP_DEPLOY role (all | cloud | studio, docs/DEPLOY.md) and GENAI_PROFILE
+	ENV_FILE=$(ENV_FILE) scripts/compose.sh up
 
-down:
-	$(COMPOSE) down
+down: ## stop the Compose stack, whatever its role
+	ENV_FILE=$(ENV_FILE) scripts/compose.sh down
 
 smoke-stack: ## build and run the stack here on the mock profile, push one job through it, tear it down
 	scripts/smoke_stack.sh

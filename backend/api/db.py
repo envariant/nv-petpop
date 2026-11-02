@@ -52,6 +52,12 @@ class JobRow(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     ticket: Mapped[str | None] = mapped_column(String(16), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+    # Split deployments (decision 124): a bespoke job the shop pulled from the cloud keeps the cloud's id and is
+    # marked origin "cloud"; synced_at is when its result (or failure) went back; remote_result_url is the
+    # customer's result page on the cloud.
+    origin: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    remote_result_url: Mapped[str | None] = mapped_column(String(400), nullable=True)
 
 
 class StaffUserRow(Base):
@@ -213,6 +219,7 @@ class CompositionRow(Base):
     ticket: Mapped[str | None] = mapped_column(String(16), nullable=True)
     reprints: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    collected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # the shop pulled the print bundle
 
 
 _engines: dict[str, Engine] = {}
@@ -222,7 +229,9 @@ _engines: dict[str, Engine] = {}
 ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", "genai_profile", "VARCHAR(40)"),
                  ("jobs", "pipeline", "VARCHAR(40)"), ("curation_batches", "pipeline", "VARCHAR(40)"),
                  ("jobs", "options", "JSON"), ("curation_batches", "options", "JSON"),
-                 ("families", "mesh_id", "VARCHAR(40)"), ("region_deltas", "mesh_id", "VARCHAR(40)")]
+                 ("families", "mesh_id", "VARCHAR(40)"), ("region_deltas", "mesh_id", "VARCHAR(40)"),
+                 ("jobs", "origin", "VARCHAR(8)"), ("jobs", "synced_at", "TIMESTAMP"), ("jobs", "remote_result_url", "VARCHAR(400)"),
+                 ("compositions", "collected_at", "TIMESTAMP")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

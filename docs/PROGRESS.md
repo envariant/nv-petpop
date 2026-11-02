@@ -198,6 +198,8 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   walkthrough on it
 - [x] Studio in Vue, desktop first and usable on a tablet; Playwright on desktop and tablet; `@petpop/viewer` and the
   React half of `@petpop/ui` deleted (no React left in the apps)
+- [x] Deployment roles (decision 124): `PETPOP_DEPLOY=all|cloud|studio`, `make up` per role (RDS, S3, Caddy), the shop's
+  sync agent (releases up, bespoke down and back, prints down), docs/DEPLOY.md
 - [ ] Hosted backend for app-store orders (decision 123, proposed): this FastAPI backend deployed, plus a public `/app`
   surface, customer identity, payment for physical goods, shipping and fulfilment; waits on Nishant's choice of host
   and payment provider

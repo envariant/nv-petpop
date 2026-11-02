@@ -252,6 +252,7 @@ class KioskLibrary:
                 raise ApiError(409, "the order has no finished print bundle yet")
             copy_bundle(self.s.fulfil_dir, self.store, job.id, row.ticket or job.ticket)
             row.reprints += 1
+            row.collected_at = None  # a split deployment's shop pulls it again (decision 124)
             db.commit()
             st = self._status(db, row)
             return m.KioskOrder(composition_id=row.id, ticket=row.ticket, pet_name=row.pet_name, species=row.species,

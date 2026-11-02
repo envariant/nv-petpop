@@ -80,16 +80,17 @@ class BackendApi:
 
     def _new_job(self, db, spec: dict, *, queue: str, kind: str, requested_by: str, session_id: str | None = None,
                  contact: str | None = None, genai_profile: str | None = None, pipeline: str | None = None,
-                 options: dict[str, bool] | None = None) -> JobRow:
+                 options: dict[str, bool] | None = None, job_id: str | None = None, origin: str | None = None) -> JobRow:
         profile = None if queue == "kiosk" else (genai_profile or profile_name())
-        job = JobRow(id="j_" + uuid.uuid4().hex[:12], queue=queue, kind=kind, session_id=session_id,
+        job = JobRow(id=job_id or "j_" + uuid.uuid4().hex[:12], queue=queue, kind=kind, session_id=session_id, origin=origin,
                      requested_by=requested_by, contact=contact, pet_spec=spec, status="queued", stage="queued",
                      seed=int(spec["seed"]), created_at=utcnow(), genai_profile=profile,
                      pipeline=(pipeline or resolve_pipeline(profile, None, kind)) if profile else None,
                      options=(options if options is not None else resolve_options(profile, None)) if profile else None)
         db.add(job)
         db.commit()
-        self.bus.enqueue(job.id, queue)
+        if not (queue == "studio" and self.s.deploy == "cloud"):  # the cloud runs no studio worker: the shop pulls it
+            self.bus.enqueue(job.id, queue)
         return job
 
     def _created(self, db, job: JobRow) -> m.JobCreated:
@@ -256,7 +257,7 @@ class BackendApi:
                      fidelity=job.fidelity, timings=[m.StageTiming(stage=t.stage, status=t.status, ms=t.ms, started_at=aware(t.started_at),
                                                                    ended_at=aware(t.ended_at)) for t in timings],
                      artefacts=artefacts, previews=previews,
-                     result_url=f"{self._public_base(base)}/r/{make_token(self.secret, job.id)}" if done else None,
+                     result_url=(job.remote_result_url or f"{self._public_base(base)}/r/{make_token(self.secret, job.id)}") if done else None,
                      ticket=job.ticket, spec=job.pet_spec, genai_profile=job.genai_profile, pipeline=job.pipeline,
                      options=job.options)
 

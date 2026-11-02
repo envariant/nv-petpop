@@ -53,18 +53,21 @@ class LocalStore:
 
 
 class S3Store:
-    """MinIO / S3 (GPU host). Needs boto3 (pip install '.[gpu-host]')."""
+    """MinIO (Compose) or AWS S3. Needs boto3 (pip install '.[gpu-host]'). With `endpoint` None (S3_ENDPOINT=aws) the
+    client talks to AWS S3 in AWS_DEFAULT_REGION, and empty keys leave the credentials to boto3's chain (the EC2
+    instance role); the bucket must exist. A custom endpoint (MinIO) gets its bucket created on first use."""
 
-    def __init__(self, endpoint: str, bucket: str, access_key: str, secret_key: str) -> None:
+    def __init__(self, endpoint: str | None, bucket: str, access_key: str, secret_key: str) -> None:
         import boto3  # noqa: PLC0415
 
         self.bucket = bucket
-        self.s3 = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=access_key,
-                               aws_secret_access_key=secret_key)
-        try:
-            self.s3.head_bucket(Bucket=bucket)
-        except Exception:  # noqa: BLE001
-            self.s3.create_bucket(Bucket=bucket)
+        self.s3 = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=access_key or None,
+                               aws_secret_access_key=secret_key or None)
+        if endpoint:
+            try:
+                self.s3.head_bucket(Bucket=bucket)
+            except Exception:  # noqa: BLE001
+                self.s3.create_bucket(Bucket=bucket)
 
     def put(self, key: str, data: bytes) -> None:
         self.s3.put_object(Bucket=self.bucket, Key=key, Body=data)
@@ -100,6 +103,6 @@ def make_store(s) -> ArtefactStore:  # s: Settings
     import os
 
     if s.s3_endpoint:
-        return S3Store(s.s3_endpoint, s.s3_bucket, os.environ.get("S3_ACCESS_KEY", ""),
+        return S3Store(None if s.s3_endpoint == "aws" else s.s3_endpoint, s.s3_bucket, os.environ.get("S3_ACCESS_KEY", ""),
                        os.environ.get("S3_SECRET_KEY", ""))
     return LocalStore(s.var / "artefacts")

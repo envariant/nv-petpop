@@ -25,6 +25,6 @@ PYEOF
 set -a; . var/stack.env; set +a
 export API_PORT="${API_PORT:-8099}" GENAI_PROFILE=mock
 [ -n "${PETPOP_BUILD_CA:-}" ] && cp "$PETPOP_BUILD_CA" var/build-ca.pem && export PETPOP_BUILD_CA=../var/build-ca.pem
-trap 'make -s down ENV_FILE=var/stack.env >/dev/null 2>&1; docker compose -f infra/docker-compose.yml --env-file var/stack.env down -v >/dev/null 2>&1 || true' EXIT
+trap 'make -s down ENV_FILE=var/stack.env >/dev/null 2>&1; COMPOSE_PROFILES="*" docker compose -f infra/docker-compose.yml --env-file var/stack.env down -v >/dev/null 2>&1 || true' EXIT
 make -s up ENV_FILE=var/stack.env
 "$PY" scripts/smoke_stack.py --base "http://127.0.0.1:$API_PORT" --staff-token "$PETPOP_STAFF_TOKEN" --studio-password "$PETPOP_STUDIO_PASSWORD"

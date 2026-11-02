@@ -9,7 +9,7 @@ Profiles: GENAI_PROFILE=mock is the default everywhere. The worker never names a
 read config/genai/<profile>.yaml. GENAI_PROFILE=tripo runs the GenAI stages on the Tripo3D API (docs/PROVIDERS.md):
 a vendor's wire format is a manifest in config/providers/, its key an environment variable, never committed;
 GENAI_PROFILE=tripo-manual hands the same requests to the operator in Studio (docs/MANUAL-MODE.md). Current state
-and next steps: docs/HANDOFF-TRIPO.md; seeding the library: docs/HANDOFF-M9.md. Running locally: docs/LOCAL.md. Gates 3 to 6 and 8 print "SKIPPED (needs a GenAI host)" on the mock profile.
+and next steps: docs/HANDOFF-TRIPO.md; seeding the library: docs/HANDOFF-M9.md. Running locally: docs/LOCAL.md; deploying (cloud on AWS, studio in the shop): docs/DEPLOY.md. Gates 3 to 6 and 8 print "SKIPPED (needs a GenAI host)" on the mock profile.
 Commands: make dev (API + worker + SPA), make mock (standalone mock server), make test, make gate-N, make regress.
 
 Loop: take the next unchecked item in docs/PROGRESS.md, implement it, run make test, run the milestone's

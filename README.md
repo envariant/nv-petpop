@@ -9,6 +9,7 @@ with Capacitor (decision 122), and
 The spec is [docs/BRIEF.md](docs/BRIEF.md). The GenAI stages run on a remote host chosen by `GENAI_PROFILE`
 (see [config/genai/](config/genai/README.md) and [docs/HANDOFF.md](docs/HANDOFF.md)). Progress is tracked in [docs/PROGRESS.md](docs/PROGRESS.md),
 choices in [docs/DECISIONS.md](docs/DECISIONS.md), and the GPU bring-up in [docs/HANDOFF.md](docs/HANDOFF.md).
+Running it locally: [docs/LOCAL.md](docs/LOCAL.md); deploying the cloud (AWS) and the studio (in the shop): [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ```bash
 make setup          # .venv (Python 3.12) + npm workspaces (packages/*, apps/customer, apps/studio)
