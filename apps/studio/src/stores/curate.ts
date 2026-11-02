@@ -82,8 +82,12 @@ export const useCurate = defineStore('curate', () => {
     return b;
   }
   async function loadBatches() {
-    const r = await run(() => StudioApi.batches());
-    if (r) batches.value = r.items;
+    // polled every few seconds: silent, so it never clears the notice or error the curator is reading
+    try {
+      batches.value = (await StudioApi.batches()).items;
+    } catch {
+      /* the offline overlay handles a dropped API */
+    }
   }
   async function openBatch(id: string) {
     const b = await run(() => StudioApi.batch(id));
