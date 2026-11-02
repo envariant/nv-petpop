@@ -8,4 +8,5 @@ interface ImportMetaEnv {
   readonly VITE_MOCK?: string;
   readonly VITE_MODE?: 'kiosk' | 'app';
   readonly VITE_API_ORIGIN?: string;
+  readonly VITE_GOOGLE_IOS_CLIENT_ID?: string;
 }

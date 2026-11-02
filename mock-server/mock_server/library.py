@@ -12,7 +12,9 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from backend.api import models as m
+from backend.api.accounts import mask
 from backend.api.contract import ApiError, make_token, signed_file_url
+from backend.api.pricing import quote
 from backend.api.library import families_model, media_type, parts_model, patterns_model, release_model
 from backend.core.paths import FIXTURES, ROOT
 from petpop_library import release
@@ -36,6 +38,9 @@ class MockComposition:
     reprints: int = 0
     bespoke_job: str | None = None
     payments: list[m.Payment] = field(default_factory=list)  # the latest last (decision 125)
+    account_id: str | None = None  # decision 126: who placed it, and how to tell them
+    contact_email: str | None = None
+    contact_phone: str | None = None
 
     @property
     def paid(self) -> bool:
@@ -124,17 +129,17 @@ class MockLibrary:
     def bespoke_spec(self, c: MockComposition) -> dict[str, Any]:
         return to_spec(self.release(c.body["species"])[0], c.body, random.randint(1, 2**31 - 1))
 
-    def orders(self) -> list[m.KioskOrder]:
+    def orders(self, account_id: str | None = None, limit: int = 20) -> list[m.KioskOrder]:
         now = time.time()
         out = []
         for c in sorted(self.compositions.values(), key=lambda c: -c.created):
-            if c.export_start is None:
+            if c.export_start is None or (account_id and c.account_id != account_id):
                 continue
             ready = c.export_state(now)["status"] == "ready"
             out.append(m.KioskOrder(composition_id=c.id, ticket=c.ticket, pet_name=c.body.get("pet_name"), species=c.body["species"],
                                     status=c.export_state(now)["status"], created_at=m_utc(c.created),
                                     thumbnail_url=self.url(c, "thumbnail.png") if ready else None))
-        return out[:20]
+        return out[:limit]
 
     def reprint(self, cid: str) -> m.KioskOrder:
         c = self.composition(cid)
@@ -165,7 +170,9 @@ class MockLibrary:
             species=c.body["species"], release_version=c.body["release_version"], created_at=m_utc(c.created), export=export,
             ticket=c.ticket, result_url=f"{base}/r/{make_token(self.secret, c.id)}" if ready and self.payable(c) else None,
             artefacts=artefacts, previews=previews, error=None, composition=c.body,
-            payment=c.payments[-1] if c.payments else None)
+            payment=c.payments[-1] if c.payments else None, quote=quote(c.body) if self.payments_on else None,
+            contact=m.OrderContact(email=mask("email", c.contact_email), phone=mask("phone", c.contact_phone))
+            if c.contact_email or c.contact_phone else None, account_id=c.account_id)
 
     # ------------------------------------------------------------------ payments (decision 125)
     def offer(self) -> m.PaymentOffer | None:
@@ -190,7 +197,7 @@ class MockLibrary:
         c.payments = [p.model_copy(update={"status": "expired"}) if p.status == "pending" else p for p in c.payments]
         now = datetime.now(UTC)
         pid = "p_" + uuid.uuid4().hex[:12]
-        price = self.price()
+        price = quote(c.body).total
         p = m.Payment(payment_id=pid, composition_id=cid, method=method, status="pending", price=price, provider="fake",
                       qr=f"PETPOP-FAKE-PAYNOW|{pid}|{price.currency}{price.amount}" if method == "paynow" else None,
                       checkout_url=None if method == "paynow" else f"https://localhost/paid?fake_checkout={pid}",

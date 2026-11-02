@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, BigInteger, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, event
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -220,6 +220,75 @@ class CompositionRow(Base):
     reprints: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
     collected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # the shop pulled the print bundle
+    # decision 126: who placed it (a signed-in account) and where to tell them it is ready (a guest's contact)
+    account_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)
+    contact_email: Mapped[str | None] = mapped_column(String(254), nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(24), nullable=True)
+
+
+class AccountRow(Base):
+    """A customer account (decision 126). Email and phone are stored only once verified (a code, or Apple's or
+    Google's verified email) and are each unique across accounts."""
+    __tablename__ = "accounts"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(254), nullable=True, unique=True)
+    phone: Mapped[str | None] = mapped_column(String(24), nullable=True, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class IdentityRow(Base):
+    """A Sign in with Apple or Google identity: the provider's stable subject, linked to one account."""
+    __tablename__ = "account_identities"
+    provider: Mapped[str] = mapped_column(String(12), primary_key=True)  # apple | google
+    subject: Mapped[str] = mapped_column(String(255), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    email: Mapped[str | None] = mapped_column(String(254), nullable=True)  # as the provider last reported it
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class AccountSessionRow(Base):
+    """A signed-in device: the sha256 of its bearer token, so a leaked database does not leak sessions."""
+    __tablename__ = "account_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+
+
+class OtpRow(Base):
+    """A one-time code sent to an email or phone (hashed, 10 minutes, 5 tries)."""
+    __tablename__ = "account_codes"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    channel: Mapped[str] = mapped_column(String(8))
+    destination: Mapped[str] = mapped_column(String(254), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+
+
+class DeviceRow(Base):
+    """A device's push token (Firebase Cloud Messaging), registered by a signed-in app."""
+    __tablename__ = "account_devices"
+    token: Mapped[str] = mapped_column(String(4096), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    platform: Mapped[str] = mapped_column(String(8))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class NotificationRow(Base):
+    """One message sent (or attempted) about an order: once per event and channel."""
+    __tablename__ = "notifications"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ref: Mapped[str] = mapped_column(String(40), index=True)  # composition id, or a bespoke job id
+    event: Mapped[str] = mapped_column(String(24))  # order_confirmed | bespoke_ready
+    channel: Mapped[str] = mapped_column(String(8))  # push | email | sms
+    destination: Mapped[str] = mapped_column(String(254))
+    status: Mapped[str] = mapped_column(String(12))  # sent | failed | skipped
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class PaymentRow(Base):
@@ -249,7 +318,8 @@ ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", 
                  ("jobs", "options", "JSON"), ("curation_batches", "options", "JSON"),
                  ("families", "mesh_id", "VARCHAR(40)"), ("region_deltas", "mesh_id", "VARCHAR(40)"),
                  ("jobs", "origin", "VARCHAR(8)"), ("jobs", "synced_at", "TIMESTAMP"), ("jobs", "remote_result_url", "VARCHAR(400)"),
-                 ("compositions", "collected_at", "TIMESTAMP")]
+                 ("compositions", "collected_at", "TIMESTAMP"), ("compositions", "account_id", "VARCHAR(40)"),
+                 ("compositions", "contact_email", "VARCHAR(254)"), ("compositions", "contact_phone", "VARCHAR(24)")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

@@ -8,7 +8,8 @@ import type {
   Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
   ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
-  KioskOrder, LibraryFamilies, Payment, PaymentMethod, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
+  KioskOrder, LibraryFamilies, Payment, PaymentMethod, Account, AccountOrders, AccountSession, AuthConfig, Channel, CodeSent,
+  OrderContact, Provider, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
   Species, StaffQueue, StaffToken, StaffUser,
 } from './types';
 
@@ -68,8 +69,13 @@ export const KioskApi = {
     unwrap(await api.POST('/api/v1/kiosk/compositions', { body: { session_id: sessionId, composition } })),
   composition: async (compositionId: string): Promise<CompositionStatus> =>
     unwrap(await api.GET('/api/v1/kiosk/compositions/{composition_id}', { params: { path: { composition_id: compositionId } } })),
-  exportComposition: async (compositionId: string): Promise<ExportAccepted> =>
-    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/export', { params: { path: { composition_id: compositionId } } })),
+  /** Place the order. A guest gives a contact; a signed-in account (setAccountToken) may use its own. */
+  exportComposition: async (compositionId: string, contact?: OrderContact | null): Promise<ExportAccepted> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/export', {
+      params: { path: { composition_id: compositionId } }, body: { contact: contact ?? null }, ...accountAuth(),
+    })),
+  orderReady: async (pin: string, compositionId: string): Promise<KioskOrder> =>
+    unwrap(await api.POST('/api/v1/kiosk/ops/orders/{composition_id}/ready', { params: { path: { composition_id: compositionId } }, headers: { 'X-Staff-Token': pin } } as never)),
   bespoke: async (compositionId: string, contact?: string): Promise<BespokeAccepted> =>
     unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/bespoke', { params: { path: { composition_id: compositionId } }, body: { contact: contact || null } })),
   // Payment for an order (decision 125): start (or restart) one, poll it, and, with the fake provider, simulate it.
@@ -82,6 +88,50 @@ export const KioskApi = {
 };
 
 // ------------------------------------------------------------------ studio: bearer token
+// ---------------------------------------------------------------------------- customer accounts (decision 126)
+let accountToken: string | null = null;
+/** The signed-in customer's bearer token (or null): sent with the account routes and when placing an order. */
+export function setAccountToken(token: string | null): void {
+  accountToken = token;
+}
+export function getAccountToken(): string | null {
+  return accountToken;
+}
+const accountAuth = (): { headers: Record<string, string> } => ({ headers: accountToken ? { Authorization: `Bearer ${accountToken}` } : {} });
+
+export const AccountApi = {
+  config: async (): Promise<AuthConfig> => unwrap(await api.GET('/api/v1/account/config')),
+  sendCode: async (channel: Channel, to: string): Promise<CodeSent> => unwrap(await api.POST('/api/v1/account/code', { body: { channel, to } })),
+  verify: async (channel: Channel, to: string, code: string, name?: string): Promise<AccountSession> =>
+    unwrap(await api.POST('/api/v1/account/verify', { body: { channel, to, code, name: name || null } })),
+  provider: async (provider: Provider, idToken: string, nonce?: string, name?: string): Promise<AccountSession> =>
+    unwrap(await api.POST('/api/v1/account/oauth/{provider}', { params: { path: { provider } }, body: { id_token: idToken, nonce: nonce || null, name: name || null } })),
+  me: async (): Promise<Account> => unwrap(await api.GET('/api/v1/account/me', accountAuth())),
+  rename: async (name: string): Promise<Account> => unwrap(await api.PATCH('/api/v1/account/me', { body: { name }, ...accountAuth() })),
+  addContact: async (channel: Channel, to: string, code: string): Promise<Account> =>
+    unwrap(await api.POST('/api/v1/account/me/contact', { body: { channel, to, code, name: null }, ...accountAuth() })),
+  removeContact: async (channel: Channel): Promise<Account> =>
+    unwrap(await api.DELETE('/api/v1/account/me/contact/{channel}', { params: { path: { channel } }, ...accountAuth() })),
+  link: async (provider: Provider, idToken: string, nonce?: string): Promise<Account> =>
+    unwrap(await api.POST('/api/v1/account/me/providers/{provider}', { params: { path: { provider } }, body: { id_token: idToken, nonce: nonce || null, name: null }, ...accountAuth() })),
+  unlink: async (provider: Provider): Promise<Account> =>
+    unwrap(await api.DELETE('/api/v1/account/me/providers/{provider}', { params: { path: { provider } }, ...accountAuth() })),
+  orders: async (): Promise<AccountOrders> => unwrap(await api.GET('/api/v1/account/me/orders', accountAuth())),
+  addDevice: async (token: string, platform: 'ios' | 'android' | 'web') =>
+    unwrap(await api.POST('/api/v1/account/me/devices', { body: { token, platform }, ...accountAuth() })),
+  removeDevice: async (token: string) => {
+    const r = await api.DELETE('/api/v1/account/me/devices', { params: { query: { token } }, ...accountAuth() });
+    if (!r.response.ok) throw new ApiFailure(r.response.status, (r.error as { detail?: unknown } | undefined)?.detail);
+  },
+  signOut: async () => {
+    await api.POST('/api/v1/account/sign-out', accountAuth());
+  },
+  remove: async () => {
+    const r = await api.DELETE('/api/v1/account/me', accountAuth());
+    if (!r.response.ok) throw new ApiFailure(r.response.status, (r.error as { detail?: unknown } | undefined)?.detail);
+  },
+};
+
 let staffToken: string | null = null;
 export function setStaffToken(token: string | null): void {
   staffToken = token;

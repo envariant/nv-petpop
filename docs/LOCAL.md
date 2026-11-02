@@ -13,7 +13,7 @@ cd apps/studio && VITE_MOCK=1 npm run dev     # or: the Studio SPA against MSW, 
 ```bash
 cd apps/customer && npm run dev:mock          # the customer app against MSW, no server at all
 ```
-(add `?pay=1` for the payment step with the fake provider, `?bespoke=1` for "Make it unique", `?mode=kiosk` for kiosk
+(sign-in codes appear on screen in standalone and development mode; add `?pay=1` for the payment step with the fake provider, `?bespoke=1` for "Make it unique", `?mode=kiosk` for kiosk
 mode; with a server, `PETPOP_PAYMENTS=fake` in `.env` does the same for payments)
 
 ## 2. Native: `make dev` (recommended for day-to-day)

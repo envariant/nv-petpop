@@ -8,7 +8,8 @@ describe('MSW handlers', () => {
     const src = readFileSync(new URL('./handlers.ts', import.meta.url), 'utf8');
     const list = src.match(/HANDLED_PATHS = \[([\s\S]*?)\];/)![1];
     const handled = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
-    const mine = Object.keys(doc.paths).filter((p) => !p.startsWith('/api/v1/kiosk/'));
+    // the customer surfaces (kiosk and customer accounts, decision 126) are the customer app's
+    const mine = Object.keys(doc.paths).filter((p) => !p.startsWith('/api/v1/kiosk/') && !p.startsWith('/api/v1/account/'));
     expect(handled).toEqual(mine.sort());
   });
 });

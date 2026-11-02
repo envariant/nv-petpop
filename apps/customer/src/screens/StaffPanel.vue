@@ -31,6 +31,15 @@ async function load() {
     ops.value = null;
   }
 }
+const told = ref<string | null>(null);
+async function ready(id: string) {
+  try {
+    await KioskApi.orderReady(pin.value, id); // the customer is told: push, email or SMS (decision 126)
+    told.value = id;
+  } catch {
+    err.value = 'Could not tell the customer';
+  }
+}
 async function reprint(id: string) {
   try {
     await KioskApi.reprint(pin.value, id);
@@ -63,6 +72,7 @@ onMounted(() => pin.value && void load());
       <dd v-for="o in ops.orders" :key="o.composition_id" class="col-span-2 flex items-center justify-between gap-4" :data-testid="`ops-order-${o.ticket}`">
         <span><b>{{ o.ticket }}</b> · {{ o.pet_name || 'unnamed' }} · {{ o.status }}</span>
         <PButton variant="soft" :disabled="o.status !== 'ready'" :test-id="`reprint-${o.ticket}`" @click="reprint(o.composition_id)">{{ reprinted === o.composition_id ? 'Sent ✓' : 'Reprint' }}</PButton>
+        <PButton variant="soft" :disabled="o.status !== 'ready'" :test-id="`ready-${o.ticket}`" @click="ready(o.composition_id)">{{ told === o.composition_id ? 'Told ✓' : 'Ready' }}</PButton>
       </dd>
     </dl>
   </Backdrop>

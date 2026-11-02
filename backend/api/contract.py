@@ -31,6 +31,7 @@ from petpop_core.schemas import load_schema
 API_PREFIX = "/api/v1"
 KIOSK = f"{API_PREFIX}/kiosk"
 STUDIO = f"{API_PREFIX}/studio"
+ACCOUNT = f"{API_PREFIX}/account"
 ROLE_RANK = {"operator": 1, "curator": 2, "admin": 3}
 MANUAL_MAX_BYTES = 150 * 2**20  # a textured GLB from the vendor's app
 STAFF_TOKEN_TTL_S = 12 * 3600
@@ -57,6 +58,7 @@ class ApiImpl(Protocol):
     async def breeds(self, species: str, q: str | None) -> m.BreedList: ...
     async def kiosk_ops(self) -> m.KioskOps: ...
     async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder: ...
+    async def kiosk_order_ready(self, composition_id: str) -> m.KioskOrder: ...
     # kiosk library mode (BRIEF Section 16)
     async def library_release(self, species: str) -> m.LibraryRelease: ...
     async def library_families(self, species: str) -> m.LibraryFamilies: ...
@@ -65,7 +67,10 @@ class ApiImpl(Protocol):
     async def library_file(self, species: str, path: str) -> Response: ...
     async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus: ...
     async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus: ...
-    async def export_composition(self, composition_id: str) -> m.ExportAccepted: ...
+    async def export_composition(self, composition_id: str, body: m.OrderRequest, account_token: str | None) -> m.ExportAccepted: ...
+    # customer accounts (decision 126): the shared Accounts service, and the account's orders
+    accounts: Any
+    async def account_orders(self, account_token: str | None) -> m.AccountOrders: ...
     async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted: ...
     # payment for an order (decision 125)
     async def create_payment(self, composition_id: str, body: m.PaymentCreate) -> m.Payment: ...
@@ -245,8 +250,11 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
 
     @kiosk.post("/compositions/{composition_id}/export", response_model=m.ExportAccepted, status_code=202,
                 operation_id="kioskExportComposition", responses=ERR)
-    async def export_composition(composition_id: str) -> m.ExportAccepted:
-        return await impl.export_composition(composition_id)
+    async def export_composition(composition_id: str, body: m.OrderRequest | None = None,
+                                 authorization: str | None = Header(None)) -> m.ExportAccepted:
+        """Place the order: the ticket, and Stage F on the kiosk queue (idempotent). A guest gives a contact (email or
+        phone) for the "it is ready" message; a signed-in account (bearer token) may use its own."""
+        return await impl.export_composition(composition_id, body or m.OrderRequest(), _bearer(authorization))
 
     @kiosk.post("/compositions/{composition_id}/bespoke", response_model=m.BespokeAccepted, status_code=201,
                 operation_id="kioskBespoke", responses={**ERR, 403: {"model": m.ErrorBody}})
@@ -284,6 +292,14 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
         if not x_staff_token or not hmac.compare_digest(x_staff_token, impl.staff_token):
             raise ApiError(403, "staff PIN required")
         return await impl.kiosk_reprint(composition_id)
+
+    @kiosk.post("/ops/orders/{composition_id}/ready", response_model=m.KioskOrder, operation_id="kioskOrderReady",
+                responses={**ERR, 403: {"model": m.ErrorBody}})
+    async def kiosk_order_ready(composition_id: str, x_staff_token: str | None = Header(None)) -> m.KioskOrder:
+        """Staff: the figurine is printed and ready to collect; the customer is told (push, email or SMS)."""
+        if not x_staff_token or not hmac.compare_digest(x_staff_token, impl.staff_token):
+            raise ApiError(403, "staff PIN required")
+        return await impl.kiosk_order_ready(composition_id)
 
     # ------------------------------------------------------------------ studio (staff login)
     @studio.post("/auth/login", response_model=m.StaffToken, operation_id="studioLogin", responses=AUTH)
@@ -423,7 +439,89 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
         except (WebSocketDisconnect, asyncio.CancelledError, RuntimeError):
             pass
 
-    return [meta, kiosk, studio]
+    # ------------------------------------------------------------------ customer accounts (decision 126)
+    acc = APIRouter(prefix=ACCOUNT, tags=["account"])
+    A = impl.accounts
+    SIGNED = {401: {"model": m.ErrorBody}}
+
+    @acc.get("/config", response_model=m.AuthConfig, operation_id="accountConfig")
+    async def account_config() -> m.AuthConfig:
+        return A.config()
+
+    @acc.post("/code", response_model=m.CodeSent, status_code=202, operation_id="accountSendCode",
+              responses={422: {"model": m.ErrorBody}, 429: {"model": m.ErrorBody}})
+    async def send_code(body: m.CodeRequest) -> m.CodeSent:
+        """Send a six-digit code to an email or phone (10 minutes; one every 30 s, ten an hour)."""
+        return await asyncio.to_thread(A.send_code, body)
+
+    @acc.post("/verify", response_model=m.AccountSession, operation_id="accountVerifyCode",
+              responses={400: {"model": m.ErrorBody}, 422: {"model": m.ErrorBody}, 429: {"model": m.ErrorBody}})
+    async def verify_code(body: m.CodeVerify) -> m.AccountSession:
+        """Sign in with the code; the first sign-in to an email or phone creates its account."""
+        return await asyncio.to_thread(A.verify_code, body)
+
+    @acc.post("/oauth/{provider}", response_model=m.AccountSession, operation_id="accountProviderSignIn",
+              responses={**SIGNED, 404: {"model": m.ErrorBody}})
+    async def provider_sign_in(provider: m.Provider, body: m.ProviderSignIn) -> m.AccountSession:
+        """Sign in with Apple or Google (their id token). A verified email an account already holds joins that account."""
+        return await asyncio.to_thread(A.provider_sign_in, provider, body)
+
+    @acc.get("/me", response_model=m.Account, operation_id="accountMe", responses=SIGNED)
+    async def account_me(authorization: str | None = Header(None)) -> m.Account:
+        return await asyncio.to_thread(A.me, _bearer(authorization))
+
+    @acc.patch("/me", response_model=m.Account, operation_id="accountPatch", responses=SIGNED)
+    async def account_patch(body: m.AccountPatch, authorization: str | None = Header(None)) -> m.Account:
+        return await asyncio.to_thread(A.patch, _bearer(authorization), body)
+
+    @acc.delete("/me", status_code=204, operation_id="accountDelete", responses=SIGNED)
+    async def account_delete(authorization: str | None = Header(None)) -> Response:
+        """Delete the account and everything that identifies its owner."""
+        await asyncio.to_thread(A.delete, _bearer(authorization))
+        return Response(status_code=204)
+
+    @acc.post("/me/contact", response_model=m.Account, operation_id="accountAddContact",
+              responses={**SIGNED, 400: {"model": m.ErrorBody}, 409: {"model": m.ErrorBody}, 422: {"model": m.ErrorBody}})
+    async def account_add_contact(body: m.CodeVerify, authorization: str | None = Header(None)) -> m.Account:
+        """Add or change the email or phone, with a code sent to it; it must not belong to another account."""
+        return await asyncio.to_thread(A.add_contact, _bearer(authorization), body)
+
+    @acc.delete("/me/contact/{channel}", response_model=m.Account, operation_id="accountRemoveContact",
+                responses={**SIGNED, 404: {"model": m.ErrorBody}, 409: {"model": m.ErrorBody}})
+    async def account_remove_contact(channel: m.Channel, authorization: str | None = Header(None)) -> m.Account:
+        return await asyncio.to_thread(A.remove_contact, _bearer(authorization), channel)
+
+    @acc.post("/me/providers/{provider}", response_model=m.Account, operation_id="accountLink",
+              responses={**SIGNED, 404: {"model": m.ErrorBody}, 409: {"model": m.ErrorBody}})
+    async def account_link(provider: m.Provider, body: m.ProviderSignIn, authorization: str | None = Header(None)) -> m.Account:
+        """Link Apple or Google to this account; 409 when that sign-in or its email is another account's."""
+        return await asyncio.to_thread(A.link, _bearer(authorization), provider, body)
+
+    @acc.delete("/me/providers/{provider}", response_model=m.Account, operation_id="accountUnlink",
+                responses={**SIGNED, 404: {"model": m.ErrorBody}, 409: {"model": m.ErrorBody}})
+    async def account_unlink(provider: m.Provider, authorization: str | None = Header(None)) -> m.Account:
+        return await asyncio.to_thread(A.unlink, _bearer(authorization), provider)
+
+    @acc.post("/sign-out", status_code=204, operation_id="accountSignOut")
+    async def account_sign_out(authorization: str | None = Header(None)) -> Response:
+        await asyncio.to_thread(A.sign_out, _bearer(authorization))
+        return Response(status_code=204)
+
+    @acc.get("/me/orders", response_model=m.AccountOrders, operation_id="accountOrders", responses=SIGNED)
+    async def account_orders(authorization: str | None = Header(None)) -> m.AccountOrders:
+        return await impl.account_orders(_bearer(authorization))
+
+    @acc.post("/me/devices", response_model=m.Device, status_code=201, operation_id="accountAddDevice", responses=SIGNED)
+    async def account_add_device(body: m.Device, authorization: str | None = Header(None)) -> m.Device:
+        """Register this device for push notifications (a Firebase Cloud Messaging token)."""
+        return await asyncio.to_thread(A.add_device, _bearer(authorization), body)
+
+    @acc.delete("/me/devices", status_code=204, operation_id="accountRemoveDevice", responses=SIGNED)
+    async def account_remove_device(token: str = Query(..., min_length=10), authorization: str | None = Header(None)) -> Response:
+        await asyncio.to_thread(A.remove_device, _bearer(authorization), token)
+        return Response(status_code=204)
+
+    return [meta, kiosk, studio, acc]
 
 
 def make_app(impl: ApiImpl, title: str = "PetPop API", lifespan=None) -> FastAPI:

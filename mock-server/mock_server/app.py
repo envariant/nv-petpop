@@ -108,6 +108,30 @@ class MockJob:
                 "pct": step["pct"], "message": step["message"], "queue_position": 0, "step": idx}
 
 
+def mock_accounts(secret: str):
+    """Customer accounts in the mock (decision 126): the backend's own Accounts service on a throwaway SQLite file,
+    with codes returned in the response (nothing is sent) and fake Apple and Google tokens accepted, so both servers
+    behave the same."""
+    import tempfile
+
+    from backend.api.accounts import Accounts, TokenVerifier
+    from backend.api.db import session_factory
+    from backend.api.messaging import Messenger
+
+    msg = Messenger()
+    msg.email_mode = msg.sms_mode = msg.push_mode = "log"
+    verifier = TokenVerifier()
+    verifier.fake = True
+    db = session_factory(f"sqlite:///{tempfile.mkdtemp(prefix='petpop-mock-')}/accounts.db")
+
+    class _S:
+        pass
+
+    s = _S()
+    s.secret = secret
+    return Accounts(s, db, msg, verifier)
+
+
 class MockApi:
     mode = "mock"
     server = "mock-server"
@@ -123,6 +147,7 @@ class MockApi:
         self.jobs: dict[str, MockJob] = {}
         self.index = json.loads((FIXTURES / "index.json").read_text())["pets"]
         self.library = MockLibrary(self.secret)
+        self.accounts = mock_accounts(self.secret)
         self.studio = MockStudio(self.secret)
         self.manual = MockManual(self.secret, self.studio.store)
 
@@ -217,6 +242,10 @@ class MockApi:
         return m.Session(session_id=sid, kiosk_id=body.kiosk_id, started_at=utc(time.time()), idle_policy=m.IdlePolicy(),
                          bespoke_enabled=self.bespoke_enabled, payment=self.library.offer())
 
+    async def account_orders(self, account_token: str | None) -> m.AccountOrders:
+        acc = self.accounts.account_for(account_token)
+        return m.AccountOrders(items=self.library.orders(account_id=acc.id, limit=50))
+
     async def create_payment(self, composition_id: str, body: m.PaymentCreate) -> m.Payment:
         return self.library.create_payment(composition_id, body.method)
 
@@ -253,6 +282,15 @@ class MockApi:
     async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
         return self.library.reprint(composition_id)
 
+    async def kiosk_order_ready(self, composition_id: str) -> m.KioskOrder:
+        c = self.library.composition(composition_id)
+        if not self.library.payable(c):
+            raise ApiError(409, "the order is not paid yet")
+        order = next((o for o in self.library.orders(limit=200) if o.composition_id == composition_id), None)
+        if not order:
+            raise ApiError(404, f"unknown order {composition_id}")
+        return order  # the mock tells nobody
+
     # ----------------------------------------------------------------- kiosk library mode
     async def library_release(self, species: str) -> m.LibraryRelease:
         return self.library.release_info(species)
@@ -279,8 +317,12 @@ class MockApi:
     async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
         return self.library.status(self.library.composition(composition_id), base)
 
-    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
+    async def export_composition(self, composition_id: str, body: m.OrderRequest, account_token: str | None) -> m.ExportAccepted:
         c = self.library.composition(composition_id)
+        acc = self.accounts.account_for(account_token, required=bool(account_token))
+        if c.export_start is None:
+            c.contact_email, c.contact_phone = self.accounts.order_contact(acc, body.contact)
+            c.account_id = acc.id if acc else None
         self.library.export(c)
         return m.ExportAccepted(composition_id=c.id, job_id=f"j_{c.id[2:]}", ticket=c.ticket, queue_position=0)
 

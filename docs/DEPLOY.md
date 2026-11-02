@@ -97,6 +97,38 @@ The figurine's export starts at once; its print bundle goes to the shop, and the
 `PETPOP_PAYMENTS=fake` is the same flow with a "Simulate payment (test)" button and no money; the Playwright tests run
 it. `off` (the default) skips payment: the shop takes it at the counter.
 
+## Accounts and notifications
+
+Customers sign in with Apple, Google, or a six-digit code sent to their email or phone (no passwords); a guest gives
+an email or phone at checkout and may create an account with it there (decision 126). The cloud verifies Apple's and
+Google's id tokens itself, so it only needs their public client ids. Codes and messages are written to the log
+until a sender is switched on.
+
+1. **Sign in with Apple** (Apple Developer account): enable the capability on the iOS App ID (the bundle id, e.g.
+   `sg.petpop.app`); for the web, a Services ID (e.g. `sg.petpop.web`) with the domain `petpop.sg` and the return URL
+   `https://petpop.sg/`. In Xcode, add the "Sign in with Apple" capability. `PETPOP_APPLE_CLIENT_IDS=sg.petpop.app,sg.petpop.web`.
+2. **Google** (Google Cloud console, OAuth consent screen): OAuth client ids for Web (authorised origin
+   `https://petpop.sg`), iOS (the bundle id) and Android (the package name and the signing key's SHA-1).
+   `PETPOP_GOOGLE_CLIENT_IDS=<web>,<ios>,<android>`; build the app with `VITE_GOOGLE_IOS_CLIENT_ID=<ios>` and add the
+   iOS client's reversed id as a URL scheme in `ios/App/App/Info.plist`.
+3. **Push (Firebase, free):** a Firebase project with the iOS and Android apps; put `GoogleService-Info.plist` in
+   `apps/customer/ios/App/App/` and `google-services.json` in `apps/customer/android/app/` (both from the Firebase
+   console, not committed); upload an APNs auth key (Apple Developer, Keys) to Firebase; add the Push Notifications
+   capability in Xcode. On the cloud: a service account key with the "Firebase Cloud Messaging API Admin" role at a
+   path outside the repo, `PETPOP_PUSH=fcm`, `PETPOP_FCM_CREDENTIALS=/etc/petpop/fcm.json` (mount it into the
+   containers).
+4. **Email (Amazon SES, paid per message):** verify the `petpop.sg` domain (DKIM records), request production access
+   (SES starts in a sandbox that only mails verified addresses), allow `ses:SendEmail` in the instance role.
+   `PETPOP_EMAIL=ses`, `PETPOP_EMAIL_FROM=PetPop <hello@petpop.sg>`.
+5. **SMS (Amazon SNS, paid per message):** in Singapore, alphanumeric sender ids must be registered with SGNIC's
+   SMS Sender ID Registry first; then `PETPOP_SMS=sns`, `PETPOP_SMS_SENDER_ID=PetPop`, and `sns:Publish` in the
+   instance role. SMS goes only when neither push nor email reached the customer.
+6. **Privacy:** the app's privacy policy (App Store and Play listings) must name what is kept: name, email, phone,
+   orders, device push tokens. Customers delete their account in the app (Account, Delete my account).
+
+What is sent: "order confirmed" (when paid, or when placed with payments off), "ready to collect" (staff tap Ready on
+the kiosk's staff panel) and "your one-off is ready" (when the studio returns a bespoke figurine).
+
 ## The studio in the shop
 
 1. A machine with Docker (x86, or Apple Silicon under emulation) on the shop's network, near the printer.

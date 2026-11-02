@@ -25,6 +25,7 @@ dependencies = [
   "fast-simplification>=0.1.7",  # trimesh quadric decimation of generated meshes (normalise_glb)
   "python-multipart>=0.0.9",     # Studio uploads (manual mode, decision 111)
   "DracoPy>=1.4",                # Draco-compressed GLBs from a vendor's app or API decode instead of loading as zeros
+  "pyjwt[crypto]>=2.9",          # Sign in with Apple and Google id tokens; FCM service-account tokens (decision 126)
 ]
 
 [project.optional-dependencies]

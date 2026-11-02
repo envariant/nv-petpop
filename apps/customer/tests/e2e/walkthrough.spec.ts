@@ -2,7 +2,7 @@
 // Sections 2 and 16): attract, species, breed, design (swap a part, add a marking and set its coverage, stamp a
 // spot, add an accessory), name, order, then the ticket and QR once the Stage-F-only export is done.
 import { expect, test } from '@playwright/test';
-import { enter, kiosk, typeOnKeyboard } from './helpers';
+import { checkout, enter, kiosk, typeOnKeyboard } from './helpers';
 
 test('walkthrough: attract to an ordered figurine from the library', async ({ page }) => {
   // The export alone may take up to 90 s (the wait below); the whole journey gets the brief's 3-minute target.
@@ -63,6 +63,7 @@ test('walkthrough: attract to an ordered figurine from the library', async ({ pa
   await enter(page, 'pet-name', 'Rex');
   await shot('8-name');
   await page.getByTestId('key-done').tap();
+  await checkout(page, 'rex@example.com'); // decision 126: a guest says how to reach them
   await page.getByTestId('pay-paynow').tap(); // decision 125: the test servers run the fake payment provider
   await expect(page.getByTestId('pay-qr').locator('svg')).toBeVisible();
   await shot('9-pay');

@@ -2,7 +2,9 @@
 identical OpenAPI document (data/schema/openapi.json). 2.0.0 splits the surface into /kiosk and /studio; 3.0.0 adds
 the kiosk library mode (releases, compositions, Stage-F-only exports) and moves bespoke onto a composition; 3.1.0
 adds Studio's curation: batches, review, the parts and pattern editors, publish and releases; 3.9.0 adds payment for
-an order (decision 125: HitPay, PayNow and cards)."""
+an order (decision 125: HitPay, PayNow and cards); 3.10.0 adds customer accounts (email and phone codes, Sign in
+with Apple and Google), the contact an order needs, the account's orders and devices, and an itemised quote
+(decision 126)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -10,7 +12,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.9.0"
+API_VERSION = "3.10.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -52,6 +54,18 @@ PaymentState = Literal["pending", "paid", "failed", "expired"]
 class Price(_M):
     amount: str = Field(description="Decimal string in the currency's major unit, e.g. \"39.00\".", pattern=r"^\d+\.\d{2}$")
     currency: Literal["SGD"]
+
+
+class QuoteItem(_M):
+    label: str
+    amount: str = Field(pattern=r"^-?\d+\.\d{2}$")
+
+
+class Quote(_M):
+    """What an order costs, line by line (the figurine, then any options and extras, decision 126); `total` is what a
+    payment asks for."""
+    items: list[QuoteItem]
+    total: Price
 
 
 class PaymentOffer(_M):
@@ -495,6 +509,9 @@ class CompositionStatus(_M):
     error: str | None = None
     composition: Composition
     payment: Payment | None = Field(None, description="The order's latest payment, when payments are on.")
+    quote: Quote | None = Field(None, description="What the order costs, when payments are on.")
+    contact: OrderContact | None = Field(None, description="Where we tell the customer it is ready (masked).")
+    account_id: str | None = Field(None, description="The signed-in account that placed the order.")
 
 
 class ExportAccepted(_M):
@@ -512,6 +529,90 @@ class KioskOrder(_M):
     status: CompositionState
     created_at: datetime
     thumbnail_url: str | None
+
+
+# --------------------------------------------------------------------------- customer accounts (decision 126, API 3.10.0)
+
+Channel = Literal["email", "phone"]
+Provider = Literal["apple", "google"]
+
+
+class OrderContact(_M):
+    """How to tell a guest (or an account) the order is ready: an email, a phone number, or both. In a response the
+    values are masked."""
+    email: str | None = Field(None, max_length=254)
+    phone: str | None = Field(None, max_length=24)
+
+
+class OrderRequest(_M):
+    """Placing an order (the export). A signed-in account's verified email or phone is used when no contact is given;
+    a guest must give one."""
+    contact: OrderContact | None = None
+
+
+class AuthConfig(_M):
+    """Which sign-in methods this server offers, and the public client ids the apps need for Apple and Google."""
+    email: bool
+    phone: bool
+    apple_client_id: str | None = None
+    google_client_id: str | None = Field(None, description="The web client id (Google Identity Services and the native SDKs' server client id).")
+    dev_codes: bool = Field(description="Development: codes are returned in the response instead of sent.")
+    fake_providers: bool = Field(description="Tests: Apple and Google tokens of the form fake:<subject>:<email> are accepted.")
+
+
+class CodeRequest(_M):
+    channel: Channel
+    to: str = Field(min_length=3, max_length=254, description="An email address, or a phone number (E.164, or local to PETPOP_DEFAULT_COUNTRY_CODE).")
+
+
+class CodeSent(_M):
+    channel: Channel
+    to: str = Field(description="The normalised destination, masked.")
+    expires_in: int
+    dev_code: str | None = Field(None, description="Only on a server running development messaging.")
+
+
+class CodeVerify(_M):
+    channel: Channel
+    to: str = Field(min_length=3, max_length=254)
+    code: str = Field(pattern=r"^\d{6}$")
+    name: str | None = Field(None, max_length=60, description="For a new account.")
+
+
+class ProviderSignIn(_M):
+    id_token: str = Field(min_length=10, max_length=8000)
+    nonce: str | None = Field(None, max_length=200, description="Apple: the raw nonce the app passed to Apple.")
+    name: str | None = Field(None, max_length=60, description="Apple sends the name only on the first sign-in, to the app.")
+
+
+class Account(_M):
+    account_id: str
+    name: str | None
+    email: str | None = Field(description="Verified; unique across accounts.")
+    phone: str | None = Field(description="Verified, E.164; unique across accounts.")
+    providers: list[Provider]
+    created_at: datetime
+
+
+class AccountSession(_M):
+    token: str = Field(description="Bearer token for the account routes and for placing orders as this account.")
+    account: Account
+    created: bool = Field(description="True when this sign-in created the account.")
+    linked: Provider | None = Field(None, description="Apple or Google joined an existing account with the same verified email.")
+
+
+class AccountPatch(_M):
+    name: str | None = Field(None, max_length=60)
+
+
+class AccountOrders(_M):
+    items: list[KioskOrder]
+
+
+class Device(_M):
+    """A device that receives push notifications for this account (Firebase Cloud Messaging token)."""
+    token: str = Field(min_length=10, max_length=4096)
+    platform: Literal["ios", "android", "web"]
 
 
 # --------------------------------------------------------------------------- studio library (BRIEF Section 16, M8, API 3.1.0)
@@ -670,3 +771,4 @@ class ErrorBody(_M):
 
 
 KioskOps.model_rebuild()
+CompositionStatus.model_rebuild()

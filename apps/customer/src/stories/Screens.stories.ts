@@ -12,13 +12,16 @@ import DesignScreen from '../screens/Design.vue';
 import NameScreen from '../screens/Name.vue';
 import OrderScreen from '../screens/Order.vue';
 import BespokeScreen from '../screens/Bespoke.vue';
+import ContactScreen from '../screens/Contact.vue';
+import AccountScreen from '../screens/Account.vue';
+import { useAccount } from '../stores/account';
 import StillThere from '../screens/StillThere.vue';
 import Offline from '../screens/Offline.vue';
 import StaffPanel from '../screens/StaffPanel.vue';
 import PhoneResult from '../screens/PhoneResult.vue';
-import { CORGI, ORDER_PAYING, ORDER_READY, PAY_OFFER, SPEC } from './fixtures';
+import { ACCOUNT, CORGI, ORDER_PAYING, ORDER_READY, PAY_OFFER, SPEC } from './fixtures';
 
-const SCREENS: Record<Screen, Component> = { attract: AttractScreen, species: SpeciesScreen, breed: BreedScreen, design: DesignScreen, name: NameScreen, order: OrderScreen, bespoke: BespokeScreen };
+const SCREENS: Record<Screen, Component> = { attract: AttractScreen, species: SpeciesScreen, breed: BreedScreen, design: DesignScreen, name: NameScreen, order: OrderScreen, bespoke: BespokeScreen, contact: ContactScreen, account: AccountScreen };
 
 /** Session fixtures by name: story args stay primitive (Vue deep-traverses object args). */
 const chosen = { species: 'dog' as const, breed: CORGI, spec: SPEC, sessionId: 's_story' };
@@ -40,6 +43,7 @@ const ScreenStory = defineComponent({
     tab: { type: String as PropType<Tab>, default: 'shape' },
     ordered: { type: Boolean, default: false },
     paying: { type: Boolean, default: false },
+    signedIn: { type: Boolean, default: false },
   },
   setup(props) {
     const ready = ref(false);
@@ -48,6 +52,9 @@ const ScreenStory = defineComponent({
       const d = useDesign();
       s.reset();
       Object.assign(s, STATES[props.state]);
+      const acc = useAccount();
+      acc.config = { email: true, phone: true, apple_client_id: 'fake', google_client_id: 'fake', dev_codes: true, fake_providers: true };
+      acc.account = props.signedIn ? ACCOUNT : null;
       if (s.breed) {
         await d.begin(s.breed);
         d.setName('Biscuit');
@@ -86,6 +93,10 @@ export const DesignPaint: Story = { args: { screen: 'design', state: 'chosen', t
 export const DesignExtras: Story = { args: { screen: 'design', state: 'chosen', tab: 'extras' } };
 export const Name: Story = { args: { screen: 'name', state: 'chosen' } };
 export const Order: Story = { args: { screen: 'order', state: 'chosen', ordered: true } };
+export const Contact: Story = { args: { screen: 'contact', state: 'chosen' } };
+export const ContactSignedIn: Story = { args: { screen: 'contact', state: 'chosen', signedIn: true } };
+export const Account: Story = { args: { screen: 'account', state: 'none' } };
+export const AccountSignedIn: Story = { args: { screen: 'account', state: 'none', signedIn: true } };
 export const OrderPaying: Story = { args: { screen: 'order', state: 'paying', ordered: true, paying: true } };
 export const DesignWithMakeItUnique: Story = { args: { screen: 'design', state: 'bespoke' } };
 export const Bespoke: Story = { args: { screen: 'bespoke', state: 'bespoke' } };

@@ -1,16 +1,19 @@
 <script setup lang="ts">
 // PetPop customer app (decision 122): library mode, one screen at a time, responsive from phones to desktops and
 // kiosks. Kiosk mode adds the idle wipe and the five-tap staff panel. It never depends on the GenAI host.
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { AppFrame, isKiosk } from '@petpop/ui-vue';
 import { useFiveTap, useIdle, useOnline } from './composables';
 import { useSession } from './stores/session';
+import { useAccount } from './stores/account';
 import Attract from './screens/Attract.vue';
 import Species from './screens/Species.vue';
 import BreedScreen from './screens/Breed.vue';
 import Design from './screens/Design.vue';
 import NameScreen from './screens/Name.vue';
 import Order from './screens/Order.vue';
+import Contact from './screens/Contact.vue';
+import AccountScreen from './screens/Account.vue';
 import Bespoke from './screens/Bespoke.vue';
 import StillThere from './screens/StillThere.vue';
 import Offline from './screens/Offline.vue';
@@ -18,7 +21,9 @@ import StaffPanel from './screens/StaffPanel.vue';
 import PhoneResult from './screens/PhoneResult.vue';
 
 const s = useSession();
-const screens = { attract: Attract, species: Species, breed: BreedScreen, design: Design, name: NameScreen, order: Order, bespoke: Bespoke };
+const screens = { attract: Attract, species: Species, breed: BreedScreen, design: Design, name: NameScreen, contact: Contact, order: Order, bespoke: Bespoke, account: AccountScreen };
+const account = useAccount();
+onMounted(() => void account.load()); // the sign-in options, and in the app a remembered sign-in (decision 126)
 const resultToken = location.pathname.startsWith('/r/') ? decodeURIComponent(location.pathname.slice(3)) : null;
 // Where HitPay's card checkout returns the customer (decision 125); the order itself updates in the app or on the kiosk.
 const paidPage = location.pathname === '/paid';
@@ -41,8 +46,16 @@ const corner = useFiveTap(() => (staff.value = true));
     <div class="flex h-full flex-col">
       <header v-if="s.screen !== 'attract'" class="flex shrink-0 items-center justify-between px-4 pt-2 md:px-8 md:pt-4">
         <button aria-label="Start over" data-testid="home" class="hit rounded-full px-3 py-1 text-base text-muted md:text-lg" @click="s.reset()">✕ Start over</button>
-        <span class="font-display text-xl font-semibold md:text-2xl">Pet<span class="text-accent">Pop</span></span>
+        <div class="flex items-center gap-3">
+          <button v-if="!isKiosk && s.screen !== 'account'" class="hit rounded-full bg-card px-3 py-1 text-base shadow-soft md:text-lg" data-testid="account-button" @click="s.go('account')">
+            {{ account.account ? (account.account.name || 'Account') : 'Sign in' }}
+          </button>
+          <span class="font-display text-xl font-semibold md:text-2xl">Pet<span class="text-accent">Pop</span></span>
+        </div>
       </header>
+      <button v-if="!isKiosk && s.screen === 'attract'" class="hit absolute right-4 top-4 z-10 rounded-full bg-card px-4 py-2 text-base shadow-soft md:text-lg" data-testid="account-button" @click="s.go('account')">
+        {{ account.account ? (account.account.name || 'Account') : 'Sign in' }}
+      </button>
       <main class="relative min-h-0 flex-1">
         <Transition name="screen" mode="out-in">
           <div :key="s.screen" class="absolute inset-0" :data-screen="s.screen">

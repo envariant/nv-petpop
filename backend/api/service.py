@@ -33,6 +33,10 @@ from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, ManualTaskRow, P
                  seed_staff, session_factory, utcnow)
 from .store import make_store
 from . import payments as pay
+from .accounts import Accounts
+from .pricing import quote
+from .messaging import Messenger
+from .notify import Notifier
 
 TERMINAL = {"done", "failed", "fulfilled"}
 POLICY = m.IdlePolicy()
@@ -60,6 +64,9 @@ class BackendApi:
         self.studio = StudioLibrary(s, self.db, self.store, self.bus, self.secret)
         self.studio.seed()
         self.payments = pay.make_provider()
+        self.messenger = Messenger()
+        self.accounts = Accounts(s, self.db, self.messenger)
+        self.notifier = Notifier(self.db, self.messenger, s.public_url)
         self.library.payments_on = self.payments is not None
 
     # ------------------------------------------------------------------ helpers
@@ -135,6 +142,7 @@ class BackendApi:
         row.status = state
         if state == "paid":
             row.paid_at = utcnow()
+            self.notifier.order_confirmed(row.composition_id)
             comp = db.get(CompositionRow, row.composition_id)
             job = db.get(JobRow, comp.job_id) if comp and comp.job_id else None
             if job and job.status in ("done", "fulfilled"):  # exported before it was paid: print it now
@@ -155,7 +163,8 @@ class BackendApi:
             for old in db.scalars(select(PaymentRow).where(PaymentRow.composition_id == composition_id, PaymentRow.status == "pending")):
                 old.status = "expired"  # replaced: another method, or a fresh QR
             db.commit()
-        price = pay.price()
+        with self.db() as db:
+            price = quote(db.get(CompositionRow, composition_id).body).total
         redirect = f"{self.s.public_url.rstrip('/')}/paid" if self.s.public_url else "https://localhost/paid"
         try:
             made = await asyncio.to_thread(self.payments.create, composition_id, body.method, price, redirect)
@@ -245,6 +254,15 @@ class BackendApi:
     async def kiosk_reprint(self, composition_id: str) -> m.KioskOrder:
         return self.library.reprint(composition_id)
 
+    async def kiosk_order_ready(self, composition_id: str) -> m.KioskOrder:
+        order = next((o for o in self.library.orders(limit=200) if o.composition_id == composition_id), None)
+        if not order:
+            raise ApiError(404, f"unknown order {composition_id}")
+        if not self.library.payable_id(composition_id):
+            raise ApiError(409, "the order is not paid yet")
+        self.notifier.order_ready(composition_id)
+        return order
+
     # ------------------------------------------------------------------ kiosk library mode
     async def library_release(self, species: str) -> m.LibraryRelease:
         return self.library.release_info(species)
@@ -268,8 +286,25 @@ class BackendApi:
     async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus:
         return self.library.status(composition_id, self._public_base(base))
 
-    async def export_composition(self, composition_id: str) -> m.ExportAccepted:
-        return self.library.export(composition_id)
+    async def export_composition(self, composition_id: str, body: m.OrderRequest, account_token: str | None) -> m.ExportAccepted:
+        acc = self.accounts.account_for(account_token, required=bool(account_token))
+        with self.db() as db:
+            row = db.get(CompositionRow, composition_id)
+            if not row:
+                raise ApiError(404, f"unknown composition {composition_id}")
+            first = not row.job_id
+            if first:  # the first order call records who and how to tell (a repeat keeps them)
+                row.contact_email, row.contact_phone = self.accounts.order_contact(acc, body.contact)
+                row.account_id = acc.id if acc else None
+                db.commit()
+        accepted = self.library.export(composition_id)
+        if first and not self.payments:  # pay at the counter: confirmed when placed; else when paid
+            self.notifier.order_confirmed(composition_id)
+        return accepted
+
+    async def account_orders(self, account_token: str | None) -> m.AccountOrders:
+        acc = self.accounts.account_for(account_token)
+        return m.AccountOrders(items=self.library.orders(limit=50, account_id=acc.id))
 
     async def breeds(self, species: str, q: str | None) -> m.BreedList:
         with self.db() as db:

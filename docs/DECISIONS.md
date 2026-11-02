@@ -206,4 +206,27 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    and the result page link appears only once the order is paid. HitPay's key and salt are environment variables,
    never committed. Price: `PETPOP_PRICE_SGD` (a placeholder until Nishant sets it). Payments in the app replace
    App Store in-app purchase: the figurine is a physical product.
+126. **Customer accounts, guest checkout and notifications (Nishant, 2026-11-02; API 3.10.0).** Accounts sign in
+   without passwords: a six-digit code to an email or phone (10 minutes, five tries, one every 30 s, ten an hour;
+   stored hashed), or Sign in with Apple or Google, whose id tokens the server verifies against the providers'
+   published keys (issuer, audience = our client ids, expiry, Apple's nonce). An account's email and phone are kept
+   only once verified and are unique across accounts; Apple or Google bringing a verified email that an account holds
+   signs in to that account and links the provider (Apple's private relay addresses make their own account until the
+   customer adds an email). Adding an email or phone that another account holds, linking an Apple or Google sign-in
+   that is another account's, and removing an account's last way to sign in are refused (409). Sessions are random
+   bearer tokens stored as hashes (90 days, revoked on sign-out). Deleting an account (required in-app by the App
+   Store) removes its sign-ins, sessions and devices and strips it from its orders. Checkout: a guest must give an
+   email or phone (the order's contact, unverified, used only to notify), and may tick "create an account with it",
+   which sends a code and places the order as the new account; a signed-in customer's own email or phone is used.
+   A kiosk never remembers a sign-in beyond its session; the app remembers it on the device. Notifications: push to
+   the account's app installs (Firebase Cloud Messaging for both platforms, free; one server integration), email
+   (Amazon SES) and SMS (Amazon SNS) only when neither push nor email went, as SMS is the dearest; each event once
+   per channel, from a background thread. Events: order confirmed, ready to collect (a staff button on the kiosk's
+   ops panel), one-off ready (when the studio returns it). SES and SNS are paid per message, so they ship off
+   (`log`) until Nishant enables them (CLAUDE.md); development servers return codes in the response so screens and
+   tests can show them. The same `Accounts` service backs the mock server (a throwaway SQLite file, fake providers),
+   so both servers behave identically. Client plugins: `@capgo/capacitor-social-login` (Apple and Google, native and
+   web) and `@capacitor-firebase/messaging` (push). Pricing groundwork: an order carries a quote of line items
+   (today one, the figurine at `PETPOP_PRICE_SGD`); options and extras become further lines in `backend/api/pricing.py`
+   and the payment asks for the total.
 

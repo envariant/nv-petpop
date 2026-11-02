@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import func, select
 
 from backend.core.config import Settings, settings
-from backend.api.contract import KIOSK, STUDIO, make_app
+from backend.api.contract import ACCOUNT, KIOSK, STUDIO, make_app
 from backend.core.paths import ROOT
 
 from .db import JobRow, StageTimingRow
@@ -30,7 +30,7 @@ STUDIO_SPA = ROOT / "apps" / "studio" / "dist"
 
 # The queues each role works and the API prefix each role does not serve.
 ROLE_QUEUES = {"all": ("studio", "kiosk"), "cloud": ("kiosk",), "studio": ("studio",)}
-ROLE_BLOCKS = {"all": (), "cloud": (STUDIO,), "studio": (KIOSK,)}
+ROLE_BLOCKS = {"all": (), "cloud": (STUDIO,), "studio": (KIOSK, ACCOUNT)}
 
 
 def create_app(embed_worker: bool | None = None, s: Settings | None = None, sync_client=None) -> FastAPI:

@@ -40,6 +40,16 @@ export type Payment = S['Payment'];
 export type PaymentMethod = Payment['method'];
 export type PaymentOffer = S['PaymentOffer'];
 export type Price = S['Price'];
+export type Quote = S['Quote'];
+// Customer accounts (decision 126).
+export type Account = S['Account'];
+export type AccountSession = S['AccountSession'];
+export type AuthConfig = S['AuthConfig'];
+export type CodeSent = S['CodeSent'];
+export type Channel = S['CodeRequest']['channel'];
+export type Provider = Account['providers'][number];
+export type OrderContact = S['OrderContact'];
+export type AccountOrders = S['AccountOrders'];
 // Studio curation (M8).
 export type BatchCreate = S['BatchCreate'];
 export type Batch = S['Batch'];

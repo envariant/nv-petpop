@@ -34,6 +34,7 @@ def pair(monkeypatch, tmp_path):
     agent = studio.app.state.sync_agent
     with cloud, studio:
         agent.stop()  # the test drives each round itself
+        cloud.app.state.impl.notifier.inline = True
         yield cloud, studio, agent
 
 
@@ -107,6 +108,9 @@ def test_a_bespoke_request_is_made_in_the_shop_and_its_result_page_stays_on_the_
     page = cloud.get(f"/api/v1/r/{url.rsplit('/r/', 1)[1]}")
     assert page.status_code == 200 and page.json()["pet_name"] == "Rex"
     assert studio.get(f"/api/v1/studio/jobs/{job_id}", headers=staff(studio, "operator")).json()["result_url"] == url
+    # the customer hears it is ready, at the contact they gave at the kiosk
+    msg = cloud.app.state.impl.messenger.outbox.last("rex@example.com")
+    assert msg and msg.channel == "email" and url in msg.text
 
 
 def test_a_failed_bespoke_request_is_reported_back(pair):
@@ -127,7 +131,7 @@ def test_a_failed_bespoke_request_is_reported_back(pair):
 def test_a_finished_order_is_printed_in_the_shop_once(pair):
     cloud, studio, agent = pair
     _, cid = _composition(cloud)
-    acc = cloud.post(f"/api/v1/kiosk/compositions/{cid}/export").json()
+    acc = cloud.post(f"/api/v1/kiosk/compositions/{cid}/export", json={"contact": {"email": "rex@example.com"}}).json()
     assert agent.pull_prints() == []  # still exporting
     impl = cloud.app.state.impl
     with impl.db() as db:  # the kiosk worker's Stage F, stood in for: the print bundle in the store, the job done

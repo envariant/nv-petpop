@@ -128,7 +128,9 @@ def make_sync_router(impl) -> APIRouter:
             job.finished_at, job.error = utcnow(), None
             db.commit()
         base = s.public_url.rstrip("/") or str(request.base_url).rstrip("/")
-        return {"job_id": job_id, "result_url": f"{base}/r/{make_token(impl.secret, job_id)}"}
+        url = f"{base}/r/{make_token(impl.secret, job_id)}"
+        impl.notifier.bespoke_ready(job_id, url)  # the customer hears it is ready (decision 126)
+        return {"job_id": job_id, "result_url": url}
 
     @router.post("/bespoke/{job_id}/fail", dependencies=auth)
     async def fail(job_id: str, request: Request) -> dict[str, Any]:

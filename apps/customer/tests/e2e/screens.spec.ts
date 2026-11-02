@@ -1,7 +1,7 @@
 // One Playwright test per customer-app screen and behaviour (BRIEF Sections 2, 4, 16 and 17; decision 122), on a
 // kiosk and on a phone, a tablet and a desktop in app mode.
 import { expect, test } from '@playwright/test';
-import { enter, expectEntered, kiosk, resultUrl, toDesign, typeOnKeyboard } from './helpers';
+import { checkout, devCode, enter, expectEntered, kiosk, resultUrl, toDesign, typeOnKeyboard } from './helpers';
 
 test('1 attract loop shows a figurine, caption and starts a session on touch', async ({ page }) => {
   await page.goto('/');
@@ -112,6 +112,9 @@ test('5 name: the figurine is named before ordering', async ({ page }) => {
   await expect(page.locator('[data-screen=name]')).toBeVisible();
   await enter(page, 'pet-name', 'Rex');
   await expectEntered(page, 'pet-name', 'Rex');
+  await page.getByTestId('key-done').tap();
+  await expect(page.locator('[data-screen=contact]')).toBeVisible(); // checkout: how we reach the customer
+  await page.getByTestId('contact-back').tap();
   await page.getByTestId('name-back').tap();
   await expect(page.locator('[data-screen=design]')).toBeVisible();
 });
@@ -121,7 +124,7 @@ test('6 order: pay by PayNow or card, then the ticket, QR and the printed figuri
   await page.getByTestId('to-name').tap();
   await enter(page, 'pet-name', 'Rex');
   await page.getByTestId('key-done').tap();
-  await expect(page.locator('[data-screen=order]')).toBeVisible();
+  await checkout(page, 'rex@example.com');
   // payment (decision 125; the test servers run the fake provider): no ticket until paid
   await expect(page.getByTestId('order')).toContainText('S$39.00');
   await expect(page.getByTestId('order-ticket')).toHaveCount(0);
@@ -147,6 +150,83 @@ test('7 bespoke: make it unique is a studio request with a ticket, never a Gener
   await expect(page.getByTestId('bespoke-ticket')).toContainText('PP-');
   await page.getByTestId('bespoke-done').tap();
   await expect(page.locator('[data-screen=attract]')).toBeVisible();
+});
+
+test('8 contact: a guest gives an email or phone; creating an account at checkout signs them in and owns the order', async ({ page }) => {
+  await toDesign(page);
+  await page.getByTestId('to-name').tap();
+  await enter(page, 'pet-name', 'Momo');
+  await page.getByTestId('key-done').tap();
+  await expect(page.locator('[data-screen=contact]')).toBeVisible();
+  await page.getByTestId('contact-phone').tap();
+  await enter(page, 'contact-to', '12');
+  await page.getByTestId('key-done').tap();
+  await expect(page.getByTestId('order-error')).toContainText('phone number'); // refused by the server, said on screen
+  // switch to email and ask for an account with it: a code, then the order goes as that account
+  await page.getByTestId('contact-email').tap();
+  if (kiosk()) for (let i = 0; i < 2; i++) await page.getByTestId('key-backspace').tap();
+  const email = `momo.${test.info().project.name}.${Date.now()}@example.com`;
+  if (kiosk()) await typeOnKeyboard(page, email);
+  else await page.getByTestId('contact-to').fill(email);
+  await page.getByTestId('contact-create-box').check();
+  await page.getByTestId('key-done').tap();
+  const code = await devCode(page);
+  await enter(page, 'signin-code', code);
+  await page.getByTestId('key-done').tap();
+  await expect(page.locator('[data-screen=order]')).toBeVisible();
+  await page.getByTestId('pay-paynow').tap();
+  await page.getByTestId('pay-simulate').tap();
+  await expect(page.getByTestId('order-ticket')).toContainText('PP-');
+  if (kiosk()) {
+    await page.getByTestId('order-done').tap(); // a kiosk forgets the customer with the session
+    await expect(page.locator('[data-screen=attract]')).toBeVisible();
+    return;
+  }
+  await page.getByTestId('account-button').tap();
+  await expect(page.getByTestId('account-email')).toHaveText(email);
+  await expect(page.getByTestId('account-orders')).toContainText('Momo');
+});
+
+test('9 account: sign in with a code, profile, phone, Google, orders, sign out, delete', async ({ page }) => {
+  test.skip(kiosk(), 'a kiosk has no account screen: customers sign in at checkout only');
+  const email = `sam.${test.info().project.name}.${Date.now()}@example.com`;
+  await page.goto('/');
+  await page.getByTestId('account-button').tap();
+  await page.getByTestId('signin-email').tap();
+  await page.getByTestId('signin-to').fill(email);
+  await page.getByTestId('key-done').tap();
+  await page.getByTestId('signin-code').fill(await devCode(page));
+  await page.getByTestId('key-done').tap();
+  await expect(page.getByTestId('account-email')).toHaveText(email);
+  await page.getByTestId('account-name').fill('Sam');
+  await page.getByTestId('account-name-save').tap();
+  await expect(page.locator('[data-screen=account] h1')).toContainText('Sam');
+  // a phone, proven with a code
+  const phone = `9${String(Date.now()).slice(-7)}`;
+  await page.getByTestId('account-add-phone').tap();
+  await page.getByTestId('account-add-to').fill(phone);
+  await page.getByTestId('key-done').tap();
+  await page.getByTestId('account-add-code').fill(await devCode(page, 'account-dev-code'));
+  await page.getByTestId('key-done').tap();
+  await expect(page.getByTestId('account-phone')).toHaveText(`+65${phone}`);
+  // the sign-in is remembered by the app
+  await page.reload();
+  await page.getByTestId('account-button').tap();
+  await expect(page.getByTestId('account-email')).toHaveText(email);
+  // sign out, then Google with the same email: the same account (decision 126)
+  await page.getByTestId('account-sign-out').tap();
+  await page.evaluate((e) => localStorage.setItem('pp-fake-email', e), email);
+  await page.getByTestId('signin-google').tap();
+  await expect(page.getByTestId('account-email')).toHaveText(email);
+  await expect(page.getByTestId('account-phone')).toHaveText(`+65${phone}`);
+  await expect(page.getByTestId('account-unlink-google')).toBeVisible();
+  await page.getByTestId('account-unlink-google').tap();
+  await expect(page.getByTestId('account-link-google')).toBeVisible();
+  // delete it
+  await page.getByTestId('account-delete').tap();
+  await page.getByTestId('account-delete-confirm').tap();
+  await expect(page.getByTestId('account-notice')).toContainText('deleted');
+  await expect(page.getByTestId('signin-email')).toBeVisible();
 });
 
 test('phone result page opens from the QR link', async ({ page, request }) => {

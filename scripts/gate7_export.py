@@ -42,7 +42,7 @@ def main() -> int:
         sess = asyncio.run(api.create_session(m.SessionCreate(kiosk_id="gate-7")))
         st = asyncio.run(api.create_composition(m.CompositionCreate(session_id=sess.session_id, composition=comp), "http://kiosk"))
         t0 = time.perf_counter()
-        acc = asyncio.run(api.export_composition(st.composition_id))
+        acc = asyncio.run(api.export_composition(st.composition_id, m.OrderRequest(contact=m.OrderContact(email="gate7@example.com")), None))
         result = worker.run_job(acc.job_id)
         dt = time.perf_counter() - t0
         st = asyncio.run(api.get_composition(st.composition_id, "http://kiosk"))

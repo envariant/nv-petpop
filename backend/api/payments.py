@@ -122,7 +122,10 @@ def payments_mode() -> str:
 
 
 def price() -> m.Price:
-    return m.Price(amount=os.environ.get("PETPOP_PRICE_SGD", "39.00"), currency="SGD")
+    """The figurine's base price: what the session offers ("from S$..."); an order's payment asks for its quote."""
+    from .pricing import base_price  # noqa: PLC0415
+
+    return m.Price(amount=f"{base_price():.2f}", currency="SGD")
 
 
 def make_provider(client: httpx.Client | None = None) -> Provider | None:

@@ -31,6 +31,8 @@ from .contract import KIOSK, ApiError, make_token, signed_file_url
 from .db import ArtefactRow, CompositionRow, JobRow, SessionRow, utcnow
 from .fulfilment import copy_bundle
 from . import payments as pay
+from .accounts import mask
+from .pricing import quote
 
 log = logging.getLogger("petpop.library")
 PROXY_RELEASES = ROOT / "fixtures" / "library"
@@ -211,7 +213,11 @@ class KioskLibrary:
                                    species=row.species, release_version=row.release_version, created_at=aware(row.created_at),
                                    export=export, ticket=row.ticket, result_url=result_url, artefacts=artefacts, previews=previews,
                                    error=job.error if job and job.status == "failed" else None, composition=row.body,
-                                   payment=pay.model(payment) if payment else None)
+                                   payment=pay.model(payment) if payment else None,
+                                   quote=quote(row.body) if self.payments_on else None,
+                                   contact=m.OrderContact(email=mask("email", row.contact_email), phone=mask("phone", row.contact_phone))
+                                   if row.contact_email or row.contact_phone else None,
+                                   account_id=row.account_id)
 
     def export(self, cid: str) -> m.ExportAccepted:
         """Order: issue the ticket and enqueue Stage F on the kiosk queue (idempotent)."""
@@ -237,16 +243,22 @@ class KioskLibrary:
             self.bus.enqueue(job.id, "kiosk")
             return m.ExportAccepted(composition_id=cid, job_id=job.id, ticket=row.ticket, queue_position=1)
 
-    def orders(self, limit: int = 20) -> list[m.KioskOrder]:
+    def orders(self, limit: int = 20, account_id: str | None = None) -> list[m.KioskOrder]:
         with self.db() as db:
-            rows = db.scalars(select(CompositionRow).where(CompositionRow.job_id.is_not(None))
-                              .order_by(CompositionRow.created_at.desc()).limit(limit)).all()
+            q = select(CompositionRow).where(CompositionRow.job_id.is_not(None))
+            if account_id:
+                q = q.where(CompositionRow.account_id == account_id)
+            rows = db.scalars(q.order_by(CompositionRow.created_at.desc()).limit(limit)).all()
             out = []
             for row in rows:
                 st = self._status(db, row)
                 out.append(m.KioskOrder(composition_id=row.id, ticket=row.ticket, pet_name=row.pet_name, species=row.species,
                                         status=st.status, created_at=aware(row.created_at), thumbnail_url=st.previews.get("thumbnail")))
             return out
+
+    def payable_id(self, cid: str) -> bool:
+        with self.db() as db:
+            return pay.payable(db, cid, self.payments_on)
 
     def reprint(self, cid: str) -> m.KioskOrder:
         """Ops panel: copy the order's print bundle to the fulfilment folder again."""

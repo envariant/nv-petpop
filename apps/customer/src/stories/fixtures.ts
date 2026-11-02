@@ -14,6 +14,9 @@ export const ORDER_READY = {
   artefacts: [], previews: { glb: '/fixtures/biscuit/figure.glb', thumbnail: '/fixtures/biscuit/thumbnail.png' }, error: null, composition: {},
 } as unknown as CompositionStatus;
 
+/** A signed-in customer (decision 126): email and Google. */
+export const ACCOUNT = { account_id: 'a_story', name: 'Sam', email: 'sam@example.com', phone: null, providers: ['google' as const], created_at: '2026-11-01T09:00:00Z' };
+
 /** The same order, exported but waiting for its PayNow payment (decision 125). */
 export const PAY_OFFER = { price: { amount: '39.00', currency: 'SGD' as const }, methods: ['paynow', 'card'] as ('paynow' | 'card')[], provider: 'fake' as const };
 export const ORDER_PAYING = {

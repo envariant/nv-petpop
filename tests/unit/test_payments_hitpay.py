@@ -92,7 +92,7 @@ def test_a_webhook_marks_the_order_paid_and_prints_it(monkeypatch, tmp_path):
         from petpop_library.composition import sample
 
         cid = c.post("/api/v1/kiosk/compositions", json={"session_id": sess["session_id"], "composition": sample(lib)}).json()["composition_id"]
-        acc = c.post(f"/api/v1/kiosk/compositions/{cid}/export").json()
+        acc = c.post(f"/api/v1/kiosk/compositions/{cid}/export", json={"contact": {"phone": "+6591234567"}}).json()
         pay = c.post(f"/api/v1/kiosk/compositions/{cid}/payment", json={"method": "paynow"}).json()
         assert pay["qr"].startswith("000201") and pay["status"] == "pending"
         assert c.post(f"/api/v1/kiosk/compositions/{cid}/payment/simulate").status_code == 403  # a real provider

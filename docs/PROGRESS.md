@@ -202,6 +202,9 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   sync agent (releases up, bespoke down and back, prints down), docs/DEPLOY.md
 - [x] Payment for orders (decision 125, API 3.9.0): HitPay with PayNow and cards, a fake provider for tests, the order
   screen's payment step, the webhook; printing and the result link wait for payment
-- [ ] App-store orders beyond the kiosk flow (decision 123): customer identity (email link or Sign in with Apple),
-  shipping address and delivery, push notifications; the cloud deployment, payments and the shop's print pull are done
+- [x] Customer accounts (decision 126, API 3.10.0): email and phone codes, Sign in with Apple and Google, one account
+  per email and phone with provider linking, profile, orders, sign-out, deletion; guest checkout with a required
+  contact and "create an account" at checkout; push (FCM), email (SES) and SMS (SNS) notifications; itemised quotes
+- [ ] Variable pricing: price options and extras as quote lines (`backend/api/pricing.py`), and new kinds of extras
+- [ ] Nishant: Apple and Google client ids, a Firebase project (push), SES domain and SNS sender id when ready to send
 - [ ] Nishant: the first AWS deployment (docs/DEPLOY.md), HitPay sandbox keys and webhook, then live keys and the price

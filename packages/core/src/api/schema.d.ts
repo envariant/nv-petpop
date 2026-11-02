@@ -4,6 +4,218 @@
  */
 
 export interface paths {
+    "/api/v1/account/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Code
+         * @description Send a six-digit code to an email or phone (10 minutes; one every 30 s, ten an hour).
+         */
+        post: operations["accountSendCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Account Config */
+        get: operations["accountConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Account Me */
+        get: operations["accountMe"];
+        put?: never;
+        post?: never;
+        /**
+         * Account Delete
+         * @description Delete the account and everything that identifies its owner.
+         */
+        delete: operations["accountDelete"];
+        options?: never;
+        head?: never;
+        /** Account Patch */
+        patch: operations["accountPatch"];
+        trace?: never;
+    };
+    "/api/v1/account/me/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Account Add Contact
+         * @description Add or change the email or phone, with a code sent to it; it must not belong to another account.
+         */
+        post: operations["accountAddContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/me/contact/{channel}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Account Remove Contact */
+        delete: operations["accountRemoveContact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/me/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Account Add Device
+         * @description Register this device for push notifications (a Firebase Cloud Messaging token).
+         */
+        post: operations["accountAddDevice"];
+        /** Account Remove Device */
+        delete: operations["accountRemoveDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/me/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Account Orders */
+        get: operations["accountOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/me/providers/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Account Link
+         * @description Link Apple or Google to this account; 409 when that sign-in or its email is another account's.
+         */
+        post: operations["accountLink"];
+        /** Account Unlink */
+        delete: operations["accountUnlink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/oauth/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider Sign In
+         * @description Sign in with Apple or Google (their id token). A verified email an account already holds joins that account.
+         */
+        post: operations["accountProviderSignIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Account Sign Out */
+        post: operations["accountSignOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Code
+         * @description Sign in with the code; the first sign-in to an email or phone creates its account.
+         */
+        post: operations["accountVerifyCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/files/{key}": {
         parameters: {
             query?: never;
@@ -115,7 +327,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Export Composition */
+        /**
+         * Export Composition
+         * @description Place the order: the ticket, and Stage F on the kiosk queue (idempotent). A guest gives a contact (email or
+         *     phone) for the "it is ready" message; a signed-in account (bearer token) may use its own.
+         */
         post: operations["kioskExportComposition"];
         delete?: never;
         options?: never;
@@ -264,6 +480,26 @@ export interface paths {
         get: operations["kioskOps"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/ops/orders/{composition_id}/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kiosk Order Ready
+         * @description Staff: the figurine is printed and ready to collect; the customer is told (push, email or SMS).
+         */
+        post: operations["kioskOrderReady"];
         delete?: never;
         options?: never;
         head?: never;
@@ -721,6 +957,59 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Account */
+        Account: {
+            /** Account Id */
+            account_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Email
+             * @description Verified; unique across accounts.
+             */
+            email: string | null;
+            /** Name */
+            name: string | null;
+            /**
+             * Phone
+             * @description Verified, E.164; unique across accounts.
+             */
+            phone: string | null;
+            /** Providers */
+            providers: ("apple" | "google")[];
+        };
+        /** AccountOrders */
+        AccountOrders: {
+            /** Items */
+            items: components["schemas"]["KioskOrder"][];
+        };
+        /** AccountPatch */
+        AccountPatch: {
+            /** Name */
+            name?: string | null;
+        };
+        /** AccountSession */
+        AccountSession: {
+            account: components["schemas"]["Account"];
+            /**
+             * Created
+             * @description True when this sign-in created the account.
+             */
+            created: boolean;
+            /**
+             * Linked
+             * @description Apple or Google joined an existing account with the same verified email.
+             */
+            linked?: ("apple" | "google") | null;
+            /**
+             * Token
+             * @description Bearer token for the account routes and for placing orders as this account.
+             */
+            token: string;
+        };
         /** Artefact */
         Artefact: {
             /** Bytes */
@@ -736,6 +1025,33 @@ export interface components {
             stage: string;
             /** Url */
             url: string;
+        };
+        /**
+         * AuthConfig
+         * @description Which sign-in methods this server offers, and the public client ids the apps need for Apple and Google.
+         */
+        AuthConfig: {
+            /** Apple Client Id */
+            apple_client_id?: string | null;
+            /**
+             * Dev Codes
+             * @description Development: codes are returned in the response instead of sent.
+             */
+            dev_codes: boolean;
+            /** Email */
+            email: boolean;
+            /**
+             * Fake Providers
+             * @description Tests: Apple and Google tokens of the form fake:<subject>:<email> are accepted.
+             */
+            fake_providers: boolean;
+            /**
+             * Google Client Id
+             * @description The web client id (Google Identity Services and the native SDKs' server client id).
+             */
+            google_client_id?: string | null;
+            /** Phone */
+            phone: boolean;
         };
         /** Batch */
         Batch: {
@@ -957,6 +1273,56 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** CodeRequest */
+        CodeRequest: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "email" | "phone";
+            /**
+             * To
+             * @description An email address, or a phone number (E.164, or local to PETPOP_DEFAULT_COUNTRY_CODE).
+             */
+            to: string;
+        };
+        /** CodeSent */
+        CodeSent: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "email" | "phone";
+            /**
+             * Dev Code
+             * @description Only on a server running development messaging.
+             */
+            dev_code?: string | null;
+            /** Expires In */
+            expires_in: number;
+            /**
+             * To
+             * @description The normalised destination, masked.
+             */
+            to: string;
+        };
+        /** CodeVerify */
+        CodeVerify: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "email" | "phone";
+            /** Code */
+            code: string;
+            /**
+             * Name
+             * @description For a new account.
+             */
+            name?: string | null;
+            /** To */
+            to: string;
+        };
         /**
          * Composition
          * @description What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the family's mesh (decision 116) plus the family delta plus one part variant of that mesh per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.
@@ -1011,11 +1377,18 @@ export interface components {
         };
         /** CompositionStatus */
         CompositionStatus: {
+            /**
+             * Account Id
+             * @description The signed-in account that placed the order.
+             */
+            account_id?: string | null;
             /** Artefacts */
             artefacts: components["schemas"]["Artefact"][];
             composition: components["schemas"]["Composition"];
             /** Composition Id */
             composition_id: string;
+            /** @description Where we tell the customer it is ready (masked). */
+            contact?: components["schemas"]["OrderContact"] | null;
             /**
              * Created At
              * Format: date-time
@@ -1032,6 +1405,8 @@ export interface components {
             previews: {
                 [key: string]: string;
             };
+            /** @description What the order costs, when payments are on. */
+            quote?: components["schemas"]["Quote"] | null;
             /** Release Version */
             release_version: string;
             /**
@@ -1058,6 +1433,19 @@ export interface components {
             ticket?: string | null;
         };
         Composition_hex: string;
+        /**
+         * Device
+         * @description A device that receives push notifications for this account (Firebase Cloud Messaging token).
+         */
+        Device: {
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "ios" | "android" | "web";
+            /** Token */
+            token: string;
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Detail */
@@ -1841,6 +2229,25 @@ export interface components {
             /** Pending */
             pending: number;
         };
+        /**
+         * OrderContact
+         * @description How to tell a guest (or an account) the order is ready: an email, a phone number, or both. In a response the
+         *     values are masked.
+         */
+        OrderContact: {
+            /** Email */
+            email?: string | null;
+            /** Phone */
+            phone?: string | null;
+        };
+        /**
+         * OrderRequest
+         * @description Placing an order (the export). A signed-in account's verified email or phone is used when no contact is given;
+         *     a guest must give one.
+         */
+        OrderRequest: {
+            contact?: components["schemas"]["OrderContact"] | null;
+        };
         /** ParseRequest */
         ParseRequest: {
             current_spec: components["schemas"]["PetSpec"];
@@ -2112,6 +2519,38 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "waiting" | "done" | "failed" | "fulfilled";
+        };
+        /** ProviderSignIn */
+        ProviderSignIn: {
+            /** Id Token */
+            id_token: string;
+            /**
+             * Name
+             * @description Apple sends the name only on the first sign-in, to the app.
+             */
+            name?: string | null;
+            /**
+             * Nonce
+             * @description Apple: the raw nonce the app passed to Apple.
+             */
+            nonce?: string | null;
+        };
+        /**
+         * Quote
+         * @description What an order costs, line by line (the figurine, then any options and extras, decision 126); `total` is what a
+         *     payment asks for.
+         */
+        Quote: {
+            /** Items */
+            items: components["schemas"]["QuoteItem"][];
+            total: components["schemas"]["Price"];
+        };
+        /** QuoteItem */
+        QuoteItem: {
+            /** Amount */
+            amount: string;
+            /** Label */
+            label: string;
         };
         /** ReleaseCreate */
         ReleaseCreate: {
@@ -2494,6 +2933,693 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    accountSendCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeSent"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    accountConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthConfig"];
+                };
+            };
+        };
+    };
+    accountMe: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountDelete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountPatch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountAddContact: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeVerify"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    accountRemoveContact: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                channel: "email" | "phone";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountAddDevice: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Device"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Device"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountRemoveDevice: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountOrders: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOrders"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountLink: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                provider: "apple" | "google";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderSignIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountUnlink: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                provider: "apple" | "google";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountProviderSignIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "apple" | "google";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderSignIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSession"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountSignOut: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accountVerifyCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeVerify"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSession"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     getFile: {
         parameters: {
             query: {
@@ -2782,13 +3908,19 @@ export interface operations {
     kioskExportComposition: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 composition_id: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             202: {
@@ -3273,6 +4405,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kioskOrderReady: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-staff-token"?: string | null;
+            };
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KioskOrder"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

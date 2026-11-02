@@ -15,17 +15,46 @@ export const HANDLED_PATHS = [
   '/api/v1/kiosk/library/{species}/parts', '/api/v1/kiosk/library/{species}/patterns', '/api/v1/kiosk/library/{species}/files/{path}',
   '/api/v1/kiosk/compositions', '/api/v1/kiosk/compositions/{composition_id}', '/api/v1/kiosk/compositions/{composition_id}/export',
   '/api/v1/kiosk/compositions/{composition_id}/bespoke', '/api/v1/kiosk/compositions/{composition_id}/payment',
-  '/api/v1/kiosk/compositions/{composition_id}/payment/simulate',
+  '/api/v1/kiosk/compositions/{composition_id}/payment/simulate', '/api/v1/kiosk/ops/orders/{composition_id}/ready',
+  '/api/v1/account/config', '/api/v1/account/code', '/api/v1/account/verify', '/api/v1/account/oauth/{provider}', '/api/v1/account/me',
+  '/api/v1/account/me/contact', '/api/v1/account/me/contact/{channel}', '/api/v1/account/me/providers/{provider}',
+  '/api/v1/account/sign-out', '/api/v1/account/me/orders', '/api/v1/account/me/devices',
 ];
 
-const API_VERSION = '3.9.0';
+const API_VERSION = '3.10.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();
 const ticket = () => `PP-${1000 + Math.floor(Math.random() * 9000)}`;
 const sessions = new Map<string, { bespoke: number }>();
 interface MockPayment { payment_id: string; composition_id: string; method: 'paynow' | 'card'; status: 'pending' | 'paid' | 'failed' | 'expired'; price: { amount: string; currency: 'SGD' }; provider: 'fake'; qr: string | null; checkout_url: string | null; created_at: string; expires_at: string | null; paid_at: string | null }
-interface MockComp { id: string; session_id: string; body: CompositionBody; created: number; exported: number | null; ticket: string | null; bespoke: boolean; payments: MockPayment[] }
+interface MockComp { id: string; session_id: string; body: CompositionBody; created: number; exported: number | null; ticket: string | null; bespoke: boolean; payments: MockPayment[]; account: string | null; contact: { email?: string | null; phone?: string | null } | null }
+// Customer accounts in standalone mode (decision 126): in memory, codes shown on screen ("dev codes"), fake Apple/Google.
+interface MockAccount { account_id: string; name: string | null; email: string | null; phone: string | null; providers: ('apple' | 'google')[]; created_at: string }
+const accounts = new Map<string, MockAccount>();
+const accountTokens = new Map<string, string>(); // token -> account id
+const identities = new Map<string, string>(); // provider:subject -> account id
+const codes = new Map<string, string>(); // channel:to -> code
+const normal = (channel: string, to: string) => (channel === 'email' ? to.trim().toLowerCase() : (to.replace(/[\s\-().]/g, '').startsWith('+') ? to.replace(/[\s\-().]/g, '') : `+65${to.replace(/[\s\-().]/g, '')}`));
+const signedIn = (request: Request) => {
+  const tok = (request.headers.get('Authorization') ?? '').replace(/^Bearer /, '');
+  const id = accountTokens.get(tok);
+  return id ? accounts.get(id) ?? null : null;
+};
+const unauthorised = () => HttpResponse.json({ detail: 'sign in first' }, { status: 401 });
+function session(acc: MockAccount, created: boolean, linked: string | null = null) {
+  const token = rid('pa');
+  accountTokens.set(token, acc.account_id);
+  return { token, account: acc, created, linked };
+}
+function accountFor(field: 'email' | 'phone', value: string): MockAccount | undefined {
+  return [...accounts.values()].find((a) => a[field] === value);
+}
+function newAccount(patch: Partial<MockAccount>): MockAccount {
+  const a: MockAccount = { account_id: rid('a'), name: null, email: null, phone: null, providers: [], created_at: iso(Date.now()), ...patch };
+  accounts.set(a.account_id, a);
+  return a;
+}
 const compositions = new Map<string, MockComp>();
 const breedDocs = { dog: dogs, cat: cats } as Record<string, { accent: string; breeds: Breed[] }>;
 // ?bespoke=1 turns "Make it unique" on in standalone mode (KIOSK_BESPOKE on a real kiosk).
@@ -70,6 +99,8 @@ function compositionStatus(c: MockComp) {
     artefacts: ready ? ['figure.3mf', 'figure.stl', 'albedo.png', 'figure.glb', 'thumbnail.png'].map((n) => ({ name: n, kind: n === 'figure.3mf' ? '3mf' : n === 'figure.stl' ? 'stl' : n === 'albedo.png' ? 'albedo' : n === 'figure.glb' ? 'glb' : 'thumbnail', stage: 'F', url: f(n), bytes: 1 })) : [],
     previews: ready ? { glb: f('figure.glb'), thumbnail: f('thumbnail.png') } : {},
     error: null, composition: c.body, payment: c.payments[c.payments.length - 1] ?? null,
+    quote: payOn() ? { items: [{ label: 'Figurine', amount: PRICE.amount }], total: PRICE } : null,
+    contact: c.contact ? { email: c.contact.email ?? null, phone: c.contact.phone ?? null } : null, account_id: c.account,
   };
 }
 
@@ -163,7 +194,7 @@ export const handlers = [
     if (!sessions.has(body.session_id)) return notFound('unknown session');
     const errs = compositionErrors(await manifest(body.composition.species), body.composition);
     if (errs.length) return HttpResponse.json({ detail: { composition: errs } }, { status: 422 });
-    const c: MockComp = { id: rid('c'), session_id: body.session_id, body: body.composition, created: Date.now(), exported: null, ticket: null, bespoke: false, payments: [] };
+    const c: MockComp = { id: rid('c'), session_id: body.session_id, body: body.composition, created: Date.now(), exported: null, ticket: null, bespoke: false, payments: [], account: null, contact: null };
     compositions.set(c.id, c);
     return HttpResponse.json(compositionStatus(c), { status: 201 });
   }),
@@ -171,9 +202,16 @@ export const handlers = [
     const c = compositions.get(String(params.id));
     return c ? HttpResponse.json(compositionStatus(c)) : notFound('unknown composition');
   }),
-  http.post('/api/v1/kiosk/compositions/:id/export', ({ params }) => {
+  http.post('/api/v1/kiosk/compositions/:id/export', async ({ params, request }) => {
     const c = compositions.get(String(params.id));
     if (!c) return notFound('unknown composition');
+    const body = (await request.json().catch(() => ({}))) as { contact?: { email?: string | null; phone?: string | null } | null };
+    const acc = signedIn(request);
+    if (c.exported === null) {
+      if (!acc && !body.contact?.email && !body.contact?.phone) return HttpResponse.json({ detail: 'an email or a phone number is needed so we can tell you when it is ready' }, { status: 422 });
+      c.account = acc?.account_id ?? null;
+      c.contact = body.contact?.email || body.contact?.phone ? body.contact : { email: acc?.email ?? null, phone: acc?.phone ?? null };
+    }
     if (c.exported === null) [c.exported, c.ticket] = [Date.now(), ticket()];
     return HttpResponse.json({ composition_id: c.id, job_id: `j_${c.id.slice(2)}`, ticket: c.ticket, queue_position: 0 }, { status: 202 });
   }),
@@ -234,6 +272,103 @@ export const handlers = [
     if (exportState(c).status !== 'ready') return HttpResponse.json({ detail: 'the order has no finished print bundle yet' }, { status: 409 });
     return HttpResponse.json(order(c));
   }),
+  http.post('/api/v1/kiosk/ops/orders/:id/ready', ({ params, request }) => {
+    if (!request.headers.get('X-Staff-Token')) return HttpResponse.json({ detail: 'staff PIN required' }, { status: 403 });
+    const c = compositions.get(String(params.id));
+    return c ? HttpResponse.json(order(c)) : notFound('unknown order');
+  }),
+  // ------------------------------------------------------------------ accounts (decision 126)
+  http.get('/api/v1/account/config', () =>
+    HttpResponse.json({ email: true, phone: true, apple_client_id: 'fake', google_client_id: 'fake', dev_codes: true, fake_providers: true })),
+  http.post('/api/v1/account/code', async ({ request }) => {
+    const { channel, to } = (await request.json()) as { channel: 'email' | 'phone'; to: string };
+    const code = String(100000 + Math.floor(Math.random() * 900000));
+    codes.set(`${channel}:${normal(channel, to)}`, code);
+    return HttpResponse.json({ channel, to: normal(channel, to), expires_in: 600, dev_code: code }, { status: 202 });
+  }),
+  http.post('/api/v1/account/verify', async ({ request }) => {
+    const { channel, to, code, name } = (await request.json()) as { channel: 'email' | 'phone'; to: string; code: string; name?: string | null };
+    const key = `${channel}:${normal(channel, to)}`;
+    if (codes.get(key) !== code) return HttpResponse.json({ detail: 'that code is not right' }, { status: 400 });
+    codes.delete(key);
+    const found = accountFor(channel, normal(channel, to));
+    return HttpResponse.json(session(found ?? newAccount({ [channel]: normal(channel, to), name: name ?? null }), !found));
+  }),
+  http.post('/api/v1/account/oauth/:provider', async ({ params, request }) => {
+    const provider = String(params.provider) as 'apple' | 'google';
+    const { id_token, name } = (await request.json()) as { id_token: string; name?: string | null };
+    const [, sub, email] = id_token.split(':');
+    const known = identities.get(`${provider}:${sub}`);
+    let acc = known ? accounts.get(known) : email ? accountFor('email', email.toLowerCase()) : undefined;
+    const linked = !known && acc ? provider : null;
+    const created = !acc;
+    acc = acc ?? newAccount({ email: email?.toLowerCase() || null, name: name ?? null });
+    identities.set(`${provider}:${sub}`, acc.account_id);
+    if (!acc.providers.includes(provider)) acc.providers.push(provider);
+    return HttpResponse.json(session(acc, created, linked));
+  }),
+  http.get('/api/v1/account/me', ({ request }) => {
+    const a = signedIn(request);
+    return a ? HttpResponse.json(a) : unauthorised();
+  }),
+  http.patch('/api/v1/account/me', async ({ request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    a.name = ((await request.json()) as { name?: string | null }).name ?? a.name;
+    return HttpResponse.json(a);
+  }),
+  http.delete('/api/v1/account/me', ({ request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    accounts.delete(a.account_id);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('/api/v1/account/me/contact', async ({ request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    const { channel, to, code } = (await request.json()) as { channel: 'email' | 'phone'; to: string; code: string };
+    const value = normal(channel, to);
+    const other = accountFor(channel, value);
+    if (other && other.account_id !== a.account_id) return HttpResponse.json({ detail: `that ${channel} belongs to another account` }, { status: 409 });
+    if (codes.get(`${channel}:${value}`) !== code) return HttpResponse.json({ detail: 'that code is not right' }, { status: 400 });
+    a[channel] = value;
+    return HttpResponse.json(a);
+  }),
+  http.delete('/api/v1/account/me/contact/:channel', ({ params, request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    const ch = String(params.channel) as 'email' | 'phone';
+    const ways = a.providers.length + (a.email ? 1 : 0) + (a.phone ? 1 : 0);
+    if (ways <= 1) return HttpResponse.json({ detail: 'that is your only way to sign in; add another first' }, { status: 409 });
+    a[ch] = null;
+    return HttpResponse.json(a);
+  }),
+  http.post('/api/v1/account/me/providers/:provider', async ({ params, request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    const provider = String(params.provider) as 'apple' | 'google';
+    const [, sub] = ((await request.json()) as { id_token: string }).id_token.split(':');
+    identities.set(`${provider}:${sub}`, a.account_id);
+    if (!a.providers.includes(provider)) a.providers.push(provider);
+    return HttpResponse.json(a);
+  }),
+  http.delete('/api/v1/account/me/providers/:provider', ({ params, request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    a.providers = a.providers.filter((p) => p !== params.provider);
+    return HttpResponse.json(a);
+  }),
+  http.post('/api/v1/account/sign-out', ({ request }) => {
+    accountTokens.delete((request.headers.get('Authorization') ?? '').replace(/^Bearer /, ''));
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('/api/v1/account/me/orders', ({ request }) => {
+    const a = signedIn(request);
+    if (!a) return unauthorised();
+    return HttpResponse.json({ items: [...compositions.values()].filter((c) => c.account === a.account_id && c.exported !== null).map(order) });
+  }),
+  http.post('/api/v1/account/me/devices', async ({ request }) => (signedIn(request) ? HttpResponse.json(await request.json(), { status: 201 }) : unauthorised())),
+  http.delete('/api/v1/account/me/devices', ({ request }) => (signedIn(request) ? new HttpResponse(null, { status: 204 }) : unauthorised())),
   http.get('/api/v1/r/:token', () => {
     const pet = fixtureIndex.pets[0];
     return HttpResponse.json({ job_id: pet.job_id, pet_name: pet.pet_name, species: pet.species, breed_label: pet.breed, glb_url: assetUrl(`fixtures/${pet.id}/figure.glb`), thumbnail_url: assetUrl(`fixtures/${pet.id}/thumbnail.png`), turntable_url: null, created_at: iso(Date.now()), expires_at: iso(Date.now() + 7 * 864e5) });

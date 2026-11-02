@@ -5,8 +5,10 @@ import { ref } from 'vue';
 import { ApiFailure, KioskApi, randomSeed, specFromBreed } from '@petpop/core';
 import type { BespokeAccepted, Breed, CompositionBody, PaymentOffer, PetSpec, Species } from '@petpop/core';
 import { useDesign } from './design';
+import { useAccount } from './account';
+import { isKiosk } from '@petpop/ui-vue';
 
-export type Screen = 'attract' | 'species' | 'breed' | 'design' | 'name' | 'order' | 'bespoke';
+export type Screen = 'attract' | 'species' | 'breed' | 'design' | 'name' | 'contact' | 'order' | 'bespoke' | 'account';
 
 export const useSession = defineStore('session', () => {
   const screen = ref<Screen>('attract');
@@ -72,6 +74,7 @@ export const useSession = defineStore('session', () => {
   }
   function reset() {
     useDesign().reset();
+    if (isKiosk) void useAccount().signOut(); // a kiosk forgets the customer with the session
     clear();
     screen.value = 'attract';
   }

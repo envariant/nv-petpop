@@ -4,7 +4,7 @@
 import { defineStore } from 'pinia';
 import { markRaw, ref, shallowRef } from 'vue';
 import { ApiFailure, KioskApi, apiUrl } from '@petpop/core';
-import type { Breed, CompositionBody, CompositionStatus, PaymentMethod, Species } from '@petpop/core';
+import type { Breed, CompositionBody, CompositionStatus, OrderContact, PaymentMethod, Species } from '@petpop/core';
 import { loadLibrary, partFor, startingComposition, syncStamps, uploadStamps, type Composition, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
@@ -154,16 +154,18 @@ export const useDesign = defineStore('design', () => {
     composition.value = { ...c, stamps };
     strokes.value = strokes.value.slice(0, -1);
   }
-  async function placeOrder(sessionId: string | null) {
+  async function placeOrder(sessionId: string | null, contact: OrderContact | null = null) {
     if (!composition.value) return;
     orderError.value = null;
     try {
       const sid = sessionId ?? (await KioskApi.createSession()).session_id;
       const created = await KioskApi.createComposition(sid, composition.value as CompositionBody);
-      await KioskApi.exportComposition(created.composition_id);
+      await KioskApi.exportComposition(created.composition_id, contact);
       order.value = await KioskApi.composition(created.composition_id);
     } catch (e) {
-      orderError.value = e instanceof ApiFailure && e.status === 422 ? 'This design uses parts that are no longer in the library.' : 'We could not place the order. Please ask a member of staff.';
+      orderError.value = e instanceof ApiFailure && e.status === 422
+        ? (typeof e.detail === 'string' ? e.detail : 'This design uses parts that are no longer in the library.')
+        : 'We could not place the order. Please ask a member of staff.';
     }
   }
   // Payment for the order (decision 125): start one (PayNow QR or card checkout), or with the fake provider, simulate it.

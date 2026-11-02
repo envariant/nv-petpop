@@ -163,11 +163,11 @@ def test_kiosk_order_from_composition(client):
     assert client.get(f"{K}/compositions/c_nope").status_code == 404
 
     cid = created["composition_id"]
-    r = client.post(f"{K}/compositions/{cid}/export")
+    r = client.post(f"{K}/compositions/{cid}/export", json={"contact": {"email": "rocket@example.com"}})
     assert r.status_code == 202, r.text
     acc = check(f"{K}/compositions/{{composition_id}}/export", "post", r)
     assert acc["ticket"].startswith("PP-")
-    again = check(f"{K}/compositions/{{composition_id}}/export", "post", client.post(f"{K}/compositions/{cid}/export"))
+    again = check(f"{K}/compositions/{{composition_id}}/export", "post", client.post(f"{K}/compositions/{cid}/export", json={}))
     assert again["ticket"] == acc["ticket"]  # idempotent
     done = wait_composition(client, cid)
     assert done["status"] == "ready", done["error"]
@@ -404,7 +404,7 @@ def test_kiosk_payment_for_an_order(paying_client):
     cid = new_composition(client, sess["session_id"], sample(rel["manifest"], pet_name="Paid"))["composition_id"]
     assert client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"}).status_code == 409  # not ordered yet
     assert client.get(f"{K}/compositions/{cid}/payment").status_code == 404
-    client.post(f"{K}/compositions/{cid}/export")
+    client.post(f"{K}/compositions/{cid}/export", json={"contact": {"email": "pay@example.com"}})
 
     card = check(f"{K}/compositions/{{composition_id}}/payment", "post",
                  client.post(f"{K}/compositions/{cid}/payment", json={"method": "card"}))
@@ -434,7 +434,7 @@ def test_kiosk_payments_off(client):
     assert sess.get("payment") is None
     rel = library(client, "dog")
     cid = new_composition(client, sess["session_id"], sample(rel["manifest"]))["composition_id"]
-    client.post(f"{K}/compositions/{cid}/export")
+    client.post(f"{K}/compositions/{cid}/export", json={"contact": {"email": "pay@example.com"}})
     assert client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"}).status_code == 409
     assert client.post(f"{K}/compositions/{cid}/payment/simulate").status_code == 403
 
@@ -446,7 +446,11 @@ def test_every_documented_path_is_exercised():
                  f"{K}/library/{{species}}/patterns", f"{K}/library/{{species}}/files/{{path}}", f"{K}/compositions",
                  f"{K}/compositions/{{composition_id}}", f"{K}/compositions/{{composition_id}}/export",
                  f"{K}/compositions/{{composition_id}}/bespoke", f"{K}/compositions/{{composition_id}}/payment",
-                 f"{K}/compositions/{{composition_id}}/payment/simulate",
+                 f"{K}/compositions/{{composition_id}}/payment/simulate", f"{K}/ops/orders/{{composition_id}}/ready",
+                 # customer accounts (decision 126): tests/contract/test_accounts.py
+                 *(f"/api/v1/account{p}" for p in ("/config", "/code", "/verify", "/oauth/{provider}", "/me", "/me/contact",
+                                                   "/me/contact/{channel}", "/me/providers/{provider}", "/sign-out",
+                                                   "/me/orders", "/me/devices")),
                  f"{S}/auth/login", f"{S}/auth/me", f"{S}/breeds", f"{S}/spec/parse", f"{S}/jobs", f"{S}/jobs/{{job_id}}",
                  f"{S}/jobs/{{job_id}}/events", f"{S}/jobs/{{job_id}}/tweak", f"{S}/jobs/{{job_id}}/fulfil",
                  f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",

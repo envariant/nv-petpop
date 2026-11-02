@@ -82,7 +82,7 @@ def main() -> int:
     used = [comp["family_id"], *comp["parts"].values()]
     sess = asyncio.run(kiosk.create_session(m.SessionCreate(kiosk_id="clean-kiosk")))
     st = asyncio.run(kiosk.create_composition(m.CompositionCreate(session_id=sess.session_id, composition=comp), "http://kiosk"))
-    acc = asyncio.run(kiosk.export_composition(st.composition_id))
+    acc = asyncio.run(kiosk.export_composition(st.composition_id, m.OrderRequest(contact=m.OrderContact(email="gate8@example.com")), None))
     result = Worker(ks, queue="kiosk").run_job(acc.job_id)
     st = asyncio.run(kiosk.get_composition(st.composition_id, "http://kiosk"))
     names = {a.name for a in st.artefacts}
