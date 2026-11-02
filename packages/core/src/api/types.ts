@@ -35,6 +35,11 @@ export type CompositionStatus = S['CompositionStatus'];
 export type CompositionState = CompositionStatus['status'];
 export type ExportAccepted = S['ExportAccepted'];
 export type KioskOrder = S['KioskOrder'];
+// Payment for an order (decision 125).
+export type Payment = S['Payment'];
+export type PaymentMethod = Payment['method'];
+export type PaymentOffer = S['PaymentOffer'];
+export type Price = S['Price'];
 // Studio curation (M8).
 export type BatchCreate = S['BatchCreate'];
 export type Batch = S['Batch'];

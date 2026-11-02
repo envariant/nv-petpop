@@ -20,6 +20,8 @@ import PhoneResult from './screens/PhoneResult.vue';
 const s = useSession();
 const screens = { attract: Attract, species: Species, breed: BreedScreen, design: Design, name: NameScreen, order: Order, bespoke: Bespoke };
 const resultToken = location.pathname.startsWith('/r/') ? decodeURIComponent(location.pathname.slice(3)) : null;
+// Where HitPay's card checkout returns the customer (decision 125); the order itself updates in the app or on the kiosk.
+const paidPage = location.pathname === '/paid';
 const { countdown, dismiss } = useIdle(isKiosk);
 const online = useOnline();
 const staff = ref(false);
@@ -28,6 +30,13 @@ const corner = useFiveTap(() => (staff.value = true));
 
 <template>
   <PhoneResult v-if="resultToken" :token="resultToken" />
+  <AppFrame v-else-if="paidPage" species="dog">
+    <div class="flex h-full flex-col items-center justify-center gap-4 px-6 text-center" data-testid="paid-page">
+      <div class="font-display text-5xl font-semibold">Pet<span class="text-accent">Pop</span></div>
+      <h1 class="font-display text-3xl font-semibold">Thank you!</h1>
+      <p class="max-w-md text-lg text-muted">Your payment is on its way to us. Go back to the PetPop app or the kiosk: your ticket appears there as soon as it is confirmed.</p>
+    </div>
+  </AppFrame>
   <AppFrame v-else :species="s.species">
     <div class="flex h-full flex-col">
       <header v-if="s.screen !== 'attract'" class="flex shrink-0 items-center justify-between px-4 pt-2 md:px-8 md:pt-4">

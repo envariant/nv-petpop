@@ -3,8 +3,7 @@ import pytest
 from .impls import IMPLS
 
 
-@pytest.fixture(params=sorted(IMPLS))
-def client(request, monkeypatch, tmp_path):
+def _impl(request, monkeypatch, tmp_path):
     monkeypatch.setenv("PETPOP_MOCK_SPEED", "0")
     monkeypatch.setenv("PETPOP_VAR", str(tmp_path / "var"))
     monkeypatch.setenv("PETPOP_STAFF_TOKEN", "test-staff")
@@ -15,3 +14,17 @@ def client(request, monkeypatch, tmp_path):
     with IMPLS[request.param]() as c:
         c.impl_name = request.param
         yield c
+
+
+@pytest.fixture(params=sorted(IMPLS))
+def client(request, monkeypatch, tmp_path):
+    monkeypatch.setenv("PETPOP_PAYMENTS", "off")
+    yield from _impl(request, monkeypatch, tmp_path)
+
+
+@pytest.fixture(params=sorted(IMPLS))
+def paying_client(request, monkeypatch, tmp_path):
+    """Payments on, with the fake provider (decision 125)."""
+    monkeypatch.setenv("PETPOP_PAYMENTS", "fake")
+    monkeypatch.setenv("PETPOP_PRICE_SGD", "39.00")
+    yield from _impl(request, monkeypatch, tmp_path)

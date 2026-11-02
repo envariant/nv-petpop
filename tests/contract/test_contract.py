@@ -417,3 +417,49 @@ def test_specs_for_every_breed_validate(species):
 
     for b in all_breeds(species):
         assert spec_errors(default_spec(species, b["id"], seed=1)) == [], b["id"]
+
+
+def test_kiosk_payment_for_an_order(paying_client):
+    """Payment (decision 125): the session offers it; an order is paid with PayNow (a QR payload) or a card (a hosted
+    checkout); the result page is the customer's only once paid; the fake provider can be simulated."""
+    client = paying_client
+    r = client.post(f"{K}/sessions", json={"kiosk_id": "kiosk-1"})
+    sess = check(f"{K}/sessions", "post", r)
+    assert sess["payment"] == {"price": {"amount": "39.00", "currency": "SGD"}, "methods": ["paynow", "card"], "provider": "fake"}
+    rel = library(client, "dog")
+    cid = new_composition(client, sess["session_id"], sample(rel["manifest"], pet_name="Paid"))["composition_id"]
+    assert client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"}).status_code == 409  # not ordered yet
+    assert client.get(f"{K}/compositions/{cid}/payment").status_code == 404
+    client.post(f"{K}/compositions/{cid}/export")
+
+    card = check(f"{K}/compositions/{{composition_id}}/payment", "post",
+                 client.post(f"{K}/compositions/{cid}/payment", json={"method": "card"}))
+    assert card["status"] == "pending" and card["checkout_url"] and card["qr"] is None
+    r = client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"})  # switch method: replaces the card one
+    paynow = check(f"{K}/compositions/{{composition_id}}/payment", "post", r)
+    assert paynow["method"] == "paynow" and paynow["qr"] and paynow["price"] == {"amount": "39.00", "currency": "SGD"}
+    assert paynow["payment_id"] != card["payment_id"]
+    got = check(f"{K}/compositions/{{composition_id}}/payment", "get", client.get(f"{K}/compositions/{cid}/payment"))
+    assert got["payment_id"] == paynow["payment_id"] and got["status"] == "pending"
+
+    done = wait_composition(client, cid)
+    assert done["status"] == "ready" and done["result_url"] is None  # exported, not yet paid
+    assert done["payment"]["status"] == "pending"
+    paid = check(f"{K}/compositions/{{composition_id}}/payment/simulate", "post",
+                 client.post(f"{K}/compositions/{cid}/payment/simulate"))
+    assert paid["status"] == "paid" and paid["paid_at"]
+    after = client.get(f"{K}/compositions/{cid}").json()
+    assert after["payment"]["status"] == "paid" and after["result_url"]
+    r = client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"})
+    assert r.status_code == 409  # already paid
+
+
+def test_kiosk_payments_off(client):
+    """Payments off (the default): no offer, no payment routes, the result page as soon as the export is done."""
+    sess = check(f"{K}/sessions", "post", client.post(f"{K}/sessions", json={"kiosk_id": "kiosk-1"}))
+    assert sess.get("payment") is None
+    rel = library(client, "dog")
+    cid = new_composition(client, sess["session_id"], sample(rel["manifest"]))["composition_id"]
+    client.post(f"{K}/compositions/{cid}/export")
+    assert client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"}).status_code == 409
+    assert client.post(f"{K}/compositions/{cid}/payment/simulate").status_code == 403

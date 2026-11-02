@@ -30,6 +30,7 @@ from . import models as m
 from .contract import KIOSK, ApiError, make_token, signed_file_url
 from .db import ArtefactRow, CompositionRow, JobRow, SessionRow, utcnow
 from .fulfilment import copy_bundle
+from . import payments as pay
 
 log = logging.getLogger("petpop.library")
 PROXY_RELEASES = ROOT / "fixtures" / "library"
@@ -96,6 +97,7 @@ def aware(dt):
 class KioskLibrary:
     def __init__(self, s: Settings, db, bus, store, secret: str) -> None:
         self.s, self.db, self.bus, self.store, self.secret = s, db, bus, store, secret
+        self.payments_on: bool | None = None  # set by BackendApi (decision 125)
         self.releases = rel.ReleaseStore(s.var / "releases", segmentation={sp: schema(sp)["schema_version"] for sp in ("dog", "cat")})
         self._stop = threading.Event()
 
@@ -202,11 +204,14 @@ class KioskLibrary:
                 url = lambda key: signed_file_url(self.secret, key)  # noqa: E731
                 artefacts = [m.Artefact(name=a.name, kind=a.kind, stage=a.stage, url=url(a.object_key), bytes=a.bytes) for a in arts]
                 previews = {a.kind: url(a.object_key) for a in arts if a.kind in ("glb", "thumbnail")}
-                result_url = f"{base}/r/{make_token(self.secret, job.id)}"
+                if pay.payable(db, row.id, self.payments_on):  # the result page is the customer's once the order is paid
+                    result_url = f"{base}/r/{make_token(self.secret, job.id)}"
+        payment = pay.latest(db, row.id)
         return m.CompositionStatus(composition_id=row.id, session_id=row.session_id, status=state, pet_name=row.pet_name,
                                    species=row.species, release_version=row.release_version, created_at=aware(row.created_at),
                                    export=export, ticket=row.ticket, result_url=result_url, artefacts=artefacts, previews=previews,
-                                   error=job.error if job and job.status == "failed" else None, composition=row.body)
+                                   error=job.error if job and job.status == "failed" else None, composition=row.body,
+                                   payment=pay.model(payment) if payment else None)
 
     def export(self, cid: str) -> m.ExportAccepted:
         """Order: issue the ticket and enqueue Stage F on the kiosk queue (idempotent)."""

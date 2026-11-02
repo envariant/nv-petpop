@@ -200,6 +200,8 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   React half of `@petpop/ui` deleted (no React left in the apps)
 - [x] Deployment roles (decision 124): `PETPOP_DEPLOY=all|cloud|studio`, `make up` per role (RDS, S3, Caddy), the shop's
   sync agent (releases up, bespoke down and back, prints down), docs/DEPLOY.md
-- [ ] Hosted backend for app-store orders (decision 123, proposed): this FastAPI backend deployed, plus a public `/app`
-  surface, customer identity, payment for physical goods, shipping and fulfilment; waits on Nishant's choice of host
-  and payment provider
+- [x] Payment for orders (decision 125, API 3.9.0): HitPay with PayNow and cards, a fake provider for tests, the order
+  screen's payment step, the webhook; printing and the result link wait for payment
+- [ ] App-store orders beyond the kiosk flow (decision 123): customer identity (email link or Sign in with Apple),
+  shipping address and delivery, push notifications; the cloud deployment, payments and the shop's print pull are done
+- [ ] Nishant: the first AWS deployment (docs/DEPLOY.md), HitPay sandbox keys and webhook, then live keys and the price

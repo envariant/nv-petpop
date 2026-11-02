@@ -3,10 +3,12 @@ memory, and exports that "finish" after a short scripted delay with the fixture 
 from __future__ import annotations
 
 import json
+import os
 import random
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from backend.api import models as m
@@ -33,6 +35,11 @@ class MockComposition:
     pet: str = "biscuit"
     reprints: int = 0
     bespoke_job: str | None = None
+    payments: list[m.Payment] = field(default_factory=list)  # the latest last (decision 125)
+
+    @property
+    def paid(self) -> bool:
+        return any(p.status == "paid" for p in self.payments)
 
     def export_state(self, now: float) -> dict[str, Any]:
         if self.export_start is None:
@@ -53,6 +60,8 @@ class MockLibrary:
             if not cur or cur[0]["number"] < manifest["number"]:
                 self.releases[manifest["species"]] = (manifest, files)
         self.compositions: dict[str, MockComposition] = {}
+        # payments (decision 125): the mock offers the fake provider whenever PETPOP_PAYMENTS is not off
+        self.payments_on = os.environ.get("PETPOP_PAYMENTS", "off").strip() not in ("", "off")
 
     def add_bundle(self, bundle: bytes) -> None:
         """A release Studio packed: verified like a kiosk would, then active if newer."""
@@ -154,8 +163,56 @@ class MockLibrary:
         return m.CompositionStatus(
             composition_id=c.id, session_id=c.session_id, status=st["status"], pet_name=c.body.get("pet_name"),
             species=c.body["species"], release_version=c.body["release_version"], created_at=m_utc(c.created), export=export,
-            ticket=c.ticket, result_url=f"{base}/r/{make_token(self.secret, c.id)}" if ready else None, artefacts=artefacts,
-            previews=previews, error=None, composition=c.body)
+            ticket=c.ticket, result_url=f"{base}/r/{make_token(self.secret, c.id)}" if ready and self.payable(c) else None,
+            artefacts=artefacts, previews=previews, error=None, composition=c.body,
+            payment=c.payments[-1] if c.payments else None)
+
+    # ------------------------------------------------------------------ payments (decision 125)
+    def offer(self) -> m.PaymentOffer | None:
+        if not self.payments_on:
+            return None
+        return m.PaymentOffer(price=self.price(), methods=["paynow", "card"], provider="fake")
+
+    def price(self) -> m.Price:
+        return m.Price(amount=os.environ.get("PETPOP_PRICE_SGD", "39.00"), currency="SGD")
+
+    def payable(self, c: MockComposition) -> bool:
+        return not self.payments_on or c.paid
+
+    def create_payment(self, cid: str, method: str) -> m.Payment:
+        c = self.composition(cid)
+        if not self.payments_on:
+            raise ApiError(409, "payments are off on this server: pay at the counter")
+        if c.export_start is None:
+            raise ApiError(409, "order the figurine first")
+        if c.paid:
+            raise ApiError(409, "this order is already paid")
+        c.payments = [p.model_copy(update={"status": "expired"}) if p.status == "pending" else p for p in c.payments]
+        now = datetime.now(UTC)
+        pid = "p_" + uuid.uuid4().hex[:12]
+        price = self.price()
+        p = m.Payment(payment_id=pid, composition_id=cid, method=method, status="pending", price=price, provider="fake",
+                      qr=f"PETPOP-FAKE-PAYNOW|{pid}|{price.currency}{price.amount}" if method == "paynow" else None,
+                      checkout_url=None if method == "paynow" else f"https://localhost/paid?fake_checkout={pid}",
+                      created_at=now, expires_at=now + timedelta(minutes=15) if method == "paynow" else None)
+        c.payments.append(p)
+        return p
+
+    def get_payment(self, cid: str) -> m.Payment:
+        c = self.composition(cid)
+        if not c.payments:
+            raise ApiError(404, "no payment for this order")
+        return c.payments[-1]
+
+    def simulate_payment(self, cid: str) -> m.Payment:
+        if not self.payments_on:
+            raise ApiError(403, "only the fake payment provider can be simulated")
+        c = self.composition(cid)
+        if not c.payments:
+            raise ApiError(404, "no payment for this order")
+        if c.payments[-1].status != "paid":
+            c.payments[-1] = c.payments[-1].model_copy(update={"status": "paid", "paid_at": datetime.now(UTC)})
+        return c.payments[-1]
 
     def result(self, cid: str, exp: int) -> m.ResultPage:
         c = self.composition(cid)

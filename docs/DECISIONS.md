@@ -189,4 +189,19 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    contract) or the mock server; `tests/server/test_deploy_roles.py` runs both roles in one process. Polling every
    15 s keeps the shop free of inbound ports; a bespoke request is minutes of work, so the delay does not matter.
    Studio's own one-offs keep their result pages on the shop machine. docs/DEPLOY.md is the runbook.
+125. **Payment for an order: HitPay, PayNow and cards (Nishant, 2026-11-02; API 3.9.0).** PayNow is required in
+   Singapore and HitPay's PayNow fee is the lowest of the providers compared (0.65% + S$0.30 from S$100, 0.9% below,
+   per its pricing page; Stripe's is about 1.3%). `PETPOP_PAYMENTS` picks `off` (the default: pay at the counter),
+   `fake` (tests and demos: a "simulate payment" button) or `hitpay`. The session says whether and how the server
+   takes payment (`payment`: price, methods, provider); `POST /kiosk/compositions/{id}/payment` starts one for an
+   ordered composition (PayNow: the QR payload the app renders, from HitPay's `generate_qr`; card: HitPay's hosted
+   checkout URL, opened in the app or shown as a QR on a kiosk), a new call replaces a pending one;
+   `GET .../payment` refreshes a pending payment from HitPay (the fallback when a webhook is missed);
+   `POST .../payment/simulate` exists for the fake provider only. HitPay's dashboard webhook (JSON, `Hitpay-Signature`
+   = HMAC-SHA256 of the raw body with the salt) marks a payment paid at `POST /api/v1/payments/hitpay/webhook`, a
+   provider-to-server route outside the app contract. The export starts as soon as the order is placed, so the
+   figurine is ready when the payment lands; the print bundle goes to the fulfilment folder (and to the shop's sync)
+   and the result page link appears only once the order is paid. HitPay's key and salt are environment variables,
+   never committed. Price: `PETPOP_PRICE_SGD` (a placeholder until Nishant sets it). Payments in the app replace
+   App Store in-app purchase: the figurine is a physical product.
 

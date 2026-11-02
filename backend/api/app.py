@@ -64,6 +64,12 @@ def create_app(embed_worker: bool | None = None, s: Settings | None = None, sync
     app.state.impl = impl
     app.state.sync_agent = agent
     app.include_router(make_sync_router(impl))
+
+    @app.post("/api/v1/payments/hitpay/webhook", include_in_schema=False)
+    async def hitpay_webhook(request: Request) -> JSONResponse:
+        """HitPay's dashboard webhook (decision 125): the provider's server, not an app, so not in the app contract."""
+        ok = impl.payment_webhook(await request.body(), request.headers.get("Hitpay-Signature"))
+        return JSONResponse({"ok": ok}, status_code=200 if ok else 401)
     stats = {"requests": 0, "started": time.time()}
     blocked = ROLE_BLOCKS[s.deploy]
 

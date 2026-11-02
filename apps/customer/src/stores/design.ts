@@ -4,7 +4,7 @@
 import { defineStore } from 'pinia';
 import { markRaw, ref, shallowRef } from 'vue';
 import { ApiFailure, KioskApi, apiUrl } from '@petpop/core';
-import type { Breed, CompositionBody, CompositionStatus, Species } from '@petpop/core';
+import type { Breed, CompositionBody, CompositionStatus, PaymentMethod, Species } from '@petpop/core';
 import { loadLibrary, partFor, startingComposition, syncStamps, uploadStamps, type Composition, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
@@ -166,9 +166,28 @@ export const useDesign = defineStore('design', () => {
       orderError.value = e instanceof ApiFailure && e.status === 422 ? 'This design uses parts that are no longer in the library.' : 'We could not place the order. Please ask a member of staff.';
     }
   }
+  // Payment for the order (decision 125): start one (PayNow QR or card checkout), or with the fake provider, simulate it.
+  const payError = ref<string | null>(null);
+  async function pay(method: PaymentMethod) {
+    if (!order.value) return;
+    payError.value = null;
+    try {
+      await KioskApi.createPayment(order.value.composition_id, method);
+      await refreshOrder();
+    } catch (e) {
+      payError.value = e instanceof ApiFailure && e.status === 502 ? 'Payment is not available right now. Please pay at the counter.' : 'We could not start the payment. Please try again.';
+    }
+  }
+  async function simulatePay() {
+    if (!order.value) return;
+    await KioskApi.simulatePayment(order.value.composition_id);
+    await refreshOrder();
+  }
   async function refreshOrder() {
     if (!order.value) return;
     try {
+      // a pending payment is checked with the provider first (the webhook may not have arrived)
+      if (order.value.payment?.status === 'pending') await KioskApi.payment(order.value.composition_id);
       order.value = await KioskApi.composition(order.value.composition_id);
     } catch {
       /* the offline overlay handles a dropped API */
@@ -188,10 +207,11 @@ export const useDesign = defineStore('design', () => {
     turning.value = false;
     order.value = null;
     orderError.value = null;
+    payError.value = null;
   }
   return {
     lib, loading, libError, composition, strokes, tab, region, tool, spot, paintColour, symmetry, turning, order, orderError,
     manifest, load, begin, setFamily, setPart, setBase, toggleLayer, setCoverage, setLayerColour, toggleShell, setShellColour, setEyes, setNose, setName,
-    paint, undo, placeOrder, refreshOrder, reset,
+    paint, undo, placeOrder, refreshOrder, reset, payError, pay, simulatePay,
   };
 });

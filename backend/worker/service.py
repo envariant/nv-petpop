@@ -161,7 +161,11 @@ class Worker:
             key = ctx.key("manifest.json")
             self._artefact(job_id)("manifest.json", "manifest", "F", key, len(self.store.get(key)))
             on_stage("F", "ok", int((time.perf_counter() - t0) * 1000), None)
-            if ticket:
+            from backend.api.payments import payable
+
+            with self.db() as db:
+                paid = payable(db, spec["composition_id"])
+            if ticket and paid:  # unpaid: the bundle goes to the printer when the payment arrives (decision 125)
                 copy_bundle(self.s.fulfil_dir, self.store, job_id, ticket)
             msg = "Your figurine is ready"
             self._update(job_id, status="done", stage="done", pct=100, message=msg, finished_at=utcnow(), fallback="none",

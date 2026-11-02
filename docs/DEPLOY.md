@@ -62,7 +62,7 @@ The sync agent runs inside the studio's API process and makes one round every `P
    S3_BUCKET=<bucket>
    AWS_DEFAULT_REGION=ap-southeast-1
    ```
-   Payment settings: decision 125 and the payments section below.
+   Payment settings: the payments section below.
 4. `make up`. It starts `api`, `worker-kiosk`, `redis` and `caddy` (plus `postgres` if `DATABASE_URL` is empty).
    `make down` stops it.
 5. **CloudFront.** One distribution for `petpop.sg`, origin `origin.petpop.sg` over HTTPS:
@@ -73,6 +73,29 @@ The sync agent runs inside the studio's API process and makes one round every `P
    Library files and result previews are served by the API from S3 with signed links, so they pass through `/api/*`.
 6. **The apps.** Build the native apps against the cloud: `VITE_API_ORIGIN=https://petpop.sg npm run build:native`
    (docs/LOCAL.md section 4). Kiosks open `https://petpop.sg/?mode=kiosk` once (or run a `VITE_MODE=kiosk` native build).
+
+## Payments: HitPay (PayNow and cards)
+
+The cloud takes payment for each order (decision 125). The customer pays on the order screen: PayNow shows a QR their
+banking app scans; a card opens HitPay's hosted checkout (on a kiosk, a QR of the checkout to pay on their phone).
+The figurine's export starts at once; its print bundle goes to the shop, and the result QR appears, once paid.
+
+1. A HitPay business account (Singapore), PayNow and cards enabled. Start in the sandbox.
+2. In the dashboard: an API key, and a webhook for payment requests pointing at
+   `https://petpop.sg/api/v1/payments/hitpay/webhook`; note its salt.
+3. On the cloud's `.env`:
+   ```
+   PETPOP_PAYMENTS=hitpay
+   PETPOP_PRICE_SGD=39.00
+   HITPAY_API_KEY=<key>                       # env only, never committed
+   HITPAY_SALT=<webhook salt>
+   HITPAY_API_URL=                            # empty = sandbox; https://api.hit-pay.com/v1 when you go live
+   ```
+4. Test in the sandbox with an order from the app; the webhook marks it paid (the app also asks HitPay while a payment
+   is pending, so a missed webhook only delays it).
+
+`PETPOP_PAYMENTS=fake` is the same flow with a "Simulate payment (test)" button and no money; the Playwright tests run
+it. `off` (the default) skips payment: the shop takes it at the counter.
 
 ## The studio in the shop
 

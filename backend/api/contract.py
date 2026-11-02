@@ -67,6 +67,10 @@ class ApiImpl(Protocol):
     async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus: ...
     async def export_composition(self, composition_id: str) -> m.ExportAccepted: ...
     async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted: ...
+    # payment for an order (decision 125)
+    async def create_payment(self, composition_id: str, body: m.PaymentCreate) -> m.Payment: ...
+    async def get_payment(self, composition_id: str) -> m.Payment: ...
+    async def simulate_payment(self, composition_id: str) -> m.Payment: ...
     # studio
     async def parse(self, req: m.ParseRequest) -> m.ParseResponse: ...
     async def create_job(self, body: m.JobCreate, user: m.StaffUser) -> m.JobCreated: ...
@@ -248,6 +252,25 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
                 operation_id="kioskBespoke", responses={**ERR, 403: {"model": m.ErrorBody}})
     async def bespoke(composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
         return await impl.bespoke(composition_id, body)
+
+    @kiosk.post("/compositions/{composition_id}/payment", response_model=m.Payment, status_code=201,
+                operation_id="kioskCreatePayment", responses={**ERR, 409: {"model": m.ErrorBody}, 502: {"model": m.ErrorBody}})
+    async def create_payment(composition_id: str, body: m.PaymentCreate) -> m.Payment:
+        """Start paying for an ordered composition (its export requested). A new call replaces a pending payment
+        (another method, or an expired QR); a paid order answers 409."""
+        return await impl.create_payment(composition_id, body)
+
+    @kiosk.get("/compositions/{composition_id}/payment", response_model=m.Payment, operation_id="kioskGetPayment",
+               responses=ERR)
+    async def get_payment(composition_id: str) -> m.Payment:
+        """The order's latest payment, its status refreshed from the provider while pending."""
+        return await impl.get_payment(composition_id)
+
+    @kiosk.post("/compositions/{composition_id}/payment/simulate", response_model=m.Payment, operation_id="kioskSimulatePayment",
+                responses={**ERR, 403: {"model": m.ErrorBody}})
+    async def simulate_payment(composition_id: str) -> m.Payment:
+        """The fake provider only (tests, demos): mark the pending payment paid. 403 with a real provider."""
+        return await impl.simulate_payment(composition_id)
 
     @kiosk.get("/ops", response_model=m.KioskOps, operation_id="kioskOps", responses={403: {"model": m.ErrorBody}})
     async def kiosk_ops(x_staff_token: str | None = Header(None)) -> m.KioskOps:

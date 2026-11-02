@@ -222,6 +222,24 @@ class CompositionRow(Base):
     collected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # the shop pulled the print bundle
 
 
+class PaymentRow(Base):
+    """A payment for an order (decision 125): one row per attempt; the latest is the order's payment."""
+    __tablename__ = "payments"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    composition_id: Mapped[str] = mapped_column(ForeignKey("compositions.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(12))  # hitpay | fake
+    provider_ref: Mapped[str] = mapped_column(String(80), index=True)  # HitPay's payment request id
+    method: Mapped[str] = mapped_column(String(12))  # paynow | card
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)  # pending | paid | failed | expired
+    amount: Mapped[str] = mapped_column(String(16))
+    currency: Mapped[str] = mapped_column(String(3))
+    qr: Mapped[str | None] = mapped_column(Text, nullable=True)
+    checkout_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 _engines: dict[str, Engine] = {}
 
 # Columns added after a table first shipped: create_all() makes new tables but never alters existing ones, so an

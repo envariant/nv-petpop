@@ -3,7 +3,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { ApiFailure, KioskApi, randomSeed, specFromBreed } from '@petpop/core';
-import type { BespokeAccepted, Breed, CompositionBody, PetSpec, Species } from '@petpop/core';
+import type { BespokeAccepted, Breed, CompositionBody, PaymentOffer, PetSpec, Species } from '@petpop/core';
 import { useDesign } from './design';
 
 export type Screen = 'attract' | 'species' | 'breed' | 'design' | 'name' | 'order' | 'bespoke';
@@ -14,6 +14,7 @@ export const useSession = defineStore('session', () => {
   const idleSeconds = ref(90);
   const countdownSeconds = ref(15);
   const bespokeEnabled = ref(false);
+  const payment = ref<PaymentOffer | null>(null); // how this server takes payment (decision 125); null: at the counter
   const species = ref<Species | null>(null);
   const breed = ref<Breed | null>(null);
   const spec = ref<PetSpec | null>(null);
@@ -41,6 +42,7 @@ export const useSession = defineStore('session', () => {
       idleSeconds.value = s.idle_policy.idle_seconds;
       countdownSeconds.value = s.idle_policy.countdown_seconds;
       bespokeEnabled.value = s.bespoke_enabled;
+      payment.value = s.payment ?? null;
     } catch {
       /* the offline overlay retries */
     }
@@ -73,5 +75,5 @@ export const useSession = defineStore('session', () => {
     clear();
     screen.value = 'attract';
   }
-  return { screen, sessionId, idleSeconds, countdownSeconds, bespokeEnabled, species, breed, spec, bespoke, error, go, start, chooseSpecies, chooseBreed, requestBespoke, reset };
+  return { screen, sessionId, idleSeconds, countdownSeconds, bespokeEnabled, payment, species, breed, spec, bespoke, error, go, start, chooseSpecies, chooseBreed, requestBespoke, reset };
 });

@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // The Vue customer app (Vite, decision 122) against the standalone mock server; PP_BACKEND=real swaps in the real backend, and
 // PP_GENAI_DOWN=1 points that backend's GenAI profile at hosts that do not answer (gate 7: the kiosk still sells).
+// Both run the fake payment provider (decision 125), so every order is paid for in the tests.
 const GENAI_DOWN = process.env.PP_GENAI_DOWN === '1'
   ? 'GENAI_PROFILE=mac-m4pro COMFY_URL=http://127.0.0.1:9 SHAPE_URL=http://127.0.0.1:9 OLLAMA_URL=http://127.0.0.1:9 GENAI_TOKEN=unreachable '
   : '';
@@ -35,8 +36,8 @@ export default defineConfig({
     {
       // PP_BACKEND=real runs the same tests against the real backend (make dev mode, embedded worker).
       command: process.env.PP_BACKEND === 'real'
-        ? `cd ../.. && rm -rf var/e2e && ${GENAI_DOWN}PYTHONPATH=.:mock-server:packages/core/python:packages/library/python PETPOP_VAR=var/e2e PETPOP_EMBED_WORKER=1 PETPOP_QUALITY=test PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin PETPOP_STUDIO_PASSWORD=petpop-dev KIOSK_BESPOKE=1 .venv/bin/python -m backend.api --port ${MOCK_PORT}`
-        : `cd ../.. && PYTHONPATH=.:mock-server:packages/core/python:packages/library/python PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin PETPOP_STUDIO_PASSWORD=petpop-dev KIOSK_BESPOKE=1 .venv/bin/python -m mock_server --port ${MOCK_PORT}`,
+        ? `cd ../.. && rm -rf var/e2e && ${GENAI_DOWN}PYTHONPATH=.:mock-server:packages/core/python:packages/library/python PETPOP_VAR=var/e2e PETPOP_EMBED_WORKER=1 PETPOP_QUALITY=test PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin PETPOP_STUDIO_PASSWORD=petpop-dev KIOSK_BESPOKE=1 PETPOP_PAYMENTS=fake .venv/bin/python -m backend.api --port ${MOCK_PORT}`
+        : `cd ../.. && PYTHONPATH=.:mock-server:packages/core/python:packages/library/python PETPOP_MOCK_SPEED=0.02 PETPOP_STAFF_TOKEN=staffpin PETPOP_STUDIO_PASSWORD=petpop-dev KIOSK_BESPOKE=1 PETPOP_PAYMENTS=fake .venv/bin/python -m mock_server --port ${MOCK_PORT}`,
       url: `http://127.0.0.1:${MOCK_PORT}/api/v1/health`,
       reuseExistingServer: false,
       timeout: 60_000,

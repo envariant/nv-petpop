@@ -29,9 +29,10 @@ from .bus import make_bus
 from .fulfilment import copy_bundle
 from .library import KioskLibrary
 from .studio_library import StudioLibrary
-from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, ManualTaskRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
+from .db import (ArtefactRow, BreedRow, CompositionRow, JobRow, ManualTaskRow, PaymentRow, SessionRow, StaffUserRow, StageTimingRow, check_password, seed_breeds,
                  seed_staff, session_factory, utcnow)
 from .store import make_store
+from . import payments as pay
 
 TERMINAL = {"done", "failed", "fulfilled"}
 POLICY = m.IdlePolicy()
@@ -58,6 +59,8 @@ class BackendApi:
         self.library.load_releases()
         self.studio = StudioLibrary(s, self.db, self.store, self.bus, self.secret)
         self.studio.seed()
+        self.payments = pay.make_provider()
+        self.library.payments_on = self.payments is not None
 
     # ------------------------------------------------------------------ helpers
     def _url(self, key: str) -> str:
@@ -119,7 +122,94 @@ class BackendApi:
             db.add(row)
             db.commit()
             return m.Session(session_id=row.id, kiosk_id=row.kiosk_id, started_at=aware(row.started_at), idle_policy=POLICY,
-                             bespoke_enabled=self.s.kiosk_bespoke)
+                             bespoke_enabled=self.s.kiosk_bespoke, payment=pay.offer(self.payments))
+
+    # ------------------------------------------------------------------ payment for an order (decision 125)
+    def order_payable(self, row: CompositionRow) -> bool:
+        with self.db() as db:
+            return pay.payable(db, row.id, self.payments is not None)
+
+    def _mark(self, db, row: PaymentRow, state: str) -> None:
+        if row.status == state or row.status == "paid":
+            return
+        row.status = state
+        if state == "paid":
+            row.paid_at = utcnow()
+            comp = db.get(CompositionRow, row.composition_id)
+            job = db.get(JobRow, comp.job_id) if comp and comp.job_id else None
+            if job and job.status in ("done", "fulfilled"):  # exported before it was paid: print it now
+                copy_bundle(self.s.fulfil_dir, self.store, job.id, comp.ticket or job.ticket)
+        db.commit()
+
+    async def create_payment(self, composition_id: str, body: m.PaymentCreate) -> m.Payment:
+        if not self.payments:
+            raise ApiError(409, "payments are off on this server: pay at the counter")
+        with self.db() as db:
+            comp = db.get(CompositionRow, composition_id)
+            if not comp:
+                raise ApiError(404, f"unknown composition {composition_id}")
+            if not comp.job_id:
+                raise ApiError(409, "order the figurine first")
+            if pay.payable(db, composition_id, True):
+                raise ApiError(409, "this order is already paid")
+            for old in db.scalars(select(PaymentRow).where(PaymentRow.composition_id == composition_id, PaymentRow.status == "pending")):
+                old.status = "expired"  # replaced: another method, or a fresh QR
+            db.commit()
+        price = pay.price()
+        redirect = f"{self.s.public_url.rstrip('/')}/paid" if self.s.public_url else "https://localhost/paid"
+        try:
+            made = await asyncio.to_thread(self.payments.create, composition_id, body.method, price, redirect)
+        except Exception as exc:  # noqa: BLE001 - the provider is down or refused: say so, the customer can retry
+            raise ApiError(502, f"the payment provider did not answer: {exc}") from exc
+        with self.db() as db:
+            row = PaymentRow(id="p_" + uuid.uuid4().hex[:12], composition_id=composition_id, provider=self.payments.name,
+                             provider_ref=made.ref, method=body.method, status="pending", amount=price.amount, currency=price.currency,
+                             qr=made.qr, checkout_url=made.checkout_url, created_at=utcnow(), expires_at=made.expires_at)
+            db.add(row)
+            db.commit()
+            return pay.model(row)
+
+    async def get_payment(self, composition_id: str) -> m.Payment:
+        with self.db() as db:
+            row = pay.latest(db, composition_id)
+            if not row:
+                raise ApiError(404, "no payment for this order")
+            ref, provider = row.provider_ref, row.provider
+            pending = row.status == "pending"
+        if pending and self.payments and provider == self.payments.name and provider != "fake":
+            try:
+                state = await asyncio.to_thread(self.payments.status, ref)
+            except Exception:  # noqa: BLE001 - keep the last known state; the webhook may still arrive
+                state = "pending"
+            if state != "pending":
+                with self.db() as db:
+                    self._mark(db, db.get(PaymentRow, row.id), state)
+        with self.db() as db:
+            return pay.model(db.get(PaymentRow, row.id))
+
+    async def simulate_payment(self, composition_id: str) -> m.Payment:
+        if not self.payments or self.payments.name != "fake":
+            raise ApiError(403, "only the fake payment provider can be simulated")
+        with self.db() as db:
+            row = pay.latest(db, composition_id)
+            if not row:
+                raise ApiError(404, "no payment for this order")
+            self._mark(db, row, "paid")
+            return pay.model(row)
+
+    def payment_webhook(self, raw: bytes, signature: str | None) -> bool:
+        """HitPay's dashboard webhook: verified, then the payment it names marked. False for a forged one."""
+        if not isinstance(self.payments, pay.HitPayProvider):
+            return False
+        got = self.payments.webhook(raw, signature)
+        if not got:
+            return False
+        ref, state = got
+        with self.db() as db:
+            row = db.scalar(select(PaymentRow).where(PaymentRow.provider_ref == ref))
+            if row and state != "pending":
+                self._mark(db, row, state)
+        return True
 
     async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
         """"Make it unique" (KIOSK_BESPOKE): the composition becomes a studio bespoke job's starting spec; the kiosk

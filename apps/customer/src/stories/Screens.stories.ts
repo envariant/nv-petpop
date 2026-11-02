@@ -16,7 +16,7 @@ import StillThere from '../screens/StillThere.vue';
 import Offline from '../screens/Offline.vue';
 import StaffPanel from '../screens/StaffPanel.vue';
 import PhoneResult from '../screens/PhoneResult.vue';
-import { CORGI, ORDER_READY, SPEC } from './fixtures';
+import { CORGI, ORDER_PAYING, ORDER_READY, PAY_OFFER, SPEC } from './fixtures';
 
 const SCREENS: Record<Screen, Component> = { attract: AttractScreen, species: SpeciesScreen, breed: BreedScreen, design: DesignScreen, name: NameScreen, order: OrderScreen, bespoke: BespokeScreen };
 
@@ -27,6 +27,7 @@ const STATES = {
   dog: { species: 'dog' as const },
   chosen,
   bespoke: { ...chosen, bespokeEnabled: true },
+  paying: { ...chosen, payment: PAY_OFFER },
   accepted: { ...chosen, bespokeEnabled: true, bespoke: { request_id: 'j_story', ticket: 'PP-4821', message: "We'll message you when your one-off figurine is ready." } },
 };
 
@@ -38,6 +39,7 @@ const ScreenStory = defineComponent({
     state: { type: String as PropType<keyof typeof STATES>, default: 'none' },
     tab: { type: String as PropType<Tab>, default: 'shape' },
     ordered: { type: Boolean, default: false },
+    paying: { type: Boolean, default: false },
   },
   setup(props) {
     const ready = ref(false);
@@ -50,7 +52,7 @@ const ScreenStory = defineComponent({
         await d.begin(s.breed);
         d.setName('Biscuit');
         d.tab = props.tab;
-        if (props.ordered) d.order = ORDER_READY;
+        if (props.ordered) d.order = props.paying ? ORDER_PAYING : ORDER_READY;
       }
       s.screen = props.screen;
       ready.value = true;
@@ -84,6 +86,7 @@ export const DesignPaint: Story = { args: { screen: 'design', state: 'chosen', t
 export const DesignExtras: Story = { args: { screen: 'design', state: 'chosen', tab: 'extras' } };
 export const Name: Story = { args: { screen: 'name', state: 'chosen' } };
 export const Order: Story = { args: { screen: 'order', state: 'chosen', ordered: true } };
+export const OrderPaying: Story = { args: { screen: 'order', state: 'paying', ordered: true, paying: true } };
 export const DesignWithMakeItUnique: Story = { args: { screen: 'design', state: 'bespoke' } };
 export const Bespoke: Story = { args: { screen: 'bespoke', state: 'bespoke' } };
 export const BespokeAccepted: Story = { args: { screen: 'bespoke', state: 'accepted' } };

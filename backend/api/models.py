@@ -1,7 +1,8 @@
 """API contract models (BRIEF Sections 9 and 17). Shared by mock-server/ and backend/api/ so both publish the
 identical OpenAPI document (data/schema/openapi.json). 2.0.0 splits the surface into /kiosk and /studio; 3.0.0 adds
 the kiosk library mode (releases, compositions, Stage-F-only exports) and moves bespoke onto a composition; 3.1.0
-adds Studio's curation: batches, review, the parts and pattern editors, publish and releases."""
+adds Studio's curation: batches, review, the parts and pattern editors, publish and releases; 3.9.0 adds payment for
+an order (decision 125: HitPay, PayNow and cards)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,7 +10,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.8.0"
+API_VERSION = "3.9.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -44,6 +45,23 @@ class SessionCreate(_M):
     kiosk_id: str = Field("kiosk-1", max_length=40)
 
 
+PaymentMethod = Literal["paynow", "card"]
+PaymentState = Literal["pending", "paid", "failed", "expired"]
+
+
+class Price(_M):
+    amount: str = Field(description="Decimal string in the currency's major unit, e.g. \"39.00\".", pattern=r"^\d+\.\d{2}$")
+    currency: Literal["SGD"]
+
+
+class PaymentOffer(_M):
+    """How this server takes payment for an order (decision 125). Absent when orders are not paid for in the app
+    (payments off: the shop takes payment at the counter)."""
+    price: Price
+    methods: list[PaymentMethod]
+    provider: Literal["hitpay", "fake"] = Field(description="fake: a test provider; the app offers a \"simulate payment\" button.")
+
+
 class Session(_M):
     """An anonymous kiosk session (no accounts); wiped on idle."""
     session_id: str
@@ -51,6 +69,28 @@ class Session(_M):
     started_at: datetime
     idle_policy: IdlePolicy
     bespoke_enabled: bool = Field(description="KIOSK_BESPOKE: whether the kiosk offers \"Make it unique\".")
+    payment: PaymentOffer | None = None
+
+
+class PaymentCreate(_M):
+    method: PaymentMethod
+
+
+class Payment(_M):
+    """A payment for one order. PayNow: `qr` is the payload to render as a QR code (a banking app scans it). Card:
+    `checkout_url` is the provider's hosted page (open it, or show it as a QR on a kiosk). The order is printed and its
+    result QR shown once `status` is paid."""
+    payment_id: str
+    composition_id: str
+    method: PaymentMethod
+    status: PaymentState
+    price: Price
+    provider: Literal["hitpay", "fake"]
+    qr: str | None = None
+    checkout_url: str | None = None
+    created_at: datetime
+    expires_at: datetime | None = None
+    paid_at: datetime | None = None
 
 
 class BespokeRequest(_M):
@@ -454,6 +494,7 @@ class CompositionStatus(_M):
     previews: dict[str, str]
     error: str | None = None
     composition: Composition
+    payment: Payment | None = Field(None, description="The order's latest payment, when payments are on.")
 
 
 class ExportAccepted(_M):

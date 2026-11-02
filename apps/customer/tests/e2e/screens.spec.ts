@@ -116,12 +116,21 @@ test('5 name: the figurine is named before ordering', async ({ page }) => {
   await expect(page.locator('[data-screen=design]')).toBeVisible();
 });
 
-test('6 order: Stage F export to a ticket, QR and the printed figurine', async ({ page }) => {
+test('6 order: pay by PayNow or card, then the ticket, QR and the printed figurine', async ({ page }) => {
   await toDesign(page);
   await page.getByTestId('to-name').tap();
   await enter(page, 'pet-name', 'Rex');
   await page.getByTestId('key-done').tap();
   await expect(page.locator('[data-screen=order]')).toBeVisible();
+  // payment (decision 125; the test servers run the fake provider): no ticket until paid
+  await expect(page.getByTestId('order')).toContainText('S$39.00');
+  await expect(page.getByTestId('order-ticket')).toHaveCount(0);
+  await page.getByTestId('pay-card').tap();
+  await expect(page.getByTestId(kiosk() ? 'pay-card-qr' : 'pay-card-open')).toBeVisible();
+  await page.getByTestId('pay-paynow').tap(); // changing method replaces the payment
+  await expect(page.getByTestId('pay-qr').locator('svg')).toBeVisible();
+  await page.getByTestId('pay-simulate').tap();
+  await expect(page.getByTestId('order-pay')).toHaveCount(0);
   await expect(page.getByTestId('order-ticket')).toContainText('PP-');
   await expect(page.getByTestId('order-qr')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText('Rex is on the way!')).toBeVisible();

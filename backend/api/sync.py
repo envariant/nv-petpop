@@ -44,8 +44,7 @@ RESULT_FILES = {"figure.glb": "glb", "thumbnail.png": "thumbnail", "turntable.mp
 
 def paid_or_free(impl, row: CompositionRow) -> bool:
     """Whether an order may be printed: paid, or payments are off (decision 125)."""
-    check = getattr(impl, "order_payable", None)
-    return check is None or check(row)
+    return impl.order_payable(row)
 
 
 # --------------------------------------------------------------------------- the cloud's side

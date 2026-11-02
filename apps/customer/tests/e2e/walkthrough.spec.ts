@@ -63,10 +63,14 @@ test('walkthrough: attract to an ordered figurine from the library', async ({ pa
   await enter(page, 'pet-name', 'Rex');
   await shot('8-name');
   await page.getByTestId('key-done').tap();
+  await page.getByTestId('pay-paynow').tap(); // decision 125: the test servers run the fake payment provider
+  await expect(page.getByTestId('pay-qr').locator('svg')).toBeVisible();
+  await shot('9-pay');
+  await page.getByTestId('pay-simulate').tap();
   await expect(page.getByTestId('order-ticket')).toContainText('PP-');
   await expect(page.getByTestId('order-qr')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText('Rex is on the way!')).toBeVisible();
-  await shot('9-order');
+  await shot('10-order');
   await expect(page.locator('[data-screen=generating]')).toHaveCount(0); // never a Generating screen
   console.log(`walkthrough: attract to ordered figurine in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 

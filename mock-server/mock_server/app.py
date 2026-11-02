@@ -215,7 +215,16 @@ class MockApi:
         sid = "s_" + uuid.uuid4().hex[:12]
         self.sessions[sid] = {"kiosk_id": body.kiosk_id, "started": time.time(), "bespoke": 0}
         return m.Session(session_id=sid, kiosk_id=body.kiosk_id, started_at=utc(time.time()), idle_policy=m.IdlePolicy(),
-                         bespoke_enabled=self.bespoke_enabled)
+                         bespoke_enabled=self.bespoke_enabled, payment=self.library.offer())
+
+    async def create_payment(self, composition_id: str, body: m.PaymentCreate) -> m.Payment:
+        return self.library.create_payment(composition_id, body.method)
+
+    async def get_payment(self, composition_id: str) -> m.Payment:
+        return self.library.get_payment(composition_id)
+
+    async def simulate_payment(self, composition_id: str) -> m.Payment:
+        return self.library.simulate_payment(composition_id)
 
     async def bespoke(self, composition_id: str, body: m.BespokeRequest) -> m.BespokeAccepted:
         if not self.bespoke_enabled:

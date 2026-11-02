@@ -14,20 +14,26 @@ export const HANDLED_PATHS = [
   '/api/v1/kiosk/ops/orders/{composition_id}/reprint', '/api/v1/kiosk/library/{species}', '/api/v1/kiosk/library/{species}/families',
   '/api/v1/kiosk/library/{species}/parts', '/api/v1/kiosk/library/{species}/patterns', '/api/v1/kiosk/library/{species}/files/{path}',
   '/api/v1/kiosk/compositions', '/api/v1/kiosk/compositions/{composition_id}', '/api/v1/kiosk/compositions/{composition_id}/export',
-  '/api/v1/kiosk/compositions/{composition_id}/bespoke',
+  '/api/v1/kiosk/compositions/{composition_id}/bespoke', '/api/v1/kiosk/compositions/{composition_id}/payment',
+  '/api/v1/kiosk/compositions/{composition_id}/payment/simulate',
 ];
 
-const API_VERSION = '3.8.0';
+const API_VERSION = '3.9.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();
 const ticket = () => `PP-${1000 + Math.floor(Math.random() * 9000)}`;
 const sessions = new Map<string, { bespoke: number }>();
-interface MockComp { id: string; session_id: string; body: CompositionBody; created: number; exported: number | null; ticket: string | null; bespoke: boolean }
+interface MockPayment { payment_id: string; composition_id: string; method: 'paynow' | 'card'; status: 'pending' | 'paid' | 'failed' | 'expired'; price: { amount: string; currency: 'SGD' }; provider: 'fake'; qr: string | null; checkout_url: string | null; created_at: string; expires_at: string | null; paid_at: string | null }
+interface MockComp { id: string; session_id: string; body: CompositionBody; created: number; exported: number | null; ticket: string | null; bespoke: boolean; payments: MockPayment[] }
 const compositions = new Map<string, MockComp>();
 const breedDocs = { dog: dogs, cat: cats } as Record<string, { accent: string; breeds: Breed[] }>;
 // ?bespoke=1 turns "Make it unique" on in standalone mode (KIOSK_BESPOKE on a real kiosk).
 const bespokeOn = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('bespoke') === '1';
+// ?pay=1 turns payment on in standalone mode, with the fake provider (decision 125).
+const payOn = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('pay') === '1';
+const PRICE = { amount: '39.00', currency: 'SGD' as const };
+const paid = (c: MockComp) => c.payments.some((p) => p.status === 'paid');
 const notFound = (detail: string) => HttpResponse.json({ detail }, { status: 404 });
 
 const manifests = new Map<string, Promise<ReleaseManifest>>();
@@ -60,10 +66,10 @@ function compositionStatus(c: MockComp) {
   return {
     composition_id: c.id, session_id: c.session_id, status: st.status, pet_name: c.body.pet_name ?? null, species: c.body.species,
     release_version: c.body.release_version, created_at: iso(c.created), export: st.export, ticket: c.ticket,
-    result_url: ready ? `${location.origin}/r/${c.id}.0.mock` : null,
+    result_url: ready && (!payOn() || paid(c)) ? `${location.origin}/r/${c.id}.0.mock` : null,
     artefacts: ready ? ['figure.3mf', 'figure.stl', 'albedo.png', 'figure.glb', 'thumbnail.png'].map((n) => ({ name: n, kind: n === 'figure.3mf' ? '3mf' : n === 'figure.stl' ? 'stl' : n === 'albedo.png' ? 'albedo' : n === 'figure.glb' ? 'glb' : 'thumbnail', stage: 'F', url: f(n), bytes: 1 })) : [],
     previews: ready ? { glb: f('figure.glb'), thumbnail: f('thumbnail.png') } : {},
-    error: null, composition: c.body,
+    error: null, composition: c.body, payment: c.payments[c.payments.length - 1] ?? null,
   };
 }
 
@@ -98,7 +104,8 @@ export const handlers = [
     const id = rid('s');
     sessions.set(id, { bespoke: 0 });
     return HttpResponse.json(
-      { session_id: id, kiosk_id: body.kiosk_id ?? 'kiosk-1', started_at: iso(Date.now()), idle_policy: { idle_seconds: 90, countdown_seconds: 15 }, bespoke_enabled: bespokeOn() },
+      { session_id: id, kiosk_id: body.kiosk_id ?? 'kiosk-1', started_at: iso(Date.now()), idle_policy: { idle_seconds: 90, countdown_seconds: 15 }, bespoke_enabled: bespokeOn(),
+        payment: payOn() ? { price: PRICE, methods: ['paynow', 'card'], provider: 'fake' } : null },
       { status: 201 },
     );
   }),
@@ -156,7 +163,7 @@ export const handlers = [
     if (!sessions.has(body.session_id)) return notFound('unknown session');
     const errs = compositionErrors(await manifest(body.composition.species), body.composition);
     if (errs.length) return HttpResponse.json({ detail: { composition: errs } }, { status: 422 });
-    const c: MockComp = { id: rid('c'), session_id: body.session_id, body: body.composition, created: Date.now(), exported: null, ticket: null, bespoke: false };
+    const c: MockComp = { id: rid('c'), session_id: body.session_id, body: body.composition, created: Date.now(), exported: null, ticket: null, bespoke: false, payments: [] };
     compositions.set(c.id, c);
     return HttpResponse.json(compositionStatus(c), { status: 201 });
   }),
@@ -180,6 +187,35 @@ export const handlers = [
     s.bespoke += 1;
     c.bespoke = true;
     return HttpResponse.json({ request_id: rid('j'), ticket: ticket(), message: "We'll message you when your one-off figurine is ready." }, { status: 201 });
+  }),
+  // ------------------------------------------------------------------ payment (decision 125)
+  http.post('/api/v1/kiosk/compositions/:id/payment', async ({ params, request }) => {
+    const c = compositions.get(String(params.id));
+    if (!c) return notFound('unknown composition');
+    if (!payOn()) return HttpResponse.json({ detail: 'payments are off on this server: pay at the counter' }, { status: 409 });
+    if (c.exported === null) return HttpResponse.json({ detail: 'order the figurine first' }, { status: 409 });
+    if (paid(c)) return HttpResponse.json({ detail: 'this order is already paid' }, { status: 409 });
+    const { method } = (await request.json()) as { method: 'paynow' | 'card' };
+    c.payments.forEach((p) => p.status === 'pending' && (p.status = 'expired'));
+    const id = rid('p');
+    const p: MockPayment = { payment_id: id, composition_id: c.id, method, status: 'pending', price: PRICE, provider: 'fake',
+      qr: method === 'paynow' ? `PETPOP-FAKE-PAYNOW|${id}|SGD39.00` : null, checkout_url: method === 'card' ? `${location.origin}/paid?fake_checkout=${id}` : null,
+      created_at: iso(Date.now()), expires_at: method === 'paynow' ? iso(Date.now() + 15 * 60_000) : null, paid_at: null };
+    c.payments.push(p);
+    return HttpResponse.json(p, { status: 201 });
+  }),
+  http.get('/api/v1/kiosk/compositions/:id/payment', ({ params }) => {
+    const c = compositions.get(String(params.id));
+    const p = c?.payments[c.payments.length - 1];
+    return p ? HttpResponse.json(p) : notFound('no payment for this order');
+  }),
+  http.post('/api/v1/kiosk/compositions/:id/payment/simulate', ({ params }) => {
+    if (!payOn()) return HttpResponse.json({ detail: 'only the fake payment provider can be simulated' }, { status: 403 });
+    const c = compositions.get(String(params.id));
+    const p = c?.payments[c.payments.length - 1];
+    if (!p) return notFound('no payment for this order');
+    if (p.status !== 'paid') Object.assign(p, { status: 'paid', paid_at: iso(Date.now()) });
+    return HttpResponse.json(p);
   }),
   // ------------------------------------------------------------------ ops (five-tap panel)
   http.get('/api/v1/kiosk/ops', async ({ request }) => {

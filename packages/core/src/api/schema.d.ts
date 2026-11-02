@@ -123,6 +123,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kiosk/compositions/{composition_id}/payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Payment
+         * @description The order's latest payment, its status refreshed from the provider while pending.
+         */
+        get: operations["kioskGetPayment"];
+        put?: never;
+        /**
+         * Create Payment
+         * @description Start paying for an ordered composition (its export requested). A new call replaces a pending payment
+         *     (another method, or an expired QR); a paid order answers 409.
+         */
+        post: operations["kioskCreatePayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kiosk/compositions/{composition_id}/payment/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate Payment
+         * @description The fake provider only (tests, demos): mark the pending payment paid. 403 with a real provider.
+         */
+        post: operations["kioskSimulatePayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kiosk/library/{species}": {
         parameters: {
             query?: never;
@@ -979,6 +1024,8 @@ export interface components {
             /** Error */
             error?: string | null;
             export: components["schemas"]["ExportStatus"] | null;
+            /** @description The order's latest payment, when payments are on. */
+            payment?: components["schemas"]["Payment"] | null;
             /** Pet Name */
             pet_name: string | null;
             /** Previews */
@@ -1849,6 +1896,71 @@ export interface components {
             min: number;
         };
         /**
+         * Payment
+         * @description A payment for one order. PayNow: `qr` is the payload to render as a QR code (a banking app scans it). Card:
+         *     `checkout_url` is the provider's hosted page (open it, or show it as a QR on a kiosk). The order is printed and its
+         *     result QR shown once `status` is paid.
+         */
+        Payment: {
+            /** Checkout Url */
+            checkout_url?: string | null;
+            /** Composition Id */
+            composition_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "paynow" | "card";
+            /** Paid At */
+            paid_at?: string | null;
+            /** Payment Id */
+            payment_id: string;
+            price: components["schemas"]["Price"];
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "hitpay" | "fake";
+            /** Qr */
+            qr?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "paid" | "failed" | "expired";
+        };
+        /** PaymentCreate */
+        PaymentCreate: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "paynow" | "card";
+        };
+        /**
+         * PaymentOffer
+         * @description How this server takes payment for an order (decision 125). Absent when orders are not paid for in the app
+         *     (payments off: the shop takes payment at the counter).
+         */
+        PaymentOffer: {
+            /** Methods */
+            methods: ("paynow" | "card")[];
+            price: components["schemas"]["Price"];
+            /**
+             * Provider
+             * @description fake: a test provider; the app offers a "simulate payment" button.
+             * @enum {string}
+             */
+            provider: "hitpay" | "fake";
+        };
+        /**
          * PetSpec
          * @description One pet description. Every selector, breed preset and parsed brief compiles into this object (BRIEF Section 3). Enumerations are closed.
          */
@@ -1954,6 +2066,19 @@ export interface components {
         PetSpec_palette_name: "black" | "white" | "cream" | "gold" | "red" | "tan" | "fawn" | "chocolate" | "grey" | "blue_grey" | "ginger" | "silver";
         /** @enum {unknown} */
         PetSpec_species: "dog" | "cat";
+        /** Price */
+        Price: {
+            /**
+             * Amount
+             * @description Decimal string in the currency's major unit, e.g. "39.00".
+             */
+            amount: string;
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "SGD";
+        };
         /** ProgressEvent */
         ProgressEvent: {
             /** Job Id */
@@ -2210,6 +2335,7 @@ export interface components {
             idle_policy: components["schemas"]["IdlePolicy"];
             /** Kiosk Id */
             kiosk_id: string;
+            payment?: components["schemas"]["PaymentOffer"] | null;
             /** Session Id */
             session_id: string;
             /**
@@ -2671,6 +2797,175 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportAccepted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskGetPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskCreatePayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskSimulatePayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                composition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
             /** @description Not Found */

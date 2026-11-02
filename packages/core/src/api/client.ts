@@ -8,7 +8,7 @@ import type {
   Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
   ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
-  KioskOrder, LibraryFamilies, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
+  KioskOrder, LibraryFamilies, Payment, PaymentMethod, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
   Species, StaffQueue, StaffToken, StaffUser,
 } from './types';
 
@@ -72,6 +72,13 @@ export const KioskApi = {
     unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/export', { params: { path: { composition_id: compositionId } } })),
   bespoke: async (compositionId: string, contact?: string): Promise<BespokeAccepted> =>
     unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/bespoke', { params: { path: { composition_id: compositionId } }, body: { contact: contact || null } })),
+  // Payment for an order (decision 125): start (or restart) one, poll it, and, with the fake provider, simulate it.
+  createPayment: async (compositionId: string, method: PaymentMethod): Promise<Payment> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/payment', { params: { path: { composition_id: compositionId } }, body: { method } })),
+  payment: async (compositionId: string): Promise<Payment> =>
+    unwrap(await api.GET('/api/v1/kiosk/compositions/{composition_id}/payment', { params: { path: { composition_id: compositionId } } })),
+  simulatePayment: async (compositionId: string): Promise<Payment> =>
+    unwrap(await api.POST('/api/v1/kiosk/compositions/{composition_id}/payment/simulate', { params: { path: { composition_id: compositionId } } })),
 };
 
 // ------------------------------------------------------------------ studio: bearer token

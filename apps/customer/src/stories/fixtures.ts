@@ -13,3 +13,12 @@ export const ORDER_READY = {
   export: { job_id: 'j_story', status: 'done', stage: 'done', pct: 100, message: 'Your figurine is ready' },
   artefacts: [], previews: { glb: '/fixtures/biscuit/figure.glb', thumbnail: '/fixtures/biscuit/thumbnail.png' }, error: null, composition: {},
 } as unknown as CompositionStatus;
+
+/** The same order, exported but waiting for its PayNow payment (decision 125). */
+export const PAY_OFFER = { price: { amount: '39.00', currency: 'SGD' as const }, methods: ['paynow', 'card'] as ('paynow' | 'card')[], provider: 'fake' as const };
+export const ORDER_PAYING = {
+  ...ORDER_READY, result_url: null,
+  payment: { payment_id: 'p_story', composition_id: 'c_story', method: 'paynow', status: 'pending', price: PAY_OFFER.price, provider: 'fake',
+    qr: '00020101021226370009SG.PAYNOW010120213201234567A0301104081999123152040000530370254053900.005802SG5907PETPOP 6009Singapore6304ABCD',
+    checkout_url: null, created_at: '2026-11-02T10:00:00Z', expires_at: '2026-11-02T10:15:00Z', paid_at: null },
+} as unknown as CompositionStatus;
