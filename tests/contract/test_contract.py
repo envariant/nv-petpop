@@ -393,32 +393,6 @@ def test_manual_tasks(client):
     again = client.post(url, files={"file": ("concept.png", buf.getvalue(), "image/png")}, headers=auth)
     assert again.status_code == 409
 
-
-def test_every_documented_path_is_exercised():
-    exercised = {f"{P}/health", f"{P}/r/{{token}}", f"{P}/files/{{key}}",
-                 f"{K}/sessions", f"{K}/breeds", f"{K}/ops", f"{K}/ops/orders/{{composition_id}}/reprint",
-                 f"{K}/library/{{species}}", f"{K}/library/{{species}}/families", f"{K}/library/{{species}}/parts",
-                 f"{K}/library/{{species}}/patterns", f"{K}/library/{{species}}/files/{{path}}", f"{K}/compositions",
-                 f"{K}/compositions/{{composition_id}}", f"{K}/compositions/{{composition_id}}/export",
-                 f"{K}/compositions/{{composition_id}}/bespoke",
-                 f"{S}/auth/login", f"{S}/auth/me", f"{S}/breeds", f"{S}/spec/parse", f"{S}/jobs", f"{S}/jobs/{{job_id}}",
-                 f"{S}/jobs/{{job_id}}/events", f"{S}/jobs/{{job_id}}/tweak", f"{S}/jobs/{{job_id}}/fulfil",
-                 f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",
-                 f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
-                 f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
-                 f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result",
-                 f"{S}/profiles"}
-    assert set(doc()["paths"]) == exercised
-
-
-@pytest.mark.parametrize("species", ["dog", "cat"])
-def test_specs_for_every_breed_validate(species):
-    from petpop_core.breeds import all_breeds
-
-    for b in all_breeds(species):
-        assert spec_errors(default_spec(species, b["id"], seed=1)) == [], b["id"]
-
-
 def test_kiosk_payment_for_an_order(paying_client):
     """Payment (decision 125): the session offers it; an order is paid with PayNow (a QR payload) or a card (a hosted
     checkout); the result page is the customer's only once paid; the fake provider can be simulated."""
@@ -463,3 +437,29 @@ def test_kiosk_payments_off(client):
     client.post(f"{K}/compositions/{cid}/export")
     assert client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"}).status_code == 409
     assert client.post(f"{K}/compositions/{cid}/payment/simulate").status_code == 403
+
+
+def test_every_documented_path_is_exercised():
+    exercised = {f"{P}/health", f"{P}/r/{{token}}", f"{P}/files/{{key}}",
+                 f"{K}/sessions", f"{K}/breeds", f"{K}/ops", f"{K}/ops/orders/{{composition_id}}/reprint",
+                 f"{K}/library/{{species}}", f"{K}/library/{{species}}/families", f"{K}/library/{{species}}/parts",
+                 f"{K}/library/{{species}}/patterns", f"{K}/library/{{species}}/files/{{path}}", f"{K}/compositions",
+                 f"{K}/compositions/{{composition_id}}", f"{K}/compositions/{{composition_id}}/export",
+                 f"{K}/compositions/{{composition_id}}/bespoke", f"{K}/compositions/{{composition_id}}/payment",
+                 f"{K}/compositions/{{composition_id}}/payment/simulate",
+                 f"{S}/auth/login", f"{S}/auth/me", f"{S}/breeds", f"{S}/spec/parse", f"{S}/jobs", f"{S}/jobs/{{job_id}}",
+                 f"{S}/jobs/{{job_id}}/events", f"{S}/jobs/{{job_id}}/tweak", f"{S}/jobs/{{job_id}}/fulfil",
+                 f"{S}/jobs/{{job_id}}/retry", f"{S}/queue", f"{S}/batches", f"{S}/batches/{{batch_id}}",
+                 f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
+                 f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
+                 f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result",
+                 f"{S}/profiles"}
+    assert set(doc()["paths"]) == exercised
+
+
+@pytest.mark.parametrize("species", ["dog", "cat"])
+def test_specs_for_every_breed_validate(species):
+    from petpop_core.breeds import all_breeds
+
+    for b in all_breeds(species):
+        assert spec_errors(default_spec(species, b["id"], seed=1)) == [], b["id"]
