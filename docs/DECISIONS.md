@@ -172,8 +172,10 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    is his call (CLAUDE.md). Nothing is built until those are chosen.
    Chosen so far (Nishant, 2026-11-01): AWS, Singapore region, an EC2 instance running the Compose stack (x86: `bpy`
    has no Linux ARM wheel, so no Graviton); Studio self-hosted in the shop, chosen by a deployment setting that
-   `make up` honours; PayNow must be offered. Open: the CDN (CloudFront recommended: free origin fetches from S3
-   and EC2, private buckets, one bill) and the payment provider (Stripe or HitPay, both with PayNow).
+   `make up` honours; PayNow must be offered. Then (2026-11-02): CloudFront as the CDN, HitPay as the payment
+   provider (decision 125), kiosks talk to the cloud (decision 124). Still open: whether app customers sign in,
+   whether app orders are delivered or collected in the shop, how a customer hears the figurine is ready, and the
+   price.
 124. **Deployment roles and the shop-to-cloud sync (Nishant, 2026-11-02).** One setting, `PETPOP_DEPLOY` (`all` |
    `cloud` | `studio`), decides what a process serves and runs: the cloud serves the customer app and `/kiosk` and
    runs the kiosk export worker; the studio serves Studio and `/studio` and runs the studio worker; `all` is one box.
