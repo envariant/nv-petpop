@@ -214,8 +214,8 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [x] P1 the geometry (`petpop_library/parts.py`: joint frames, assembly, mirroring, leg twists, head angles, the
   automatic first guess, commit checks) and the kit schema (`data/schema/part_kit.schema.json`)
 - [x] P2 proxy kits cut from the labelled templates (`scripts/make_proxy_parts.py`, `fixtures/parts/`)
-- [ ] P3 the Studio part library: upload, first guess, rig edits, poses, commit (API 3.11.0, mock server, client)
-- [ ] P4 the TypeScript twin (`packages/scene/src/parts.ts`) and Studio's rigging workbench (3D viewport, gizmos,
+- [x] P3 the Studio part library: upload, first guess, rig edits, poses, commit (API 3.11.0, mock server, client)
+- [x] P4 the TypeScript twin (`packages/scene/src/parts.ts`) and Studio's rigging workbench (3D viewport, gizmos,
   symmetry, poses, commit)
 - [ ] P5 the Blender composition script (`scripts/compose_parts.py`) consuming committed kits and compositions
 - [ ] P6 the switch: releases carry kits, compositions choose variants and a pose, the customer app assembles parts,

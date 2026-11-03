@@ -30,4 +30,7 @@ if (existsSync(fx)) {
   for (const d of readdirSync(fx)) cpSync(join(fx, d), join(pub, 'fixtures', d), { recursive: true });
 }
 unpackReleases(root, pub); // the proxy library releases, for standalone mode
+// the proxy part kits (decision 127), for the part library's standalone mode and stories
+const parts = join(root, 'fixtures/parts');
+if (existsSync(parts)) cpSync(parts, join(pub, 'parts'), { recursive: true });
 console.log('assets synced into public/');

@@ -248,6 +248,64 @@ test('12 manual: the inbox shows what the API would get; uploading an output res
   await expect(page.getByTestId('manual-list')).toContainText('submitted');
 });
 
+test('13 parts: labelled GLBs in, a kit per breed with every kind', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await page.getByTestId('nav-parts').tap();
+  await expect(page.locator('[data-screen=parts]')).toBeVisible();
+  const dir = '../../fixtures/parts/cat';
+  const files = ['mixed__head.glb', 'mixed__torso.glb', 'mixed__front_leg.glb', 'mixed__hind_leg.glb', 'mixed__tail.glb', 'mixed__tail__plume.glb'];
+  await page.getByTestId('parts-species-cat').tap();
+  await page.getByTestId('parts-upload').setInputFiles(files.map((f) => `${dir}/${f}`));
+  await expect(page.getByTestId('parts-notice')).toContainText('6 parts for mixed');
+  await expect(page.getByTestId('kit-mixed')).toContainText('ready to commit');
+});
+
+test('14 rigging: joints, symmetry, a pose, commit', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await page.getByTestId('nav-parts').tap();
+  await page.getByTestId('parts-species-dog').tap();
+  const dir = '../../fixtures/parts/dog';
+  const kinds = ['head', 'torso', 'front_leg', 'hind_leg', 'tail'];
+  await page.getByTestId('parts-upload').setInputFiles(kinds.map((k) => `${dir}/mixed__${k}.glb`).concat(`${dir}/mixed__torso__slim.glb`));
+  await page.getByTestId('open-kit-mixed').tap();
+  await expect(page.locator('[data-screen=rigging]')).toBeVisible();
+  await expect(page.getByTestId('rig-view').locator('canvas')).toBeVisible();
+  // the first guess, per joint
+  await expect(page.getByTestId('joint-part-front_leg')).toContainText('in place, cut');
+  // move the front-left socket: symmetry moves the front-right one to the mirror position
+  await page.getByTestId('joint-slot-front_left').tap();
+  await page.getByTestId('rig-point-0').fill('9');
+  await page.getByTestId('rig-point-0').press('Enter');
+  await page.getByTestId('joint-slot-front_right').tap();
+  await expect(page.getByTestId('rig-point-0')).toHaveValue('-9');
+  // a part's own pivot, in the part view
+  await page.getByTestId('joint-part-head').tap();
+  await expect(page.getByTestId('view-part')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('rig-point-1').fill('41');
+  await page.getByTestId('rig-point-1').press('Enter');
+  await expect(page.getByTestId('joint-part-head')).toContainText('(edited)');
+  await page.getByTestId('rig-reguess').tap();
+  await expect(page.getByTestId('joint-part-head')).not.toContainText('(edited)');
+  // a variant as the default, a second pose with the legs turned a third
+  await page.getByTestId('variant-torso-slim').tap();
+  if (await page.getByTestId('variant-default-torso').isVisible()) await page.getByTestId('variant-default-torso').tap(); // (already, on a re-run)
+  await expect(page.getByTestId('variant-torso-slim')).toContainText('★');
+  const before = await page.locator('[data-testid^=pose-label-]').count();
+  await page.getByTestId('pose-add').tap();
+  const id = `pose_${before + 1}`;
+  await page.getByTestId(`pose-${id}-front_left-1`).tap();
+  await expect(page.getByTestId(`pose-${id}-front_right-1`)).toHaveAttribute('aria-pressed', 'true'); // symmetry
+  await page.getByTestId(`pose-preview-${id}`).tap();
+  await page.getByTestId('joint-slot-front_left').tap();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `test-results/rigging-${test.info().project.name}.png` });
+  // commit
+  const next = (await page.getByTestId('rig-commit-button').textContent())!.match(/v(\d+)/)![1]; // the shared mock server may hold earlier versions
+  await page.getByTestId('rig-commit-button').tap();
+  await expect(page.getByTestId('rig-notice')).toContainText(`kit version ${next}`);
+  await expect(page.getByTestId('rig-commit-button')).toBeDisabled(); // nothing new to commit
+});
+
 test('offline: "Back in a moment" while the API is down, auto-recovers', async ({ page }) => {
   await signIn(page);
   await page.route('**/api/v1/health', (r) => r.abort());

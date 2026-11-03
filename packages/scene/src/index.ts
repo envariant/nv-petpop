@@ -10,3 +10,4 @@ export * from './compose';
 export * from './stage';
 export * from './glb';
 export * from './composed';
+export * from './parts';

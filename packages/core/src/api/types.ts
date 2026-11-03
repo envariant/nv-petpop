@@ -50,6 +50,15 @@ export type Channel = S['CodeRequest']['channel'];
 export type Provider = Account['providers'][number];
 export type OrderContact = S['OrderContact'];
 export type AccountOrders = S['AccountOrders'];
+// The part library (decision 127).
+export type Part = S['Part'];
+export type PartKit = S['PartKit'];
+export type PartKitSummary = S['PartKitSummary'];
+export type PartKitList = S['PartKitList'];
+export type PartUploadResult = S['PartUploadResult'];
+export type PartRigPatch = S['PartRigPatch'];
+export type PartKitSetup = S['PartKitSetup'];
+export type Pose = S['Pose'];
 // Studio curation (M8).
 export type BatchCreate = S['BatchCreate'];
 export type Batch = S['Batch'];

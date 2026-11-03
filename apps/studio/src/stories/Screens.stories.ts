@@ -15,7 +15,8 @@ import { useManual } from '../stores/manual';
 import { useProfiles } from '../stores/profiles';
 import { MANUAL_TASKS } from '../mocks/manual';
 import { PROFILES } from '../mocks/handlers';
-import { BATCH, CORGI, PATTERN_ITEM, RELEASES, SPEC, VIEW_PREVIEWS, job } from './fixtures';
+import { BATCH, CORGI, PART_KIT, PART_KITS, PATTERN_ITEM, RELEASES, SPEC, VIEW_PREVIEWS, job } from './fixtures';
+import { useParts } from '../stores/parts';
 
 const OPERATOR = { username: 'operator', role: 'operator' as const };
 const ADMIN = { username: 'admin', role: 'admin' as const };
@@ -49,6 +50,8 @@ const FIXTURES: Record<string, () => void> = {
   manual: () => Object.assign(useManual(), { tasks: MANUAL_TASKS, pending: 3, selectedId: MANUAL_TASKS[1].task_id }),
   manualViews: () => Object.assign(useManual(), { tasks: MANUAL_TASKS, pending: 3, selectedId: MANUAL_TASKS[2].task_id }),
   dog: () => (useSession().species = 'dog'),
+  parts: () => (useParts().kits = PART_KITS),
+  rigging: () => Object.assign(useParts(), { kit: JSON.parse(JSON.stringify(PART_KIT)), target: { type: 'slot', slot: 'front_left' }, view: 'assembled', poseId: 'curious' }),
   built: () => Object.assign(useSession(), built),
   highlights: () => Object.assign(useSession(), built, { highlights: ['ears.shape', 'body.build', 'colour.markings'] }),
   brief: () => Object.assign(useSession(), built, { briefText: 'Biscuit is a chunky corgi with one ear that flops, loves snacks' }),
@@ -108,6 +111,8 @@ export const Library: Story = { args: { screen: 'library', fixture: 'library' } 
 export const Releases: Story = { args: { screen: 'releases', fixture: 'releases' } };
 export const Manual: Story = { args: { screen: 'manual', fixture: 'manual' } };
 export const ManualViews: Story = { args: { screen: 'manual', fixture: 'manualViews' } };
+export const Parts: Story = { args: { screen: 'parts', fixture: 'parts' } };
+export const Rigging: Story = { args: { screen: 'rigging', fixture: 'rigging' } };
 export const Species: Story = { args: { screen: 'species' } };
 export const Breed: Story = { args: { screen: 'breed', fixture: 'dog' } };
 export const Build: Story = { args: { screen: 'build', fixture: 'built' } };

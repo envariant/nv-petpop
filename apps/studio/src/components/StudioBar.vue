@@ -13,6 +13,7 @@ const AREAS: { screen: Screen; title: string }[] = [
   { screen: 'generate', title: 'Generate' },
   { screen: 'review', title: 'Review' },
   { screen: 'library', title: 'Library' },
+  { screen: 'parts', title: 'Parts' },
   { screen: 'releases', title: 'Releases' },
   { screen: 'manual', title: 'Manual' },
 ];

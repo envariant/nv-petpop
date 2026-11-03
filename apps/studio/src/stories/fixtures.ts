@@ -3,6 +3,8 @@ import biscuit from '@fixtures/pets/biscuit/spec.json';
 import manifest from '@fixtures/pets/biscuit/manifest.json';
 import { assetUrl, type Artefact, type Batch, type Breed, type Job, type LibraryCandidate, type LibraryItem, type PetSpec, type ReleaseInfo } from '@petpop/core';
 import dogs from '@data/breeds/dog.json';
+import golden from '@fixtures/parts/golden.json';
+import type { PartKit } from '@petpop/core';
 
 export const SPEC = biscuit as unknown as PetSpec;
 export const CORGI = (dogs.breeds as unknown as Breed[]).find((b) => b.id === 'corgi_pembroke')!;
@@ -55,3 +57,24 @@ export const RELEASES: ReleaseInfo[] = [
   { release_version: 'release-dog-2', species: 'dog', number: 2, created_by: 'admin', created_at: '2026-10-29T11:00:00Z', counts: { families: 5, region_deltas: 29, shell_parts: 5, pattern_layers: 10 }, bytes: 3900000, sha256: '', url: null },
   { release_version: 'release-dog-1', species: 'dog', number: 1, created_by: 'import:proxy', created_at: '2026-10-29T00:00:00Z', counts: { families: 4, region_deltas: 24, shell_parts: 5, pattern_layers: 10 }, bytes: 3502080, sha256: '', url: null },
 ];
+
+// ------------------------------------------------------------------ the part library (decision 127)
+type G = { kind: PartKit['parts'][number]['kind']; variant: string; file: string; tris: number; joint?: unknown; attachments?: unknown; limits?: unknown; guess: unknown };
+/** The dog proxy kit with Python's first-guess rig (fixtures/parts/golden.json), as the workbench gets it. */
+export const PART_KIT = {
+  species: 'dog', breed_id: 'mixed', breed_label: 'Mixed / not sure', defaults: { head: 'default', torso: 'default', front_leg: 'default', hind_leg: 'default', tail: 'default' },
+  parts: (golden.parts as G[]).map((g) => ({
+    part_id: `pt_${g.kind}_${g.variant}`, kind: g.kind, variant: g.variant, label: g.variant === 'default' ? 'Standard' : g.variant, mesh_url: assetUrl(`parts/dog/${g.file}`),
+    tris: g.tris, sha256: '', joint: g.joint ?? null, attachments: g.attachments ?? null, limits: g.limits ?? null, guess: g.guess, edited: false, mirrored: false,
+  })),
+  poses: [
+    { pose_id: 'standing', label: 'Standing', legs: { front_left: 0, front_right: 0, hind_left: 0, hind_right: 0 }, head: { yaw: 0, pitch: 0, roll: 0 } },
+    { pose_id: 'curious', label: 'Curious', legs: { front_left: 1, front_right: 1, hind_left: 0, hind_right: 0 }, head: { yaw: 20, pitch: 10, roll: 8 } },
+  ],
+  default_pose: 'standing', symmetry: true, version: 1, committed_at: '2026-11-03T09:00:00Z', committed_by: 'curator', dirty: true, problems: [], notes: [],
+} as unknown as PartKit;
+export const PART_KITS = [
+  { breed_id: 'mixed', breed_label: 'Mixed / not sure', kinds: ['head', 'torso', 'front_leg', 'hind_leg', 'tail'], parts: 10, version: 1, dirty: true, problems: 0 },
+  { breed_id: 'corgi_pembroke', breed_label: 'Pembroke Welsh Corgi', kinds: ['torso', 'front_leg'], parts: 2, version: 0, dirty: true, problems: 3 },
+] as never;
+

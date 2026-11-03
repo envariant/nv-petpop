@@ -9,7 +9,7 @@ import type {
   ReviewDecision,
   BespokeAccepted, BreedList, CompositionBody, CompositionStatus, ExportAccepted, FulfilResponse, Job, JobCreated, KioskOps,
   KioskOrder, LibraryFamilies, Payment, PaymentMethod, Account, AccountOrders, AccountSession, AuthConfig, Channel, CodeSent,
-  OrderContact, Provider, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
+  OrderContact, Provider, PartKit, PartKitList, PartKitSetup, PartRigPatch, PartUploadResult, LibraryParts, LibraryPatterns, LibraryRelease, ParseResponse, PetSpec, ProgressEvent, ResultPage, Session,
   Species, StaffQueue, StaffToken, StaffUser,
 } from './types';
 
@@ -176,6 +176,30 @@ export const StudioApi = {
   unpublishItem: async (species: Species, kind: ItemKind, id: string): Promise<LibraryItem> =>
     unwrap(await api.POST('/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish', { params: { path: { species, kind, item_id: id } }, ...(auth() as object) })),
   releases: async (): Promise<ReleaseList> => unwrap(await api.GET('/api/v1/studio/releases', auth())),
+  // the part library (decision 127): kits of parts, rigged in the workbench and committed
+  partKits: async (species: Species): Promise<PartKitList> =>
+    unwrap(await api.GET('/api/v1/studio/parts/{species}', { params: { path: { species } }, ...(auth() as object) })),
+  uploadParts: async (species: Species, files: File[], breedId?: string): Promise<PartUploadResult> => {
+    const form = new FormData();
+    for (const f of files) form.append('files', f, f.name);
+    const q = breedId ? `?breed_id=${encodeURIComponent(breedId)}` : '';
+    const r = await fetch(apiUrl(`/api/v1/studio/parts/${species}/upload${q}`), { method: 'POST', body: form, headers: staffToken ? { Authorization: `Bearer ${staffToken}` } : {} });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new ApiFailure(r.status, (body as { detail?: unknown }).detail ?? body);
+    return body as PartUploadResult;
+  },
+  partKit: async (species: Species, breedId: string): Promise<PartKit> =>
+    unwrap(await api.GET('/api/v1/studio/parts/{species}/{breed_id}', { params: { path: { species, breed_id: breedId } }, ...(auth() as object) })),
+  editPartRig: async (species: Species, breedId: string, partId: string, patch: PartRigPatch): Promise<PartKit> =>
+    unwrap(await api.PATCH('/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}', { params: { path: { species, breed_id: breedId, part_id: partId } }, body: patch, ...(auth() as object) })),
+  reguessPart: async (species: Species, breedId: string, partId: string): Promise<PartKit> =>
+    unwrap(await api.POST('/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}/guess', { params: { path: { species, breed_id: breedId, part_id: partId } }, ...(auth() as object) })),
+  deletePart: async (species: Species, breedId: string, partId: string): Promise<PartKit> =>
+    unwrap(await api.DELETE('/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}', { params: { path: { species, breed_id: breedId, part_id: partId } }, ...(auth() as object) })),
+  partKitSetup: async (species: Species, breedId: string, body: PartKitSetup): Promise<PartKit> =>
+    unwrap(await api.PUT('/api/v1/studio/parts/{species}/{breed_id}/setup', { params: { path: { species, breed_id: breedId } }, body, ...(auth() as object) })),
+  commitPartKit: async (species: Species, breedId: string): Promise<PartKit> =>
+    unwrap(await api.POST('/api/v1/studio/parts/{species}/{breed_id}/commit', { params: { path: { species, breed_id: breedId } }, ...(auth() as object) })),
   createRelease: async (species: Species): Promise<ReleaseInfo> =>
     unwrap(await api.POST('/api/v1/studio/releases', { body: { species }, ...(auth() as object) })),
   // per-job GenAI profiles (decision 113): what Studio may run a job on, and the server default

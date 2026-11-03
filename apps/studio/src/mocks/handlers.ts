@@ -14,6 +14,7 @@ import type { Artefact, Breed, Job, PetSpec, ProgressEvent, StaffJob } from '@pe
 import { applyPatch, assetUrl } from '@petpop/core';
 import { curationHandlers } from './curation';
 import { manualHandlers } from './manual';
+import { partHandlers } from './parts';
 
 const MOCK_PIPES = [
   { name: 'multiview', title: 'Multiview', default: true, credits: null, note: 'four views -> shape' },
@@ -58,6 +59,9 @@ export const HANDLED_PATHS = [
   '/api/v1/studio/library/{species}/{kind}/{item_id}/unpublish', '/api/v1/studio/releases',
   '/api/v1/studio/manual', '/api/v1/studio/manual/{task_id}', '/api/v1/studio/manual/{task_id}/result',
   '/api/v1/studio/profiles',
+  '/api/v1/studio/parts/{species}', '/api/v1/studio/parts/{species}/upload', '/api/v1/studio/parts/{species}/{breed_id}',
+  '/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}', '/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}/guess',
+  '/api/v1/studio/parts/{species}/{breed_id}/setup', '/api/v1/studio/parts/{species}/{breed_id}/commit',
 ];
 const ROLES = ['operator', 'curator', 'admin'];
 const MOCK_PASSWORD = 'petpop-dev';
@@ -159,7 +163,7 @@ const userOf = (request: Request) => {
 const unauthorised = () => HttpResponse.json({ detail: 'staff login required' }, { status: 401 });
 
 export const handlers = [
-  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.10.0', server: 'mock-server' })),
+  http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: '3.11.0', server: 'mock-server' })),
   http.post('/api/v1/studio/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (!ROLES.includes(body.username) || body.password !== MOCK_PASSWORD) return HttpResponse.json({ detail: 'wrong username or password' }, { status: 401 });
@@ -275,5 +279,6 @@ export const handlers = [
   }),
   ...curationHandlers(userOf, unauthorised),
   ...manualHandlers,
+  ...partHandlers(userOf, unauthorised),
   http.get('/api/v1/studio/profiles', () => HttpResponse.json(PROFILES)),
 ];
