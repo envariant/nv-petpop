@@ -1,6 +1,14 @@
-"""The Studio part library (decision 127): breeds as kits of parts. Curators upload labelled GLBs, Studio makes the
-first guess at every joint (petpop_library.parts.auto_rig), the workbench edits rigs, poses and defaults, and a commit
-freezes a versioned kit (data/schema/part_kit.schema.json) that releases and the Blender composition script consume.
+"""The Studio part library (decisions 127, 130): breeds as kits of parts. Curators upload labelled GLBs, Studio makes
+the first guess at every joint (petpop_library.parts.auto_rig), the workbench edits rigs, poses and defaults, and a
+commit freezes a versioned kit (data/schema/part_kit.schema.json) that releases and the Blender composition script
+consume.
+
+Decision 130: the torsos, legs and tails are a shared library (breed id `shared`, files `shared__<kind>__<variant>.glb`)
+that every breed draws on; each breed brings its own head. A breed's kit is its own parts plus the shared ones it does
+not override; it allows some shared variants per kind (first its part types in the breed database), stretches each
+shared part per axis to its proportions (first the size guess, petpop_library.part_sizes), and has a default texture
+configuration. A shared part's rig is the same for every breed, so editing it from any breed's workbench edits it for
+all.
 
 The same service backs the backend and the mock server (each on its own database and store), so both behave alike.
 """
@@ -14,7 +22,7 @@ from datetime import UTC
 from typing import Any
 
 import numpy as np
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from petpop_core.breeds import all_breeds
 from petpop_core.schemas import load_schema
@@ -25,8 +33,17 @@ from . import models as m
 from .contract import ApiError, signed_file_url
 from .db import KitRow, PartRow, utcnow
 
-DEFAULT_POSE = {"pose_id": "standing", "label": "Standing", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": {"yaw": 0, "pitch": 0, "roll": 0}}
+ZERO_HEAD = {"yaw": 0, "pitch": 0, "roll": 0}
+DEFAULT_POSE = {"pose_id": "standing", "label": "Standing", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": ZERO_HEAD}
 LABELS = {"default": "Standard"}
+SHARED_NOTE = ("The shared library: torsos, legs and tails every breed draws on. Rig them here or from any breed's "
+               "workbench; each breed allows and stretches them in its own kit.")
+
+
+def sitting_pose(variant: str) -> dict[str, Any]:
+    """The breed database's pose: sitting, the hind legs folded (decision 130)."""
+    return {"pose_id": "sitting", "label": "Sitting", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": ZERO_HEAD,
+            "variants": {"hind_leg": variant}}
 
 
 def _aware(d):
@@ -53,6 +70,8 @@ class PartLibrary:
 
     # ------------------------------------------------------------------ helpers
     def _breed_label(self, species: str, breed_id: str) -> str:
+        if breed_id == P.SHARED:
+            return "Shared parts"
         b = next((b for b in all_breeds(species) if b["id"] == breed_id), None)
         row = ((S.table(species) or {}).get("breeds") or {}).get(breed_id)  # the pebble database has more breeds
         return b["label"] if b else row["label"] if row else breed_id.replace("_", " ").title()
@@ -62,39 +81,104 @@ class PartLibrary:
             self._mesh_cache[row.sha256] = read_glb(self.store.get(row.mesh_key))
         return self._mesh_cache[row.sha256]
 
-    def _kit_row(self, db, species: str, breed_id: str) -> KitRow:
-        row = db.get(KitRow, (species, breed_id))
-        if not row:
-            row = KitRow(species=species, breed_id=breed_id, defaults={}, poses=[DEFAULT_POSE], default_pose="standing",
-                         symmetry=True, version=0, dirty=True)
-            db.add(row)
-        return row
-
     def _rows(self, db, species: str, breed_id: str) -> list[PartRow]:
         return list(db.scalars(select(PartRow).where(PartRow.species == species, PartRow.breed_id == breed_id)
                                .order_by(PartRow.kind, PartRow.variant)).all())
 
-    def _defaults(self, kit: KitRow, rows: list[PartRow]) -> dict[str, str]:
+    def _available(self, db, species: str, breed_id: str) -> list[PartRow]:
+        """The breed's own parts and the shared ones it does not override (a head is never shared)."""
+        own = self._rows(db, species, breed_id)
+        if breed_id == P.SHARED:
+            return own
+        have = {(r.kind, r.variant) for r in own}
+        shared = [r for r in self._rows(db, species, P.SHARED) if (r.kind, r.variant) not in have and r.kind != "head"]
+        return sorted(own + shared, key=lambda r: (P.KINDS.index(r.kind), r.variant))
+
+    def _kit_row(self, db, species: str, breed_id: str) -> KitRow:
+        row = db.get(KitRow, (species, breed_id))
+        if not row:
+            rec = S.recipe(species, breed_id)
+            row = KitRow(species=species, breed_id=breed_id, defaults={}, poses=[DEFAULT_POSE],
+                         default_pose="standing", symmetry=True, version=0, dirty=True, allowed=rec["allowed"],
+                         stretch={}, texture=rec["texture"])
+            db.add(row)
+        return row
+
+    def _refresh(self, kit: KitRow, avail: list[PartRow]) -> None:
+        """The breed database sits every breed: once its sitting hind leg is in the library, a kit whose poses were
+        never changed gets the sitting pose, as the default."""
+        sitting = S.recipe(kit.species, kit.breed_id)["sitting"]
+        if sitting and (kit.poses or [DEFAULT_POSE]) == [DEFAULT_POSE] and any(
+                r.kind == "hind_leg" and r.variant == sitting for r in avail):
+            kit.poses = [DEFAULT_POSE, sitting_pose(sitting)]
+            kit.default_pose = "sitting"
+
+    def _allowed_base(self, kit: KitRow, avail: list[PartRow], kind: str) -> list[str]:
+        """A kind's allowed variants before the default: the breed's own parts, and the shared ones it allows (every
+        one, for the shared library itself)."""
+        listed = set((kit.allowed or {}).get(kind) or [])
+        return [r.variant for r in avail if r.kind == kind
+                and (r.breed_id == kit.breed_id or kit.breed_id == P.SHARED or r.variant in listed)]
+
+    def _defaults(self, kit: KitRow, avail: list[PartRow]) -> dict[str, str]:
+        """Per kind: the default set in the workbench; else the breed's own part ("default" first); else its part type
+        in the breed database, from the shared library; else the first variant it allows."""
+        recipe = S.recipe(kit.species, kit.breed_id)["defaults"]
         out = {}
         for kind in P.KINDS:
-            variants = [r.variant for r in rows if r.kind == kind]
+            variants = [r.variant for r in avail if r.kind == kind]
+            own = [r.variant for r in avail if r.kind == kind and r.breed_id == kit.breed_id]
+            base = self._allowed_base(kit, avail, kind)
             want = (kit.defaults or {}).get(kind)
-            out[kind] = want if want in variants else ("default" if "default" in variants else (variants[0] if variants else ""))
+            if want in variants:
+                out[kind] = want
+            elif own:
+                out[kind] = "default" if "default" in own else own[0]
+            elif recipe.get(kind) in variants:
+                out[kind] = recipe[kind]
+            else:
+                out[kind] = "default" if "default" in base else (base[0] if base else "")
         return out
 
-    def _part(self, r: PartRow) -> m.Part:
+    def _allowed(self, kit: KitRow, avail: list[PartRow]) -> dict[str, list[str]]:
+        defaults = self._defaults(kit, avail)
+        out = {}
+        for kind in P.KINDS:
+            base = set(self._allowed_base(kit, avail, kind)) | ({defaults[kind]} if defaults[kind] else set())
+            out[kind] = [r.variant for r in avail if r.kind == kind and r.variant in base]
+        return out
+
+    def _stretch(self, kit: KitRow, r: PartRow) -> tuple[list[float], bool]:
+        """A part's stretch on this breed, and whether the workbench set it: set, else the size guess for a shared part
+        on a breed, else none."""
+        key = f"{r.kind}/{r.variant}"
+        if key in (kit.stretch or {}):
+            return [float(x) for x in kit.stretch[key]], True
+        if r.breed_id == P.SHARED and kit.breed_id != P.SHARED:
+            v, _ = self._mesh(r)
+            return S.stretch_guess(kit.species, kit.breed_id, r.kind, r.variant, np.ptp(v, axis=0)), False
+        return [1.0, 1.0, 1.0], False
+
+    def _part(self, r: PartRow, kit: KitRow | None = None) -> m.Part:
         rig = r.rig or {}
         guess = {k: m.RigGuess(method=g["method"], confidence=g["confidence"]) for k, g in (r.auto.get("guess") or {}).items()}
+        stretch, set_ = self._stretch(kit, r) if kit else ([1.0, 1.0, 1.0], False)
         return m.Part(part_id=r.id, kind=r.kind, variant=r.variant, label=r.label, mesh_url=signed_file_url(self.secret, r.mesh_key),
                       tris=r.tris, sha256=r.sha256, joint=rig.get("joint"), attachments=rig.get("attachments"),
-                      limits=rig.get("limits"), guess=guess, edited=r.edited, mirrored=r.mirrored)
+                      limits=rig.get("limits"), guess=guess, edited=r.edited, mirrored=r.mirrored,
+                      shared=r.breed_id == P.SHARED, stretch=stretch, stretch_edited=set_)
 
-    def _kit_doc(self, kit: KitRow, rows: list[PartRow]) -> dict[str, Any]:
-        """The kit as data/schema/part_kit.schema.json has it (before commit fields)."""
+    def _kit_doc(self, kit: KitRow, avail: list[PartRow]) -> dict[str, Any]:
+        """The kit as data/schema/part_kit.schema.json has it (before commit fields): the allowed parts only."""
+        allowed = self._allowed(kit, avail)
         parts = []
-        for r in rows:
+        for r in avail:
+            if r.variant not in allowed[r.kind]:
+                continue
             p: dict[str, Any] = {"part_id": r.id, "kind": r.kind, "variant": r.variant, "label": r.label,
-                                 "mesh": {"file": r.mesh_key, "sha256": r.sha256, "tris": r.tris}, "uv_layout": P.uv_layout(kit.species, kit.breed_id, r.kind)}
+                                 "mesh": {"file": r.mesh_key, "sha256": r.sha256, "tris": r.tris},
+                                 "uv_layout": P.uv_layout(kit.species, kit.breed_id, r.kind),
+                                 "shared": r.breed_id == P.SHARED, "stretch": self._stretch(kit, r)[0]}
             rig = r.rig or {}
             if r.kind == "torso":
                 p["attachments"] = rig.get("attachments")
@@ -103,43 +187,54 @@ class PartLibrary:
             if r.kind == "head":
                 p["limits"] = rig.get("limits") or P.DEFAULT_HEAD_LIMITS
             parts.append(p)
-        return {"kit_version": "kit-1", "species": kit.species, "breed_id": kit.breed_id, "version": kit.version + 1,
-                "parts": parts, "defaults": self._defaults(kit, rows), "poses": kit.poses or [DEFAULT_POSE],
-                "default_pose": kit.default_pose}
+        return {"kit_version": "kit-2", "species": kit.species, "breed_id": kit.breed_id, "version": kit.version + 1,
+                "parts": parts, "defaults": self._defaults(kit, avail), "allowed": {k: v for k, v in allowed.items() if v},
+                "texture": kit.texture, "poses": kit.poses or [DEFAULT_POSE], "default_pose": kit.default_pose}
+
+    def _all_dirty(self, db, species: str) -> None:
+        """A shared part changed: every breed's kit is out of date."""
+        db.execute(update(KitRow).where(KitRow.species == species).values(dirty=True))
 
     def kit(self, species: str, breed_id: str, notes: list[str] | None = None) -> m.PartKit:
         with self.db() as db:
-            rows = self._rows(db, species, breed_id)
+            avail = self._available(db, species, breed_id)
             kit = db.get(KitRow, (species, breed_id))
-            if not rows and not kit:
+            if not self._rows(db, species, breed_id) and not kit:
                 raise ApiError(404, f"no parts for {breed_id} yet")
             kit = kit or self._kit_row(db, species, breed_id)
-            doc = self._kit_doc(kit, rows)
+            self._refresh(kit, avail)
+            db.commit()
+            doc = self._kit_doc(kit, avail)
+            shared = breed_id == P.SHARED
             return m.PartKit(species=species, breed_id=breed_id, breed_label=self._breed_label(species, breed_id),
-                             parts=[self._part(r) for r in rows], defaults={k: v for k, v in doc["defaults"].items() if v},
-                             poses=doc["poses"], default_pose=kit.default_pose, symmetry=kit.symmetry, version=kit.version,
-                             committed_at=_aware(kit.committed_at), committed_by=kit.committed_by, dirty=kit.dirty,
-                             problems=P.kit_problems(doc), notes=notes or [])
+                             parts=[self._part(r, kit) for r in avail], defaults={k: v for k, v in doc["defaults"].items() if v},
+                             poses=doc["poses"], default_pose=kit.default_pose, symmetry=kit.symmetry, allowed=doc["allowed"],
+                             texture=kit.texture, version=kit.version, committed_at=_aware(kit.committed_at),
+                             committed_by=kit.committed_by, dirty=kit.dirty and not shared,
+                             problems=[] if shared else P.kit_problems(doc), notes=([SHARED_NOTE] if shared else []) + (notes or []))
 
     def kits(self, species: str) -> m.PartKitList:
         with self.db() as db:
             breeds = sorted({r for r in db.scalars(select(PartRow.breed_id).where(PartRow.species == species)).all()}
-                            | {k.breed_id for k in db.scalars(select(KitRow).where(KitRow.species == species)).all()})
+                            | {k.breed_id for k in db.scalars(select(KitRow).where(KitRow.species == species)).all()},
+                            key=lambda b: (b != P.SHARED, b))
             out = []
             for b in breeds:
-                rows = self._rows(db, species, b)
+                avail = self._available(db, species, b)
                 kit = db.get(KitRow, (species, b)) or self._kit_row(db, species, b)
+                shared = b == P.SHARED
                 out.append(m.PartKitSummary(breed_id=b, breed_label=self._breed_label(species, b),
-                                            kinds=sorted({r.kind for r in rows}, key=P.KINDS.index), parts=len(rows),
-                                            version=kit.version, dirty=kit.dirty, problems=len(P.kit_problems(self._kit_doc(kit, rows)))))
+                                            kinds=sorted({r.kind for r in avail}, key=P.KINDS.index), parts=len(avail),
+                                            version=kit.version, dirty=kit.dirty and not shared,
+                                            problems=0 if shared else len(P.kit_problems(self._kit_doc(kit, avail)))))
             db.rollback()  # summaries never create kit rows
             return m.PartKitList(items=out)
 
     # ------------------------------------------------------------------ upload and the first guess
     def upload(self, species: str, files: list[tuple[str, bytes]], user: str, breed_id: str | None = None,
                scale: bool = True) -> m.PartUploadResult:
-        """`scale` (the default) fits each part to its breed's size guess (decision 128); off for parts already in
-        proportion (split from one figure)."""
+        """`scale` (the default) fits each part to its size guess (decision 128: the breed's, or for the shared library
+        the median of the breeds using that variant); off for parts already in proportion (split from one figure)."""
         taken: list[PartRow] = []
         skipped: list[str] = []
         done: list[str] = []
@@ -148,10 +243,13 @@ class PartLibrary:
             for name, data in files:
                 parsed = P.parse_name(name)
                 if not parsed:
-                    skipped.append(f"{name}: expected <breed>__<kind>[__<variant>].glb")
+                    skipped.append(f"{name}: expected <breed>__<kind>[__<variant>].glb (breed 'shared' for the shared library)")
                     continue
                 breed, kind, variant = parsed
                 breed = breed_id or breed
+                if breed == P.SHARED and kind == "head":
+                    skipped.append(f"{name}: a head belongs to its breed, not the shared library")
+                    continue
                 try:
                     v, f = read_glb(data)
                 except ApiError as exc:
@@ -181,41 +279,56 @@ class PartLibrary:
                 kit.dirty = True
                 taken.append(row)
                 breeds.add(breed)
+            if P.SHARED in breeds:
+                self._all_dirty(db, species)
             db.commit()
             ids = [r.id for r in taken]
         notes: list[str] = []
         for b in sorted(breeds):
             notes += self._guess(species, b)
         with self.db() as db:
-            items = [self._part(db.get(PartRow, i)) for i in ids]
+            items = [self._part(db.get(PartRow, i), self._kit_row(db, species, db.get(PartRow, i).breed_id)) for i in ids]
+            db.rollback()
         return m.PartUploadResult(items=items, breeds=sorted(breeds), skipped=skipped, notes=done + notes)
 
     def _guess(self, species: str, breed_id: str, only: str | None = None, force: bool = False) -> list[str]:
-        """Run the first guess for a breed and apply it to every part not edited since (or to `only`, forced)."""
+        """Run the first guess for a breed's own parts (the shared library's, for `shared`) and apply it to every part
+        not edited since (or to `only`, forced). Joints are found against the breed's default torso, its own or shared."""
         with self.db() as db:
             rows = self._rows(db, species, breed_id)
+            avail = self._available(db, species, breed_id)
             kit = self._kit_row(db, species, breed_id)
-            defaults = self._defaults(kit, rows)
-            torso = next((r for r in rows if r.kind == "torso" and r.variant == defaults["torso"]), None)
-            if not torso:
-                db.commit()
-                return [f"{breed_id}: no torso yet, so no joints can be found"]
-            tv, tf = self._mesh(torso)
-            meshes = {f"{r.kind}/{r.variant}": self._mesh(r) for r in rows if r.kind != "torso"}
-            # parts exported on their own (and anything rigged against a torso that was) are guessed from their shape
-            in_place = {f"{r.kind}/{r.variant}" for r in rows if (r.auto or {}).get("in_place", True)} \
-                if (torso.auto or {}).get("in_place", True) else set()
-            guess = P.auto_rig(meshes, (tv, tf), in_place, ground=None if (torso.auto or {}).get("in_place", True) else 0.0)
+            self._refresh(kit, avail)
+            defaults = self._defaults(kit, avail)
+            torso = next((r for r in avail if r.kind == "torso" and r.variant == defaults["torso"]), None)
+            limbs = {f"{r.kind}/{r.variant}": self._mesh(r) for r in rows if r.kind != "torso"}
+            notes: list[str] = []
+            if torso:
+                # parts exported on their own (and anything rigged against a torso that was) are guessed from their shape
+                placed = (torso.auto or {}).get("in_place", True)
+                in_place = {f"{r.kind}/{r.variant}" for r in rows if (r.auto or {}).get("in_place", True)} if placed else set()
+                guess = P.auto_rig(limbs, self._mesh(torso), in_place, ground=None if placed else 0.0)
+            else:
+                guess = P.AutoRig()
+                guess.joints = {k: P.part_joint(k.split("/", 1)[0], v, f, None) for k, (v, f) in limbs.items()}
+                if limbs:
+                    notes.append(f"{breed_id}: no torso yet, so each joint is guessed from its part's shape alone")
+            missing = [k for k in P.KINDS if not any(r.kind == k for r in avail) and not (k == "head" and breed_id == P.SHARED)]
+            if missing:
+                notes.append(f"{breed_id}: no {', '.join(k.replace('_', ' ') for k in missing)} yet")
             for r in rows:
                 if only and r.id != only:
                     continue
                 if r.edited and not force:
                     continue
                 if r.kind == "torso":
-                    att = {s: {"position": [float(x) for x in a["position"]], "axis": [float(x) for x in a["axis"]], "twist": 0.0}
-                           for s, a in guess.attachments.items()}
-                    r.rig = {"attachments": att}
-                    r.auto = {**(r.auto or {}), "guess": {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in guess.attachments.items()}}
+                    if (r.auto or {}).get("in_place", True) and guess.attachments:
+                        found = guess.attachments
+                    else:  # a torso on its own: its sockets from its own shape
+                        found = P.torso_attachments(*self._mesh(r), {})
+                    r.rig = {"attachments": {s: {"position": [float(x) for x in a["position"]], "axis": [float(x) for x in a["axis"]],
+                                                 "twist": 0.0} for s, a in found.items()}}
+                    r.auto = {**(r.auto or {}), "guess": {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in found.items()}}
                 else:
                     j = guess.joints[f"{r.kind}/{r.variant}"]
                     r.rig = {"joint": {"pivot": [float(x) for x in j["pivot"]], "axis": [float(x) for x in j["axis"]], "twist": 0.0},
@@ -225,23 +338,28 @@ class PartLibrary:
                     r.edited = False
                 r.updated_at = utcnow()
             kit.dirty = True
+            if breed_id == P.SHARED:
+                self._all_dirty(db, species)
             db.commit()
-            return guess.notes
+            return notes
+
+    def _own_or_shared(self, db, species: str, breed_id: str, part_id: str) -> PartRow:
+        row = db.get(PartRow, part_id)
+        if not row or row.species != species or row.breed_id not in (breed_id, P.SHARED):
+            raise ApiError(404, f"unknown part {part_id}")
+        return row
 
     def reguess(self, species: str, breed_id: str, part_id: str) -> m.PartKit:
         with self.db() as db:
-            row = db.get(PartRow, part_id)
-            if not row or row.species != species or row.breed_id != breed_id:
-                raise ApiError(404, f"unknown part {part_id}")
-        notes = self._guess(species, breed_id, only=part_id, force=True)
+            owner = self._own_or_shared(db, species, breed_id, part_id).breed_id
+        notes = self._guess(species, owner, only=part_id, force=True)
         return self.kit(species, breed_id, notes)
 
     # ------------------------------------------------------------------ workbench edits
     def edit(self, species: str, breed_id: str, part_id: str, patch: m.PartRigPatch) -> m.PartKit:
+        """Edit a part's rig. A shared part may be edited from any breed's workbench: the edit is the same for all."""
         with self.db() as db:
-            row = db.get(PartRow, part_id)
-            if not row or row.species != species or row.breed_id != breed_id:
-                raise ApiError(404, f"unknown part {part_id}")
+            row = self._own_or_shared(db, species, breed_id, part_id)
             rig = dict(row.rig or {})
             if patch.label is not None:
                 row.label = patch.label.strip() or row.label
@@ -268,6 +386,8 @@ class PartLibrary:
                 row.edited = True
             row.updated_at = utcnow()
             self._kit_row(db, species, breed_id).dirty = True
+            if row.breed_id == P.SHARED:
+                self._all_dirty(db, species)
             db.commit()
         return self.kit(species, breed_id)
 
@@ -281,16 +401,47 @@ class PartLibrary:
     def setup(self, species: str, breed_id: str, body: m.PartKitSetup) -> m.PartKit:
         with self.db() as db:
             kit = self._kit_row(db, species, breed_id)
-            rows = self._rows(db, species, breed_id)
+            avail = self._available(db, species, breed_id)
+            have = {(r.kind, r.variant) for r in avail}
+
+            def need(kind: str, variant: str) -> None:
+                if (kind, variant) not in have:
+                    raise ApiError(422, f"no {kind} variant {variant}")
+
+            if body.allowed is not None:
+                for kind, variants in body.allowed.items():
+                    for v in variants:
+                        need(kind, v)
+                kit.allowed = {**(kit.allowed or {}), **{k: list(dict.fromkeys(v)) for k, v in body.allowed.items()}}
             if body.defaults is not None:
                 for kind, variant in body.defaults.items():
-                    if not any(r.kind == kind and r.variant == variant for r in rows):
-                        raise ApiError(422, f"no {kind} variant {variant}")
+                    need(kind, variant)
                 kit.defaults = {**(kit.defaults or {}), **body.defaults}
+                allowed = dict(kit.allowed or {})  # a default is always allowed
+                for kind, variant in body.defaults.items():
+                    allowed[kind] = list(dict.fromkeys([*(allowed.get(kind) or []), variant]))
+                kit.allowed = allowed
+            if body.stretch is not None:
+                stretch = dict(kit.stretch or {})
+                for key, s in body.stretch.items():
+                    kind, variant = key.split("/", 1)
+                    need(kind, variant)
+                    if s is None:
+                        stretch.pop(key, None)
+                    elif any(x <= 0 for x in s):
+                        raise ApiError(422, "a stretch must be positive")
+                    else:
+                        stretch[key] = [float(x) for x in s]
+                kit.stretch = stretch
+            if body.texture is not None:
+                kit.texture = body.texture.model_dump()
             if body.poses is not None:
                 ids = [p.pose_id for p in body.poses]
                 if len(set(ids)) != len(ids):
                     raise ApiError(422, "pose ids must be unique")
+                for p in body.poses:
+                    for kind, v in p.variants.items():
+                        need(kind, v)
                 kit.poses = [p.model_dump() for p in body.poses]
                 if kit.default_pose not in ids:
                     kit.default_pose = ids[0]
@@ -305,12 +456,15 @@ class PartLibrary:
         return self.kit(species, breed_id)
 
     def delete(self, species: str, breed_id: str, part_id: str) -> m.PartKit:
+        """Remove one of the breed's own parts (a shared part from the shared library's page)."""
         with self.db() as db:
             row = db.get(PartRow, part_id)
             if not row or row.species != species or row.breed_id != breed_id:
                 raise ApiError(404, f"unknown part {part_id}")
             db.delete(row)
             self._kit_row(db, species, breed_id).dirty = True
+            if breed_id == P.SHARED:
+                self._all_dirty(db, species)
             db.commit()
         return self.kit(species, breed_id)
 
@@ -319,10 +473,11 @@ class PartLibrary:
         """Freeze the kit as its next version: checked, valid against the kit schema, written to the store."""
         import jsonschema  # noqa: PLC0415
 
+        if breed_id == P.SHARED:
+            raise ApiError(422, "the shared library is committed with each breed's kit, not on its own")
         with self.db() as db:
             kit = self._kit_row(db, species, breed_id)
-            rows = self._rows(db, species, breed_id)
-            doc = self._kit_doc(kit, rows)
+            doc = self._kit_doc(kit, self._available(db, species, breed_id))
             problems = P.kit_problems(doc)
             if problems:
                 raise ApiError(409, {"kit": problems})
@@ -333,6 +488,15 @@ class PartLibrary:
             kit.version, kit.committed_key, kit.committed_by, kit.committed_at, kit.dirty = doc["version"], key, user, utcnow(), False
             db.commit()
         return self.kit(species, breed_id)
+
+    def document(self, species: str, breed_id: str) -> dict[str, Any]:
+        """The kit as it stands, uncommitted (version 0): what scripts/draft_parts.py composes."""
+        with self.db() as db:
+            kit = self._kit_row(db, species, breed_id)
+            self._refresh(kit, self._available(db, species, breed_id))
+            doc = self._kit_doc(kit, self._available(db, species, breed_id))
+            db.rollback()
+        return {**doc, "version": 0, "problems": P.kit_problems(doc)}
 
     def committed(self, species: str, breed_id: str) -> dict[str, Any] | None:
         """The breed's latest committed kit document, or None."""

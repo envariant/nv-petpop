@@ -5,7 +5,8 @@ adds Studio's curation: batches, review, the parts and pattern editors, publish 
 an order (decision 125: HitPay, PayNow and cards); 3.10.0 adds customer accounts (email and phone codes, Sign in
 with Apple and Google), the contact an order needs, the account's orders and devices, and an itemised quote
 (decision 126); 3.11.0 adds the Studio part library: breeds as kits of parts rigged at joints (decision 127); 3.12.0 adds
-notes to a part upload (mirrored, scaled to the breed's size guess, decision 128)."""
+notes to a part upload (mirrored, scaled to the breed's size guess, decision 128); 3.13.0 adds the shared library of
+torsos, legs and tails, each breed's allowed variants, per-breed stretches and default texture (decision 130)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -13,7 +14,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.12.0"
+API_VERSION = "3.13.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -814,6 +815,9 @@ class Part(_M):
     guess: dict[str, RigGuess] = Field(description="The first guess per joint ('joint', or a slot for the torso).")
     edited: bool = Field(description="The rig was changed in the workbench since the first guess.")
     mirrored: bool = Field(description="Supplied as a right leg; kept as its left mirror image.")
+    shared: bool = Field(False, description="From the species' shared library (decision 130): its rig is the same for every breed.")
+    stretch: Vec3 = Field([1.0, 1.0, 1.0], description="Per-axis scale of the part on this breed (decision 130).")
+    stretch_edited: bool = Field(False, description="The stretch was set in the workbench (otherwise it is the size guess).")
 
 
 class Pose(_M):
@@ -821,6 +825,20 @@ class Pose(_M):
     label: str = Field(min_length=1, max_length=60)
     legs: dict[Literal["front_left", "front_right", "hind_left", "hind_right"], Literal[0, 1, 2]] = {}
     head: dict[Literal["yaw", "pitch", "roll"], float] = {}
+    variants: dict[PartKind, str] = Field({}, description="Variants this pose swaps in (a sitting pose folds the hind legs).")
+
+
+class TextureColour(_M):
+    name: str | None = None
+    hex: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+
+
+class BreedTexture(_M):
+    """A breed's default texture configuration (decision 130): its colours, pattern and markings (masks)."""
+    base: TextureColour
+    secondary: TextureColour | None = None
+    pattern: str | None = None
+    markings: list[str] = []
 
 
 class PartKit(_M):
@@ -834,6 +852,8 @@ class PartKit(_M):
     poses: list[Pose]
     default_pose: str
     symmetry: bool
+    allowed: dict[PartKind, list[str]] = Field({}, description="The variants a customer may choose per kind (decision 130).")
+    texture: BreedTexture | None = Field(None, description="The breed's default texture configuration.")
     version: int = Field(description="The last committed kit version (0: never committed).")
     committed_at: datetime | None = None
     committed_by: str | None = None
@@ -873,11 +893,16 @@ class PartRigPatch(_M):
 
 
 class PartKitSetup(_M):
-    """The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry."""
+    """The breed-level settings: the default variant per kind, the allowed poses and the default one, symmetry, the
+    variants a customer may choose, each part's stretch on this breed and the default texture (decision 130)."""
     defaults: dict[PartKind, str] | None = None
     poses: list[Pose] | None = Field(None, min_length=1)
     default_pose: str | None = None
     symmetry: bool | None = None
+    allowed: dict[PartKind, list[str]] | None = Field(None, description="Replaces the allowed variants of the kinds given.")
+    stretch: dict[Annotated[str, Field(pattern=r"^(head|torso|front_leg|hind_leg|tail)/[a-z0-9_]{1,40}$")], Vec3 | None] | None = Field(
+        None, description="'<kind>/<variant>' to a per-axis stretch; null puts the size guess back.")
+    texture: BreedTexture | None = None
 
 
 class ErrorBody(_M):

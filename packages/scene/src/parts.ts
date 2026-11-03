@@ -34,6 +34,22 @@ export function frame(axis: Vec3, twist = 0): THREE.Matrix4 {
   return new THREE.Matrix4().makeBasis(a, r, c);
 }
 
+/** A joint on its part stretched per axis (decision 130: a breed's proportions on a shared part): the point moves with
+ *  the mesh, and the axis, a direction drawn on it, too. */
+export function stretchJoint<T extends { axis: Vec3 }>(j: T, key: 'pivot' | 'position', s?: Vec3 | null): T {
+  if (!s) return j;
+  const p = (j as unknown as Record<string, Vec3>)[key];
+  const a = unit([j.axis[0] * s[0], j.axis[1] * s[1], j.axis[2] * s[2]]);
+  return { ...j, [key]: [p[0] * s[0], p[1] * s[1], p[2] * s[2]], axis: [a.x, a.y, a.z] };
+}
+
+/** Undo a stretch on a point and an axis (an edit made on the stretched figure, saved on the part as authored). */
+export function unstretch(point: Vec3, axis: Vec3, s?: Vec3 | null): { point: number[]; axis: number[] } {
+  if (!s) return { point: [...point], axis: [...axis] };
+  const a = unit([axis[0] / s[0], axis[1] / s[1], axis[2] / s[2]]);
+  return { point: [point[0] / s[0], point[1] / s[1], point[2] / s[2]], axis: [a.x, a.y, a.z] };
+}
+
 export function mirrorJoint(j: JointData): JointData {
   return { pivot: [-j.pivot[0], j.pivot[1], j.pivot[2]], axis: [-j.axis[0], j.axis[1], j.axis[2]], twist: -(j.twist ?? 0) };
 }
@@ -57,17 +73,22 @@ export function poseRotation(slot: Slot, attach: AttachmentData, pose?: PoseData
   return new THREE.Matrix4();
 }
 
-/** The matrix taking a part's own (authored, left-leg) coordinates to the figure: mirrored for the right legs, its
- *  pivot onto the slot's attachment, its frame onto the attachment's, then the pose's turn. */
-export function placement(part: JointData, attach: AttachmentData, slot: Slot, pose?: PoseData | null): THREE.Matrix4 {
+/** The matrix taking a part's own (authored, left-leg) coordinates to the figure: stretched (the part by `stretch`,
+ *  its slot on the torso by `torsoStretch`), mirrored for the right legs, its pivot onto the slot's attachment, its
+ *  frame onto the attachment's, then the pose's turn. */
+export function placement(part: JointData, attach: AttachmentData, slot: Slot, pose?: PoseData | null, stretch?: Vec3 | null,
+  torsoStretch?: Vec3 | null): THREE.Matrix4 {
   const mirrored = MIRRORED.has(slot);
-  const j = mirrored ? mirrorJoint(part) : part;
-  const R = poseRotation(slot, attach, pose)
-    .multiply(frame(attach.axis, attach.twist ?? 0))
+  const sp = stretchJoint(part, 'pivot', stretch);
+  const at = stretchJoint(attach, 'position', torsoStretch);
+  const j = mirrored ? mirrorJoint(sp) : sp;
+  const R = poseRotation(slot, at, pose)
+    .multiply(frame(at.axis, at.twist ?? 0))
     .multiply(frame(j.axis, j.twist ?? 0).transpose());
-  const t = v3(attach.position).sub(v3(j.pivot).applyMatrix4(R));
+  const t = v3(at.position).sub(v3(j.pivot).applyMatrix4(R));
   const M = R.clone().setPosition(t);
-  return mirrored ? M.multiply(new THREE.Matrix4().makeScale(-1, 1, 1)) : M;
+  const s = stretch ?? [1, 1, 1];
+  return M.multiply(new THREE.Matrix4().makeScale((mirrored ? -1 : 1) * s[0], s[1], s[2]));
 }
 
 /** The mirror of a slot's attachment (symmetry in the workbench: a left slot's edit copied to the right). */

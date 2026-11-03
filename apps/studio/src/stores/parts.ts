@@ -6,6 +6,8 @@ import { ApiFailure, StudioApi } from '@petpop/core';
 import type { Part, PartKit, PartKitSummary, Pose, Species } from '@petpop/core';
 import { PAIRS, mirrorAttachment, type AttachmentData, type JointData, type Kind, type Slot } from '@petpop/scene';
 
+type Vec3 = [number, number, number];
+
 export type Target = { type: 'slot'; slot: Slot } | { type: 'part'; partId: string };
 export type View = 'assembled' | 'part';
 
@@ -40,8 +42,22 @@ export const useParts = defineStore('parts', () => {
   }
 
   const torso = computed(() => kit.value?.parts.find((p) => p.kind === 'torso' && p.variant === variantOf('torso')) ?? null);
+  /** The variant shown: the one picked to preview, else the previewed pose's own (sitting folds the hind legs), else
+   *  the default. */
   function variantOf(kind: Kind): string {
-    return preview.value[kind] ?? kit.value?.defaults[kind] ?? 'default';
+    return preview.value[kind] ?? pose.value?.variants?.[kind] ?? kit.value?.defaults[kind] ?? 'default';
+  }
+  /** Whether a customer may choose this variant on this breed (decision 130). */
+  function allowed(kind: Kind, variant: string): boolean {
+    return (kit.value?.allowed?.[kind] ?? []).includes(variant);
+  }
+  async function setAllowed(kind: Kind, variant: string, on: boolean) {
+    const now = (kit.value?.allowed?.[kind] ?? []).filter((v) => v !== variant);
+    await setup({ allowed: { [kind]: on ? [...now, variant] : now } });
+  }
+  /** A part's stretch on this breed; null puts the size guess back. */
+  async function setStretch(part: Part, s: Vec3 | null) {
+    await setup({ stretch: { [`${part.kind}/${part.variant}`]: s } });
   }
   function partOf(kind: Kind): Part | null {
     return kit.value?.parts.find((p) => p.kind === kind && p.variant === variantOf(kind)) ?? null;
@@ -134,6 +150,6 @@ export const useParts = defineStore('parts', () => {
   }
   return {
     species, kits, kit, target, view, gizmo, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
-    variantOf, partOf, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
+    variantOf, partOf, allowed, setAllowed, setStretch, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
   };
 });

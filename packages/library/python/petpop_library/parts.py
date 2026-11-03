@@ -39,6 +39,8 @@ FRONT = np.array([0.0, 0.0, 1.0])
 UP = np.array([0.0, 1.0, 0.0])
 MIRROR = np.diag([-1.0, 1.0, 1.0])
 DEFAULT_HEAD_LIMITS = {"yaw": [-35.0, 35.0], "pitch": [-25.0, 25.0], "roll": [-20.0, 20.0]}
+SHARED = "shared"  # the breed id of the shared library: torsos, legs and tails every breed draws on (decision 130)
+SITTING = "sitting_fold"  # the breed database's sitting hind leg (part_types.hind_leg_sitting)
 NAME = re.compile(r"^(?P<breed>[a-z0-9_]+)__(?P<kind>head|torso|front_leg|fore_leg|hind_leg_sitting|hind_leg|tail)"
                   r"(?:__(?P<variant>[a-z0-9_]{1,40}))?\.glb$")
 
@@ -50,8 +52,9 @@ def uv_layout(species: str, breed_id: str, kind: str) -> str:
 
 
 def parse_name(name: str) -> tuple[str, str, str] | None:
-    """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb. The breed database's names work too: fore_leg is
-    the front leg, hind_leg_sitting the hind leg's "sitting" variant."""
+    """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb, breed `shared` for the shared library. The breed
+    database's names work too: fore_leg is the front leg, hind_leg_sitting a hind leg variant (sitting_fold unless
+    the name gives one)."""
     mt = NAME.match(name.lower())
     if not mt:
         return None
@@ -59,7 +62,7 @@ def parse_name(name: str) -> tuple[str, str, str] | None:
     if kind == "fore_leg":
         kind = "front_leg"
     elif kind == "hind_leg_sitting":
-        kind, variant = "hind_leg", "sitting" + (f"_{variant}" if variant else "")
+        kind, variant = "hind_leg", variant or SITTING
     return mt["breed"], kind, variant or "default"
 
 
@@ -106,6 +109,14 @@ class Joint:
     def mirrored(self) -> Joint:
         return Joint(MIRROR @ self.point, MIRROR @ self.axis, -self.twist)
 
+    def stretched(self, s) -> Joint:
+        """The joint on its part stretched by `s` per axis (decision 130): the point moves with the mesh, and the axis,
+        a direction drawn on the mesh, too."""
+        if s is None:
+            return self
+        s = np.asarray(s, float)
+        return Joint(s * self.point, unit(s * self.axis), self.twist)
+
 
 def _r(v, nd: int = 3) -> list[float]:
     return [round(float(x), nd) for x in v]
@@ -131,8 +142,12 @@ def pose_rotation(slot: str, attach: Joint, pose: dict[str, Any] | None) -> np.n
     return np.eye(3)
 
 
-def placement(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray]:
-    """(R, t) taking part coordinates to figure coordinates: x' = R (x - pivot) + position, as R x + t."""
+def placement(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None = None, stretch=None,
+              torso_stretch=None) -> tuple[np.ndarray, np.ndarray]:
+    """(R, t) taking the part's (stretched, mirrored) coordinates to figure coordinates: x' = R (x - pivot) + position,
+    as R x + t. `stretch` and `torso_stretch` scale the part and the torso per axis (a breed's proportions on shared
+    parts, decision 130); `placement_matrix` folds them and the mirror into one 4x4."""
+    part, attach = part.stretched(stretch), attach.stretched(torso_stretch)
     if slot in MIRRORED:
         part = part.mirrored()
     R = pose_rotation(slot, attach, pose) @ attach.frame() @ part.frame().T
@@ -140,12 +155,23 @@ def placement(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None
     return R, t
 
 
+def placement_matrix(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None = None, stretch=None,
+                     torso_stretch=None) -> np.ndarray:
+    """The 4x4 taking a part's own (authored, left-leg) coordinates to the figure: stretched, mirrored for the right
+    legs, its pivot onto the slot's attachment (on the stretched torso), then the pose's turn."""
+    R, t = placement(part, attach, slot, pose, stretch, torso_stretch)
+    M = np.eye(4)
+    M[:3, :3] = R @ (MIRROR if slot in MIRRORED else np.eye(3)) @ np.diag(np.ones(3) if stretch is None else np.asarray(stretch, float))
+    M[:3, 3] = t
+    return M
+
+
 def place(vertices: np.ndarray, faces: np.ndarray, part: Joint, attach: Joint, slot: str,
-          pose: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray]:
-    """A part's mesh in its slot: mirrored for the right legs, then moved onto the torso and posed."""
-    v, f = (mirror_vertices(vertices, faces) if slot in MIRRORED else (vertices, faces))
-    R, t = placement(part, attach, slot, pose)
-    return v @ R.T + t, f
+          pose: dict[str, Any] | None = None, stretch=None, torso_stretch=None) -> tuple[np.ndarray, np.ndarray]:
+    """A part's mesh in its slot: stretched, mirrored for the right legs, then moved onto the torso and posed."""
+    M = placement_matrix(part, attach, slot, pose, stretch, torso_stretch)
+    f = faces[:, ::-1].copy() if slot in MIRRORED else faces
+    return vertices @ M[:3, :3].T + M[:3, 3], f
 
 
 def clamp_head(pose: dict[str, Any], limits: dict[str, list[float]]) -> list[str]:
@@ -339,15 +365,20 @@ def auto_rig(parts: dict[str, tuple[np.ndarray, np.ndarray]], torso: tuple[np.nd
 
 def kit_problems(kit: dict[str, Any]) -> list[str]:
     """What stops a kit from being committed: every kind present with a default, every part jointed, every torso slot
-    attached, axes non-zero, poses valid and within the head's limits, and at least one pose allowed."""
+    attached, axes non-zero, stretches positive, poses valid (their variants in the kit) and within the head's limits,
+    and at least one pose allowed."""
     problems: list[str] = []
     parts = kit.get("parts", [])
+    have = {(p["kind"], p["variant"]) for p in parts}
     for kind in KINDS:
         mine = [p for p in parts if p["kind"] == kind]
         if not mine:
             problems.append(f"no {kind.replace('_', ' ')} part")
         elif not any(p["variant"] == kit.get("defaults", {}).get(kind) for p in mine):
             problems.append(f"no default {kind.replace('_', ' ')} variant")
+    for p in parts:
+        if any(float(x) <= 0 for x in p.get("stretch") or [1, 1, 1]):
+            problems.append(f"{p['kind']} {p['variant']}: a stretch must be positive")
     for p in parts:
         try:
             if p["kind"] == "torso":
@@ -365,6 +396,9 @@ def kit_problems(kit: dict[str, Any]) -> list[str]:
         for slot, k in (pose.get("legs") or {}).items():
             if slot not in LEG_SLOTS or int(k) not in (0, 1, 2):
                 problems.append(f"pose {pose.get('pose_id')}: {slot} must be 0, 1 or 2")
+        for kind, v in (pose.get("variants") or {}).items():
+            if (kind, v) not in have:
+                problems.append(f"pose {pose.get('pose_id')}: no {kind.replace('_', ' ')} {v} in the kit")
         if head:
             problems += [f"pose {pose.get('pose_id')}: {x}" for x in clamp_head(pose, head.get("limits") or DEFAULT_HEAD_LIMITS)]
     if poses and kit.get("default_pose") not in {p.get("pose_id") for p in poses}:
@@ -374,32 +408,31 @@ def kit_problems(kit: dict[str, Any]) -> list[str]:
 
 # --------------------------------------------------------------------------- composing a figure from a kit
 def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, pose_id: str | None = None) -> dict[str, Any]:
-    """Which mesh goes where for a committed kit, the chosen variants (defaults otherwise) and a pose (the kit's
-    default otherwise): one entry per instance (the torso, the head, four legs, the tail), each with the 4x4 matrix
-    (row-major, glTF frame) that takes the part's own coordinates to the figure, mirroring included for the right legs."""
-    variants = {**kit["defaults"], **(variants or {})}
-    by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
-    missing = [f"{k} {v}" for k, v in variants.items() if (k, v) not in by]
-    if missing:
-        raise ValueError(f"the kit has no {', '.join(missing)}")
+    """Which mesh goes where for a committed kit, the chosen variants and a pose (the kit's default otherwise): one entry
+    per instance (the torso, the head, four legs, the tail), each with the 4x4 matrix (row-major, glTF frame) that takes
+    the part's own coordinates to the figure, its stretch and the right legs' mirror included. Variants: the kit's
+    defaults, then the pose's own (a sitting pose folds the hind legs), then the caller's."""
     pid = pose_id or kit["default_pose"]
     pose = next((p for p in kit["poses"] if p["pose_id"] == pid), None)
     if pose is None:
         raise ValueError(f"pose {pid} is not in the kit's allowed list")
+    variants = {**kit["defaults"], **(pose.get("variants") or {}), **(variants or {})}
+    by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
+    missing = [f"{k} {v}" for k, v in variants.items() if (k, v) not in by]
+    if missing:
+        raise ValueError(f"the kit has no {', '.join(missing)}")
     torso = by[("torso", variants["torso"])]
     head = by[("head", variants["head"])]
     problems = clamp_head(pose, head.get("limits") or DEFAULT_HEAD_LIMITS)
     if problems:
         raise ValueError("; ".join(problems))
+    ts = torso.get("stretch")
     entries = [{"slot": "torso", "kind": "torso", "variant": torso["variant"], "file": torso["mesh"]["file"],
-                "matrix": np.eye(4).tolist(), "mirrored": False}]
+                "matrix": np.diag([*(ts or [1.0, 1.0, 1.0]), 1.0]).tolist(), "mirrored": False}]
     for slot in SLOTS:
         kind = SLOT_KIND[slot]
         part = by[(kind, variants[kind])]
-        R, t = placement(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose)
-        M = np.eye(4)
-        M[:3, :3] = R @ (MIRROR if slot in MIRRORED else np.eye(3))
-        M[:3, 3] = t
+        M = placement_matrix(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose, part.get("stretch"), ts)
         entries.append({"slot": slot, "kind": kind, "variant": part["variant"], "file": part["mesh"]["file"],
                         "matrix": M.tolist(), "mirrored": slot in MIRRORED})
     return {"species": kit["species"], "breed_id": kit["breed_id"], "kit_version": kit["version"], "variants": variants,

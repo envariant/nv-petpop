@@ -26,8 +26,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       31.8,
       39.7,
@@ -35,7 +43,7 @@
      ],
      "longest_mm": 79.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       16.7,
       19.2,
@@ -43,7 +51,7 @@
      ],
      "longest_mm": 19.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.7,
       34.7,
@@ -51,7 +59,7 @@
      ],
      "longest_mm": 34.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.3,
       17.9,
@@ -67,7 +75,7 @@
      ],
      "longest_mm": 50.1
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.7,
       11.9,
@@ -99,8 +107,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       28.6,
       35.7,
@@ -108,7 +124,7 @@
      ],
      "longest_mm": 74.9
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       15.0,
       17.2,
@@ -116,7 +132,7 @@
      ],
      "longest_mm": 17.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.0,
       31.2,
@@ -124,7 +140,7 @@
      ],
      "longest_mm": 31.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.5,
       16.1,
@@ -140,7 +156,7 @@
      ],
      "longest_mm": 45.0
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       10.6,
       11.8,
@@ -174,8 +190,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "otter"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       40.7,
       45.3,
@@ -183,7 +207,7 @@
      ],
      "longest_mm": 61.1
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       16.6,
       33.3,
@@ -191,7 +215,7 @@
      ],
      "longest_mm": 33.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.6,
       52.1,
@@ -199,7 +223,7 @@
      ],
      "longest_mm": 52.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.3,
       26.0,
@@ -215,7 +239,7 @@
      ],
      "longest_mm": 44.8
     },
-    "tail/default": {
+    "tail/otter": {
      "size_mm": [
       11.4,
       12.7,
@@ -247,8 +271,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       36.3,
       45.3,
@@ -256,7 +288,7 @@
      ],
      "longest_mm": 63.5
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.8,
       35.5,
@@ -264,7 +296,7 @@
      ],
      "longest_mm": 35.5
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.8,
       53.8,
@@ -272,7 +304,7 @@
      ],
      "longest_mm": 53.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.5,
       26.9,
@@ -288,7 +320,7 @@
      ],
      "longest_mm": 40.8
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       12.2,
       19.0,
@@ -320,8 +352,16 @@
     "ears": "large erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "hock",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       26.5,
       33.2,
@@ -329,7 +369,7 @@
      ],
      "longest_mm": 53.1
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       12.2,
       36.6,
@@ -337,7 +377,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       12.2,
       50.4,
@@ -345,7 +385,7 @@
      ],
      "longest_mm": 50.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       13.4,
       25.2,
@@ -361,7 +401,7 @@
      ],
      "longest_mm": 35.8
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       9.0,
       13.9,
@@ -393,8 +433,16 @@
     "ears": "large erect",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       34.2,
       38.0,
@@ -402,7 +450,7 @@
      ],
      "longest_mm": 49.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       16.0,
       18.4,
@@ -410,7 +458,7 @@
      ],
      "longest_mm": 18.4
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.0,
       33.2,
@@ -418,7 +466,7 @@
      ],
      "longest_mm": 33.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.6,
       17.1,
@@ -434,7 +482,7 @@
      ],
      "longest_mm": 52.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.3,
       11.4,
@@ -466,8 +514,16 @@
     "ears": "small rose",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       52.1,
       49.6,
@@ -475,7 +531,7 @@
      ],
      "longest_mm": 64.5
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       20.8,
       23.9,
@@ -483,7 +539,7 @@
      ],
      "longest_mm": 23.9
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       20.8,
       43.3,
@@ -491,7 +547,7 @@
      ],
      "longest_mm": 43.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       22.9,
       22.3,
@@ -507,7 +563,7 @@
      ],
      "longest_mm": 48.0
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       13.4,
       14.9,
@@ -539,8 +595,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "boot",
+    "hind_leg": "hock",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       29.8,
       42.5,
@@ -548,7 +612,7 @@
      ],
      "longest_mm": 42.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       12.8,
       38.3,
@@ -556,7 +620,7 @@
      ],
      "longest_mm": 38.3
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       12.8,
       57.4,
@@ -564,7 +628,7 @@
      ],
      "longest_mm": 57.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       14.0,
       28.7,
@@ -580,7 +644,7 @@
      ],
      "longest_mm": 42.3
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.7,
       8.5,
@@ -612,8 +676,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       32.2,
       46.0,
@@ -621,7 +693,7 @@
      ],
      "longest_mm": 46.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       13.8,
       27.6,
@@ -629,7 +701,7 @@
      ],
      "longest_mm": 27.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       13.8,
       48.3,
@@ -637,7 +709,7 @@
      ],
      "longest_mm": 48.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.2,
       24.1,
@@ -653,7 +725,7 @@
      ],
      "longest_mm": 52.9
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.3,
       9.2,
@@ -685,8 +757,16 @@
     "ears": "large drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight_up"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.1,
       43.9,
@@ -694,7 +774,7 @@
      ],
      "longest_mm": 52.7
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       16.1,
       32.3,
@@ -702,7 +782,7 @@
      ],
      "longest_mm": 32.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.1,
       50.6,
@@ -710,7 +790,7 @@
      ],
      "longest_mm": 50.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.8,
       25.3,
@@ -726,7 +806,7 @@
      ],
      "longest_mm": 51.1
     },
-    "tail/default": {
+    "tail/straight_up": {
      "size_mm": [
       7.9,
       30.8,
@@ -758,8 +838,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       19.4,
       27.8,
@@ -767,7 +855,7 @@
      ],
      "longest_mm": 83.3
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       8.7,
       10.1,
@@ -775,7 +863,7 @@
      ],
      "longest_mm": 10.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       8.7,
       22.3,
@@ -783,7 +871,7 @@
      ],
      "longest_mm": 22.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       9.6,
       12.5,
@@ -799,7 +887,7 @@
      ],
      "longest_mm": 34.5
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       5.0,
       5.6,
@@ -833,8 +921,16 @@
     "ears": "small rose",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "curl_tight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       43.0,
       47.8,
@@ -842,7 +938,7 @@
      ],
      "longest_mm": 52.6
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       20.1,
       23.1,
@@ -850,7 +946,7 @@
      ],
      "longest_mm": 23.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       20.1,
       41.7,
@@ -858,7 +954,7 @@
      ],
      "longest_mm": 41.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       22.1,
       21.5,
@@ -874,7 +970,7 @@
      ],
      "longest_mm": 52.0
     },
-    "tail/default": {
+    "tail/curl_tight": {
      "size_mm": [
       14.7,
       21.5,
@@ -906,8 +1002,16 @@
     "ears": "medium drop",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       45.9,
       48.3,
@@ -915,7 +1019,7 @@
      ],
      "longest_mm": 65.2
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       18.9,
       21.8,
@@ -923,7 +1027,7 @@
      ],
      "longest_mm": 21.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       18.9,
       41.3,
@@ -931,7 +1035,7 @@
      ],
      "longest_mm": 41.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.8,
       21.7,
@@ -947,7 +1051,7 @@
      ],
      "longest_mm": 63.9
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       14.4,
       15.9,
@@ -979,8 +1083,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       32.1,
       45.9,
@@ -988,7 +1100,7 @@
      ],
      "longest_mm": 50.5
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       15.4,
       17.7,
@@ -996,7 +1108,7 @@
      ],
      "longest_mm": 17.7
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       15.4,
       37.6,
@@ -1004,7 +1116,7 @@
      ],
      "longest_mm": 37.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.0,
       20.6,
@@ -1020,7 +1132,7 @@
      ],
      "longest_mm": 52.8
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.3,
       9.2,
@@ -1052,8 +1164,16 @@
     "ears": "large erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "peg",
+    "hind_leg": "bean",
+    "tail": "sickle"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       26.3,
       37.5,
@@ -1061,7 +1181,7 @@
      ],
      "longest_mm": 41.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.6,
       19.1,
@@ -1069,7 +1189,7 @@
      ],
      "longest_mm": 19.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       9.6,
       36.9,
@@ -1077,7 +1197,7 @@
      ],
      "longest_mm": 36.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.5,
       18.4,
@@ -1093,7 +1213,7 @@
      ],
      "longest_mm": 48.4
     },
-    "tail/default": {
+    "tail/sickle": {
      "size_mm": [
       6.8,
       21.0,
@@ -1125,8 +1245,16 @@
     "ears": "small erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       41.4,
       43.5,
@@ -1134,7 +1262,7 @@
      ],
      "longest_mm": 43.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.4,
       20.0,
@@ -1142,7 +1270,7 @@
      ],
      "longest_mm": 20.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.4,
       37.4,
@@ -1150,7 +1278,7 @@
      ],
      "longest_mm": 37.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.2,
       19.6,
@@ -1166,7 +1294,7 @@
      ],
      "longest_mm": 48.1
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       12.9,
       14.4,
@@ -1198,8 +1326,16 @@
     "ears": "medium erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       32.8,
       40.9,
@@ -1207,7 +1343,7 @@
      ],
      "longest_mm": 49.1
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       14.3,
       28.7,
@@ -1215,7 +1351,7 @@
      ],
      "longest_mm": 28.7
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.3,
       46.1,
@@ -1223,7 +1359,7 @@
      ],
      "longest_mm": 46.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.8,
       23.0,
@@ -1239,7 +1375,7 @@
      ],
      "longest_mm": 36.8
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.1,
       17.2,
@@ -1271,8 +1407,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       36.2,
       40.2,
@@ -1280,7 +1424,7 @@
      ],
      "longest_mm": 50.2
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       16.1,
       32.1,
@@ -1288,7 +1432,7 @@
      ],
      "longest_mm": 32.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.1,
       48.2,
@@ -1296,7 +1440,7 @@
      ],
      "longest_mm": 48.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.7,
       24.1,
@@ -1312,7 +1456,7 @@
      ],
      "longest_mm": 39.8
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       11.9,
       13.3,
@@ -1344,8 +1488,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       40.6,
       42.7,
@@ -1353,7 +1505,7 @@
      ],
      "longest_mm": 47.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.0,
       29.9,
@@ -1361,7 +1513,7 @@
      ],
      "longest_mm": 29.9
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.0,
       48.1,
@@ -1369,7 +1521,7 @@
      ],
      "longest_mm": 48.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.4,
       24.0,
@@ -1385,7 +1537,7 @@
      ],
      "longest_mm": 38.5
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       12.7,
       14.1,
@@ -1417,8 +1569,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "curl_tight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       31.6,
       39.5,
@@ -1426,7 +1586,7 @@
      ],
      "longest_mm": 43.5
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       14.5,
       29.0,
@@ -1434,7 +1594,7 @@
      ],
      "longest_mm": 29.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.5,
       45.5,
@@ -1442,7 +1602,7 @@
      ],
      "longest_mm": 45.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.0,
       22.7,
@@ -1458,7 +1618,7 @@
      ],
      "longest_mm": 44.4
     },
-    "tail/default": {
+    "tail/curl_tight": {
      "size_mm": [
       12.2,
       17.8,
@@ -1490,8 +1650,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "curl_tight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       35.7,
       39.7,
@@ -1499,7 +1667,7 @@
      ],
      "longest_mm": 43.6
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       16.7,
       33.3,
@@ -1507,7 +1675,7 @@
      ],
      "longest_mm": 33.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.7,
       48.8,
@@ -1515,7 +1683,7 @@
      ],
      "longest_mm": 48.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.3,
       24.4,
@@ -1531,7 +1699,7 @@
      ],
      "longest_mm": 39.3
     },
-    "tail/default": {
+    "tail/curl_tight": {
      "size_mm": [
       12.2,
       17.8,
@@ -1563,8 +1731,16 @@
     "ears": "medium semi_erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       30.7,
       43.9,
@@ -1572,7 +1748,7 @@
      ],
      "longest_mm": 59.2
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       14.7,
       29.5,
@@ -1580,7 +1756,7 @@
      ],
      "longest_mm": 29.5
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       14.7,
       48.4,
@@ -1588,7 +1764,7 @@
      ],
      "longest_mm": 48.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.2,
       24.2,
@@ -1604,7 +1780,7 @@
      ],
      "longest_mm": 40.4
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.8,
       18.4,
@@ -1636,8 +1812,16 @@
     "ears": "medium semi_erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       33.0,
       41.2,
@@ -1645,7 +1829,7 @@
      ],
      "longest_mm": 51.5
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       16.2,
       32.3,
@@ -1653,7 +1837,7 @@
      ],
      "longest_mm": 32.3
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       16.2,
       49.0,
@@ -1661,7 +1845,7 @@
      ],
      "longest_mm": 49.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.8,
       24.5,
@@ -1677,7 +1861,7 @@
      ],
      "longest_mm": 41.2
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.1,
       12.4,
@@ -1709,8 +1893,16 @@
     "ears": "small semi_erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       30.5,
       43.5,
@@ -1718,7 +1910,7 @@
      ],
      "longest_mm": 56.6
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       14.6,
       29.3,
@@ -1726,7 +1918,7 @@
      ],
      "longest_mm": 29.3
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       14.6,
       48.1,
@@ -1734,7 +1926,7 @@
      ],
      "longest_mm": 48.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.1,
       24.0,
@@ -1750,7 +1942,7 @@
      ],
      "longest_mm": 54.1
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       12.9,
       14.4,
@@ -1782,8 +1974,16 @@
     "ears": "small semi_erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       27.5,
       39.3,
@@ -1791,7 +1991,7 @@
      ],
      "longest_mm": 53.0
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       13.2,
       39.6,
@@ -1799,7 +1999,7 @@
      ],
      "longest_mm": 39.6
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       13.2,
       56.6,
@@ -1807,7 +2007,7 @@
      ],
      "longest_mm": 56.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       14.5,
       28.3,
@@ -1823,7 +2023,7 @@
      ],
      "longest_mm": 39.0
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       11.7,
       13.0,
@@ -1855,8 +2055,16 @@
     "ears": "medium drop",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "paw",
+    "hind_leg": "hock",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       23.7,
       38.2,
@@ -1864,7 +2072,7 @@
      ],
      "longest_mm": 38.2
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       14.0,
       42.1,
@@ -1872,7 +2080,7 @@
      ],
      "longest_mm": 42.1
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       14.0,
       58.0,
@@ -1880,7 +2088,7 @@
      ],
      "longest_mm": 58.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.4,
       29.0,
@@ -1896,7 +2104,7 @@
      ],
      "longest_mm": 36.4
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.3,
       11.5,
@@ -1928,8 +2136,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       39.2,
       43.5,
@@ -1937,7 +2153,7 @@
      ],
      "longest_mm": 54.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.3,
       36.6,
@@ -1945,7 +2161,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       53.5,
@@ -1953,7 +2169,7 @@
      ],
      "longest_mm": 53.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       26.8,
@@ -1969,7 +2185,7 @@
      ],
      "longest_mm": 43.1
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.8,
       13.1,
@@ -2001,8 +2217,16 @@
     "ears": "large erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       26.6,
       38.0,
@@ -2010,7 +2234,7 @@
      ],
      "longest_mm": 38.0
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.7,
       29.1,
@@ -2018,7 +2242,7 @@
      ],
      "longest_mm": 29.1
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       9.7,
       47.0,
@@ -2026,7 +2250,7 @@
      ],
      "longest_mm": 47.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.7,
       23.5,
@@ -2042,7 +2266,7 @@
      ],
      "longest_mm": 37.7
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.3,
       11.4,
@@ -2074,8 +2298,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       27.4,
       44.2,
@@ -2083,7 +2315,7 @@
      ],
      "longest_mm": 48.6
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.3,
       33.8,
@@ -2091,7 +2323,7 @@
      ],
      "longest_mm": 33.8
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.3,
       54.7,
@@ -2099,7 +2331,7 @@
      ],
      "longest_mm": 54.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.4,
       27.4,
@@ -2115,7 +2347,7 @@
      ],
      "longest_mm": 47.8
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.0,
       8.8,
@@ -2147,8 +2379,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       31.0,
       44.2,
@@ -2156,7 +2396,7 @@
      ],
      "longest_mm": 53.1
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.3,
       33.8,
@@ -2164,7 +2404,7 @@
      ],
      "longest_mm": 33.8
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.3,
       54.7,
@@ -2172,7 +2412,7 @@
      ],
      "longest_mm": 54.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.4,
       27.4,
@@ -2188,7 +2428,7 @@
      ],
      "longest_mm": 39.8
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.0,
       8.8,
@@ -2220,8 +2460,16 @@
     "ears": "large drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.5,
       44.3,
@@ -2229,7 +2477,7 @@
      ],
      "longest_mm": 44.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.4,
       34.8,
@@ -2237,7 +2485,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.4,
       52.7,
@@ -2245,7 +2493,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       26.3,
@@ -2261,7 +2509,7 @@
      ],
      "longest_mm": 45.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       12.0,
       13.3,
@@ -2293,8 +2541,16 @@
     "ears": "large drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       41.1,
       51.4,
@@ -2302,7 +2558,7 @@
      ],
      "longest_mm": 61.6
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       20.1,
       23.2,
@@ -2310,7 +2566,7 @@
      ],
      "longest_mm": 23.2
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       20.1,
       43.9,
@@ -2318,7 +2574,7 @@
      ],
      "longest_mm": 43.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       22.2,
       23.1,
@@ -2334,7 +2590,7 @@
      ],
      "longest_mm": 59.8
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       13.9,
       21.6,
@@ -2366,8 +2622,16 @@
     "ears": "large drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.5,
       44.3,
@@ -2375,7 +2639,7 @@
      ],
      "longest_mm": 48.8
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.4,
       34.8,
@@ -2383,7 +2647,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.4,
       52.7,
@@ -2391,7 +2655,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       26.3,
@@ -2407,7 +2671,7 @@
      ],
      "longest_mm": 45.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       12.0,
       13.3,
@@ -2439,8 +2703,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       48.0,
       50.6,
@@ -2448,7 +2720,7 @@
      ],
      "longest_mm": 55.6
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       20.4,
@@ -2456,7 +2728,7 @@
      ],
      "longest_mm": 20.4
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       41.8,
@@ -2464,7 +2736,7 @@
      ],
      "longest_mm": 41.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.5,
       22.8,
@@ -2480,7 +2752,7 @@
      ],
      "longest_mm": 57.4
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.0,
       16.7,
@@ -2512,8 +2784,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       36.5,
       52.1,
@@ -2521,7 +2801,7 @@
      ],
      "longest_mm": 65.2
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.5,
       20.1,
@@ -2529,7 +2809,7 @@
      ],
      "longest_mm": 20.1
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.5,
       42.7,
@@ -2537,7 +2817,7 @@
      ],
      "longest_mm": 42.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.3,
       23.5,
@@ -2553,7 +2833,7 @@
      ],
      "longest_mm": 57.7
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.5,
       17.2,
@@ -2585,8 +2865,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       47.3,
       49.8,
@@ -2594,7 +2882,7 @@
      ],
      "longest_mm": 59.8
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       19.5,
       22.4,
@@ -2602,7 +2890,7 @@
      ],
      "longest_mm": 22.4
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       19.5,
       42.6,
@@ -2610,7 +2898,7 @@
      ],
      "longest_mm": 42.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       21.5,
       22.4,
@@ -2626,7 +2914,7 @@
      ],
      "longest_mm": 59.9
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       14.8,
       16.4,
@@ -2658,8 +2946,16 @@
     "ears": "small semi_erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       33.7,
       42.1,
@@ -2667,7 +2963,7 @@
      ],
      "longest_mm": 42.1
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       14.7,
       29.5,
@@ -2675,7 +2971,7 @@
      ],
      "longest_mm": 29.5
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.7,
       47.4,
@@ -2683,7 +2979,7 @@
      ],
      "longest_mm": 47.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.2,
       23.7,
@@ -2699,7 +2995,7 @@
      ],
      "longest_mm": 47.4
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.4,
       12.6,
@@ -2731,8 +3027,16 @@
     "ears": "small erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       40.8,
       45.3,
@@ -2740,7 +3044,7 @@
      ],
      "longest_mm": 63.4
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       18.1,
       20.8,
@@ -2748,7 +3052,7 @@
      ],
      "longest_mm": 20.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.1,
       39.0,
@@ -2756,7 +3060,7 @@
      ],
      "longest_mm": 39.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.9,
       20.4,
@@ -2772,7 +3076,7 @@
      ],
      "longest_mm": 45.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.2,
       9.1,
@@ -2804,8 +3108,16 @@
     "ears": "small erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       40.8,
       45.3,
@@ -2813,7 +3125,7 @@
      ],
      "longest_mm": 77.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       18.1,
       20.8,
@@ -2821,7 +3133,7 @@
      ],
      "longest_mm": 20.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.1,
       39.0,
@@ -2829,7 +3141,7 @@
      ],
      "longest_mm": 39.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.9,
       20.4,
@@ -2845,7 +3157,7 @@
      ],
      "longest_mm": 61.2
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.2,
       9.1,
@@ -2877,8 +3189,16 @@
     "ears": "small semi_erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       34.5,
       43.2,
@@ -2886,7 +3206,7 @@
      ],
      "longest_mm": 58.3
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       13.6,
       27.2,
@@ -2894,7 +3214,7 @@
      ],
      "longest_mm": 27.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       13.6,
       46.3,
@@ -2902,7 +3222,7 @@
      ],
      "longest_mm": 46.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.0,
       23.2,
@@ -2918,7 +3238,7 @@
      ],
      "longest_mm": 48.6
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.8,
       8.6,
@@ -2950,8 +3270,16 @@
     "ears": "small rose",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       37.3,
       41.4,
@@ -2959,7 +3287,7 @@
      ],
      "longest_mm": 49.7
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       17.4,
       34.8,
@@ -2967,7 +3295,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.4,
       51.0,
@@ -2975,7 +3303,7 @@
      ],
      "longest_mm": 51.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       25.5,
@@ -2991,7 +3319,7 @@
      ],
      "longest_mm": 40.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.5,
       8.3,
@@ -3023,8 +3351,16 @@
     "ears": "small rose",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       37.3,
       41.4,
@@ -3032,7 +3368,7 @@
      ],
      "longest_mm": 51.8
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       17.4,
       34.8,
@@ -3040,7 +3376,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.4,
       51.0,
@@ -3048,7 +3384,7 @@
      ],
      "longest_mm": 51.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       25.5,
@@ -3064,7 +3400,7 @@
      ],
      "longest_mm": 45.6
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.5,
       8.3,
@@ -3096,8 +3432,16 @@
     "ears": "medium erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       34.1,
       37.8,
@@ -3105,7 +3449,7 @@
      ],
      "longest_mm": 47.3
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       15.9,
       31.8,
@@ -3113,7 +3457,7 @@
      ],
      "longest_mm": 31.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.9,
       46.6,
@@ -3121,7 +3465,7 @@
      ],
      "longest_mm": 46.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.5,
       23.3,
@@ -3137,7 +3481,7 @@
      ],
      "longest_mm": 45.4
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.8,
       7.6,
@@ -3169,8 +3513,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       27.3,
       30.3,
@@ -3178,7 +3530,7 @@
      ],
      "longest_mm": 78.8
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       12.7,
       14.6,
@@ -3186,7 +3538,7 @@
      ],
      "longest_mm": 14.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       12.7,
       26.5,
@@ -3194,7 +3546,7 @@
      ],
      "longest_mm": 26.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       14.0,
       13.6,
@@ -3210,7 +3562,7 @@
      ],
      "longest_mm": 40.0
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       5.5,
       6.1,
@@ -3244,8 +3596,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       34.4,
       38.2,
@@ -3253,7 +3613,7 @@
      ],
      "longest_mm": 49.7
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       14.0,
       42.1,
@@ -3261,7 +3621,7 @@
      ],
      "longest_mm": 42.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.0,
       58.0,
@@ -3269,7 +3629,7 @@
      ],
      "longest_mm": 58.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.4,
       29.0,
@@ -3285,7 +3645,7 @@
      ],
      "longest_mm": 45.4
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.9,
       7.6,
@@ -3317,8 +3677,16 @@
     "ears": "small rose",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "long_thin"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       27.3,
       44.0,
@@ -3326,7 +3694,7 @@
      ],
      "longest_mm": 57.2
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.2,
       33.7,
@@ -3334,7 +3702,7 @@
      ],
      "longest_mm": 33.7
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.2,
       54.4,
@@ -3342,7 +3710,7 @@
      ],
      "longest_mm": 54.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.3,
       27.2,
@@ -3358,7 +3726,7 @@
      ],
      "longest_mm": 43.7
     },
-    "tail/default": {
+    "tail/long_thin": {
      "size_mm": [
       4.8,
       5.3,
@@ -3390,8 +3758,16 @@
     "ears": "small rose",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "long_thin"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       26.7,
       43.0,
@@ -3399,7 +3775,7 @@
      ],
      "longest_mm": 53.8
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.0,
       32.9,
@@ -3407,7 +3783,7 @@
      ],
      "longest_mm": 32.9
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.0,
       53.3,
@@ -3415,7 +3791,7 @@
      ],
      "longest_mm": 53.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.1,
       26.6,
@@ -3431,7 +3807,7 @@
      ],
      "longest_mm": 47.5
     },
-    "tail/default": {
+    "tail/long_thin": {
      "size_mm": [
       4.6,
       5.2,
@@ -3463,8 +3839,16 @@
     "ears": "small rose",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "long_thin"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       22.5,
       40.8,
@@ -3472,7 +3856,7 @@
      ],
      "longest_mm": 49.0
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       10.4,
       31.2,
@@ -3480,7 +3864,7 @@
      ],
      "longest_mm": 31.2
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       10.4,
       50.5,
@@ -3488,7 +3872,7 @@
      ],
      "longest_mm": 50.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       11.5,
       25.3,
@@ -3504,7 +3888,7 @@
      ],
      "longest_mm": 56.3
     },
-    "tail/default": {
+    "tail/long_thin": {
      "size_mm": [
       4.4,
       4.9,
@@ -3536,8 +3920,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       38.4,
       42.7,
@@ -3545,7 +3937,7 @@
      ],
      "longest_mm": 55.5
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       19.1,
       38.2,
@@ -3553,7 +3945,7 @@
      ],
      "longest_mm": 38.2
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       19.1,
       54.3,
@@ -3561,7 +3953,7 @@
      ],
      "longest_mm": 54.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       21.0,
       27.1,
@@ -3577,7 +3969,7 @@
      ],
      "longest_mm": 42.2
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.5,
       17.9,
@@ -3609,8 +4001,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       45.7,
       43.5,
@@ -3618,7 +4018,7 @@
      ],
      "longest_mm": 58.8
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.3,
       36.6,
@@ -3626,7 +4026,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       53.5,
@@ -3634,7 +4034,7 @@
      ],
      "longest_mm": 53.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       26.8,
@@ -3650,7 +4050,7 @@
      ],
      "longest_mm": 41.5
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.8,
       18.3,
@@ -3682,8 +4082,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       46.4,
       44.2,
@@ -3691,7 +4099,7 @@
      ],
      "longest_mm": 59.6
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       35.3,
@@ -3699,7 +4107,7 @@
      ],
      "longest_mm": 35.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       53.0,
@@ -3707,7 +4115,7 @@
      ],
      "longest_mm": 53.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.4,
       26.5,
@@ -3723,7 +4131,7 @@
      ],
      "longest_mm": 43.7
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.1,
       14.6,
@@ -3755,8 +4163,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       32.6,
       36.2,
@@ -3764,7 +4180,7 @@
      ],
      "longest_mm": 43.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       15.2,
       45.6,
@@ -3772,7 +4188,7 @@
      ],
      "longest_mm": 45.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.2,
       59.7,
@@ -3780,7 +4196,7 @@
      ],
      "longest_mm": 59.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.7,
       29.8,
@@ -3796,7 +4212,7 @@
      ],
      "longest_mm": 32.5
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.5,
       7.2,
@@ -3828,8 +4244,16 @@
     "ears": "large erect",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       27.2,
       34.0,
@@ -3837,7 +4261,7 @@
      ],
      "longest_mm": 34.0
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       12.5,
       25.0,
@@ -3845,7 +4269,7 @@
      ],
      "longest_mm": 25.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       12.5,
       39.2,
@@ -3853,7 +4277,7 @@
      ],
      "longest_mm": 39.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       13.8,
       19.6,
@@ -3869,7 +4293,7 @@
      ],
      "longest_mm": 47.2
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       9.2,
       10.2,
@@ -3901,8 +4325,16 @@
     "ears": "medium drop",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       43.4,
       48.2,
@@ -3910,7 +4342,7 @@
      ],
      "longest_mm": 60.2
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       19.3,
       22.2,
@@ -3918,7 +4350,7 @@
      ],
      "longest_mm": 22.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       19.3,
       41.4,
@@ -3926,7 +4358,7 @@
      ],
      "longest_mm": 41.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       21.2,
       21.7,
@@ -3942,7 +4374,7 @@
      ],
      "longest_mm": 63.7
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       14.3,
       15.9,
@@ -3974,8 +4406,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       48.7,
       51.3,
@@ -3983,7 +4423,7 @@
      ],
      "longest_mm": 71.8
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       20.1,
       23.1,
@@ -3991,7 +4431,7 @@
      ],
      "longest_mm": 23.1
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       20.1,
       43.8,
@@ -3999,7 +4439,7 @@
      ],
      "longest_mm": 43.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       22.1,
       23.1,
@@ -4015,7 +4455,7 @@
      ],
      "longest_mm": 55.5
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.2,
       16.9,
@@ -4049,8 +4489,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       25.0,
       35.7,
@@ -4058,7 +4506,7 @@
      ],
      "longest_mm": 39.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       12.0,
       24.0,
@@ -4066,7 +4514,7 @@
      ],
      "longest_mm": 24.0
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       12.0,
       39.4,
@@ -4074,7 +4522,7 @@
      ],
      "longest_mm": 39.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       13.2,
       19.7,
@@ -4090,7 +4538,7 @@
      ],
      "longest_mm": 46.1
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       9.6,
       15.0,
@@ -4122,8 +4570,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       31.0,
       44.2,
@@ -4131,7 +4587,7 @@
      ],
      "longest_mm": 55.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.3,
       33.8,
@@ -4139,7 +4595,7 @@
      ],
      "longest_mm": 33.8
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.3,
       54.7,
@@ -4147,7 +4603,7 @@
      ],
      "longest_mm": 54.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.4,
       27.4,
@@ -4163,7 +4619,7 @@
      ],
      "longest_mm": 47.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.9,
       13.3,
@@ -4195,8 +4651,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       31.0,
       44.2,
@@ -4204,7 +4668,7 @@
      ],
      "longest_mm": 55.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.3,
       33.8,
@@ -4212,7 +4676,7 @@
      ],
      "longest_mm": 33.8
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.3,
       54.7,
@@ -4220,7 +4684,7 @@
      ],
      "longest_mm": 54.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.4,
       27.4,
@@ -4236,7 +4700,7 @@
      ],
      "longest_mm": 47.8
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.0,
       8.8,
@@ -4268,8 +4732,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       42.1,
       46.8,
@@ -4277,7 +4749,7 @@
      ],
      "longest_mm": 60.8
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       16.4,
       32.8,
@@ -4285,7 +4757,7 @@
      ],
      "longest_mm": 32.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.4,
       52.7,
@@ -4293,7 +4765,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.0,
       26.3,
@@ -4309,7 +4781,7 @@
      ],
      "longest_mm": 42.1
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.9,
       15.4,
@@ -4341,8 +4813,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       37.4,
       46.8,
@@ -4350,7 +4830,7 @@
      ],
      "longest_mm": 58.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       16.4,
       32.8,
@@ -4358,7 +4838,7 @@
      ],
      "longest_mm": 32.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.4,
       52.7,
@@ -4366,7 +4846,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.0,
       26.3,
@@ -4382,7 +4862,7 @@
      ],
      "longest_mm": 42.1
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.9,
       15.4,
@@ -4414,8 +4894,16 @@
     "ears": "large drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.6,
       44.5,
@@ -4423,7 +4911,7 @@
      ],
      "longest_mm": 49.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.6,
       31.2,
@@ -4431,7 +4919,7 @@
      ],
      "longest_mm": 31.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.6,
       50.1,
@@ -4439,7 +4927,7 @@
      ],
      "longest_mm": 50.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.1,
       25.0,
@@ -4455,7 +4943,7 @@
      ],
      "longest_mm": 51.8
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.2,
       14.7,
@@ -4487,8 +4975,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       31.0,
       44.2,
@@ -4496,7 +4992,7 @@
      ],
      "longest_mm": 53.1
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.3,
       33.8,
@@ -4504,7 +5000,7 @@
      ],
      "longest_mm": 33.8
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.3,
       54.7,
@@ -4512,7 +5008,7 @@
      ],
      "longest_mm": 54.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.4,
       27.4,
@@ -4528,7 +5024,7 @@
      ],
      "longest_mm": 47.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.9,
       13.3,
@@ -4560,8 +5056,16 @@
     "ears": "medium semi_erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       31.9,
       39.9,
@@ -4569,7 +5073,7 @@
      ],
      "longest_mm": 49.8
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       15.6,
       31.3,
@@ -4577,7 +5081,7 @@
      ],
      "longest_mm": 31.3
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       15.6,
       47.4,
@@ -4585,7 +5089,7 @@
      ],
      "longest_mm": 47.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.2,
       23.7,
@@ -4601,7 +5105,7 @@
      ],
      "longest_mm": 44.9
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.8,
       12.0,
@@ -4633,8 +5137,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       30.3,
       43.3,
@@ -4642,7 +5154,7 @@
      ],
      "longest_mm": 43.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       11.0,
       33.1,
@@ -4650,7 +5162,7 @@
      ],
      "longest_mm": 33.1
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       11.0,
       53.6,
@@ -4658,7 +5170,7 @@
      ],
      "longest_mm": 53.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       12.1,
       26.8,
@@ -4674,7 +5186,7 @@
      ],
      "longest_mm": 43.3
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.7,
       13.0,
@@ -4706,8 +5218,16 @@
     "ears": "large erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       25.9,
       37.0,
@@ -4715,7 +5235,7 @@
      ],
      "longest_mm": 40.7
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.4,
       28.3,
@@ -4723,7 +5243,7 @@
      ],
      "longest_mm": 28.3
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       9.4,
       45.8,
@@ -4731,7 +5251,7 @@
      ],
      "longest_mm": 45.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.4,
       22.9,
@@ -4747,7 +5267,7 @@
      ],
      "longest_mm": 39.9
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.7,
       7.4,
@@ -4779,8 +5299,16 @@
     "ears": "large drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       41.1,
       51.4,
@@ -4788,7 +5316,7 @@
      ],
      "longest_mm": 51.4
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       20.1,
       23.2,
@@ -4796,7 +5324,7 @@
      ],
      "longest_mm": 23.2
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       20.1,
       43.9,
@@ -4804,7 +5332,7 @@
      ],
      "longest_mm": 43.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       22.2,
       23.1,
@@ -4820,7 +5348,7 @@
      ],
      "longest_mm": 59.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       13.9,
       15.4,
@@ -4852,8 +5380,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       45.7,
       43.5,
@@ -4861,7 +5397,7 @@
      ],
      "longest_mm": 56.6
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.3,
       36.6,
@@ -4869,7 +5405,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       53.5,
@@ -4877,7 +5413,7 @@
      ],
      "longest_mm": 53.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       26.8,
@@ -4893,7 +5429,7 @@
      ],
      "longest_mm": 39.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.8,
       8.7,
@@ -4925,8 +5461,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       31.1,
       38.9,
@@ -4934,7 +5478,7 @@
      ],
      "longest_mm": 48.6
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       14.3,
       42.8,
@@ -4942,7 +5486,7 @@
      ],
      "longest_mm": 42.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.3,
       59.0,
@@ -4950,7 +5494,7 @@
      ],
      "longest_mm": 59.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.7,
       29.5,
@@ -4966,7 +5510,7 @@
      ],
      "longest_mm": 42.0
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.0,
       7.8,
@@ -4998,8 +5542,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.3,
       44.2,
@@ -5007,7 +5559,7 @@
      ],
      "longest_mm": 44.2
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       35.3,
@@ -5015,7 +5567,7 @@
      ],
      "longest_mm": 35.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       53.0,
@@ -5023,7 +5575,7 @@
      ],
      "longest_mm": 53.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.4,
       26.5,
@@ -5039,7 +5591,7 @@
      ],
      "longest_mm": 43.7
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.9,
       18.6,
@@ -5071,8 +5623,16 @@
     "ears": "medium erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       33.0,
       36.7,
@@ -5080,7 +5640,7 @@
      ],
      "longest_mm": 40.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       15.4,
       30.8,
@@ -5088,7 +5648,7 @@
      ],
      "longest_mm": 30.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.4,
       45.1,
@@ -5096,7 +5656,7 @@
      ],
      "longest_mm": 45.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.0,
       22.6,
@@ -5112,7 +5672,7 @@
      ],
      "longest_mm": 40.4
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.6,
       7.3,
@@ -5144,8 +5704,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       30.0,
       37.5,
@@ -5153,7 +5721,7 @@
      ],
      "longest_mm": 37.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.0,
       45.0,
@@ -5161,7 +5729,7 @@
      ],
      "longest_mm": 45.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.0,
       60.1,
@@ -5169,7 +5737,7 @@
      ],
      "longest_mm": 60.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.5,
       30.0,
@@ -5185,7 +5753,7 @@
      ],
      "longest_mm": 40.5
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.1,
       11.3,
@@ -5217,8 +5785,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "peg",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       23.3,
       37.5,
@@ -5226,7 +5802,7 @@
      ],
      "longest_mm": 37.5
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.6,
       19.1,
@@ -5234,7 +5810,7 @@
      ],
      "longest_mm": 19.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       9.6,
       36.9,
@@ -5242,7 +5818,7 @@
      ],
      "longest_mm": 36.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.5,
       18.4,
@@ -5258,7 +5834,7 @@
      ],
      "longest_mm": 48.4
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.1,
       11.3,
@@ -5290,8 +5866,16 @@
     "ears": "small erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       40.8,
       45.3,
@@ -5299,7 +5883,7 @@
      ],
      "longest_mm": 68.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       18.1,
       20.8,
@@ -5307,7 +5891,7 @@
      ],
      "longest_mm": 20.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.1,
       39.0,
@@ -5315,7 +5899,7 @@
      ],
      "longest_mm": 39.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.9,
       20.4,
@@ -5331,7 +5915,7 @@
      ],
      "longest_mm": 45.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.2,
       9.1,
@@ -5363,8 +5947,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "peg",
+    "hind_leg": "bean",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       23.3,
       37.5,
@@ -5372,7 +5964,7 @@
      ],
      "longest_mm": 41.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.6,
       19.1,
@@ -5380,7 +5972,7 @@
      ],
      "longest_mm": 19.1
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       9.6,
       36.9,
@@ -5388,7 +5980,7 @@
      ],
      "longest_mm": 36.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.5,
       18.4,
@@ -5404,7 +5996,7 @@
      ],
      "longest_mm": 48.4
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       10.1,
       15.8,
@@ -5436,8 +6028,16 @@
     "ears": "small rose",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "curl_tight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       37.3,
       41.4,
@@ -5445,7 +6045,7 @@
      ],
      "longest_mm": 41.4
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       17.4,
       34.8,
@@ -5453,7 +6053,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.4,
       51.0,
@@ -5461,7 +6061,7 @@
      ],
      "longest_mm": 51.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       25.5,
@@ -5477,7 +6077,7 @@
      ],
      "longest_mm": 45.6
     },
-    "tail/default": {
+    "tail/curl_tight": {
      "size_mm": [
       12.8,
       18.6,
@@ -5509,8 +6109,16 @@
     "ears": "small erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       40.9,
       39.0,
@@ -5518,7 +6126,7 @@
      ],
      "longest_mm": 40.9
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.6,
       31.2,
@@ -5526,7 +6134,7 @@
      ],
      "longest_mm": 31.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.6,
       46.7,
@@ -5534,7 +6142,7 @@
      ],
      "longest_mm": 46.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.1,
       23.4,
@@ -5550,7 +6158,7 @@
      ],
      "longest_mm": 37.9
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       11.6,
       12.9,
@@ -5582,8 +6190,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       48.0,
       50.6,
@@ -5591,7 +6207,7 @@
      ],
      "longest_mm": 65.7
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       20.4,
@@ -5599,7 +6215,7 @@
      ],
      "longest_mm": 20.4
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       41.8,
@@ -5607,7 +6223,7 @@
      ],
      "longest_mm": 41.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.5,
       22.8,
@@ -5623,7 +6239,7 @@
      ],
      "longest_mm": 60.8
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.0,
       16.7,
@@ -5655,8 +6271,16 @@
     "ears": "small semi_erect",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "peg",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       41.1,
       45.7,
@@ -5664,7 +6288,7 @@
      ],
      "longest_mm": 45.7
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       15.5,
       17.9,
@@ -5672,7 +6296,7 @@
      ],
      "longest_mm": 17.9
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.5,
       37.5,
@@ -5680,7 +6304,7 @@
      ],
      "longest_mm": 37.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.1,
       20.6,
@@ -5696,7 +6320,7 @@
      ],
      "longest_mm": 55.3
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       12.3,
       13.7,
@@ -5728,8 +6352,16 @@
     "ears": "small erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       39.4,
       41.5,
@@ -5737,7 +6369,7 @@
      ],
      "longest_mm": 41.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       14.5,
       29.0,
@@ -5745,7 +6377,7 @@
      ],
      "longest_mm": 29.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.5,
       46.6,
@@ -5753,7 +6385,7 @@
      ],
      "longest_mm": 46.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.0,
       23.3,
@@ -5769,7 +6401,7 @@
      ],
      "longest_mm": 36.6
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       12.3,
       13.7,
@@ -5801,8 +6433,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       42.0,
       44.2,
@@ -5810,7 +6450,7 @@
      ],
      "longest_mm": 48.6
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       35.3,
@@ -5818,7 +6458,7 @@
      ],
      "longest_mm": 35.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       53.0,
@@ -5826,7 +6466,7 @@
      ],
      "longest_mm": 53.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.4,
       26.5,
@@ -5842,7 +6482,7 @@
      ],
      "longest_mm": 43.7
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       11.9,
       13.3,
@@ -5874,8 +6514,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       31.2,
       44.5,
@@ -5883,7 +6531,7 @@
      ],
      "longest_mm": 66.8
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.6,
       31.2,
@@ -5891,7 +6539,7 @@
      ],
      "longest_mm": 31.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.6,
       50.1,
@@ -5899,7 +6547,7 @@
      ],
      "longest_mm": 50.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.1,
       25.0,
@@ -5915,7 +6563,7 @@
      ],
      "longest_mm": 45.5
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.0,
       8.9,
@@ -5947,8 +6595,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.5,
       44.3,
@@ -5956,7 +6612,7 @@
      ],
      "longest_mm": 44.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.4,
       34.8,
@@ -5964,7 +6620,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.4,
       52.7,
@@ -5972,7 +6628,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       26.3,
@@ -5988,7 +6644,7 @@
      ],
      "longest_mm": 44.3
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.0,
       8.9,
@@ -6020,8 +6676,16 @@
     "ears": "small semi_erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       30.4,
       38.1,
@@ -6029,7 +6693,7 @@
      ],
      "longest_mm": 41.9
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       13.3,
       40.0,
@@ -6037,7 +6701,7 @@
      ],
      "longest_mm": 40.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       13.3,
       56.1,
@@ -6045,7 +6709,7 @@
      ],
      "longest_mm": 56.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       14.7,
       28.1,
@@ -6061,7 +6725,7 @@
      ],
      "longest_mm": 41.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       6.9,
       7.6,
@@ -6093,8 +6757,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       39.8,
       44.2,
@@ -6102,7 +6774,7 @@
      ],
      "longest_mm": 57.4
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       35.3,
@@ -6110,7 +6782,7 @@
      ],
      "longest_mm": 35.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       53.0,
@@ -6118,7 +6790,7 @@
      ],
      "longest_mm": 53.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.4,
       26.5,
@@ -6134,7 +6806,7 @@
      ],
      "longest_mm": 43.7
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.1,
       14.6,
@@ -6166,8 +6838,16 @@
     "ears": "medium erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "curl_tight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       26.1,
       37.3,
@@ -6175,7 +6855,7 @@
      ],
      "longest_mm": 37.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.5,
       28.5,
@@ -6183,7 +6863,7 @@
      ],
      "longest_mm": 28.5
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       9.5,
       46.2,
@@ -6191,7 +6871,7 @@
      ],
      "longest_mm": 46.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.5,
       23.1,
@@ -6207,7 +6887,7 @@
      ],
      "longest_mm": 38.6
     },
-    "tail/default": {
+    "tail/curl_tight": {
      "size_mm": [
       11.5,
       16.8,
@@ -6239,8 +6919,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       38.0,
       40.0,
@@ -6248,7 +6936,7 @@
      ],
      "longest_mm": 44.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       14.0,
       28.0,
@@ -6256,7 +6944,7 @@
      ],
      "longest_mm": 28.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.0,
       45.0,
@@ -6264,7 +6952,7 @@
      ],
      "longest_mm": 45.0
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.4,
       22.5,
@@ -6280,7 +6968,7 @@
      ],
      "longest_mm": 45.0
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       11.9,
       13.2,
@@ -6312,8 +7000,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       33.0,
       47.2,
@@ -6321,7 +7017,7 @@
      ],
      "longest_mm": 47.2
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       14.2,
       28.3,
@@ -6329,7 +7025,7 @@
      ],
      "longest_mm": 28.3
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       14.2,
       49.5,
@@ -6337,7 +7033,7 @@
      ],
      "longest_mm": 49.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.6,
       24.8,
@@ -6353,7 +7049,7 @@
      ],
      "longest_mm": 58.6
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.5,
       9.4,
@@ -6385,8 +7081,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       32.1,
       45.9,
@@ -6394,7 +7098,7 @@
      ],
      "longest_mm": 59.7
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       15.4,
       17.7,
@@ -6402,7 +7106,7 @@
      ],
      "longest_mm": 17.7
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       15.4,
       37.6,
@@ -6410,7 +7114,7 @@
      ],
      "longest_mm": 37.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       17.0,
       20.6,
@@ -6426,7 +7130,7 @@
      ],
      "longest_mm": 52.8
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.3,
       9.2,
@@ -6458,8 +7162,16 @@
     "ears": "small semi_erect",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       30.2,
       43.1,
@@ -6467,7 +7179,7 @@
      ],
      "longest_mm": 47.4
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       15.1,
       30.2,
@@ -6475,7 +7187,7 @@
      ],
      "longest_mm": 30.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       15.1,
       48.5,
@@ -6483,7 +7195,7 @@
      ],
      "longest_mm": 48.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       16.6,
       24.2,
@@ -6499,7 +7211,7 @@
      ],
      "longest_mm": 53.5
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.8,
       8.6,
@@ -6531,8 +7243,16 @@
     "ears": "small drop",
     "muzzle": "brachycephalic"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       33.8,
       48.3,
@@ -6540,7 +7260,7 @@
      ],
      "longest_mm": 48.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       18.9,
       21.8,
@@ -6548,7 +7268,7 @@
      ],
      "longest_mm": 21.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       18.9,
       41.3,
@@ -6556,7 +7276,7 @@
      ],
      "longest_mm": 41.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.8,
       21.7,
@@ -6572,7 +7292,7 @@
      ],
      "longest_mm": 60.3
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       13.0,
       20.3,
@@ -6604,8 +7324,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       39.8,
       49.8,
@@ -6613,7 +7341,7 @@
      ],
      "longest_mm": 59.8
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       19.5,
       22.4,
@@ -6621,7 +7349,7 @@
      ],
      "longest_mm": 22.4
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       19.5,
       42.6,
@@ -6629,7 +7357,7 @@
      ],
      "longest_mm": 42.6
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       21.5,
       22.4,
@@ -6645,7 +7373,7 @@
      ],
      "longest_mm": 56.5
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       13.4,
       20.9,
@@ -6677,8 +7405,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       44.7,
       49.7,
@@ -6686,7 +7422,7 @@
      ],
      "longest_mm": 69.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       19.9,
       22.8,
@@ -6694,7 +7430,7 @@
      ],
      "longest_mm": 22.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       19.9,
       42.7,
@@ -6702,7 +7438,7 @@
      ],
      "longest_mm": 42.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       21.8,
       22.3,
@@ -6718,7 +7454,7 @@
      ],
      "longest_mm": 56.4
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       8.9,
       9.9,
@@ -6750,8 +7486,16 @@
     "ears": "small erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "compact",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/compact": {
      "size_mm": [
       40.5,
       45.0,
@@ -6759,7 +7503,7 @@
      ],
      "longest_mm": 54.0
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.9,
       21.7,
@@ -6767,7 +7511,7 @@
      ],
      "longest_mm": 21.7
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.9,
       39.3,
@@ -6775,7 +7519,7 @@
      ],
      "longest_mm": 39.3
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.8,
       20.3,
@@ -6791,7 +7535,7 @@
      ],
      "longest_mm": 50.6
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       12.2,
       13.5,
@@ -6823,8 +7567,16 @@
     "ears": "medium erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "peg",
+    "hind_leg": "hock",
+    "tail": "sickle"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       26.4,
       37.7,
@@ -6832,7 +7584,7 @@
      ],
      "longest_mm": 45.3
     },
-    "front_leg/default": {
+    "front_leg/peg": {
      "size_mm": [
       9.6,
       28.9,
@@ -6840,7 +7592,7 @@
      ],
      "longest_mm": 28.9
     },
-    "hind_leg/default": {
+    "hind_leg/hock": {
      "size_mm": [
       9.6,
       46.7,
@@ -6848,7 +7600,7 @@
      ],
      "longest_mm": 46.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.6,
       23.3,
@@ -6864,7 +7616,7 @@
      ],
      "longest_mm": 37.7
     },
-    "tail/default": {
+    "tail/sickle": {
      "size_mm": [
       6.8,
       21.1,
@@ -6896,8 +7648,16 @@
     "ears": "medium drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       37.4,
       46.8,
@@ -6905,7 +7665,7 @@
      ],
      "longest_mm": 60.8
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       16.4,
       32.8,
@@ -6913,7 +7673,7 @@
      ],
      "longest_mm": 32.8
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       16.4,
       52.7,
@@ -6921,7 +7681,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       18.0,
       26.3,
@@ -6937,7 +7697,7 @@
      ],
      "longest_mm": 42.1
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       13.9,
       15.4,
@@ -6969,8 +7729,16 @@
     "ears": "large drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       49.6,
       52.2,
@@ -6978,7 +7746,7 @@
      ],
      "longest_mm": 57.4
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       18.3,
       21.0,
@@ -6986,7 +7754,7 @@
      ],
      "longest_mm": 21.0
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       43.2,
@@ -6994,7 +7762,7 @@
      ],
      "longest_mm": 43.2
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       23.5,
@@ -7010,7 +7778,7 @@
      ],
      "longest_mm": 60.7
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.5,
       17.2,
@@ -7042,8 +7810,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       49.3,
       51.8,
@@ -7051,7 +7827,7 @@
      ],
      "longest_mm": 57.0
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       18.1,
       20.9,
@@ -7059,7 +7835,7 @@
      ],
      "longest_mm": 20.9
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.1,
       42.9,
@@ -7067,7 +7843,7 @@
      ],
      "longest_mm": 42.9
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.0,
       23.3,
@@ -7083,7 +7859,7 @@
      ],
      "longest_mm": 57.4
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.4,
       17.1,
@@ -7115,8 +7891,16 @@
     "ears": "medium drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "fluffy_round",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "brush"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/fluffy_round": {
      "size_mm": [
       48.0,
       50.6,
@@ -7124,7 +7908,7 @@
      ],
      "longest_mm": 60.7
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       17.7,
       20.4,
@@ -7132,7 +7916,7 @@
      ],
      "longest_mm": 20.4
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       17.7,
       41.8,
@@ -7140,7 +7924,7 @@
      ],
      "longest_mm": 41.8
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.5,
       22.8,
@@ -7156,7 +7940,7 @@
      ],
      "longest_mm": 60.8
     },
-    "tail/default": {
+    "tail/brush": {
      "size_mm": [
       15.0,
       16.7,
@@ -7188,8 +7972,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       19.4,
       27.8,
@@ -7197,7 +7989,7 @@
      ],
      "longest_mm": 83.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       9.3,
       10.7,
@@ -7205,7 +7997,7 @@
      ],
      "longest_mm": 10.7
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       9.3,
       22.7,
@@ -7213,7 +8005,7 @@
      ],
      "longest_mm": 22.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       10.3,
       12.5,
@@ -7229,7 +8021,7 @@
      ],
      "longest_mm": 34.5
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       7.5,
       11.7,
@@ -7263,8 +8055,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "long_low",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/long_low": {
      "size_mm": [
       19.4,
       27.8,
@@ -7272,7 +8072,7 @@
      ],
      "longest_mm": 83.3
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       8.3,
       9.6,
@@ -7280,7 +8080,7 @@
      ],
      "longest_mm": 9.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       8.3,
       22.1,
@@ -7288,7 +8088,7 @@
      ],
      "longest_mm": 22.1
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       9.2,
       12.5,
@@ -7304,7 +8104,7 @@
      ],
      "longest_mm": 34.5
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       5.0,
       5.6,
@@ -7338,8 +8138,16 @@
     "ears": "large erect",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       25.0,
       35.7,
@@ -7347,7 +8155,7 @@
      ],
      "longest_mm": 39.3
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       12.0,
       24.0,
@@ -7355,7 +8163,7 @@
      ],
      "longest_mm": 24.0
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       12.0,
       39.4,
@@ -7363,7 +8171,7 @@
      ],
      "longest_mm": 39.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       13.2,
       19.7,
@@ -7379,7 +8187,7 @@
      ],
      "longest_mm": 46.1
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       9.6,
       15.0,
@@ -7411,8 +8219,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       39.2,
       43.5,
@@ -7420,7 +8236,7 @@
      ],
      "longest_mm": 58.8
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.3,
       36.6,
@@ -7428,7 +8244,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       53.5,
@@ -7436,7 +8252,7 @@
      ],
      "longest_mm": 53.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       26.8,
@@ -7452,7 +8268,7 @@
      ],
      "longest_mm": 43.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.8,
       8.7,
@@ -7484,8 +8300,16 @@
     "ears": "medium drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "boot",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       31.7,
       39.6,
@@ -7493,7 +8317,7 @@
      ],
      "longest_mm": 49.5
     },
-    "front_leg/default": {
+    "front_leg/boot": {
      "size_mm": [
       13.9,
       41.6,
@@ -7501,7 +8325,7 @@
      ],
      "longest_mm": 41.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       13.9,
       58.4,
@@ -7509,7 +8333,7 @@
      ],
      "longest_mm": 58.4
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.2,
       29.2,
@@ -7525,7 +8349,7 @@
      ],
      "longest_mm": 42.8
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.7,
       11.9,
@@ -7557,8 +8381,16 @@
     "ears": "small drop",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       35.5,
       44.3,
@@ -7566,7 +8398,7 @@
      ],
      "longest_mm": 62.1
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       17.4,
       34.8,
@@ -7574,7 +8406,7 @@
      ],
      "longest_mm": 34.8
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       17.4,
       52.7,
@@ -7582,7 +8414,7 @@
      ],
      "longest_mm": 52.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       19.1,
       26.3,
@@ -7598,7 +8430,7 @@
      ],
      "longest_mm": 44.3
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       12.0,
       18.6,
@@ -7630,8 +8462,16 @@
     "ears": "large drop",
     "muzzle": "long"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "deep_lean",
+    "front_leg": "feathered",
+    "hind_leg": "feathered_haunch",
+    "tail": "plume"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/deep_lean": {
      "size_mm": [
       28.6,
       40.8,
@@ -7639,7 +8479,7 @@
      ],
      "longest_mm": 55.1
     },
-    "front_leg/default": {
+    "front_leg/feathered": {
      "size_mm": [
       13.7,
       41.1,
@@ -7647,7 +8487,7 @@
      ],
      "longest_mm": 41.1
     },
-    "hind_leg/default": {
+    "hind_leg/feathered_haunch": {
      "size_mm": [
       13.7,
       58.7,
@@ -7655,7 +8495,7 @@
      ],
      "longest_mm": 58.7
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       15.1,
       29.4,
@@ -7671,7 +8511,7 @@
      ],
      "longest_mm": 40.5
     },
-    "tail/default": {
+    "tail/plume": {
      "size_mm": [
       11.0,
       17.1,
@@ -7703,8 +8543,16 @@
     "ears": "small drop",
     "muzzle": "short"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "broad_heavy",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "straight"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/broad_heavy": {
      "size_mm": [
       45.7,
       43.5,
@@ -7712,7 +8560,7 @@
      ],
      "longest_mm": 52.2
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       18.3,
       36.6,
@@ -7720,7 +8568,7 @@
      ],
      "longest_mm": 36.6
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       18.3,
       53.5,
@@ -7728,7 +8576,7 @@
      ],
      "longest_mm": 53.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       20.1,
       26.8,
@@ -7744,7 +8592,7 @@
      ],
      "longest_mm": 39.1
     },
-    "tail/default": {
+    "tail/straight": {
      "size_mm": [
       7.8,
       8.7,
@@ -7776,8 +8624,16 @@
     "ears": "large erect",
     "muzzle": "medium"
    },
+   "defaults": {
+    "head": "default",
+    "torso": "standard",
+    "front_leg": "paw",
+    "hind_leg": "bean",
+    "tail": "bob"
+   },
+   "sitting": "sitting_fold",
    "parts": {
-    "torso/default": {
+    "torso/standard": {
      "size_mm": [
       29.6,
       37.0,
@@ -7785,7 +8641,7 @@
      ],
      "longest_mm": 49.9
     },
-    "front_leg/default": {
+    "front_leg/paw": {
      "size_mm": [
       13.6,
       27.2,
@@ -7793,7 +8649,7 @@
      ],
      "longest_mm": 27.2
     },
-    "hind_leg/default": {
+    "hind_leg/bean": {
      "size_mm": [
       13.6,
       42.5,
@@ -7801,7 +8657,7 @@
      ],
      "longest_mm": 42.5
     },
-    "hind_leg/sitting": {
+    "hind_leg/sitting_fold": {
      "size_mm": [
       14.9,
       21.3,
@@ -7817,7 +8673,7 @@
      ],
      "longest_mm": 41.5
     },
-    "tail/default": {
+    "tail/bob": {
      "size_mm": [
       10.0,
       11.1,

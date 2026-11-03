@@ -40,7 +40,7 @@ async function open(breedId: string) {
         <input ref="input" type="file" accept=".glb" multiple class="hidden" data-testid="parts-upload" @change="upload" />
       </label>
     </div>
-    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code>, kind one of head, torso, front_leg (or fore_leg), hind_leg, hind_leg_sitting, tail; +Y up, the pet facing +Z. Each part is fitted to its breed's size guess unless you turn that off (docs/PARTS.md).</p>
+    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code>, kind one of head, torso, front_leg (or fore_leg), hind_leg, hind_leg_sitting, tail; breed <code>shared</code> for the shared library of torsos, legs and tails every breed draws on, a head per breed; +Y up, the pet facing +Z. Each part is fitted to its size guess unless you turn that off (docs/PARTS.md).</p>
     <p v-if="!ps.kits.length" class="text-base text-muted" data-testid="parts-empty">No kits yet.</p>
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3" data-testid="parts-kits">
       <div v-for="k in ps.kits" :key="k.breed_id" class="flex flex-col gap-2 rounded-tile bg-card p-4 shadow-soft" :data-testid="`kit-${k.breed_id}`">

@@ -11,9 +11,11 @@ const by = (kind: string) => (golden.parts as GoldenPart[]).find((p) => p.kind =
 describe('part placement', () => {
   it('matches Python for every slot and pose', () => {
     const torso = by('torso');
-    for (const g of golden.placements as { slot: Slot; pose: object; joint_twist: number; matrix: number[] }[]) {
+    type G = { slot: Slot; pose: object; joint_twist: number; stretch: number[] | null; torso_stretch: number[] | null; matrix: number[] };
+    expect((golden.placements as G[]).some((g) => g.stretch)).toBe(true); // stretched cases are in the golden data
+    for (const g of golden.placements as G[]) {
       const part = { ...by(SLOT_KIND[g.slot]).joint!, twist: g.joint_twist };
-      const m = placement(part, torso.attachments![g.slot], g.slot, g.pose);
+      const m = placement(part, torso.attachments![g.slot], g.slot, g.pose, g.stretch, g.torso_stretch);
       m.elements.forEach((x, i) => expect(x, `${g.slot} ${JSON.stringify(g.pose)} [${i}]`).toBeCloseTo(g.matrix[i], 4));
     }
   });

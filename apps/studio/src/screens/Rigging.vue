@@ -2,7 +2,9 @@
 // The rigging workbench (decision 127): the viewport on the left, the joints and the kit's settings on the right.
 // Select a torso slot (assembled view) or a part's own joint (part view); drag with the gizmo or type the numbers;
 // symmetry mirrors a left slot onto the right one. Poses: each leg's twist in thirds and the head's angles within its
-// limits. Commit freezes the kit as its next version.
+// limits. Commit freezes the kit as its next version. Decision 130: the torso, legs and tail may come from the shared
+// library; per variant, whether customers may choose it on this breed and its stretch (first the size guess); each
+// pose may swap variants in (sitting folds the hind legs); the breed's default texture.
 import { computed } from 'vue';
 import type { Pose } from '@petpop/core';
 import { LEG_SLOTS, SLOTS, SLOT_KIND, headProblems, type Kind, type Slot } from '@petpop/scene';
@@ -61,7 +63,7 @@ function setHead(p: Pose, axis: 'yaw' | 'pitch' | 'roll', raw: string) {
 }
 function addPose() {
   const n = poses.value.length + 1;
-  savePoses([...poses.value, { pose_id: `pose_${n}`, label: `Pose ${n}`, legs: {}, head: {} }]);
+  savePoses([...poses.value, { pose_id: `pose_${n}`, label: `Pose ${n}`, legs: {}, head: {}, variants: {} }]);
 }
 function removePose(id: string) {
   if (poses.value.length > 1) savePoses(poses.value.filter((p) => p.pose_id !== id));
@@ -71,6 +73,23 @@ function setLimit(axis: 'yaw' | 'pitch' | 'roll', i: 0 | 1, raw: string) {
   const next = { ...limits.value, [axis]: [...limits.value[axis]] };
   next[axis][i] = Number(raw);
   void ps.save(head.value.part_id, { limits: next });
+}
+// variants: offered to customers, stretched to this breed
+const previewed = (kind: Kind) => ps.partOf(kind);
+function setStretchAxis(kind: Kind, i: number, raw: string) {
+  const p = previewed(kind);
+  const v = Number(raw);
+  if (!p || !Number.isFinite(v) || v <= 0) return;
+  const next = [...(p.stretch ?? [1, 1, 1])] as [number, number, number];
+  next[i] = v;
+  void ps.setStretch(p, next);
+}
+const multi = computed(() => KINDS.filter((k) => (ps.kit?.allowed?.[k] ?? []).length > 1));
+function setPoseVariant(p: Pose, kind: Kind, v: string) {
+  const variants = { ...(p.variants ?? {}) };
+  if (v) variants[kind] = v;
+  else delete variants[kind];
+  savePoses(poses.value.map((x) => (x.pose_id === p.pose_id ? { ...x, variants } : x)));
 }
 const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 0.5 ? 'bg-line' : 'bg-accent2/30');
 </script>
@@ -129,17 +148,43 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
       </PSection>
 
       <PSection title="Variants" test-id="rig-variants">
-        <div v-for="kind in KINDS" :key="kind" class="mb-1 flex flex-wrap items-center gap-2 text-base">
-          <span class="w-24 text-muted">{{ label(kind) }}</span>
-          <PRow>
-            <Chip v-for="p in ps.kit.parts.filter((x) => x.kind === kind)" :key="p.part_id" :selected="ps.variantOf(kind) === p.variant"
-              :test-id="`variant-${kind}-${p.variant}`" @click="ps.preview = { ...ps.preview, [kind]: p.variant }">
-              {{ p.label }}{{ ps.kit.defaults[kind] === p.variant ? ' ★' : '' }}
-            </Chip>
-          </PRow>
-          <button v-if="ps.kit.defaults[kind] !== ps.variantOf(kind)" class="text-sm underline" :data-testid="`variant-default-${kind}`"
-            @click="ps.setup({ defaults: { [kind]: ps.variantOf(kind) } })">make default</button>
+        <p class="mb-2 text-xs text-muted">★ default · ⧉ from the shared library · faded: not offered on this breed</p>
+        <div v-for="kind in KINDS" :key="kind" class="mb-2 text-base" :data-testid="`variants-${kind}`">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="w-24 text-muted">{{ label(kind) }}</span>
+            <PRow>
+              <Chip v-for="p in ps.kit.parts.filter((x) => x.kind === kind)" :key="p.part_id" :selected="ps.variantOf(kind) === p.variant"
+                :test-id="`variant-${kind}-${p.variant}`" @click="ps.preview = { ...ps.preview, [kind]: p.variant }">
+                <span :class="ps.allowed(kind, p.variant) ? '' : 'opacity-50'">{{ p.shared ? '⧉ ' : '' }}{{ p.label }}{{ ps.kit.defaults[kind] === p.variant ? ' ★' : '' }}</span>
+              </Chip>
+            </PRow>
+            <button v-if="ps.kit.defaults[kind] !== ps.variantOf(kind)" class="text-sm underline" :data-testid="`variant-default-${kind}`"
+              @click="ps.setup({ defaults: { [kind]: ps.variantOf(kind) } })">make default</button>
+          </div>
+          <div v-if="previewed(kind)" class="ml-24 mt-1 flex flex-wrap items-center gap-2 text-sm">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" :checked="ps.allowed(kind, previewed(kind)!.variant)" :disabled="ps.kit.defaults[kind] === previewed(kind)!.variant || !previewed(kind)!.shared"
+                :data-testid="`variant-allow-${kind}`" @change="ps.setAllowed(kind, previewed(kind)!.variant, ($event.target as HTMLInputElement).checked)" />
+              offered
+            </label>
+            <span class="text-muted">stretch</span>
+            <input v-for="i in [0, 1, 2]" :key="i" type="number" step="0.05" min="0.05" :value="Number(previewed(kind)!.stretch?.[i] ?? 1).toFixed(2)"
+              :data-testid="`stretch-${kind}-${i}`" :title="['side to side', 'up', 'front to back'][i]"
+              class="w-16 rounded-lg border-2 border-line bg-paper px-1 py-0.5" @change="setStretchAxis(kind, i, ($event.target as HTMLInputElement).value)" />
+            <button v-if="previewed(kind)!.stretch_edited" class="underline" :data-testid="`stretch-reset-${kind}`" @click="ps.setStretch(previewed(kind)!, null)">size guess</button>
+          </div>
         </div>
+      </PSection>
+
+      <PSection v-if="ps.kit.texture" title="Default texture" test-id="rig-texture">
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <span class="flex items-center gap-1"><i class="inline-block h-5 w-5 rounded-full border-2 border-line" :style="{ background: ps.kit.texture.base.hex }" />{{ ps.kit.texture.base.name ?? ps.kit.texture.base.hex }}</span>
+          <span v-if="ps.kit.texture.secondary" class="flex items-center gap-1"><i class="inline-block h-5 w-5 rounded-full border-2 border-line" :style="{ background: ps.kit.texture.secondary.hex }" />{{ ps.kit.texture.secondary.name ?? ps.kit.texture.secondary.hex }}</span>
+          <span v-if="ps.kit.texture.pattern" class="text-muted">{{ label(ps.kit.texture.pattern) }}</span>
+        </div>
+        <PRow v-if="ps.kit.texture.markings?.length" class="mt-1">
+          <Chip v-for="mk in ps.kit.texture.markings" :key="mk" :test-id="`marking-${mk}`">{{ label(mk) }}</Chip>
+        </PRow>
       </PSection>
 
       <PSection v-if="head" title="Head limits (degrees)" test-id="rig-limits">
@@ -168,6 +213,14 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
             <input type="range" :min="limits[ax][0]" :max="limits[ax][1]" :value="p.head?.[ax] ?? 0" class="flex-1" :data-testid="`pose-${p.pose_id}-head-${ax}`"
               @change="setHead(p, ax, ($event.target as HTMLInputElement).value)" />
             <span class="w-10 text-right">{{ p.head?.[ax] ?? 0 }}</span>
+          </div>
+          <div v-for="kind in multi" :key="kind" class="flex items-center gap-2 text-sm">
+            <span class="w-24">{{ label(kind) }}</span>
+            <select :value="p.variants?.[kind] ?? ''" class="rounded-lg border-2 border-line bg-paper px-2 py-0.5" :data-testid="`pose-${p.pose_id}-variant-${kind}`"
+              @change="setPoseVariant(p, kind, ($event.target as HTMLSelectElement).value)">
+              <option value="">the default</option>
+              <option v-for="v in ps.kit.allowed?.[kind] ?? []" :key="v" :value="v">{{ label(v) }}</option>
+            </select>
           </div>
           <p v-for="w in headProblems(p, limits)" :key="w" class="text-xs text-accent2">{{ w }}</p>
         </div>

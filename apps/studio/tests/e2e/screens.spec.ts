@@ -1,4 +1,5 @@
 // One Playwright test per Studio screen and behaviour (BRIEF Sections 2, 4 and 17).
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { PASSWORD, runBatch, signIn, signInHome, toBuild, toGenerate, typeInto } from './helpers';
 
@@ -305,6 +306,43 @@ test('14 rigging: joints, symmetry, a pose, commit', async ({ page }) => {
   await page.getByTestId('rig-commit-button').tap();
   await expect(page.getByTestId('rig-notice')).toContainText(`kit version ${next}`);
   await expect(page.getByTestId('rig-commit-button')).toBeDisabled(); // nothing new to commit
+});
+
+test('15 shared library: shared torsos, legs and tails, a breed head, stretched to the breed (decision 130)', async ({ page }) => {
+  await signInHome(page, 'curator');
+  await page.getByTestId('nav-parts').tap();
+  await page.getByTestId('parts-species-dog').tap();
+  // the proxy parts, uploaded as the shared library under the breed database's part types, and a corgi head
+  const dir = '../../fixtures/parts/dog';
+  const as = (from: string, name: string) => ({ name, mimeType: 'model/gltf-binary', buffer: readFileSync(`${dir}/${from}`) });
+  await page.getByTestId('parts-upload').setInputFiles([
+    as('mixed__torso.glb', 'shared__torso__long_low.glb'), as('mixed__front_leg.glb', 'shared__fore_leg__paw.glb'),
+    as('mixed__hind_leg.glb', 'shared__hind_leg__bean.glb'), as('mixed__hind_leg.glb', 'shared__hind_leg_sitting__sitting_fold.glb'),
+    as('mixed__tail.glb', 'shared__tail__bob.glb'), as('mixed__head.glb', 'corgi_pembroke__head.glb'),
+  ]);
+  await expect(page.getByTestId('parts-notice')).toContainText('6 parts for corgi_pembroke, shared');
+  await expect(page.getByTestId('kit-shared')).toContainText('Shared parts');
+  await page.getByTestId('open-kit-corgi_pembroke').tap();
+  await expect(page.locator('[data-screen=rigging]')).toBeVisible();
+  // the corgi's own part types from the shared library, its short legs, its sitting pose and its colours
+  await expect(page.getByTestId('variant-front_leg-paw')).toContainText('⧉');
+  expect(Number(await page.getByTestId('stretch-front_leg-1').inputValue())).toBeLessThan(0.8);
+  await expect(page.getByTestId('pose-sitting')).toBeVisible();
+  await expect(page.getByTestId('pose-default-sitting')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('rig-texture')).toContainText('red');
+  await expect(page.getByTestId('marking-white_blaze')).toBeVisible();
+  // a stretch set by hand, then back to the size guess
+  await page.getByTestId('stretch-front_leg-1').fill('0.5');
+  await page.getByTestId('stretch-front_leg-1').press('Enter');
+  await expect(page.getByTestId('stretch-reset-front_leg')).toBeVisible();
+  await page.getByTestId('stretch-reset-front_leg').tap();
+  await expect(page.getByTestId('stretch-reset-front_leg')).toBeHidden();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `test-results/shared-${test.info().project.name}.png` });
+  await expect(page.getByTestId('rig-problems')).toHaveCount(0);
+  const next = (await page.getByTestId('rig-commit-button').textContent())!.match(/v(\d+)/)![1];
+  await page.getByTestId('rig-commit-button').tap();
+  await expect(page.getByTestId('rig-notice')).toContainText(`Pembroke Welsh Corgi kit version ${next}`);
 });
 
 test('offline: "Back in a moment" while the API is down, auto-recovers', async ({ page }) => {

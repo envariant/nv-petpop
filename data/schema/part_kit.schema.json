@@ -1,94 +1,443 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://petpop.local/schema/part_kit.schema.json",
-  "title": "PetPop part kit (decision 127)",
-  "description": "One breed's committed parts and their rigs: what a release carries and what the Blender composition script consumes. Frame: glTF, millimetres, +Y up, +Z the pet's front, +X the pet's own left. Legs are authored as the pet's left; the right legs are their mirror in X.",
+  "title": "PetPop part kit (decisions 127, 130)",
+  "description": "One breed's committed parts and their rigs: what a release carries and what the Blender composition script consumes. Frame: glTF, millimetres, +Y up, +Z the pet's front, +X the pet's own left. Legs are authored as the pet's left; the right legs are their mirror in X. kit-2 (decision 130): the torso, legs and tail come from the species' shared library, stretched per axis to the breed's proportions; the head is the breed's own; the breed allows some shared variants per kind and has a default texture configuration.",
   "type": "object",
-  "required": ["kit_version", "species", "breed_id", "version", "parts", "defaults", "poses", "default_pose"],
+  "required": [
+    "kit_version",
+    "species",
+    "breed_id",
+    "version",
+    "parts",
+    "defaults",
+    "poses",
+    "default_pose"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-    "joint": {
-      "type": "object", "required": ["pivot", "axis"], "additionalProperties": false,
-      "properties": {
-        "pivot": {"$ref": "#/$defs/vec3", "description": "Where the part meets the torso."},
-        "axis": {"$ref": "#/$defs/vec3", "description": "Unit vector from the joint into the part."},
-        "twist": {"type": "number", "default": 0, "description": "Degrees about the axis: the part's rest rotation."}
-      }
-    },
-    "attachment": {
-      "type": "object", "required": ["position", "axis"], "additionalProperties": false,
-      "properties": {
-        "position": {"$ref": "#/$defs/vec3"},
-        "axis": {"$ref": "#/$defs/vec3", "description": "Unit vector out of the torso."},
-        "twist": {"type": "number", "default": 0}
-      }
-    },
-    "limit": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
-  },
-  "properties": {
-    "kit_version": {"const": "kit-1"},
-    "species": {"enum": ["dog", "cat"]},
-    "breed_id": {"type": "string"},
-    "version": {"type": "integer", "minimum": 1},
-    "parts": {
+    "vec3": {
       "type": "array",
       "items": {
-        "type": "object", "required": ["part_id", "kind", "variant", "label", "mesh"], "additionalProperties": false,
-        "properties": {
-          "part_id": {"type": "string"},
-          "kind": {"enum": ["head", "torso", "front_leg", "hind_leg", "tail"]},
-          "variant": {"type": "string", "pattern": "^[a-z0-9_]{1,40}$"},
-          "label": {"type": "string"},
-          "mesh": {
-            "type": "object", "required": ["file", "sha256", "tris"], "additionalProperties": false,
-            "properties": {"file": {"type": "string"}, "sha256": {"type": "string"}, "tris": {"type": "integer"}}
-          },
-          "joint": {"$ref": "#/$defs/joint", "description": "Every part but the torso."},
-          "attachments": {
-            "type": "object", "description": "The torso's six slots.", "additionalProperties": false,
-            "required": ["head", "front_left", "front_right", "hind_left", "hind_right", "tail"],
-            "properties": {
-              "head": {"$ref": "#/$defs/attachment"}, "front_left": {"$ref": "#/$defs/attachment"},
-              "front_right": {"$ref": "#/$defs/attachment"}, "hind_left": {"$ref": "#/$defs/attachment"},
-              "hind_right": {"$ref": "#/$defs/attachment"}, "tail": {"$ref": "#/$defs/attachment"}
-            }
-          },
-          "limits": {
-            "type": "object", "description": "The head's yaw, pitch and roll limits in degrees.", "additionalProperties": false,
-            "properties": {"yaw": {"$ref": "#/$defs/limit"}, "pitch": {"$ref": "#/$defs/limit"}, "roll": {"$ref": "#/$defs/limit"}}
-          },
-          "uv_layout": {"type": "string", "description": "The texture template this part's UVs follow (decision 129): <species>-<breed>-head-<n> for a head (each breed's head its own, masks included), <species>-<kind>-<n> for the other kinds (shared across breeds and variants).", "pattern": "^[a-z]+-([a-z0-9_]+-head|torso|front_leg|hind_leg|tail)-[0-9]+$"}
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "joint": {
+      "type": "object",
+      "required": [
+        "pivot",
+        "axis"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pivot": {
+          "$ref": "#/$defs/vec3",
+          "description": "Where the part meets the torso."
+        },
+        "axis": {
+          "$ref": "#/$defs/vec3",
+          "description": "Unit vector from the joint into the part."
+        },
+        "twist": {
+          "type": "number",
+          "default": 0,
+          "description": "Degrees about the axis: the part's rest rotation."
         }
       }
     },
-    "defaults": {
-      "type": "object", "description": "The variant each kind starts with.", "additionalProperties": false,
-      "required": ["head", "torso", "front_leg", "hind_leg", "tail"],
-      "properties": {"head": {"type": "string"}, "torso": {"type": "string"}, "front_leg": {"type": "string"},
-                     "hind_leg": {"type": "string"}, "tail": {"type": "string"}}
+    "attachment": {
+      "type": "object",
+      "required": [
+        "position",
+        "axis"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/vec3"
+        },
+        "axis": {
+          "$ref": "#/$defs/vec3",
+          "description": "Unit vector out of the torso."
+        },
+        "twist": {
+          "type": "number",
+          "default": 0
+        }
+      }
     },
-    "poses": {
-      "type": "array", "minItems": 1, "description": "The poses this breed allows.",
+    "limit": {
+      "type": "array",
       "items": {
-        "type": "object", "required": ["pose_id", "label"], "additionalProperties": false,
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "colour": {
+      "type": "object",
+      "required": [
+        "hex"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "hex": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        }
+      }
+    }
+  },
+  "properties": {
+    "kit_version": {
+      "enum": [
+        "kit-1",
+        "kit-2"
+      ]
+    },
+    "species": {
+      "enum": [
+        "dog",
+        "cat"
+      ]
+    },
+    "breed_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "part_id",
+          "kind",
+          "variant",
+          "label",
+          "mesh"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "pose_id": {"type": "string", "pattern": "^[a-z0-9_]{1,40}$"},
-          "label": {"type": "string"},
-          "legs": {
-            "type": "object", "additionalProperties": false, "description": "Each leg's twist: 0, 1 or 2 thirds of a turn.",
-            "properties": {"front_left": {"enum": [0, 1, 2]}, "front_right": {"enum": [0, 1, 2]},
-                           "hind_left": {"enum": [0, 1, 2]}, "hind_right": {"enum": [0, 1, 2]}}
+          "part_id": {
+            "type": "string"
           },
-          "head": {
-            "type": "object", "additionalProperties": false,
-            "properties": {"yaw": {"type": "number"}, "pitch": {"type": "number"}, "roll": {"type": "number"}}
+          "kind": {
+            "enum": [
+              "head",
+              "torso",
+              "front_leg",
+              "hind_leg",
+              "tail"
+            ]
+          },
+          "variant": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "mesh": {
+            "type": "object",
+            "required": [
+              "file",
+              "sha256",
+              "tris"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              },
+              "tris": {
+                "type": "integer"
+              }
+            }
+          },
+          "joint": {
+            "$ref": "#/$defs/joint",
+            "description": "Every part but the torso."
+          },
+          "attachments": {
+            "type": "object",
+            "description": "The torso's six slots.",
+            "additionalProperties": false,
+            "required": [
+              "head",
+              "front_left",
+              "front_right",
+              "hind_left",
+              "hind_right",
+              "tail"
+            ],
+            "properties": {
+              "head": {
+                "$ref": "#/$defs/attachment"
+              },
+              "front_left": {
+                "$ref": "#/$defs/attachment"
+              },
+              "front_right": {
+                "$ref": "#/$defs/attachment"
+              },
+              "hind_left": {
+                "$ref": "#/$defs/attachment"
+              },
+              "hind_right": {
+                "$ref": "#/$defs/attachment"
+              },
+              "tail": {
+                "$ref": "#/$defs/attachment"
+              }
+            }
+          },
+          "limits": {
+            "type": "object",
+            "description": "The head's yaw, pitch and roll limits in degrees.",
+            "additionalProperties": false,
+            "properties": {
+              "yaw": {
+                "$ref": "#/$defs/limit"
+              },
+              "pitch": {
+                "$ref": "#/$defs/limit"
+              },
+              "roll": {
+                "$ref": "#/$defs/limit"
+              }
+            }
+          },
+          "uv_layout": {
+            "type": "string",
+            "description": "The texture template this part's UVs follow (decision 129): <species>-<breed>-head-<n> for a head (each breed's head its own, masks included), <species>-<kind>-<n> for the other kinds (shared across breeds and variants).",
+            "pattern": "^[a-z]+-([a-z0-9_]+-head|torso|front_leg|hind_leg|tail)-[0-9]+$"
+          },
+          "shared": {
+            "type": "boolean",
+            "default": false,
+            "description": "From the species' shared library (decision 130), not the breed's own."
+          },
+          "stretch": {
+            "$ref": "#/$defs/vec3",
+            "description": "Per-axis scale of the part's mesh (and its joint or attachments) on this breed, applied before placing it. Default [1, 1, 1]."
           }
         }
       }
     },
-    "default_pose": {"type": "string"},
-    "committed_by": {"type": "string"},
-    "committed_at": {"type": "string"}
+    "defaults": {
+      "type": "object",
+      "description": "The variant each kind starts with.",
+      "additionalProperties": false,
+      "required": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+      ],
+      "properties": {
+        "head": {
+          "type": "string"
+        },
+        "torso": {
+          "type": "string"
+        },
+        "front_leg": {
+          "type": "string"
+        },
+        "hind_leg": {
+          "type": "string"
+        },
+        "tail": {
+          "type": "string"
+        }
+      }
+    },
+    "poses": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The poses this breed allows.",
+      "items": {
+        "type": "object",
+        "required": [
+          "pose_id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "pose_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "legs": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Each leg's twist: 0, 1 or 2 thirds of a turn.",
+            "properties": {
+              "front_left": {
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "front_right": {
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "hind_left": {
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "hind_right": {
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            }
+          },
+          "head": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "yaw": {
+                "type": "number"
+              },
+              "pitch": {
+                "type": "number"
+              },
+              "roll": {
+                "type": "number"
+              }
+            }
+          },
+          "variants": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Variants this pose swaps in (a sitting pose folds the hind legs).",
+            "properties": {
+              "head": {
+                "type": "string"
+              },
+              "torso": {
+                "type": "string"
+              },
+              "front_leg": {
+                "type": "string"
+              },
+              "hind_leg": {
+                "type": "string"
+              },
+              "tail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "default_pose": {
+      "type": "string"
+    },
+    "committed_by": {
+      "type": "string"
+    },
+    "committed_at": {
+      "type": "string"
+    },
+    "allowed": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The variants a customer may choose per kind (the defaults included).",
+      "properties": {
+        "head": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "torso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "front_leg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hind_leg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tail": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "texture": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "The breed's default texture configuration: colours, pattern and markings (masks).",
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/colour"
+        },
+        "secondary": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/colour"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pattern": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "markings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
   }
 }

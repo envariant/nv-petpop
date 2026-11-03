@@ -1413,6 +1413,21 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * BreedTexture
+         * @description A breed's default texture configuration (decision 130): its colours, pattern and markings (masks).
+         */
+        BreedTexture: {
+            base: components["schemas"]["TextureColour"];
+            /**
+             * Markings
+             * @default []
+             */
+            markings: string[];
+            /** Pattern */
+            pattern?: string | null;
+            secondary?: components["schemas"]["TextureColour"] | null;
+        };
         /** CodeRequest */
         CodeRequest: {
             /**
@@ -2503,6 +2518,28 @@ export interface components {
             part_id: string;
             /** Sha256 */
             sha256: string;
+            /**
+             * Shared
+             * @description From the species' shared library (decision 130): its rig is the same for every breed.
+             * @default false
+             */
+            shared: boolean;
+            /**
+             * Stretch
+             * @description Per-axis scale of the part on this breed (decision 130).
+             * @default [
+             *       1,
+             *       1,
+             *       1
+             *     ]
+             */
+            stretch: number[];
+            /**
+             * Stretch Edited
+             * @description The stretch was set in the workbench (otherwise it is the size guess).
+             * @default false
+             */
+            stretch_edited: boolean;
             /** Tris */
             tris: number;
             /** Variant */
@@ -2544,6 +2581,14 @@ export interface components {
          *     it stands against its last commit.
          */
         PartKit: {
+            /**
+             * Allowed
+             * @description The variants a customer may choose per kind (decision 130).
+             * @default {}
+             */
+            allowed: {
+                [key: string]: string[];
+            };
             /** Breed Id */
             breed_id: string;
             /** Breed Label */
@@ -2584,6 +2629,8 @@ export interface components {
             species: "dog" | "cat";
             /** Symmetry */
             symmetry: boolean;
+            /** @description The breed's default texture configuration. */
+            texture?: components["schemas"]["BreedTexture"] | null;
             /**
              * Version
              * @description The last committed kit version (0: never committed).
@@ -2597,9 +2644,17 @@ export interface components {
         };
         /**
          * PartKitSetup
-         * @description The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry.
+         * @description The breed-level settings: the default variant per kind, the allowed poses and the default one, symmetry, the
+         *     variants a customer may choose, each part's stretch on this breed and the default texture (decision 130).
          */
         PartKitSetup: {
+            /**
+             * Allowed
+             * @description Replaces the allowed variants of the kinds given.
+             */
+            allowed?: {
+                [key: string]: string[];
+            } | null;
             /** Default Pose */
             default_pose?: string | null;
             /** Defaults */
@@ -2608,8 +2663,16 @@ export interface components {
             } | null;
             /** Poses */
             poses?: components["schemas"]["Pose"][] | null;
+            /**
+             * Stretch
+             * @description '<kind>/<variant>' to a per-axis stretch; null puts the size guess back.
+             */
+            stretch?: {
+                [key: string]: number[] | null;
+            } | null;
             /** Symmetry */
             symmetry?: boolean | null;
+            texture?: components["schemas"]["BreedTexture"] | null;
         };
         /** PartKitSummary */
         PartKitSummary: {
@@ -2859,6 +2922,14 @@ export interface components {
             };
             /** Pose Id */
             pose_id: string;
+            /**
+             * Variants
+             * @description Variants this pose swaps in (a sitting pose folds the hind legs).
+             * @default {}
+             */
+            variants: {
+                [key: string]: string;
+            };
         };
         /** Price */
         Price: {
@@ -3303,6 +3374,13 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "failed" | "skipped" | "fallback" | "running";
+        };
+        /** TextureColour */
+        TextureColour: {
+            /** Hex */
+            hex: string;
+            /** Name */
+            name?: string | null;
         };
         /** TweakRequest */
         TweakRequest: {

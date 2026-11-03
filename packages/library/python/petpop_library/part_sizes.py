@@ -20,12 +20,15 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
 from petpop_core.paths import BREEDS_DIR
+
+from .parts import SHARED, SITTING
 
 FIGURE_MM = 90.0
 LENGTH_MM = 120.0  # placeholder, like the mandrel's numbers: the longest a figure may be, nose to tail
@@ -152,13 +155,17 @@ def guess(breed: dict[str, Any], figure_mm: float = FIGURE_MM, length_mm: float 
     if k < figure_mm / tall:
         notes.append(f"long figure: sized to {length_mm:.0f} mm nose to tail, so it stands {tall * k:.0f} mm tall")
 
+    # keyed by the breed's part types: the shared library's variant names (decision 130)
+    defaults = {"head": "default", "torso": types.get("torso", "standard"), "front_leg": types.get("fore_leg", "paw"),
+                "hind_leg": types.get("hind_leg", "bean"), "tail": ttype}
+    sitting = types.get("hind_leg_sitting", SITTING)
     parts = {
-        "torso/default": (W, 1.0, L),
-        "front_leg/default": (fw, fh, fw),
-        "hind_leg/default": (hx, hh, hz),
-        "hind_leg/sitting": (sx, sy, sz),
+        f"torso/{defaults['torso']}": (W, 1.0, L),
+        f"front_leg/{defaults['front_leg']}": (fw, fh, fw),
+        f"hind_leg/{defaults['hind_leg']}": (hx, hh, hz),
+        f"hind_leg/{sitting}": (sx, sy, sz),
         "head/default": head,
-        "tail/default": tail,
+        f"tail/{ttype}": tail,
     }
     out = {}
     for key, dims in parts.items():
@@ -172,7 +179,7 @@ def guess(breed: dict[str, Any], figure_mm: float = FIGURE_MM, length_mm: float 
                        "fore_leg": types.get("fore_leg"), "hind_leg": types.get("hind_leg"), "tail": ttype,
                        "torso_length_to_height": L, "torso_width_to_height": W, "ears": f"{ears.get('size')} {shape}",
                        "muzzle": "brachycephalic" if brachy else head_p.get("muzzle_length")},
-            "parts": out, "notes": notes}
+            "defaults": defaults, "sitting": sitting, "parts": out, "notes": notes}
 
 
 def build_table(db: dict[str, Any], figure_mm: float = FIGURE_MM, length_mm: float = LENGTH_MM) -> dict[str, Any]:
@@ -196,21 +203,84 @@ def table(species: str) -> dict[str, Any] | None:
     return _TABLES[species]
 
 
+def _default_key(row: dict[str, Any], kind: str) -> str:
+    return f"{kind}/{(row.get('defaults') or {}).get(kind, 'default')}"
+
+
 def target(species: str, breed_id: str, kind: str, variant: str) -> tuple[list[float], str] | None:
-    """The guessed size of a part, and where it came from: the breed's own row (a variant without a row of its own
-    takes its kind's default), else the species' median breed."""
+    """The guessed size of a part, and where it came from: the breed's own row (a variant it does not use takes its
+    kind's default), else, for the shared library or an unknown breed, the median of the breeds that use that variant
+    (or of every breed's default for the kind)."""
     t = table(species)
     if not t or not t.get("breeds"):
         return None
-    row = t["breeds"].get(breed_id)
+    row = t["breeds"].get(breed_id) if breed_id != SHARED else None
     if row:
-        p = row["parts"].get(f"{kind}/{variant}") or row["parts"].get(f"{kind}/default")
+        p = row["parts"].get(f"{kind}/{variant}") or row["parts"].get(_default_key(row, kind))
         if p:
             return p["size_mm"], f"{breed_id} size guess"
-    sizes = [r["parts"][f"{kind}/default"]["size_mm"] for r in t["breeds"].values() if f"{kind}/default" in r["parts"]]
+    rows = list(t["breeds"].values())
+    sizes = [r["parts"][f"{kind}/{variant}"]["size_mm"] for r in rows if f"{kind}/{variant}" in r["parts"]]
+    what = f"median {variant} {kind.replace('_', ' ')}"
+    if not sizes:
+        sizes = [r["parts"][_default_key(r, kind)]["size_mm"] for r in rows if _default_key(r, kind) in r["parts"]]
+        what = f"median {kind.replace('_', ' ')}"
     if not sizes:
         return None
-    return [float(x) for x in np.median(np.asarray(sizes), axis=0)], f"median {t.get('species') or species} size guess"
+    return [float(x) for x in np.median(np.asarray(sizes), axis=0)], f"{what} size guess"
+
+
+STRETCH_RANGE = (0.4, 2.5)
+
+
+def stretch_guess(species: str, breed_id: str, kind: str, variant: str, extents) -> list[float]:
+    """How much to stretch a shared part (its mesh `extents`, mm, kit frame) per axis to give it the breed's
+    proportions (decision 130). A variant the breed's database row names fills the breed's guessed box; any other
+    variant keeps its own proportions at the breed's scale (the breed's default for the kind against the median)."""
+    t = table(species)
+    row = (t or {}).get("breeds", {}).get(breed_id)
+    ext = np.maximum(np.asarray(extents, float), 1e-6)
+    if not row:
+        return [1.0, 1.0, 1.0]
+    own = row["parts"].get(f"{kind}/{variant}")
+    if own:
+        s = np.asarray(own["size_mm"], float) / ext
+    else:
+        mine, base = row["parts"].get(_default_key(row, kind)), target(species, SHARED, kind, (row.get("defaults") or {}).get(kind, "default"))
+        if not mine or not base:
+            return [1.0, 1.0, 1.0]
+        s = np.full(3, float(np.prod(np.asarray(mine["size_mm"]) / np.asarray(base[0])) ** (1 / 3)))
+    return [round(float(x), 3) for x in np.clip(s, *STRETCH_RANGE)]
+
+
+@lru_cache
+def breed_entry(species: str, breed_id: str) -> dict[str, Any] | None:
+    """The breed's entry in the breed database (data/breeds/<species>_pebbles_simple.json), or None."""
+    p = BREEDS_DIR / f"{species}_pebbles_simple.json"
+    if not p.is_file():
+        return None
+    return next((b for b in json.loads(p.read_text())["breeds"] if b["id"] == breed_id), None)
+
+
+def recipe(species: str, breed_id: str) -> dict[str, Any]:
+    """What a breed's kit starts with (decision 130): its default variant per kind and the shared variants it allows
+    (its part types: the sitting hind leg too), and its default texture configuration (colours, pattern, markings)."""
+    b = breed_entry(species, breed_id) if breed_id != SHARED else None
+    if not b:
+        return {"defaults": {}, "allowed": {}, "sitting": None, "texture": None}
+    types, colour = b.get("part_types", {}), (b.get("preset") or {}).get("colour") or {}
+    defaults = {"torso": types.get("torso"), "front_leg": types.get("fore_leg"), "hind_leg": types.get("hind_leg"),
+                "tail": types.get("tail")}
+    defaults = {k: v for k, v in defaults.items() if v}
+    sitting = types.get("hind_leg_sitting")
+    allowed = {k: [v] for k, v in defaults.items()}
+    if sitting:
+        allowed.setdefault("hind_leg", []).append(sitting)
+    texture = None
+    if colour.get("base"):
+        texture = {"base": colour["base"], "secondary": colour.get("secondary"), "pattern": colour.get("pattern"),
+                   "markings": list(colour.get("markings") or [])}
+    return {"defaults": defaults, "allowed": allowed, "sitting": sitting, "texture": texture}
 
 
 def fit(v: np.ndarray, size_mm: list[float]) -> tuple[np.ndarray, float, list[str]]:

@@ -20,6 +20,8 @@ from petpop_library import parts as P  # noqa: E402
 
 POSES = [{}, {"legs": {"front_left": 1, "front_right": 1, "hind_left": 2, "hind_right": 0}},
          {"head": {"yaw": 25, "pitch": -10, "roll": 8}}]
+# a breed's proportions on shared parts (decision 130): none, then the part and the torso stretched
+STRETCHES = [(None, None), ([1.2, 0.7, 1.1], [0.9, 1.15, 1.3])]
 
 
 def main() -> None:
@@ -48,18 +50,17 @@ def main() -> None:
     placements = []
     by = {(p["kind"], p["variant"]): p for p in parts}
     torso = by[("torso", "default")]
-    for pose in POSES:
-        for slot in P.SLOTS:
-            part = by[(P.SLOT_KIND[slot], "default")]
-            jp = P.Joint.of(part["joint"])
-            ja = P.Joint.of(torso["attachments"][slot])
-            # with a twist on the joint too, so the frames' twist is exercised
-            jp.twist = 15.0
-            R, t = P.placement(jp, ja, slot, pose)
-            M = np.eye(4)
-            M[:3, :3] = R @ (P.MIRROR if slot in P.MIRRORED else np.eye(3))
-            M[:3, 3] = t
-            placements.append({"slot": slot, "pose": pose, "joint_twist": 15.0, "matrix": [round(float(x), 6) for x in M.T.ravel()]})
+    for stretch, torso_stretch in STRETCHES:
+        for pose in POSES:
+            for slot in P.SLOTS:
+                part = by[(P.SLOT_KIND[slot], "default")]
+                jp = P.Joint.of(part["joint"])
+                ja = P.Joint.of(torso["attachments"][slot])
+                # with a twist on the joint too, so the frames' twist is exercised
+                jp.twist = 15.0
+                M = P.placement_matrix(jp, ja, slot, pose, stretch, torso_stretch)
+                placements.append({"slot": slot, "pose": pose, "joint_twist": 15.0, "stretch": stretch, "torso_stretch": torso_stretch,
+                                   "matrix": [round(float(x), 6) for x in M.T.ravel()]})
     out = {"species": "dog", "breed_id": "mixed", "parts": parts, "placements": placements}
     (ROOT / "fixtures" / "parts" / "golden.json").write_text(json.dumps(out, indent=1) + "\n")
     print("wrote fixtures/parts/golden.json:", len(parts), "parts,", len(placements), "placements")

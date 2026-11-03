@@ -2,11 +2,12 @@
 // The rigging workbench's viewport (decision 127). Assembled: the torso, every part on its slot in the previewed pose,
 // and a marker (a dot and the axis arrow) on each torso attachment. Part: the selected part alone, as authored, with
 // its pivot. Drag a marker with the gizmo (move, or rotate to turn the axis); the edit is shown live and saved when
-// the drag ends. Click a marker or a part to select it.
+// the drag ends. Click a marker or a part to select it. Decision 130: the assembled figure shows each part stretched to
+// this breed; a socket dragged on the stretched torso is saved in the torso's own (shared, unstretched) coordinates.
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { FigureStage, SLOTS, SLOT_KIND, loadGlb, placement, webglAvailable, type Slot } from '@petpop/scene';
+import { FigureStage, SLOTS, SLOT_KIND, loadGlb, placement, stretchJoint, unstretch, webglAvailable, type Slot } from '@petpop/scene';
 import type { Part } from '@petpop/core';
 import { useParts } from '../stores/parts';
 
@@ -83,7 +84,11 @@ async function rebuild() {
     }
   } else if (torso) {
     const tg = await geometry(torso);
-    if (tg) root.add(new THREE.Mesh(tg, clay));
+    if (tg) {
+      const tm = new THREE.Mesh(tg, clay);
+      tm.scale.set(torso.stretch?.[0] ?? 1, torso.stretch?.[1] ?? 1, torso.stretch?.[2] ?? 1);
+      root.add(tm);
+    }
     for (const slot of SLOTS as Slot[]) {
       const att = torso.attachments?.[slot];
       const part = ps.partOf(SLOT_KIND[slot]);
@@ -92,14 +97,15 @@ async function rebuild() {
         if (g) {
           const mesh = new THREE.Mesh(g, ps.target.type === 'slot' && ps.target.slot === slot ? picked : clay);
           mesh.matrixAutoUpdate = false;
-          mesh.matrix.copy(placement(part.joint, att, slot, ps.pose));
+          mesh.matrix.copy(placement(part.joint, att, slot, ps.pose, part.stretch, torso.stretch));
           mesh.userData.pick = `slot:${slot}`;
           root.add(mesh);
         }
       }
       if (att) {
         const m = marker(`slot:${slot}`, slot.endsWith('right') ? '#7a5cff' : '#ff8a3d');
-        place(m, att.position, att.axis);
+        const shown = stretchJoint(att, 'position', torso.stretch);
+        place(m, shown.position, shown.axis);
         markers.set(m.name, m);
         root.add(m);
       }
@@ -132,7 +138,8 @@ function onDrag() {
   if (m.name.startsWith('slot:')) {
     const slot = m.name.slice(5) as Slot;
     const old = ps.torso?.attachments?.[slot];
-    ps.setAttachment(slot, { position: point, axis, twist: old?.twist ?? 0 });
+    const own = unstretch(point, axis, ps.torso?.stretch);
+    ps.setAttachment(slot, { position: own.point, axis: own.axis, twist: old?.twist ?? 0 });
   } else {
     const id = m.name.slice(5);
     const old = ps.kit?.parts.find((p) => p.part_id === id)?.joint;

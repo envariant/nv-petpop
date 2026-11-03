@@ -8,7 +8,7 @@ the right legs mirrored, joined, optionally fused into one watertight surface, t
 --files     where the part GLBs are: a folder (matched by the kit's file names or <breed>__<kind>[__<variant>].glb),
             or the artefact store root (var/artefacts) holding the kit's keys
 --modify    a Python file with modify(obj, job): runs in Blender on the joined figure, the last authoring step
-Writes <out>/<breed>__<pose>.glb (and .stl) and <out>/<breed>__<pose>.plan.json (what went where). Blender's bpy
+Writes <out>/<breed>__<pose>.glb (and .stl), stood on the floor (y = 0), and <out>/<breed>__<pose>.plan.json (what went where). Blender's bpy
 (PETPOP_BPY_PYTHON) does the work when it is there; a trimesh stand-in otherwise (no voxel fuse, no --modify).
 """
 from __future__ import annotations
@@ -51,6 +51,9 @@ def compose_trimesh(plan: dict, paths: list[Path], out_glb: Path, out_stl: Path 
         f = np.asarray(m.faces)
         meshes.append(trimesh.Trimesh(v[:, :3], f[:, ::-1] if entry["mirrored"] else f, process=False))
     fig = trimesh.util.concatenate(meshes)
+    lift = -float(fig.bounds[0][1])  # stand the figure on the floor (y = 0): a breed's stretch moves its feet
+    fig.apply_translation([0.0, lift, 0.0])
+    meshes = [m.apply_translation([0.0, lift, 0.0]) for m in meshes]
     note = None
     if fuse:
         if all(m.is_watertight for m in meshes):
@@ -60,7 +63,8 @@ def compose_trimesh(plan: dict, paths: list[Path], out_glb: Path, out_stl: Path 
     fig.export(out_glb)
     if out_stl:
         fig.export(out_stl)
-    return {"vertices": int(len(fig.vertices)), "faces": int(len(fig.faces)), "engine": "trimesh", **({"note": note} if note else {})}
+    return {"vertices": int(len(fig.vertices)), "faces": int(len(fig.faces)), "engine": "trimesh", "floor_mm": round(lift, 3),
+            **({"note": note} if note else {})}
 
 
 def compose(kit: dict, files: Path, out: Path, variants: dict | None = None, pose_id: str | None = None, fuse: bool = False,
@@ -82,9 +86,11 @@ def compose(kit: dict, files: Path, out: Path, variants: dict | None = None, pos
         job = {"parts": [{**e, "path": str(p)} for e, p in zip(plan["parts"], paths)], "out_glb": str(out_glb),
                "out_stl": str(out_stl) if out_stl else None, "fuse": fuse, "voxel_mm": 0.35, "modify": str(modify.resolve()) if modify else None}
         result = blender.run(python, ["compose_parts"], job, timeout=600)
-        result = {k: result[k] for k in ("vertices", "faces", "engine") if k in result}
+        result = {k: result[k] for k in ("vertices", "faces", "engine", "floor_mm") if k in result}
     else:
         result = compose_trimesh(plan, paths, out_glb, out_stl, fuse)
+    for e in plan["parts"]:  # the plan as written: every matrix includes the move onto the floor
+        e["matrix"][1][3] += result.get("floor_mm", 0.0)
     record = {**plan, "files": [str(p) for p in paths], "outputs": {"glb": str(out_glb), "stl": str(out_stl) if out_stl else None},
               "fused": fuse, "result": result}
     (out / f"{stem}.plan.json").write_text(json.dumps(record, indent=1) + "\n")

@@ -805,6 +805,49 @@
     "title": "BreedList",
     "type": "object"
    },
+   "BreedTexture": {
+    "additionalProperties": false,
+    "description": "A breed's default texture configuration (decision 130): its colours, pattern and markings (masks).",
+    "properties": {
+     "base": {
+      "$ref": "#/components/schemas/TextureColour"
+     },
+     "markings": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Markings",
+      "type": "array"
+     },
+     "pattern": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pattern"
+     },
+     "secondary": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TextureColour"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "base"
+    ],
+    "title": "BreedTexture",
+    "type": "object"
+   },
    "CodeRequest": {
     "additionalProperties": false,
     "properties": {
@@ -3667,6 +3710,33 @@
       "title": "Sha256",
       "type": "string"
      },
+     "shared": {
+      "default": false,
+      "description": "From the species' shared library (decision 130): its rig is the same for every breed.",
+      "title": "Shared",
+      "type": "boolean"
+     },
+     "stretch": {
+      "default": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "description": "Per-axis scale of the part on this breed (decision 130).",
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Stretch",
+      "type": "array"
+     },
+     "stretch_edited": {
+      "default": false,
+      "description": "The stretch was set in the workbench (otherwise it is the size guess).",
+      "title": "Stretch Edited",
+      "type": "boolean"
+     },
      "tris": {
       "title": "Tris",
       "type": "integer"
@@ -3765,6 +3835,27 @@
     "additionalProperties": false,
     "description": "A breed's kit in the workbench: its parts and rigs, the default variant per kind, the allowed poses, and where\nit stands against its last commit.",
     "properties": {
+     "allowed": {
+      "additionalProperties": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      "default": {},
+      "description": "The variants a customer may choose per kind (decision 130).",
+      "propertyNames": {
+       "enum": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+       ]
+      },
+      "title": "Allowed",
+      "type": "object"
+     },
      "breed_id": {
       "title": "Breed Id",
       "type": "string"
@@ -3863,6 +3954,17 @@
       "title": "Symmetry",
       "type": "boolean"
      },
+     "texture": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/BreedTexture"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The breed's default texture configuration."
+     },
      "version": {
       "description": "The last committed kit version (0: never committed).",
       "title": "Version",
@@ -3904,8 +4006,35 @@
    },
    "PartKitSetup": {
     "additionalProperties": false,
-    "description": "The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry.",
+    "description": "The breed-level settings: the default variant per kind, the allowed poses and the default one, symmetry, the\nvariants a customer may choose, each part's stretch on this breed and the default texture (decision 130).",
     "properties": {
+     "allowed": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "propertyNames": {
+         "enum": [
+          "head",
+          "torso",
+          "front_leg",
+          "hind_leg",
+          "tail"
+         ]
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Replaces the allowed variants of the kinds given.",
+      "title": "Allowed"
+     },
      "default_pose": {
       "anyOf": [
        {
@@ -3955,6 +4084,35 @@
       ],
       "title": "Poses"
      },
+     "stretch": {
+      "anyOf": [
+       {
+        "patternProperties": {
+         "^(head|torso|front_leg|hind_leg|tail)/[a-z0-9_]{1,40}$": {
+          "anyOf": [
+           {
+            "items": {
+             "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         }
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "'<kind>/<variant>' to a per-axis stretch; null puts the size guess back.",
+      "title": "Stretch"
+     },
      "symmetry": {
       "anyOf": [
        {
@@ -3965,6 +4123,16 @@
        }
       ],
       "title": "Symmetry"
+     },
+     "texture": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/BreedTexture"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "title": "PartKitSetup",
@@ -4800,6 +4968,24 @@
       "pattern": "^[a-z0-9_]{1,40}$",
       "title": "Pose Id",
       "type": "string"
+     },
+     "variants": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "default": {},
+      "description": "Variants this pose swaps in (a sitting pose folds the hind legs).",
+      "propertyNames": {
+       "enum": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+       ]
+      },
+      "title": "Variants",
+      "type": "object"
      }
     },
     "required": [
@@ -6141,6 +6327,32 @@
     "title": "StageTiming",
     "type": "object"
    },
+   "TextureColour": {
+    "additionalProperties": false,
+    "properties": {
+     "hex": {
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "title": "Hex",
+      "type": "string"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     }
+    },
+    "required": [
+     "hex"
+    ],
+    "title": "TextureColour",
+    "type": "object"
+   },
    "TweakRequest": {
     "additionalProperties": false,
     "properties": {
@@ -6199,7 +6411,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.12.0"
+  "version": "3.13.0"
  },
  "openapi": "3.1.0",
  "paths": {

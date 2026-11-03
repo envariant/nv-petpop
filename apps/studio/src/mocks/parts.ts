@@ -1,4 +1,5 @@
-// The part library in standalone mode (decision 127): kits kept in memory, seeded from the proxy kit's golden rig
+// The part library in standalone mode (decisions 127, 130): kits kept in memory (each breed's own parts only: the
+// shared library is the backend's), seeded from the proxy kit's golden rig
 // (fixtures/parts/golden.json, the Python first guess), meshes from public/parts/ (scripts/sync-assets.mjs).
 import { http, HttpResponse } from 'msw';
 import golden from '@fixtures/parts/golden.json';
@@ -9,7 +10,7 @@ import { KINDS, headProblems } from '@petpop/scene';
 type Golden = { kind: Part['kind']; variant: string; file: string; tris: number; joint?: Part['joint']; attachments?: Part['attachments']; limits?: Part['limits']; guess: Part['guess'] };
 const G = golden.parts as unknown as Golden[];
 const NAME = /^([a-z0-9_]+)__(head|torso|front_leg|fore_leg|hind_leg_sitting|hind_leg|tail)(?:__([a-z0-9_]{1,40}))?\.glb$/;
-const STANDING: Pose = { pose_id: 'standing', label: 'Standing', legs: { front_left: 0, front_right: 0, hind_left: 0, hind_right: 0 }, head: { yaw: 0, pitch: 0, roll: 0 } };
+const STANDING: Pose = { pose_id: 'standing', label: 'Standing', legs: { front_left: 0, front_right: 0, hind_left: 0, hind_right: 0 }, head: { yaw: 0, pitch: 0, roll: 0 }, variants: {} };
 const kits = new Map<string, PartKit>(); // "<species>/<breed>"
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 const label = (b: string) => b.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -25,13 +26,17 @@ function problems(k: PartKit): string[] {
   return out;
 }
 function refresh(k: PartKit): PartKit {
+  const allowed: NonNullable<PartKit['allowed']> = {};
   for (const kind of KINDS) {
     const vs = k.parts.filter((p) => p.kind === kind).map((p) => p.variant);
     if (!vs.includes(k.defaults[kind] ?? '')) {
       if (vs.length) k.defaults[kind] = vs.includes('default') ? 'default' : vs[0];
       else delete k.defaults[kind];
     }
+    if (vs.length) allowed[kind] = vs; // a breed's own parts are always allowed
   }
+  k.allowed = allowed;
+  for (const p of k.parts) Object.assign(p, { shared: false, stretch: p.stretch ?? [1, 1, 1], stretch_edited: p.stretch_edited ?? false });
   k.problems = problems(k);
   return k;
 }
@@ -48,7 +53,7 @@ kits.set('dog/mixed', refresh({
   parts: G.map((g) => ({
     part_id: `pt_mixed_${g.kind}_${g.variant}`, kind: g.kind, variant: g.variant, label: g.variant === 'default' ? 'Standard' : label(g.variant),
     mesh_url: assetUrl(`parts/dog/${g.file}`), tris: g.tris, sha256: '0'.repeat(64), joint: clone(g.joint ?? null), attachments: clone(g.attachments ?? null),
-    limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false,
+    limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false,
   })),
 } as unknown as PartKit));
 
@@ -86,7 +91,7 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
       const g = guessFor(kind, variant);
       const part: Part = { part_id: `pt_${breed}_${kind}_${variant}`, kind, variant, label: variant === 'default' ? 'Standard' : label(variant),
         mesh_url: assetUrl(`parts/dog/${g.file}`), tris: g.tris, sha256: '0'.repeat(64), joint: clone(g.joint ?? null), attachments: clone(g.attachments ?? null),
-        limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false };
+        limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false };
       kit.parts = [...kit.parts.filter((p) => !(p.kind === kind && p.variant === variant)), part];
       dirty(kit);
       items.push(part);
@@ -131,7 +136,16 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
     if (!userOf(request)) return unauthorised();
     const k = kitOf(params);
     if (!k) return notFound('no kit');
-    const body = (await request.json()) as { defaults?: PartKit['defaults']; poses?: Pose[]; default_pose?: string; symmetry?: boolean };
+    const body = (await request.json()) as { defaults?: PartKit['defaults']; poses?: Pose[]; default_pose?: string; symmetry?: boolean;
+      stretch?: Record<string, number[] | null>; texture?: PartKit['texture'] };
+    for (const [key, s] of Object.entries(body.stretch ?? {})) {
+      const [kind, variant] = key.split('/');
+      const p = k.parts.find((x) => x.kind === kind && x.variant === variant);
+      if (!p) return HttpResponse.json({ detail: `no ${kind} variant ${variant}` }, { status: 422 });
+      if (s && s.some((x) => x <= 0)) return HttpResponse.json({ detail: 'a stretch must be positive' }, { status: 422 });
+      Object.assign(p, { stretch: s ?? [1, 1, 1], stretch_edited: !!s });
+    }
+    if (body.texture) k.texture = body.texture;
     if (body.defaults) k.defaults = { ...k.defaults, ...body.defaults };
     if (body.poses) {
       k.poses = body.poses;

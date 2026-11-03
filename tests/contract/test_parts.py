@@ -130,11 +130,80 @@ def test_generated_parts_are_scaled_to_their_size_guess(client):
     kit = client.get(f"{S}/parts/dog/corgi_pembroke", headers=cur).json()
     assert kit["breed_label"] == "Pembroke Welsh Corgi"
     by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
-    assert ("hind_leg", "sitting") in by and not by[("front_leg", "default")]["mirrored"]
+    assert ("hind_leg", "sitting_fold") in by and not by[("front_leg", "default")]["mirrored"]
     # guessed from shape: the torso's sockets from its own shape, each leg slid to stand on the floor
     assert by[("torso", "default")]["guess"]["front_left"]["method"] == "box"
-    assert by[("hind_leg", "sitting")]["guess"]["joint"]["method"].endswith("grounded")
+    assert by[("hind_leg", "sitting_fold")]["guess"]["joint"]["method"].endswith("grounded")
     for (kind, variant), p in by.items():
         mesh = trimesh.load(io.BytesIO(client.get(p["mesh_url"]).content), file_type="glb", force="mesh")
         want = SZ.target("dog", "corgi_pembroke", kind, variant)[0]
         assert float(np.ptp(mesh.vertices, axis=0).max()) == pytest.approx(max(want), rel=1e-3), (kind, variant)
+
+
+def test_the_shared_library(client):
+    """Decision 130: torsos, legs and tails shared by every breed, a head per breed. A breed's kit takes its part types
+    from the breed database, stretched to its proportions, the sitting pose and its default texture; the workbench
+    allows variants, sets stretches, and edits a shared part's rig for every breed."""
+    import io  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+
+    cur = staff(client, "curator")
+    files = []
+    for name, ext in [("torso__long_low", (0.8, 1.0, 2.0)), ("torso__standard", (0.8, 1.0, 1.35)), ("fore_leg__paw", (0.9, 1.0, 0.9)),
+                      ("fore_leg__boot", (0.4, 1.0, 0.4)), ("hind_leg__bean", (0.5, 1.0, 1.0)),
+                      ("hind_leg_sitting__sitting_fold", (0.55, 0.55, 1.0)), ("tail__bob", (0.9, 1.0, 1.0)), ("head", (1, 1, 1))]:
+        files.append(("files", (f"shared__{name}.glb", trimesh.creation.icosphere(subdivisions=1).apply_scale(np.array(ext) / 2)
+                                .export(file_type="glb"), "model/gltf-binary")))
+    up = check(f"{S}/parts/{{species}}/upload", "post", client.post(f"{S}/parts/dog/upload", files=files, headers=cur))
+    assert up["breeds"] == ["shared"] and len(up["items"]) == 7 and all(p["shared"] for p in up["items"])
+    assert any("a head belongs to its breed" in s for s in up["skipped"])
+    lib = check(f"{S}/parts/{{species}}/{{breed_id}}", "get", client.get(f"{S}/parts/dog/shared", headers=cur))
+    assert lib["breed_label"] == "Shared parts" and lib["problems"] == [] and "shared library" in lib["notes"][0]
+    assert client.post(f"{S}/parts/dog/shared/commit", headers=cur).status_code == 422
+
+    head = trimesh.creation.icosphere(subdivisions=1).apply_scale(0.5).export(file_type="glb")
+    for breed in ("corgi_pembroke", "pug"):
+        client.post(f"{S}/parts/dog/upload", files=[("files", (f"{breed}__head.glb", head, "model/gltf-binary"))], headers=cur)
+    kit = check(f"{S}/parts/{{species}}/{{breed_id}}", "get", client.get(f"{S}/parts/dog/corgi_pembroke", headers=cur))
+    assert kit["defaults"] == {"head": "default", "torso": "long_low", "front_leg": "paw", "hind_leg": "bean", "tail": "bob"}
+    assert kit["allowed"]["hind_leg"] == ["bean", "sitting_fold"] and kit["allowed"]["front_leg"] == ["paw"]
+    assert kit["default_pose"] == "sitting" and kit["poses"][1]["variants"] == {"hind_leg": "sitting_fold"}
+    assert kit["texture"]["base"]["hex"] == "#C8763A" and "white_blaze" in kit["texture"]["markings"]
+    assert kit["problems"] == [], kit["problems"]
+    by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
+    paw, boot = by[("front_leg", "paw")], by[("front_leg", "boot")]
+    assert paw["shared"] and not paw["stretch_edited"] and paw["stretch"][1] < 0.8  # a corgi's short legs
+    assert boot["stretch"][0] == boot["stretch"][1] == boot["stretch"][2]  # not its own type: its scale, not its box
+    mesh = trimesh.load(io.BytesIO(client.get(paw["mesh_url"]).content), file_type="glb", force="mesh")
+    assert float(mesh.extents.max()) == pytest.approx(33, abs=1.5)  # fitted to the median paw, shared by every breed
+
+    # the workbench: allow the boot leg, set the paw's stretch, put it back
+    r = client.put(f"{S}/parts/dog/corgi_pembroke/setup", json={"allowed": {"front_leg": ["paw", "boot"]},
+                                                               "stretch": {"front_leg/paw": [1.0, 0.5, 1.0]}}, headers=cur)
+    kit = check(f"{S}/parts/{{species}}/{{breed_id}}/setup", "put", r)
+    paw = next(p for p in kit["parts"] if p["variant"] == "paw")
+    assert kit["allowed"]["front_leg"] == ["boot", "paw"] and paw["stretch"] == [1.0, 0.5, 1.0] and paw["stretch_edited"]
+    assert client.put(f"{S}/parts/dog/corgi_pembroke/setup", json={"stretch": {"front_leg/paw": [1, 0, 1]}}, headers=cur).status_code == 422
+    assert client.put(f"{S}/parts/dog/corgi_pembroke/setup", json={"allowed": {"tail": ["nope"]}}, headers=cur).status_code == 422
+    kit = client.put(f"{S}/parts/dog/corgi_pembroke/setup", json={"stretch": {"front_leg/paw": None}}, headers=cur).json()
+    assert not next(p for p in kit["parts"] if p["variant"] == "paw")["stretch_edited"]
+
+    # commit: a kit-2 document with only the allowed parts, each stretched
+    r = client.post(f"{S}/parts/dog/corgi_pembroke/commit", headers=cur)
+    assert r.status_code == 200, r.text
+    kit = r.json()
+    assert kit["version"] == 1 and not kit["dirty"]
+    pug = client.get(f"{S}/parts/dog/pug", headers=cur).json()
+    assert pug["problems"]  # a pug's own part types (a compact torso, a curled tail) are not in this library
+    choice = {"torso": "standard", "front_leg": "paw", "hind_leg": "bean", "tail": "bob"}
+    assert client.put(f"{S}/parts/dog/pug/setup", json={"defaults": choice}, headers=cur).json()["problems"] == []
+    pug = client.post(f"{S}/parts/dog/pug/commit", headers=cur).json()
+    assert pug["version"] == 1 and not pug["dirty"]
+    # a shared part's rig edited from the corgi's workbench is edited for the pug too
+    j = {**paw["joint"], "twist": 20}
+    client.patch(f"{S}/parts/dog/corgi_pembroke/parts/{paw['part_id']}", json={"joint": j}, headers=cur)
+    pug = client.get(f"{S}/parts/dog/pug", headers=cur).json()
+    assert pug["dirty"]
+    assert next(p for p in pug["parts"] if p["part_id"] == paw["part_id"])["joint"]["twist"] == 20
+    assert client.delete(f"{S}/parts/dog/corgi_pembroke/parts/{paw['part_id']}", headers=cur).status_code == 404  # from the library's page

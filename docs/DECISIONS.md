@@ -272,3 +272,21 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    (blaze, mask, spots and the like), shared by that breed's head variants. The torso, legs and tail keep one layout
    each, shared across breeds and variants, with a mask per pattern. The kit schema checks the names; the per-part
    markings of the P6 switch read a head's masks from its breed's template.
+130. **A shared library of torsos, legs and tails; a head per breed (Nishant, 2026-11-03).** Torso, leg and tail assets
+   are shared among the breeds, named by the breed database's part types (6 torsos, 4 front legs, 3 hind legs and the
+   sitting `sitting_fold`, 9 tails), and rigged once (breed id `shared`, files `shared__<kind>__<variant>.glb`); each
+   breed brings its own head and its default texture configuration (colours, pattern, markings: `preset.colour`).
+   One shared variant spans very different proportions across breeds (the `paw` front leg is barely taller than wide
+   on a corgi, three times on others), so each breed **stretches** every shared part per axis (Nishant's choice):
+   first the size guess (a variant the breed's row names fills its guessed box; any other keeps its shape at the
+   breed's scale, clamped to 0.4 to 2.5), set in the workbench. A shared part's joints and sockets stretch with it
+   (`s * point`, `s * axis` renormalised), in `petpop_library.parts` and its TypeScript twin alike (golden-tested).
+   Each breed **allows** some variants per kind (Nishant's choice): first its own part types, the defaults; the
+   curator offers more. Defaults: one set in the workbench, else the breed's own part, else its part type from the
+   library. Poses may swap variants in; a breed whose poses were never changed gets the database's sitting pose (hind
+   leg `sitting_fold`) as its default once that leg is in the library. Kits are `kit-2` (API 3.13.0): parts carry
+   `shared` and `stretch`, the kit `allowed` and `texture`, poses `variants`. Editing a shared part marks every
+   breed's kit as changed. The size table is keyed by part type, and the shared library is fitted to the median of
+   the breeds using each variant. Composition stands the figure on the floor, since a breed's stretch moves its feet.
+   The draft script now runs Studio's own part library on a throwaway database, so a draft guesses exactly what an
+   upload would.

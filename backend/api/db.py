@@ -328,6 +328,11 @@ class KitRow(Base):
     committed_by: Mapped[str | None] = mapped_column(String(48), nullable=True)
     committed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     dirty: Mapped[bool] = mapped_column(Boolean, default=True)  # changed since the last commit
+    # decision 130: the shared variants this breed allows per kind, stretches set in the workbench ("kind/variant" to
+    # [x, y, z]; others are the size guess), and the default texture configuration
+    allowed: Mapped[dict[str, list[str]] | None] = mapped_column(JSON, nullable=True)
+    stretch: Mapped[dict[str, list[float]] | None] = mapped_column(JSON, nullable=True)
+    texture: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
 class PaymentRow(Base):
@@ -358,7 +363,8 @@ ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", 
                  ("families", "mesh_id", "VARCHAR(40)"), ("region_deltas", "mesh_id", "VARCHAR(40)"),
                  ("jobs", "origin", "VARCHAR(8)"), ("jobs", "synced_at", "TIMESTAMP"), ("jobs", "remote_result_url", "VARCHAR(400)"),
                  ("compositions", "collected_at", "TIMESTAMP"), ("compositions", "account_id", "VARCHAR(40)"),
-                 ("compositions", "contact_email", "VARCHAR(254)"), ("compositions", "contact_phone", "VARCHAR(24)")]
+                 ("compositions", "contact_email", "VARCHAR(254)"), ("compositions", "contact_phone", "VARCHAR(24)"),
+                 ("part_kits", "allowed", "JSON"), ("part_kits", "stretch", "JSON"), ("part_kits", "texture", "JSON")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

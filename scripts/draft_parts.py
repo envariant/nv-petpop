@@ -1,26 +1,28 @@
-"""Draft a breed's figure from parts exported one at a time (decision 128, docs/PARTS.md section 1a).
+"""Draft a breed's figure from parts exported one at a time (decisions 128, 130; docs/PARTS.md section 1a).
 
-    python scripts/draft_parts.py --files ~/exports/corgi --out var/drafts/corgi_pembroke [--breed corgi_pembroke]
-        [--species dog] [--front +z|-z|+x|-x] [--keep-scale] [--fuse]
+    python scripts/draft_parts.py --files ~/exports/corgi [--shared ~/exports/shared] --out var/drafts/corgi_pembroke
+        [--breed corgi_pembroke] [--species dog] [--front +z|-z|+x|-x] [--keep-scale] [--fuse]
 
-Each part a generator makes on its own comes at its own scale, about its own origin, so nothing in the files says
-how the parts fit together. This guesses it:
-  1. names   <breed>__<kind>[__<variant>].glb, the breed database's names too (fore_leg, hind_leg_sitting)
+The draft runs Studio's own part library (backend/api/part_library.py) on a throwaway database and store, so it
+guesses exactly what an upload to Studio would:
+  1. names   <breed>__<kind>[__<variant>].glb, the breed's head (and any parts of its own); shared__<kind>__<variant>.glb
+             the shared library of torsos, legs and tails (--files may hold both; --shared adds another folder)
   2. facing  every part turned about +Y so the pet faces +Z (--front: where the exports' front is)
-  3. size    every part scaled to its breed's size guess (petpop_library.part_sizes, data/breeds/<species>_part_sizes.json),
-             textures kept; --keep-scale for parts already in proportion
-  4. rig     the first guess at every joint and torso socket (petpop_library.parts.auto_rig)
-  5. compose the draft figure in the standing pose, once with the default variants and once per other variant
-Writes <out>/parts/*.glb (the fitted parts), <out>/<breed>.draft-kit.json (a kit-1 document, version 0) and
-<out>/<breed>__draft*.glb (+ .stl, .plan.json). Final authoring starts from there: upload <out>/parts to Studio
-(Parts, with "Scale to size guess" off: they are fitted already) to rig and commit, then compose the committed kit
-with your own edits (make compose-parts ... ARGS="--modify my_edits.py").
+  3. size    every part fitted to its size guess (the breed's; for a shared part the median of the breeds using that
+             variant), centred, textures kept; --keep-scale for parts already in proportion
+  4. rig     the first guess at every joint and socket, each leg slid to stand on the floor
+  5. breed   the variants it allows and its defaults (its part types in the breed database), each shared part
+             stretched to its proportions, its poses (sitting, once the sitting hind leg is there)
+  6. compose the figure in every pose, and once per other allowed variant
+Writes <out>/<breed>.draft-kit.json (a kit-2 document, version 0, its problems listed), <out>/<breed>__draft*.glb (+ .stl,
+.plan.json) and the fitted parts under <out>/store/parts/. Final authoring starts there: upload the same exports to
+Studio (Parts), rig and commit, then compose the committed kit with your own edits (make compose-parts ... ARGS="--modify ...").
 """
 from __future__ import annotations
 
 import argparse
-import io
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -34,111 +36,69 @@ from petpop_library import part_sizes as S  # noqa: E402
 from petpop_library import parts as P  # noqa: E402
 
 FRONT = {"+z": 0.0, "-z": 180.0, "+x": -90.0, "-x": 90.0}  # degrees about +Y that bring that axis to +Z
-STANDING = {"pose_id": "standing", "label": "Standing", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": {"yaw": 0, "pitch": 0, "roll": 0}}
 
 
-def mesh_of(data: bytes) -> tuple[np.ndarray, np.ndarray]:
-    import trimesh  # noqa: PLC0415
-
-    m = trimesh.load(io.BytesIO(data), file_type="glb", force="mesh", process=False)
-    return np.asarray(m.vertices, float), np.asarray(m.faces, int)
-
-
-def file_name(breed: str, kind: str, variant: str) -> str:
-    return f"{breed}__{kind}" + ("" if variant == "default" else f"__{variant}") + ".glb"
-
-
-def fit_parts(files: list[Path], species: str, breed: str | None, front: str, scale: bool, out: Path) -> tuple[str, dict, list[str]]:
-    """Steps 1 to 3: the fitted parts written to `out`; returns the breed, {(kind, variant): (file, v, f)} and notes."""
-    turn = np.eye(4)
-    turn[:3, :3] = P.rot([0, 1, 0], FRONT[front])
-    got: dict[tuple[str, str], tuple[str, np.ndarray, np.ndarray]] = {}
-    notes: list[str] = []
-    breeds = set()
-    out.mkdir(parents=True, exist_ok=True)
-    for path in sorted(files):
-        parsed = P.parse_name(path.name)
-        if not parsed:
-            notes.append(f"{path.name}: skipped, expected <breed>__<kind>[__<variant>].glb")
-            continue
-        b, kind, variant = parsed
-        b = breed or b
-        breeds.add(b)
-        data = path.read_bytes()
-        v, _ = mesh_of(data)
-        v = v @ turn[:3, :3].T
-        matrix, _, what = S.normalise(species, b, kind, variant, v, scale)
-        m = (matrix if matrix is not None else np.eye(4)) @ turn
-        if not np.allclose(m, np.eye(4)):
-            data = S.transform_glb(data, m)
-        notes += [f"{path.name}: {w}" for w in what]
-        name = file_name(b, kind, variant)
-        (out / name).write_bytes(data)
-        nv, nf = mesh_of(data)
-        got[(kind, variant)] = (name, nv, nf)
-    if len(breeds) != 1:
-        raise SystemExit(f"expected the parts of one breed, found {sorted(breeds) or 'none'} (--breed sets it)")
-    return breeds.pop(), got, notes
-
-
-def draft_kit(species: str, breed: str, got: dict, in_place: bool = False) -> dict:
-    """Step 4: the first guess as a kit-1 document (version 0: a draft, never committed)."""
-    defaults = {}
-    for kind in P.KINDS:
-        variants = sorted(v for k, v in got if k == kind)
-        if not variants:
-            raise SystemExit(f"no {kind} part: a draft needs all of {', '.join(P.KINDS)}")
-        defaults[kind] = "default" if "default" in variants else variants[0]
-    _, tv, tf = got[("torso", defaults["torso"])]
-    rig = P.auto_rig({f"{k}/{v}": (pv, pf) for (k, v), (_, pv, pf) in got.items() if k != "torso"}, (tv, tf), in_place,
-                     ground=None if in_place else 0.0)
-    flt = lambda xs: [round(float(x), 4) for x in xs]  # noqa: E731
-    parts = []
-    for (kind, variant), (name, _, pf) in sorted(got.items()):
-        p = {"part_id": f"draft_{kind}_{variant}", "kind": kind, "variant": variant, "label": variant.replace("_", " ").title(),
-             "mesh": {"file": name, "sha256": "0" * 64, "tris": int(len(pf))}, "uv_layout": P.uv_layout(species, breed, kind)}
-        if kind == "torso":
-            p["attachments"] = {s: {"position": flt(a["position"]), "axis": flt(a["axis"]), "twist": 0.0} for s, a in rig.attachments.items()}
-            p["guess"] = {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in rig.attachments.items()}
-        else:
-            j = rig.joints[f"{kind}/{variant}"]
-            p["joint"] = {"pivot": flt(j["pivot"]), "axis": flt(j["axis"]), "twist": 0.0}
-            p["guess"] = {"joint": {"method": j["method"], "confidence": j["confidence"]}}
-        if kind == "head":
-            p["limits"] = P.DEFAULT_HEAD_LIMITS
-        parts.append(p)
-    return {"kit_version": "kit-1", "species": species, "breed_id": breed, "version": 0, "draft": True, "parts": parts,
-            "defaults": defaults, "poses": [STANDING], "default_pose": "standing", "notes": rig.notes}
-
-
-def figures(kit: dict) -> list[tuple[str, dict]]:
-    """Step 5's figures: the defaults, then each other variant swapped in on its own."""
-    out = [("draft", {})]
-    for p in kit["parts"]:
-        if p["variant"] != kit["defaults"][p["kind"]]:
-            out.append((f"draft__{p['kind']}-{p['variant']}", {p["kind"]: p["variant"]}))
+def figures(kit: dict) -> list[tuple[str, str, dict]]:
+    """(name, pose, variants): each pose with the defaults, then each other allowed variant on its own."""
+    out = [("draft" if p["pose_id"] == kit["default_pose"] else f"draft__{p['pose_id']}", p["pose_id"], {}) for p in kit["poses"]]
+    swapped = {(k, v) for p in kit["poses"] for k, v in (p.get("variants") or {}).items()}
+    for kind, variants in kit.get("allowed", {}).items():
+        for v in variants:
+            if v != kit["defaults"][kind] and (kind, v) not in swapped:
+                out.append((f"draft__{kind}-{v}", kit["default_pose"], {kind: v}))
     return out
 
 
 def draft(files: list[Path], out: Path, species: str = "dog", breed: str | None = None, front: str = "+z",
           scale: bool = True, fuse: bool = False, engine: str = "auto") -> dict:
-    breed, got, notes = fit_parts(files, species, breed, front, scale, out / "parts")
-    kit = draft_kit(species, breed, got, in_place=not scale)
-    kit["notes"] = notes + kit["notes"]
-    (out / f"{breed}.draft-kit.json").write_text(json.dumps(kit, indent=1) + "\n")
+    from backend.api.db import session_factory  # noqa: PLC0415
+    from backend.api.part_library import PartLibrary  # noqa: PLC0415
+    from backend.api.store import LocalStore  # noqa: PLC0415
+
+    for old in ("draft.db", "draft.db-wal", "draft.db-shm", "store"):
+        p = out / old
+        shutil.rmtree(p) if p.is_dir() else p.unlink(missing_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
+    lib = PartLibrary(session_factory(f"sqlite:///{(out / 'draft.db').resolve()}"), LocalStore(out / "store"), "draft")
+    turn = np.eye(4)
+    turn[:3, :3] = P.rot([0, 1, 0], FRONT[front])
+    shared, own, notes, breeds = [], [], [], set()
+    for path in sorted(files):
+        parsed = P.parse_name(path.name)
+        if not parsed:
+            notes.append(f"{path.name}: skipped, expected <breed>__<kind>[__<variant>].glb")
+            continue
+        data = path.read_bytes()
+        data = data if front == "+z" else S.transform_glb(data, turn)
+        if parsed[0] == P.SHARED:
+            shared.append((path.name, data))
+        else:
+            own.append((path.name, data))
+            breeds.add(breed or parsed[0])
+    if len(breeds) != 1:
+        raise SystemExit(f"expected one breed's head (and parts), found {sorted(breeds) or 'none'} (--breed sets it)")
+    breed = breeds.pop()
+    for batch, override in ((shared, None), (own, breed)):
+        if batch:
+            r = lib.upload(species, batch, "draft", override, scale)
+            notes += r.skipped + r.notes
+    kit = lib.document(species, breed)
+    (out / f"{breed}.draft-kit.json").write_text(json.dumps(kit, indent=1, default=str) + "\n")
     made = []
-    for name, variants in figures(kit):
-        r = compose(kit, out / "parts", out, variants, "standing", fuse, None, engine, name=f"{breed}__{name}")
+    if not kit["problems"]:
         import trimesh  # noqa: PLC0415
 
-        ext = trimesh.load(r["outputs"]["glb"], force="mesh").extents
-        made.append({"glb": r["outputs"]["glb"], "variants": r["variants"], "size_mm": [round(float(x), 1) for x in ext]})
-    return {"breed_id": breed, "kit": str(out / f"{breed}.draft-kit.json"), "figures": made, "notes": kit["notes"]}
+        for name, pose, variants in figures(kit):
+            r = compose(kit, out / "store", out, variants, pose, fuse, None, engine, name=f"{breed}__{name}")
+            ext = trimesh.load(r["outputs"]["glb"], force="mesh").extents
+            made.append({"glb": r["outputs"]["glb"], "pose": pose, "variants": r["variants"], "size_mm": [round(float(x), 1) for x in ext]})
+    return {"breed_id": breed, "kit": str(out / f"{breed}.draft-kit.json"), "figures": made, "notes": notes, "problems": kit["problems"]}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--files", type=Path, required=True, help="a folder of part GLBs (or one GLB per --files ... use a folder)")
+    ap.add_argument("--files", type=Path, required=True, help="a folder of part GLBs: the breed's, and shared__* ones")
+    ap.add_argument("--shared", type=Path, help="another folder of shared__<kind>__<variant>.glb parts")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--species", default="dog", choices=["dog", "cat"])
     ap.add_argument("--breed", help="the breed id, when the file names' breed is not it")
@@ -147,12 +107,15 @@ def main() -> None:
     ap.add_argument("--fuse", action="store_true")
     ap.add_argument("--engine", choices=["auto", "bpy", "trimesh"], default="auto")
     a = ap.parse_args()
-    r = draft(sorted(a.files.glob("*.glb")), a.out, a.species, a.breed, a.front, not a.keep_scale, a.fuse, a.engine)
+    files = sorted(a.files.glob("*.glb")) + (sorted(a.shared.glob("*.glb")) if a.shared else [])
+    r = draft(files, a.out, a.species, a.breed, a.front, not a.keep_scale, a.fuse, a.engine)
     for n in r["notes"]:
         print("  " + n)
+    for p in r["problems"]:
+        print("  problem: " + p)
     for f in r["figures"]:
         w, h, d = f["size_mm"]
-        print(f"{f['glb']}: {h:.0f} mm tall, {d:.0f} mm nose to tail, {w:.0f} mm wide  {f['variants']}")
+        print(f"{f['glb']}: {h:.0f} mm tall, {d:.0f} mm nose to tail, {w:.0f} mm wide  ({f['pose']}) {f['variants']}")
     print(f"draft kit: {r['kit']}")
 
 

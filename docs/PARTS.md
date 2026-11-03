@@ -1,4 +1,4 @@
-# Part kits: authoring, rigging and composing breeds from parts (decision 127)
+# Part kits: authoring, rigging and composing breeds from parts (decisions 127 to 130)
 
 A breed is a **kit** of five parts, put together at joints:
 
@@ -10,12 +10,28 @@ A breed is a **kit** of five parts, put together at joints:
 | hind leg | 2 | pivot + axis | twist about the socket axis: 0, 120 or 240 degrees |
 | tail | 1 | pivot + axis | none |
 
-Each kind can have **variants** per breed. Customers choose the torso variant (the figure's shape) and, where a breed
-has them, leg and tail variants; head variants are not a customer choice. Customers choose among their own breed's
-parts only. **Poses** are named sets of joint settings (each leg's twist, the head's angles); each breed has an
-allowed list, one to start with.
+**The shared library and the breed's head (decision 130).** Torsos, legs and tails are shared by every breed: a library
+of variants named by the breed database's part types (torso `long_low`, `standard`, ...; front leg `paw`, `boot`, ...;
+hind leg `bean`, `hock`, ... and the sitting `sitting_fold`; tail `bob`, `plume`, ...), each rigged once. Each breed
+brings its own **head**, with its own texture template (decision 129). A breed's kit:
+
+- **allows** some shared variants per kind: the ones customers may choose on it. It starts with its own part types in
+  the breed database (the corgi: `long_low`, `paw`, `bean` and `sitting_fold`, `bob`), its defaults; you offer more in
+  the workbench. Head variants are not a customer choice.
+- **stretches** each shared part per axis to its proportions (a corgi's `paw` is shorter than a dane's): first the
+  size guess (decision 128), adjustable in the workbench. A variant the breed's row names fills the breed's guessed
+  size; any other keeps its own shape at the breed's scale.
+- has a **default texture**: its colours, pattern and markings (`preset.colour` in the breed database).
+- may still have parts of its own (`<breed>__torso.glb`, ...), which win over the shared ones of the same variant.
+
+**Poses** are named sets of joint settings (each leg's twist, the head's angles) and may swap variants in: the
+breed database sits every breed, so once `sitting_fold` is in the library a breed gets a **sitting** pose (the hind
+legs folded) as its default. Each breed has an allowed list.
 
 ## 1. The parts
+
+Names: `shared__<kind>__<variant>.glb` for the shared library (e.g. `shared__torso__long_low.glb`,
+`shared__fore_leg__paw.glb`, `shared__hind_leg_sitting__sitting_fold.glb`), `<breed>__head.glb` for a breed's head.
 
 Two ways in:
 
@@ -44,20 +60,20 @@ For both:
 
 ## 1a. The draft (a script, before Studio)
 
-    make draft-parts FILES=~/exports/corgi OUT=var/drafts/corgi_pembroke [ARGS="--front -x --fuse"]
+    make draft-parts FILES=~/exports/corgi OUT=var/drafts/corgi_pembroke [ARGS="--shared ~/exports/shared --front -x --fuse"]
 
 `scripts/draft_parts.py` guesses how a breed's exported parts fit together and composes the draft figure, so you see
-the whole breed before touching the workbench: the fitted parts (`<out>/parts/`, textures kept), a draft kit
-(`<breed>.draft-kit.json`, the first guess at every joint) and the figure standing, once with the default variants
-and once per other variant (`<breed>__draft*.glb`, `.stl`). Every leg variant is slid along its axis to stand on the
+the whole breed before touching the workbench. It runs Studio's own part library on a throwaway database, so it
+guesses exactly what an upload would: the fitted parts (`<out>/store/parts/`, textures kept), a draft kit
+(`<breed>.draft-kit.json`, kit-2, its problems listed) and the figure in each pose, and once per other allowed variant
+(`<breed>__draft*.glb`, `.stl`). Give it the breed's head and the shared library (`--files`, `--shared`). Every leg variant is slid along its axis to stand on the
 floor, so the folded sitting leg and the standing one both reach it. The sizes come from the breed's size guess:
 torso proportions and width from its prompt ("about twice as long as it is tall ... moderately full from side to
 side"), leg proportions from theirs ("barely taller than it is wide"), leg thickness from the build, head size from
 the size class (small breeds get bigger heads) with the muzzle and ears, tail length from the preset; the whole
 figure scaled to the mandrel's 90 mm height, or 120 mm nose to tail for long, low breeds. They are guesses: final
-authoring starts from the draft. Upload `<out>/parts/` to Studio with "Scale to size guess" off (they are fitted
-already) or the original exports with it on (the same result), rig, commit, then compose with your own edits
-(section 3).
+authoring starts from the draft. Upload the same exports to Studio (Parts), rig, commit, then compose with your own
+edits (section 3).
 
 ## 2. Rigging in Studio (the workbench)
 
@@ -70,14 +86,21 @@ already) or the original exports with it on (the same result), rig, commit, then
 2. Open the breed: the assembled figure in a 3D viewport. Select a joint (a part's pivot or a torso attachment) and
    drag it; switch the gizmo to rotate to turn its axis, and set the twist. **Symmetry** (on by default) mirrors an edit
    to a left slot onto the right one and keeps the head and tail slots on the centre line.
-3. Head limits, and the **poses**: each leg's twist (0, 1 or 2 thirds) and the head's angles; mark the default.
-4. **Commit**: Studio checks the kit (every kind present with a default, every joint set, poses within limits) and
-   saves it as the breed's next kit version (`data/schema/part_kit.schema.json`).
+3. **Variants**: per kind, preview one (⧉ marks the shared library), make it the default, offer it to customers on
+   this breed, and set its **stretch** (side to side, up, front to back; "size guess" puts the guess back). A shared
+   part's joints are the same for every breed: edit them from any breed's workbench (or the "Shared parts" kit) and
+   every breed's kit has changes to commit. The breed's **default texture** is shown below.
+4. Head limits, and the **poses**: each leg's twist (0, 1 or 2 thirds), the head's angles, and any variant the pose
+   swaps in (sitting: the hind leg `sitting_fold`); mark the default.
+5. **Commit**: Studio checks the kit (every kind present with a default, every joint set, poses within limits and
+   their variants in the kit) and saves it as the breed's next kit version (`data/schema/part_kit.schema.json`, kit-2:
+   the allowed parts only, each with its stretch, the texture). The shared library is committed with each breed.
 
 ## 3. Composing in Blender (the final mesh step)
 
 `scripts/compose_parts.py` consumes a committed kit and a composition (which variant per kind, which pose) and builds
-the figure: each part placed at its joint, the right legs mirrored, then joined; `--fuse` voxel-remeshes it into one
+the figure: each part stretched to the breed and placed at its joint, the right legs mirrored, then joined and stood
+on the floor (a breed's stretch moves its feet; the plan's matrices include the move); `--fuse` voxel-remeshes it into one
 watertight surface (no walls inside the joints); `--modify edits.py` runs your `modify(obj, job)` on the joined figure
 in Blender, the last authoring step (joint fillets, sculpted blends, decimation). It writes `<breed>__<pose>.glb`, the
 print `.stl` and a `.plan.json` recording which part went where with which matrix.
@@ -100,4 +123,6 @@ A joint's frame is (axis, ref, axis x ref): ref is the world front (+Z) projecte
 points nearly front or back), turned by the twist. A part goes onto its slot by putting its pivot on the attachment
 and its frame onto the attachment's frame; the pose then turns it about the attachment's frame (legs about the axis;
 the head by yaw about ref, pitch about axis x ref, roll about the axis). A right leg uses the mirrored part, joint and
-twist, so a symmetric pose has the same index on both sides.
+twist, so a symmetric pose has the same index on both sides. A stretch `s` scales the part's mesh, pivot and axis
+(the axis as a direction drawn on the mesh: `s * axis`, renormalised) before it is placed, and the torso's stretch its
+attachments likewise; the workbench shows the stretched figure and saves edits in the parts' own coordinates.

@@ -61,6 +61,12 @@ def main(job: dict) -> dict:
     bpy.ops.object.join()
     fig = bpy.context.view_layer.objects.active
     fig.name = "figure"
+    lift = 0.0
+    if job.get("floor", True):  # stand the figure on the floor (Blender's z = 0): a breed's stretch moves its feet
+        import mathutils  # noqa: PLC0415
+
+        lift = -min((fig.matrix_world @ v.co).z for v in fig.data.vertices)
+        fig.data.transform(mathutils.Matrix.Translation((0.0, 0.0, lift)))
     if job.get("fuse"):
         mod = fig.modifiers.new("fuse", "REMESH")
         mod.mode = "VOXEL"
@@ -77,4 +83,4 @@ def main(job: dict) -> dict:
     if job.get("out_stl"):
         bpy.ops.wm.stl_export(filepath=job["out_stl"], export_selected_objects=True)
     me = fig.data
-    return {"vertices": len(me.vertices), "faces": len(me.polygons), "engine": "bpy"}
+    return {"vertices": len(me.vertices), "faces": len(me.polygons), "engine": "bpy", "floor_mm": round(lift, 3)}
