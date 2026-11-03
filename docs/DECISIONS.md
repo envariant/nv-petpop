@@ -267,3 +267,8 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    split in place, and keeps the texture now too. The draft script composes the draft figure per variant; final
    authoring (Studio's workbench, then compose with `--modify`) starts from there. `fore_leg` and `hind_leg_sitting`
    are accepted as names (the front leg; the hind leg's `sitting` variant).
+129. **A texture template per breed head (Nishant, 2026-11-03).** Amends decision 127's markings: every breed's head
+   has its own texture template (`uv_layout` `<species>-<breed>-head-<n>`), and so its own masks for head markings
+   (blaze, mask, spots and the like), shared by that breed's head variants. The torso, legs and tail keep one layout
+   each, shared across breeds and variants, with a mask per pattern. The kit schema checks the names; the per-part
+   markings of the P6 switch read a head's masks from its breed's template.

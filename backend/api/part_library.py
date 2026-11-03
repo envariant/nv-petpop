@@ -94,7 +94,7 @@ class PartLibrary:
         parts = []
         for r in rows:
             p: dict[str, Any] = {"part_id": r.id, "kind": r.kind, "variant": r.variant, "label": r.label,
-                                 "mesh": {"file": r.mesh_key, "sha256": r.sha256, "tris": r.tris}, "uv_layout": f"{kit.species}-{r.kind}-1"}
+                                 "mesh": {"file": r.mesh_key, "sha256": r.sha256, "tris": r.tris}, "uv_layout": P.uv_layout(kit.species, kit.breed_id, r.kind)}
             rig = r.rig or {}
             if r.kind == "torso":
                 p["attachments"] = rig.get("attachments")

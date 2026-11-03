@@ -58,7 +58,7 @@
             "type": "object", "description": "The head's yaw, pitch and roll limits in degrees.", "additionalProperties": false,
             "properties": {"yaw": {"$ref": "#/$defs/limit"}, "pitch": {"$ref": "#/$defs/limit"}, "roll": {"$ref": "#/$defs/limit"}}
           },
-          "uv_layout": {"type": "string", "description": "The shared texture layout this part's UVs follow (one per kind)."}
+          "uv_layout": {"type": "string", "description": "The texture template this part's UVs follow (decision 129): <species>-<breed>-head-<n> for a head (each breed's head its own, masks included), <species>-<kind>-<n> for the other kinds (shared across breeds and variants).", "pattern": "^[a-z]+-([a-z0-9_]+-head|torso|front_leg|hind_leg|tail)-[0-9]+$"}
         }
       }
     },

@@ -96,7 +96,7 @@ def draft_kit(species: str, breed: str, got: dict, in_place: bool = False) -> di
     parts = []
     for (kind, variant), (name, _, pf) in sorted(got.items()):
         p = {"part_id": f"draft_{kind}_{variant}", "kind": kind, "variant": variant, "label": variant.replace("_", " ").title(),
-             "mesh": {"file": name, "sha256": "0" * 64, "tris": int(len(pf))}, "uv_layout": f"{species}-{kind}-1"}
+             "mesh": {"file": name, "sha256": "0" * 64, "tris": int(len(pf))}, "uv_layout": P.uv_layout(species, breed, kind)}
         if kind == "torso":
             p["attachments"] = {s: {"position": flt(a["position"]), "axis": flt(a["axis"]), "twist": 0.0} for s, a in rig.attachments.items()}
             p["guess"] = {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in rig.attachments.items()}

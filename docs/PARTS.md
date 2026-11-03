@@ -33,8 +33,10 @@ For both:
 - Frame: export glTF (`.glb`), **+Y up, the pet facing +Z**, its own left on +X. (The draft script's `--front` turns
   exports that face another way.) Split-in-place parts are in **millimetres** (about 60 to 90 mm tall).
 - Legs: the pet's **left** front leg and left hind leg; the right ones are their mirror.
-- UVs: each kind follows its shared texture layout (`uv_layout`), so markings painted once work on every breed and
-  variant. Heads may get a per-breed layout later if one shared layout proves too tight.
+- UVs (`uv_layout`, decision 129): every **head** has its **breed's own texture template**, and with it its own
+  masks (blaze, mask, spots, ...): `dog-corgi_pembroke-head-1`. A breed's head variants share it. The torso, legs and
+  tail each follow one layout shared across breeds and variants (`dog-torso-1`, ...), so their markings are painted
+  once per pattern.
 - File names: `<breed_id>__<kind>[__<variant>].glb`, where kind is `head`, `torso`, `front_leg`, `hind_leg` or `tail`
   and variant is lower case (`default` when absent). Example: `corgi_pembroke__torso__stocky.glb`. The breed
   database's names work too: `fore_leg` is the front leg, `hind_leg_sitting` the hind leg's `sitting` variant.

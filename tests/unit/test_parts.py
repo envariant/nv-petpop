@@ -132,3 +132,19 @@ def test_what_stops_a_kit_from_being_committed():
     assert "no torso part" in problems
     assert any("must be 0, 1 or 2" in p for p in problems) and any("outside" in p for p in problems)
     assert "the default pose is not in the allowed list" in problems
+
+
+def test_heads_have_their_breeds_own_texture_template():
+    """Decision 129: a head's layout (and masks) is its breed's; other kinds share one layout across breeds."""
+    import jsonschema  # noqa: PLC0415
+
+    from petpop_core.schemas import load_schema  # noqa: PLC0415
+
+    assert P.uv_layout("dog", "corgi_pembroke", "head") == "dog-corgi_pembroke-head-1"
+    assert P.uv_layout("dog", "corgi_pembroke", "torso") == P.uv_layout("dog", "pug", "torso") == "dog-torso-1"
+    prop = load_schema("part_kit.schema.json")["properties"]["parts"]["items"]["properties"]["uv_layout"]
+    for ok in ("dog-corgi_pembroke-head-1", "cat-hind_leg-1"):
+        jsonschema.validate(ok, prop)
+    for bad in ("dog-head-1", "dog-corgi-paw-1"):
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(bad, prop)

@@ -43,6 +43,7 @@ def test_draft(exports, tmp_path):
     kit = json.loads(Path(r["kit"]).read_text())
     assert kit["version"] == 0 and kit["draft"] and kit["defaults"]["hind_leg"] == "default"
     by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
+    assert by[("head", "default")]["uv_layout"] == "dog-corgi_pembroke-head-1" and by[("tail", "default")]["uv_layout"] == "dog-tail-1"
     assert by[("torso", "default")]["guess"]["front_left"]["method"] == "box"  # from the torso's shape, not the leg's origin
     assert by[("hind_leg", "sitting")]["guess"]["joint"]["method"].endswith("grounded")
     for name in ("torso", "head", "front_leg", "hind_leg", "hind_leg__sitting", "tail"):

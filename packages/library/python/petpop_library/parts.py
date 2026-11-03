@@ -43,6 +43,12 @@ NAME = re.compile(r"^(?P<breed>[a-z0-9_]+)__(?P<kind>head|torso|front_leg|fore_l
                   r"(?:__(?P<variant>[a-z0-9_]{1,40}))?\.glb$")
 
 
+def uv_layout(species: str, breed_id: str, kind: str) -> str:
+    """The texture template a part's UVs follow (decision 129): every head its breed's own (so are its masks: blaze,
+    mask, spots), every other kind one layout shared across breeds and variants."""
+    return f"{species}-{breed_id}-head-1" if kind == "head" else f"{species}-{kind}-1"
+
+
 def parse_name(name: str) -> tuple[str, str, str] | None:
     """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb. The breed database's names work too: fore_leg is
     the front leg, hind_leg_sitting the hind leg's "sitting" variant."""
