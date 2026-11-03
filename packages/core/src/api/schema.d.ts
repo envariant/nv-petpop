@@ -2649,6 +2649,11 @@ export interface components {
             /** Items */
             items: components["schemas"]["Part"][];
             /**
+             * Notes
+             * @description What Studio did to the files it took (mirrored a right leg, scaled a part to its breed's size guess) and what the first guess could not do.
+             */
+            notes?: string[];
+            /**
              * Skipped
              * @description Files not taken, with why.
              */
@@ -6360,6 +6365,8 @@ export interface operations {
             query?: {
                 /** @description Overrides the breed in the file names. */
                 breed_id?: string | null;
+                /** @description Fit each part to its breed's size guess (decision 128): parts exported one at a time are not in proportion. Off for parts split from one figure. */
+                scale?: boolean;
             };
             header?: {
                 authorization?: string | null;

@@ -8,7 +8,7 @@ import { KINDS, headProblems } from '@petpop/scene';
 
 type Golden = { kind: Part['kind']; variant: string; file: string; tris: number; joint?: Part['joint']; attachments?: Part['attachments']; limits?: Part['limits']; guess: Part['guess'] };
 const G = golden.parts as unknown as Golden[];
-const NAME = /^([a-z0-9_]+)__(head|torso|front_leg|hind_leg|tail)(?:__([a-z0-9_]{1,40}))?\.glb$/;
+const NAME = /^([a-z0-9_]+)__(head|torso|front_leg|fore_leg|hind_leg_sitting|hind_leg|tail)(?:__([a-z0-9_]{1,40}))?\.glb$/;
 const STANDING: Pose = { pose_id: 'standing', label: 'Standing', legs: { front_left: 0, front_right: 0, hind_left: 0, hind_right: 0 }, head: { yaw: 0, pitch: 0, roll: 0 } };
 const kits = new Map<string, PartKit>(); // "<species>/<breed>"
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
@@ -75,7 +75,10 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
         skipped.push(`${f.name}: expected <breed>__<kind>[__<variant>].glb`);
         continue;
       }
-      const [, breed, kind, variant = 'default'] = m as unknown as [string, string, Part['kind'], string];
+      // the breed database's names: fore_leg is the front leg, hind_leg_sitting the hind leg's "sitting" variant
+      const [, breed, named, given] = m as unknown as [string, string, string, string | undefined];
+      const kind = (named === 'fore_leg' ? 'front_leg' : named === 'hind_leg_sitting' ? 'hind_leg' : named) as Part['kind'];
+      const variant = named === 'hind_leg_sitting' ? (given ? `sitting_${given}` : 'sitting') : given ?? 'default';
       const key = `${params.species}/${breed}`;
       const kit = kits.get(key) ?? { species: params.species, breed_id: breed, breed_label: label(breed), parts: [], defaults: {}, poses: [clone(STANDING)],
         default_pose: 'standing', symmetry: true, version: 0, committed_at: null, committed_by: null, dirty: true, problems: [], notes: [] } as unknown as PartKit;
@@ -89,7 +92,7 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
       items.push(part);
       breeds.add(breed);
     }
-    return HttpResponse.json({ items, breeds: [...breeds].sort(), skipped }, { status: 201 });
+    return HttpResponse.json({ items, breeds: [...breeds].sort(), skipped, notes: [] }, { status: 201 });
   }),
   http.get('/api/v1/studio/parts/:species/:breed', ({ params, request }) => {
     if (!userOf(request)) return unauthorised();

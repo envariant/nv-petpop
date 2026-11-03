@@ -64,11 +64,11 @@ def compose_trimesh(plan: dict, paths: list[Path], out_glb: Path, out_stl: Path 
 
 
 def compose(kit: dict, files: Path, out: Path, variants: dict | None = None, pose_id: str | None = None, fuse: bool = False,
-            modify: Path | None = None, engine: str = "auto", stl: bool = True) -> dict:
+            modify: Path | None = None, engine: str = "auto", stl: bool = True, name: str | None = None) -> dict:
     plan = P.compose_plan(kit, variants, pose_id)
     paths = [resolve(e, kit, files) for e in plan["parts"]]
     out.mkdir(parents=True, exist_ok=True)
-    stem = f"{kit['breed_id']}__{plan['pose_id']}"
+    stem = name or f"{kit['breed_id']}__{plan['pose_id']}"
     out_glb, out_stl = out / f"{stem}.glb", (out / f"{stem}.stl" if stl else None)
     python = os.environ.get("PETPOP_BPY_PYTHON", "/opt/bpy/bin/python")
     from backend.worker import blender  # noqa: PLC0415

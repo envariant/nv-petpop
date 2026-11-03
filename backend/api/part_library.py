@@ -9,7 +9,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import re
 import uuid
 from datetime import UTC
 from typing import Any
@@ -19,13 +18,13 @@ from sqlalchemy import select
 
 from petpop_core.breeds import all_breeds
 from petpop_core.schemas import load_schema
+from petpop_library import part_sizes as S
 from petpop_library import parts as P
 
 from . import models as m
 from .contract import ApiError, signed_file_url
 from .db import KitRow, PartRow, utcnow
 
-NAME = re.compile(r"^(?P<breed>[a-z0-9_]+)__(?P<kind>head|torso|front_leg|hind_leg|tail)(?:__(?P<variant>[a-z0-9_]{1,40}))?\.glb$")
 DEFAULT_POSE = {"pose_id": "standing", "label": "Standing", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": {"yaw": 0, "pitch": 0, "roll": 0}}
 LABELS = {"default": "Standard"}
 
@@ -47,12 +46,6 @@ def read_glb(data: bytes) -> tuple[np.ndarray, np.ndarray]:
     return v, f
 
 
-def write_glb(v: np.ndarray, f: np.ndarray) -> bytes:
-    import trimesh  # noqa: PLC0415
-
-    return trimesh.Trimesh(v, f, process=False).export(file_type="glb")
-
-
 class PartLibrary:
     def __init__(self, db, store, secret: str) -> None:
         self.db, self.store, self.secret = db, store, secret
@@ -61,7 +54,8 @@ class PartLibrary:
     # ------------------------------------------------------------------ helpers
     def _breed_label(self, species: str, breed_id: str) -> str:
         b = next((b for b in all_breeds(species) if b["id"] == breed_id), None)
-        return b["label"] if b else breed_id.replace("_", " ").title()
+        row = ((S.table(species) or {}).get("breeds") or {}).get(breed_id)  # the pebble database has more breeds
+        return b["label"] if b else row["label"] if row else breed_id.replace("_", " ").title()
 
     def _mesh(self, row: PartRow) -> tuple[np.ndarray, np.ndarray]:
         if row.sha256 not in self._mesh_cache:
@@ -142,25 +136,33 @@ class PartLibrary:
             return m.PartKitList(items=out)
 
     # ------------------------------------------------------------------ upload and the first guess
-    def upload(self, species: str, files: list[tuple[str, bytes]], user: str, breed_id: str | None = None) -> m.PartUploadResult:
+    def upload(self, species: str, files: list[tuple[str, bytes]], user: str, breed_id: str | None = None,
+               scale: bool = True) -> m.PartUploadResult:
+        """`scale` (the default) fits each part to its breed's size guess (decision 128); off for parts already in
+        proportion (split from one figure)."""
         taken: list[PartRow] = []
         skipped: list[str] = []
+        done: list[str] = []
         breeds: set[str] = set()
         with self.db() as db:
             for name, data in files:
-                mt = NAME.match(name.lower())
-                if not mt:
+                parsed = P.parse_name(name)
+                if not parsed:
                     skipped.append(f"{name}: expected <breed>__<kind>[__<variant>].glb")
                     continue
-                breed = breed_id or mt["breed"]
-                kind, variant = mt["kind"], mt["variant"] or "default"
+                breed, kind, variant = parsed
+                breed = breed_id or breed
                 try:
                     v, f = read_glb(data)
                 except ApiError as exc:
                     skipped.append(f"{name}: {exc.detail}")
                     continue
-                v, f, mirrored = P.as_left(kind, v, f)
-                glb = write_glb(v, f) if mirrored else data
+                matrix, mirrored, what = S.normalise(species, breed, kind, variant, v, scale)
+                done += [f"{name}: {w}" for w in what]
+                glb = data
+                if matrix is not None:
+                    glb = S.transform_glb(data, matrix)
+                    v, f = read_glb(glb)
                 sha = hashlib.sha256(glb).hexdigest()
                 key = f"parts/{species}/{breed}/{kind}__{variant}__{sha[:12]}.glb"
                 self.store.put(key, glb)
@@ -173,6 +175,7 @@ class PartLibrary:
                                   created_at=utcnow())
                     db.add(row)
                 row.mesh_key, row.sha256, row.tris, row.mirrored = key, sha, int(len(f)), mirrored
+                row.auto = {**(row.auto or {}), "in_place": not scale}  # split from one figure, or exported on its own
                 row.uploaded_by, row.updated_at = user, utcnow()
                 kit = self._kit_row(db, species, breed)
                 kit.dirty = True
@@ -185,7 +188,7 @@ class PartLibrary:
             notes += self._guess(species, b)
         with self.db() as db:
             items = [self._part(db.get(PartRow, i)) for i in ids]
-        return m.PartUploadResult(items=items, breeds=sorted(breeds), skipped=skipped + notes)
+        return m.PartUploadResult(items=items, breeds=sorted(breeds), skipped=skipped, notes=done + notes)
 
     def _guess(self, species: str, breed_id: str, only: str | None = None, force: bool = False) -> list[str]:
         """Run the first guess for a breed and apply it to every part not edited since (or to `only`, forced)."""
@@ -199,7 +202,10 @@ class PartLibrary:
                 return [f"{breed_id}: no torso yet, so no joints can be found"]
             tv, tf = self._mesh(torso)
             meshes = {f"{r.kind}/{r.variant}": self._mesh(r) for r in rows if r.kind != "torso"}
-            guess = P.auto_rig(meshes, (tv, tf))
+            # parts exported on their own (and anything rigged against a torso that was) are guessed from their shape
+            in_place = {f"{r.kind}/{r.variant}" for r in rows if (r.auto or {}).get("in_place", True)} \
+                if (torso.auto or {}).get("in_place", True) else set()
+            guess = P.auto_rig(meshes, (tv, tf), in_place, ground=None if (torso.auto or {}).get("in_place", True) else 0.0)
             for r in rows:
                 if only and r.id != only:
                     continue
@@ -209,12 +215,12 @@ class PartLibrary:
                     att = {s: {"position": [float(x) for x in a["position"]], "axis": [float(x) for x in a["axis"]], "twist": 0.0}
                            for s, a in guess.attachments.items()}
                     r.rig = {"attachments": att}
-                    r.auto = {"guess": {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in guess.attachments.items()}}
+                    r.auto = {**(r.auto or {}), "guess": {s: {"method": a["method"], "confidence": a["confidence"]} for s, a in guess.attachments.items()}}
                 else:
                     j = guess.joints[f"{r.kind}/{r.variant}"]
                     r.rig = {"joint": {"pivot": [float(x) for x in j["pivot"]], "axis": [float(x) for x in j["axis"]], "twist": 0.0},
                              **({"limits": (r.rig or {}).get("limits") or P.DEFAULT_HEAD_LIMITS} if r.kind == "head" else {})}
-                    r.auto = {"guess": {"joint": {"method": j["method"], "confidence": j["confidence"]}}}
+                    r.auto = {**(r.auto or {}), "guess": {"joint": {"method": j["method"], "confidence": j["confidence"]}}}
                 if force:
                     r.edited = False
                 r.updated_at = utcnow()

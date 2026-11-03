@@ -218,6 +218,9 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [x] P4 the TypeScript twin (`packages/scene/src/parts.ts`) and Studio's rigging workbench (3D viewport, gizmos,
   symmetry, poses, commit)
 - [x] P5 the Blender composition script (`scripts/compose_parts.py`) consuming committed kits and compositions
+- [x] P5a parts exported one at a time: per-breed size guesses from the breed database
+  (`petpop_library/part_sizes.py`, `data/breeds/dog_part_sizes.json`), uploads fitted to them (API 3.12.0), joints
+  guessed from shape with the legs on the floor, and the draft figure script (`scripts/draft_parts.py`, decision 128)
 - [ ] P6 the switch: releases carry kits, compositions choose variants and a pose, the customer app assembles parts,
   markings per part, the print export composes kits
 - [ ] Nishant: the first authored kits (labelled GLBs per docs/PARTS.md) and the shared texture layout per part kind

@@ -21,6 +21,7 @@ export const useParts = defineStore('parts', () => {
   const gizmo = ref<'translate' | 'rotate'>('translate');
   const preview = ref<Partial<Record<Kind, string>>>({}); // the variant shown per kind (defaults otherwise)
   const poseId = ref<string | null>(null); // the pose previewed
+  const scale = ref(true); // fit uploads to the breed's size guess (parts exported one at a time are not in proportion)
   const busy = ref(false);
   const error = ref<string | null>(null);
   const notice = ref<string | null>(null);
@@ -56,9 +57,12 @@ export const useParts = defineStore('parts', () => {
     if (r) kits.value = r.items;
   }
   async function upload(files: File[]) {
-    const r = await run(() => StudioApi.uploadParts(species.value, files));
+    const r = await run(() => StudioApi.uploadParts(species.value, files, undefined, scale.value));
     if (r) {
-      notice.value = `${r.items.length} part${r.items.length === 1 ? '' : 's'} for ${r.breeds.join(', ') || 'no breed'}` + (r.skipped.length ? `; skipped: ${r.skipped.join('; ')}` : '');
+      notice.value =
+        `${r.items.length} part${r.items.length === 1 ? '' : 's'} for ${r.breeds.join(', ') || 'no breed'}` +
+        (r.skipped.length ? `; skipped: ${r.skipped.join('; ')}` : '') +
+        (r.notes?.length ? `. ${r.notes.join('; ')}` : '');
       await loadKits();
     }
     return r;
@@ -129,7 +133,7 @@ export const useParts = defineStore('parts', () => {
     }
   }
   return {
-    species, kits, kit, target, view, gizmo, preview, poseId, busy, error, notice, torso, selectedPart, pose,
+    species, kits, kit, target, view, gizmo, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
     variantOf, partOf, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
   };
 });

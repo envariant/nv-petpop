@@ -453,6 +453,8 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
                  responses={**AUTH, 413: {"model": m.ErrorBody}, 422: {"model": m.ErrorBody}})
     async def upload_parts(species: m.Species, files: list[UploadFile] = File(...),
                            breed_id: str | None = Query(None, pattern=r"^[a-z0-9_]{1,48}$", description="Overrides the breed in the file names."),
+                           scale: bool = Query(True, description="Fit each part to its breed's size guess (decision 128): parts "
+                                               "exported one at a time are not in proportion. Off for parts split from one figure."),
                            user: m.StaffUser = curator) -> m.PartUploadResult:
         """Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once."""
         got = []
@@ -461,7 +463,7 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
             if len(data) > MANUAL_MAX_BYTES:
                 raise ApiError(413, f"{f.filename} is larger than {MANUAL_MAX_BYTES // 2**20} MB")
             got.append((f.filename or "", data))
-        return await asyncio.to_thread(PL.upload, species, got, user.username, breed_id)
+        return await asyncio.to_thread(PL.upload, species, got, user.username, breed_id, scale)
 
     @studio.get(KIT, response_model=m.PartKit, operation_id="studioPartKit", responses={**AUTH, 404: {"model": m.ErrorBody}})
     async def part_kit(species: m.Species, breed_id: str, _: m.StaffUser = operator) -> m.PartKit:

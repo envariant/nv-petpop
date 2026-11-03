@@ -266,6 +266,7 @@ test('14 rigging: joints, symmetry, a pose, commit', async ({ page }) => {
   await page.getByTestId('parts-species-dog').tap();
   const dir = '../../fixtures/parts/dog';
   const kinds = ['head', 'torso', 'front_leg', 'hind_leg', 'tail'];
+  await page.getByTestId('parts-scale').uncheck(); // the proxies are split from one figure: already in proportion
   await page.getByTestId('parts-upload').setInputFiles(kinds.map((k) => `${dir}/mixed__${k}.glb`).concat(`${dir}/mixed__torso__slim.glb`));
   await page.getByTestId('open-kit-mixed').tap();
   await expect(page.locator('[data-screen=rigging]')).toBeVisible();

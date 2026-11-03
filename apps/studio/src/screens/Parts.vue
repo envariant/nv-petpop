@@ -31,12 +31,16 @@ async function open(breedId: string) {
       <button v-for="sp in (['dog', 'cat'] as const)" :key="sp" :data-testid="`parts-species-${sp}`"
         :class="cx('hit rounded-full border-4 px-4 py-1.5 font-display', ps.species === sp ? 'border-accent bg-accent text-white' : 'border-line bg-card')"
         @click="ps.species = sp">{{ sp === 'dog' ? 'Dogs' : 'Cats' }}</button>
-      <label class="press hit ml-auto cursor-pointer rounded-tile bg-accent px-5 py-2.5 font-display text-lg font-semibold text-white shadow-soft">
+      <label class="ml-auto flex cursor-pointer items-center gap-2 text-base" title="Each part exported on its own comes at its own scale: fit it to the breed's size guess (decision 128). Turn off for parts split from one figure.">
+        <input v-model="ps.scale" type="checkbox" class="h-5 w-5" data-testid="parts-scale" />
+        Scale to size guess
+      </label>
+      <label class="press hit cursor-pointer rounded-tile bg-accent px-5 py-2.5 font-display text-lg font-semibold text-white shadow-soft">
         {{ ps.busy ? 'Uploading…' : 'Upload GLBs' }}
         <input ref="input" type="file" accept=".glb" multiple class="hidden" data-testid="parts-upload" @change="upload" />
       </label>
     </div>
-    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code>, kind one of head, torso, front_leg, hind_leg, tail; +Y up, the pet facing +Z, millimetres, split in place (docs/PARTS.md).</p>
+    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code>, kind one of head, torso, front_leg (or fore_leg), hind_leg, hind_leg_sitting, tail; +Y up, the pet facing +Z. Each part is fitted to its breed's size guess unless you turn that off (docs/PARTS.md).</p>
     <p v-if="!ps.kits.length" class="text-base text-muted" data-testid="parts-empty">No kits yet.</p>
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3" data-testid="parts-kits">
       <div v-for="k in ps.kits" :key="k.breed_id" class="flex flex-col gap-2 rounded-tile bg-card p-4 shadow-soft" :data-testid="`kit-${k.breed_id}`">

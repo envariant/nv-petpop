@@ -4105,6 +4105,14 @@
       "title": "Items",
       "type": "array"
      },
+     "notes": {
+      "description": "What Studio did to the files it took (mirrored a right leg, scaled a part to its breed's size guess) and what the first guess could not do.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     },
      "skipped": {
       "description": "Files not taken, with why.",
       "items": {
@@ -6191,7 +6199,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.11.0"
+  "version": "3.12.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -10724,6 +10732,18 @@
        ],
        "description": "Overrides the breed in the file names.",
        "title": "Breed Id"
+      }
+     },
+     {
+      "description": "Fit each part to its breed's size guess (decision 128): parts exported one at a time are not in proportion. Off for parts split from one figure.",
+      "in": "query",
+      "name": "scale",
+      "required": false,
+      "schema": {
+       "default": true,
+       "description": "Fit each part to its breed's size guess (decision 128): parts exported one at a time are not in proportion. Off for parts split from one figure.",
+       "title": "Scale",
+       "type": "boolean"
       }
      },
      {

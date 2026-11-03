@@ -15,26 +15,56 @@ has them, leg and tail variants; head variants are not a customer choice. Custom
 parts only. **Poses** are named sets of joint settings (each leg's twist, the head's angles); each breed has an
 allowed list, one to start with.
 
-## 1. Authoring the parts (you, in Blender)
+## 1. The parts
 
-- Model the figure whole, then split it into the five parts **in place** (do not move them apart): Studio finds the
-  joints where each part meets the torso. Leaving the cuts open helps the first guess; closed parts work too.
-- Frame: export glTF (`.glb`), **+Y up, the pet facing +Z**, its own left on +X, in **millimetres** (the figurine's
-  real size, about 60 to 90 mm tall).
-- Legs: supply the pet's **left** front leg and left hind leg; the right ones are their mirror. (A right leg is
-  mirrored on import.)
+Two ways in:
+
+- **Exported one at a time** (the usual way, decision 128): each part generated on its own from the breed database's
+  prompts (`data/breeds/dog_pebbles_simple.json`), so each comes at its own scale about its own origin and nothing in
+  the files says how they fit. Studio and the draft script (section 1a) fit each part to its breed's **size guess**
+  (`data/breeds/<species>_part_sizes.json`, `scripts/guess_part_sizes.py`), centre it, stand the torso on the floor
+  (y = 0) and guess every joint from shape. Legs are taken as the pet's **left** legs, as the prompts ask.
+- **Split in place** from one figure (the proxy kits, or a figure you model whole): the parts are in proportion and
+  where they belong, so turn the scaling off ("Scale to size guess" in Studio, `--keep-scale` in the script). Studio
+  then finds the joints where each part meets the torso (open cuts help), and mirrors a leg supplied on the right.
+
+For both:
+
+- Frame: export glTF (`.glb`), **+Y up, the pet facing +Z**, its own left on +X. (The draft script's `--front` turns
+  exports that face another way.) Split-in-place parts are in **millimetres** (about 60 to 90 mm tall).
+- Legs: the pet's **left** front leg and left hind leg; the right ones are their mirror.
 - UVs: each kind follows its shared texture layout (`uv_layout`), so markings painted once work on every breed and
   variant. Heads may get a per-breed layout later if one shared layout proves too tight.
 - File names: `<breed_id>__<kind>[__<variant>].glb`, where kind is `head`, `torso`, `front_leg`, `hind_leg` or `tail`
-  and variant is lower case (`default` when absent). Example: `corgi_pembroke__torso__stocky.glb`.
+  and variant is lower case (`default` when absent). Example: `corgi_pembroke__torso__stocky.glb`. The breed
+  database's names work too: `fore_leg` is the front leg, `hind_leg_sitting` the hind leg's `sitting` variant.
   `fixtures/parts/<species>/mixed__*.glb` are proxy kits cut from the templates (`scripts/make_proxy_parts.py`).
+
+## 1a. The draft (a script, before Studio)
+
+    make draft-parts FILES=~/exports/corgi OUT=var/drafts/corgi_pembroke [ARGS="--front -x --fuse"]
+
+`scripts/draft_parts.py` guesses how a breed's exported parts fit together and composes the draft figure, so you see
+the whole breed before touching the workbench: the fitted parts (`<out>/parts/`, textures kept), a draft kit
+(`<breed>.draft-kit.json`, the first guess at every joint) and the figure standing, once with the default variants
+and once per other variant (`<breed>__draft*.glb`, `.stl`). Every leg variant is slid along its axis to stand on the
+floor, so the folded sitting leg and the standing one both reach it. The sizes come from the breed's size guess:
+torso proportions and width from its prompt ("about twice as long as it is tall ... moderately full from side to
+side"), leg proportions from theirs ("barely taller than it is wide"), leg thickness from the build, head size from
+the size class (small breeds get bigger heads) with the muzzle and ears, tail length from the preset; the whole
+figure scaled to the mandrel's 90 mm height, or 120 mm nose to tail for long, low breeds. They are guesses: final
+authoring starts from the draft. Upload `<out>/parts/` to Studio with "Scale to size guess" off (they are fitted
+already) or the original exports with it on (the same result), rig, commit, then compose with your own edits
+(section 3).
 
 ## 2. Rigging in Studio (the workbench)
 
-1. **Parts**, upload the breed's GLBs (several at once). Studio reads the names, keeps legs as left legs, and makes
-   its first guess at every joint: where each part touches the torso (refined to the open cut's centre), the axis from
-   there into the part, and the torso's six attachment points from the default parts. Each guess shows its method and
-   a confidence.
+1. **Parts**, upload the breed's GLBs (several at once). Studio reads the names, fits each part to the breed's size
+   guess (unless "Scale to size guess" is off), keeps legs as left legs, and makes its first guess at every joint:
+   for parts exported one at a time, from each part's shape and the torso's, with every leg standing on the floor; for
+   parts split in place, where each part touches the torso (refined to the open cut's centre), the axis from there
+   into the part, and the torso's six attachment points from the default parts. Each guess shows its method and a
+   confidence; the upload's notes say what was scaled or mirrored.
 2. Open the breed: the assembled figure in a 3D viewport. Select a joint (a part's pivot or a torso attachment) and
    drag it; switch the gizmo to rotate to turn its axis, and set the twist. **Symmetry** (on by default) mirrors an edit
    to a left slot onto the right one and keeps the head and tail slots on the centre line.

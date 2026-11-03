@@ -179,10 +179,14 @@ export const StudioApi = {
   // the part library (decision 127): kits of parts, rigged in the workbench and committed
   partKits: async (species: Species): Promise<PartKitList> =>
     unwrap(await api.GET('/api/v1/studio/parts/{species}', { params: { path: { species } }, ...(auth() as object) })),
-  uploadParts: async (species: Species, files: File[], breedId?: string): Promise<PartUploadResult> => {
+  /** scale (default on) fits each part to its breed's size guess; off for parts already in proportion. */
+  uploadParts: async (species: Species, files: File[], breedId?: string, scale = true): Promise<PartUploadResult> => {
     const form = new FormData();
     for (const f of files) form.append('files', f, f.name);
-    const q = breedId ? `?breed_id=${encodeURIComponent(breedId)}` : '';
+    const params = new URLSearchParams();
+    if (breedId) params.set('breed_id', breedId);
+    if (!scale) params.set('scale', 'false');
+    const q = params.toString() ? `?${params}` : '';
     const r = await fetch(apiUrl(`/api/v1/studio/parts/${species}/upload${q}`), { method: 'POST', body: form, headers: staffToken ? { Authorization: `Bearer ${staffToken}` } : {} });
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new ApiFailure(r.status, (body as { detail?: unknown }).detail ?? body);

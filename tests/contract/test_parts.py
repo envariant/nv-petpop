@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 import trimesh
 
 from petpop_library import parts as P
@@ -27,8 +28,8 @@ def glbs(names=None) -> list:
 
 def test_upload_guess_edit_pose_commit(client):
     cur, op = staff(client, "curator"), staff(client, "operator")
-    assert client.post(f"{S}/parts/dog/upload", files=glbs(), headers=op).status_code == 403  # curators upload
-    r = client.post(f"{S}/parts/dog/upload", files=glbs() + [("files", ("notes.txt", b"x", "text/plain"))], headers=cur)
+    assert client.post(f"{S}/parts/dog/upload?scale=false", files=glbs(), headers=op).status_code == 403  # curators upload
+    r = client.post(f"{S}/parts/dog/upload?scale=false", files=glbs() + [("files", ("notes.txt", b"x", "text/plain"))], headers=cur)
     assert r.status_code == 201, r.text
     up = check(f"{S}/parts/{{species}}/upload", "post", r)
     assert up["breeds"] == ["mixed"] and len(up["items"]) == 10
@@ -95,7 +96,7 @@ def test_a_right_leg_is_kept_as_a_left_one_and_parts_can_be_removed(client):
     right = trimesh.Trimesh(v, f, process=False).export(file_type="glb")
     files = [("files", ("tabby__front_leg.glb", right, "model/gltf-binary")),
              ("files", ("tabby__torso.glb", (d / "mixed__torso.glb").read_bytes(), "model/gltf-binary"))]
-    up = client.post(f"{S}/parts/cat/upload", files=files, headers=cur).json()
+    up = client.post(f"{S}/parts/cat/upload?scale=false", files=files, headers=cur).json()  # split in place
     legs = [p for p in up["items"] if p["kind"] == "front_leg"]
     assert legs[0]["mirrored"]
     kit = client.get(f"{S}/parts/cat/tabby", headers=cur).json()
@@ -104,3 +105,36 @@ def test_a_right_leg_is_kept_as_a_left_one_and_parts_can_be_removed(client):
     kit = check(f"{S}/parts/{{species}}/{{breed_id}}/parts/{{part_id}}", "delete", r)
     assert [p["kind"] for p in kit["parts"]] == ["torso"]
     assert client.get(f"{S}/parts/cat/nobody", headers=cur).status_code == 404
+
+
+def test_generated_parts_are_scaled_to_their_size_guess(client):
+    """Parts a generator made one at a time (unit-sized, the breed database's names) arrive scaled to the breed's
+    size guess (decision 128), each with a note saying so; legs are taken as left legs wherever their origin is."""
+    import io  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+
+    from petpop_library import part_sizes as SZ  # noqa: PLC0415
+
+    cur = staff(client, "curator")
+    files = []
+    for name, ext, x in [("torso", (0.4, 0.5, 1.0), 0), ("head", (0.8, 1.0, 0.9), 0), ("fore_leg", (0.9, 1.0, 0.9), -2),
+                         ("hind_leg", (0.5, 1.0, 1.0), 2), ("hind_leg_sitting", (0.55, 0.55, 1.0), 2), ("tail", (0.9, 1.0, 1.0), 0)]:
+        box = trimesh.creation.box(extents=ext)
+        box.apply_translation([x, 0, 0])
+        files.append(("files", (f"corgi_pembroke__{name}.glb", box.export(file_type="glb"), "model/gltf-binary")))
+    r = client.post(f"{S}/parts/dog/upload", files=files, headers=cur)
+    up = check(f"{S}/parts/{{species}}/upload", "post", r)
+    assert up["breeds"] == ["corgi_pembroke"] and len(up["items"]) == 6 and not up["skipped"]
+    assert sum("scaled" in n for n in up["notes"]) == 6 and not any("mirrored" in n for n in up["notes"])
+    kit = client.get(f"{S}/parts/dog/corgi_pembroke", headers=cur).json()
+    assert kit["breed_label"] == "Pembroke Welsh Corgi"
+    by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
+    assert ("hind_leg", "sitting") in by and not by[("front_leg", "default")]["mirrored"]
+    # guessed from shape: the torso's sockets from its own shape, each leg slid to stand on the floor
+    assert by[("torso", "default")]["guess"]["front_left"]["method"] == "box"
+    assert by[("hind_leg", "sitting")]["guess"]["joint"]["method"].endswith("grounded")
+    for (kind, variant), p in by.items():
+        mesh = trimesh.load(io.BytesIO(client.get(p["mesh_url"]).content), file_type="glb", force="mesh")
+        want = SZ.target("dog", "corgi_pembroke", kind, variant)[0]
+        assert float(np.ptp(mesh.vertices, axis=0).max()) == pytest.approx(max(want), rel=1e-3), (kind, variant)

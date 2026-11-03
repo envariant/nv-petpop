@@ -21,6 +21,7 @@ pose twist mirrored too, so a symmetric pose has the same index on both sides.
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -38,6 +39,22 @@ FRONT = np.array([0.0, 0.0, 1.0])
 UP = np.array([0.0, 1.0, 0.0])
 MIRROR = np.diag([-1.0, 1.0, 1.0])
 DEFAULT_HEAD_LIMITS = {"yaw": [-35.0, 35.0], "pitch": [-25.0, 25.0], "roll": [-20.0, 20.0]}
+NAME = re.compile(r"^(?P<breed>[a-z0-9_]+)__(?P<kind>head|torso|front_leg|fore_leg|hind_leg_sitting|hind_leg|tail)"
+                  r"(?:__(?P<variant>[a-z0-9_]{1,40}))?\.glb$")
+
+
+def parse_name(name: str) -> tuple[str, str, str] | None:
+    """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb. The breed database's names work too: fore_leg is
+    the front leg, hind_leg_sitting the hind leg's "sitting" variant."""
+    mt = NAME.match(name.lower())
+    if not mt:
+        return None
+    kind, variant = mt["kind"], mt["variant"]
+    if kind == "fore_leg":
+        kind = "front_leg"
+    elif kind == "hind_leg_sitting":
+        kind, variant = "hind_leg", "sitting" + (f"_{variant}" if variant else "")
+    return mt["breed"], kind, variant or "default"
 
 
 def unit(v) -> np.ndarray:
@@ -243,7 +260,8 @@ def torso_attachments(torso_v: np.ndarray, torso_f: np.ndarray, placed: dict[str
         "head": (np.array([mid[0], hi[1] - 0.15 * h[1], hi[2] - 0.05 * h[2]]), unit([0, 0.5, 1])),
         "tail": (np.array([mid[0], hi[1] - 0.25 * h[1], lo[2] + 0.05 * h[2]]), unit([0, 0.4, -1])),
         "front_left": (np.array([hi[0] - 0.25 * h[0], lo[1] + 0.1 * h[1], hi[2] - 0.25 * h[2]]), np.array([0, -1.0, 0])),
-        "hind_left": (np.array([hi[0] - 0.25 * h[0], lo[1] + 0.1 * h[1], lo[2] + 0.25 * h[2]]), np.array([0, -1.0, 0])),
+        # the hip: half-way up the side, where a haunch's broad top meets the body
+        "hind_left": (np.array([hi[0] - 0.15 * h[0], lo[1] + 0.5 * h[1], lo[2] + 0.25 * h[2]]), np.array([0, -1.0, 0])),
     }
     out: dict[str, dict[str, Any]] = {}
     for slot in ("head", "tail", "front_left", "hind_left"):
@@ -268,10 +286,17 @@ def as_left(kind: str, v: np.ndarray, f: np.ndarray) -> tuple[np.ndarray, np.nda
     return v, f, False
 
 
-def auto_rig(parts: dict[str, tuple[np.ndarray, np.ndarray]], torso: tuple[np.ndarray, np.ndarray]) -> AutoRig:
+def auto_rig(parts: dict[str, tuple[np.ndarray, np.ndarray]], torso: tuple[np.ndarray, np.ndarray],
+             in_place: bool | set[str] = True, ground: float | None = None) -> AutoRig:
     """The first guess for a breed: `parts` maps a part key (any id) to (vertices, faces) whose kind is the key's prefix
-    up to "/" (e.g. "front_leg/default"); `torso` is the default torso. Joints are found against the torso; the default
-    variant of each kind sets the torso's attachment for its slot."""
+    up to "/" (e.g. "front_leg/default"); `torso` is the default torso.
+
+    `in_place` says which parts were split from one figure with the torso (True: all, False: none, or a set of keys).
+    Those are found against the torso, and the default variant of each kind sets the torso's attachment for its slot.
+    A part exported on its own (decision 128) sits about its own origin, so its pivot comes from its shape alone and
+    its slot's attachment from the torso's shape. With `ground` (the floor's height; 0 for a torso fitted to its size
+    guess), such a leg's pivot is then slid along its axis until the leg, standing in its slot, touches the floor:
+    every variant shares its slot's socket, so a folded sitting leg and a standing one each reach the ground."""
     tv, tf = torso
     out = AutoRig()
     by_slot: dict[str, dict[str, Any]] = {}
@@ -279,12 +304,27 @@ def auto_rig(parts: dict[str, tuple[np.ndarray, np.ndarray]], torso: tuple[np.nd
         kind = key.split("/", 1)[0]
         if kind == "torso":
             continue
-        j = part_joint(kind, v, f, tv)
+        placed = in_place if isinstance(in_place, bool) else key in in_place
+        j = part_joint(kind, v, f, tv if placed else None)
         out.joints[key] = j
         slot = {"head": "head", "tail": "tail", "front_leg": "front_left", "hind_leg": "hind_left"}[kind]
-        if key.endswith("/default") or slot not in by_slot:
+        if placed and (key.endswith("/default") or slot not in by_slot):
             by_slot[slot] = j
     out.attachments = torso_attachments(tv, tf, by_slot)
+    if ground is not None:
+        for key, (v, _) in parts.items():
+            kind = key.split("/", 1)[0]
+            placed = in_place if isinstance(in_place, bool) else key in in_place
+            if kind not in ("front_leg", "hind_leg") or placed:
+                continue
+            slot = "front_left" if kind == "front_leg" else "hind_left"
+            att, j = Joint.of(out.attachments[slot]), out.joints[key]
+            R, t = placement(Joint.of(j), att, slot)
+            bottom = float((v @ R.T + t)[:, 1].min())
+            if abs(att.axis[1]) < 0.3:  # a socket pointing sideways: sliding would not reach the floor
+                continue
+            j["pivot"] = np.asarray(j["pivot"], float) + (ground - bottom) / -att.axis[1] * unit(j["axis"])
+            j["method"] += ", grounded"
     missing = [k for k in ("head", "front_leg", "hind_leg", "tail") if not any(p.startswith(k + "/") for p in parts)]
     if missing:
         out.notes.append(f"no {', '.join(missing)} part yet: those attachments are guesses from the torso's shape")

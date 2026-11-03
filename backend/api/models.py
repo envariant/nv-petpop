@@ -4,7 +4,8 @@ the kiosk library mode (releases, compositions, Stage-F-only exports) and moves 
 adds Studio's curation: batches, review, the parts and pattern editors, publish and releases; 3.9.0 adds payment for
 an order (decision 125: HitPay, PayNow and cards); 3.10.0 adds customer accounts (email and phone codes, Sign in
 with Apple and Google), the contact an order needs, the account's orders and devices, and an itemised quote
-(decision 126); 3.11.0 adds the Studio part library: breeds as kits of parts rigged at joints (decision 127)."""
+(decision 126); 3.11.0 adds the Studio part library: breeds as kits of parts rigged at joints (decision 127); 3.12.0 adds
+notes to a part upload (mirrored, scaled to the breed's size guess, decision 128)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -12,7 +13,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.11.0"
+API_VERSION = "3.12.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -859,6 +860,8 @@ class PartUploadResult(_M):
     items: list[Part]
     breeds: list[str]
     skipped: list[str] = Field(description="Files not taken, with why.")
+    notes: list[str] = Field(default_factory=list, description="What Studio did to the files it took (mirrored a right leg, "
+                             "scaled a part to its breed's size guess) and what the first guess could not do.")
 
 
 class PartRigPatch(_M):
