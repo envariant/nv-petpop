@@ -229,4 +229,23 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    web) and `@capacitor-firebase/messaging` (push). Pricing groundwork: an order carries a quote of line items
    (today one, the figurine at `PETPOP_PRICE_SGD`); options and extras become further lines in `backend/api/pricing.py`
    and the payment asks for the total.
+127. **Breeds as part kits (Nishant, 2026-11-03).** The library changes from labelled whole meshes with region
+   deltas (decisions 116 to 119) to kits: per breed a head, a torso, a front leg, a hind leg and a tail, each with
+   variants, assembled at joints. The torso carries six attachment points (head, four legs, tail), each a position,
+   an axis out of the torso and a twist; every other part a pivot, an axis into the part and a twist. Legs turn about
+   the socket axis to one of three twists 120 degrees apart; the head turns freely about all three axes within its
+   limits; the tail is fixed. Front and hind legs are authored as the pet's left and mirrored for the right (pivot,
+   axis and twist mirrored, so a symmetric pose has equal indices). Customers choose torso variants (shape) and, where
+   defined, leg and tail variants, from their own breed only (Nishant's choice); poses come from a per-breed allowed
+   list, one at first. Markings: one texture layout per part kind shared across breeds and variants, a mask per part
+   kind per pattern (Nishant's choice); heads may split per breed later. Parts are authored by Nishant as labelled
+   GLBs, split in place from one figure (frame: glTF, mm, +Y up, +Z front, +X the pet's left). Studio's rigging
+   workbench makes the first guess analytically (the patch where each part touches the torso, refined to an open
+   cut's centre; the axis from there into the part; legs supplied on the right are mirrored to the left), then lets
+   him move pivots and attachments and turn axes in a 3D viewport with symmetry on by default, set head limits and
+   poses, and commit a versioned kit (`data/schema/part_kit.schema.json`). A separate Blender script consumes committed
+   kits and compositions for the final mesh modifications. The geometry lives in `petpop_library/parts.py` with a
+   TypeScript twin for the apps. docs/PARTS.md is the guide. Phases: the maths and proxy kits; the Studio part library
+   and workbench; the Blender composition script; then the switch of releases, compositions, the customer app and
+   the print export to kits.
 

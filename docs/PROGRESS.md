@@ -208,3 +208,17 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [ ] Variable pricing: price options and extras as quote lines (`backend/api/pricing.py`), and new kinds of extras
 - [ ] Nishant: Apple and Google client ids, a Firebase project (push), SES domain and SNS sender id when ready to send
 - [ ] Nishant: the first AWS deployment (docs/DEPLOY.md), HitPay sandbox keys and webhook, then live keys and the price
+
+## Track G: breeds as part kits (decision 127, docs/PARTS.md)
+
+- [x] P1 the geometry (`petpop_library/parts.py`: joint frames, assembly, mirroring, leg twists, head angles, the
+  automatic first guess, commit checks) and the kit schema (`data/schema/part_kit.schema.json`)
+- [x] P2 proxy kits cut from the labelled templates (`scripts/make_proxy_parts.py`, `fixtures/parts/`)
+- [ ] P3 the Studio part library: upload, first guess, rig edits, poses, commit (API 3.11.0, mock server, client)
+- [ ] P4 the TypeScript twin (`packages/scene/src/parts.ts`) and Studio's rigging workbench (3D viewport, gizmos,
+  symmetry, poses, commit)
+- [ ] P5 the Blender composition script (`scripts/compose_parts.py`) consuming committed kits and compositions
+- [ ] P6 the switch: releases carry kits, compositions choose variants and a pose, the customer app assembles parts,
+  markings per part, the print export composes kits
+- [ ] Nishant: the first authored kits (labelled GLBs per docs/PARTS.md) and the shared texture layout per part kind
+
