@@ -8,10 +8,7 @@ STUDIO := apps/studio
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
 .PHONY: help setup dev stop mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
-        regress up down smoke-stack workflows models compose-parts: ## compose figures from a committed part kit: KIT=kit.json FILES=dir OUT=dir [ARGS="--all-poses --fuse"]
-	$(PY) scripts/compose_parts.py --kit $(KIT) --files $(FILES) --out $(or $(OUT),var/composed) $(ARGS)
-
-gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
+        regress up down smoke-stack workflows models compose-parts gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
 
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
