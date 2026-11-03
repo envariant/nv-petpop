@@ -45,9 +45,21 @@ allowed list, one to start with.
 ## 3. Composing in Blender (the final mesh step)
 
 `scripts/compose_parts.py` consumes a committed kit and a composition (which variant per kind, which pose) and builds
-the figure: each part placed at its joint, the right legs mirrored, then joined. A modification step runs there (the
-place for joint blending and any other final mesh edits) and writes the composed GLB and the print STL. It runs with
-Blender's `bpy` when present and a trimesh stand-in otherwise.
+the figure: each part placed at its joint, the right legs mirrored, then joined; `--fuse` voxel-remeshes it into one
+watertight surface (no walls inside the joints); `--modify edits.py` runs your `modify(obj, job)` on the joined figure
+in Blender, the last authoring step (joint fillets, sculpted blends, decimation). It writes `<breed>__<pose>.glb`, the
+print `.stl` and a `.plan.json` recording which part went where with which matrix.
+
+```bash
+make compose-parts KIT=var/artefacts/kits/dog/corgi_pembroke/kit-3.json FILES=var/artefacts ARGS="--all-poses --fuse"
+```
+```bash
+python scripts/compose_parts.py --kit kit-3.json --files ~/kits/corgi --out out/ --variants torso=stocky --pose sitting --modify my_edits.py
+```
+
+`--files` is the store root (Studio's keys) or a folder of your own GLBs named as in section 1. Blender's `bpy`
+(`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
+`--modify`).
 
 ## The maths
 

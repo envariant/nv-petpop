@@ -217,7 +217,7 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [x] P3 the Studio part library: upload, first guess, rig edits, poses, commit (API 3.11.0, mock server, client)
 - [x] P4 the TypeScript twin (`packages/scene/src/parts.ts`) and Studio's rigging workbench (3D viewport, gizmos,
   symmetry, poses, commit)
-- [ ] P5 the Blender composition script (`scripts/compose_parts.py`) consuming committed kits and compositions
+- [x] P5 the Blender composition script (`scripts/compose_parts.py`) consuming committed kits and compositions
 - [ ] P6 the switch: releases carry kits, compositions choose variants and a pose, the customer app assembles parts,
   markings per part, the print export composes kits
 - [ ] Nishant: the first authored kits (labelled GLBs per docs/PARTS.md) and the shared texture layout per part kind

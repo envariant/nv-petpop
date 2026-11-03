@@ -324,3 +324,37 @@ def kit_problems(kit: dict[str, Any]) -> list[str]:
     if poses and kit.get("default_pose") not in {p.get("pose_id") for p in poses}:
         problems.append("the default pose is not in the allowed list")
     return problems
+
+
+# --------------------------------------------------------------------------- composing a figure from a kit
+def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, pose_id: str | None = None) -> dict[str, Any]:
+    """Which mesh goes where for a committed kit, the chosen variants (defaults otherwise) and a pose (the kit's
+    default otherwise): one entry per instance (the torso, the head, four legs, the tail), each with the 4x4 matrix
+    (row-major, glTF frame) that takes the part's own coordinates to the figure, mirroring included for the right legs."""
+    variants = {**kit["defaults"], **(variants or {})}
+    by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
+    missing = [f"{k} {v}" for k, v in variants.items() if (k, v) not in by]
+    if missing:
+        raise ValueError(f"the kit has no {', '.join(missing)}")
+    pid = pose_id or kit["default_pose"]
+    pose = next((p for p in kit["poses"] if p["pose_id"] == pid), None)
+    if pose is None:
+        raise ValueError(f"pose {pid} is not in the kit's allowed list")
+    torso = by[("torso", variants["torso"])]
+    head = by[("head", variants["head"])]
+    problems = clamp_head(pose, head.get("limits") or DEFAULT_HEAD_LIMITS)
+    if problems:
+        raise ValueError("; ".join(problems))
+    entries = [{"slot": "torso", "kind": "torso", "variant": torso["variant"], "file": torso["mesh"]["file"],
+                "matrix": np.eye(4).tolist(), "mirrored": False}]
+    for slot in SLOTS:
+        kind = SLOT_KIND[slot]
+        part = by[(kind, variants[kind])]
+        R, t = placement(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose)
+        M = np.eye(4)
+        M[:3, :3] = R @ (MIRROR if slot in MIRRORED else np.eye(3))
+        M[:3, 3] = t
+        entries.append({"slot": slot, "kind": kind, "variant": part["variant"], "file": part["mesh"]["file"],
+                        "matrix": M.tolist(), "mirrored": slot in MIRRORED})
+    return {"species": kit["species"], "breed_id": kit["breed_id"], "kit_version": kit["version"], "variants": variants,
+            "pose_id": pid, "pose": pose, "parts": entries}

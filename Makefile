@@ -8,7 +8,10 @@ STUDIO := apps/studio
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
 .PHONY: help setup dev stop mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
-        regress up down smoke-stack workflows models gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
+        regress up down smoke-stack workflows models compose-parts: ## compose figures from a committed part kit: KIT=kit.json FILES=dir OUT=dir [ARGS="--all-poses --fuse"]
+	$(PY) scripts/compose_parts.py --kit $(KIT) --files $(FILES) --out $(or $(OUT),var/composed) $(ARGS)
+
+gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
 
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -85,6 +88,9 @@ smoke-stack: ## build and run the stack here on the mock profile, push one job t
 
 models: ## NVIDIA host: fetch the pinned weights, each checked against models.lock.json (the Mac: make -C mac models)
 	$(PY) scripts/models.py --fetch --dest $${PETPOP_MODELS:-/srv/models} --profile $(GENAI_PROFILE)
+
+compose-parts: ## compose figures from a committed part kit: KIT=kit.json FILES=dir OUT=dir [ARGS="--all-poses --fuse"]
+	$(PY) scripts/compose_parts.py --kit $(KIT) --files $(FILES) --out $(or $(OUT),var/composed) $(ARGS)
 
 gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8: ## run acceptance gate N
 	scripts/gates/$@
