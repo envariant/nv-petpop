@@ -712,6 +712,23 @@
     "title": "Body_studioSubmitManual",
     "type": "object"
    },
+   "Body_studioUploadParts": {
+    "properties": {
+     "files": {
+      "items": {
+       "contentMediaType": "application/octet-stream",
+       "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+     }
+    },
+    "required": [
+     "files"
+    ],
+    "title": "Body_studioUploadParts",
+    "type": "object"
+   },
    "Breed": {
     "additionalProperties": false,
     "properties": {
@@ -1655,6 +1672,52 @@
      }
     },
     "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HeadLimits": {
+    "additionalProperties": false,
+    "properties": {
+     "pitch": {
+      "default": [
+       -25.0,
+       25.0
+      ],
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Pitch",
+      "type": "array"
+     },
+     "roll": {
+      "default": [
+       -20.0,
+       20.0
+      ],
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Roll",
+      "type": "array"
+     },
+     "yaw": {
+      "default": [
+       -35.0,
+       35.0
+      ],
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Yaw",
+      "type": "array"
+     }
+    },
+    "title": "HeadLimits",
     "type": "object"
    },
    "Health": {
@@ -3509,6 +3572,556 @@
     "title": "ParseResponse",
     "type": "object"
    },
+   "Part": {
+    "additionalProperties": false,
+    "properties": {
+     "attachments": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "$ref": "#/components/schemas/PartAttachment"
+        },
+        "propertyNames": {
+         "enum": [
+          "head",
+          "front_left",
+          "front_right",
+          "hind_left",
+          "hind_right",
+          "tail"
+         ]
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The torso's six slots.",
+      "title": "Attachments"
+     },
+     "edited": {
+      "description": "The rig was changed in the workbench since the first guess.",
+      "title": "Edited",
+      "type": "boolean"
+     },
+     "guess": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/RigGuess"
+      },
+      "description": "The first guess per joint ('joint', or a slot for the torso).",
+      "title": "Guess",
+      "type": "object"
+     },
+     "joint": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PartJoint"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Every kind but the torso."
+     },
+     "kind": {
+      "enum": [
+       "head",
+       "torso",
+       "front_leg",
+       "hind_leg",
+       "tail"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "limits": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/HeadLimits"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "The head's yaw, pitch and roll limits."
+     },
+     "mesh_url": {
+      "title": "Mesh Url",
+      "type": "string"
+     },
+     "mirrored": {
+      "description": "Supplied as a right leg; kept as its left mirror image.",
+      "title": "Mirrored",
+      "type": "boolean"
+     },
+     "part_id": {
+      "title": "Part Id",
+      "type": "string"
+     },
+     "sha256": {
+      "title": "Sha256",
+      "type": "string"
+     },
+     "tris": {
+      "title": "Tris",
+      "type": "integer"
+     },
+     "variant": {
+      "title": "Variant",
+      "type": "string"
+     }
+    },
+    "required": [
+     "part_id",
+     "kind",
+     "variant",
+     "label",
+     "mesh_url",
+     "tris",
+     "sha256",
+     "guess",
+     "edited",
+     "mirrored"
+    ],
+    "title": "Part",
+    "type": "object"
+   },
+   "PartAttachment": {
+    "additionalProperties": false,
+    "description": "A torso slot: the position, the axis out of the torso, and the twist (degrees).",
+    "properties": {
+     "axis": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Axis",
+      "type": "array"
+     },
+     "position": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Position",
+      "type": "array"
+     },
+     "twist": {
+      "default": 0.0,
+      "title": "Twist",
+      "type": "number"
+     }
+    },
+    "required": [
+     "position",
+     "axis"
+    ],
+    "title": "PartAttachment",
+    "type": "object"
+   },
+   "PartJoint": {
+    "additionalProperties": false,
+    "description": "Where a part meets the torso: its pivot, the axis from the joint into the part, and its rest twist (degrees).",
+    "properties": {
+     "axis": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Axis",
+      "type": "array"
+     },
+     "pivot": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Pivot",
+      "type": "array"
+     },
+     "twist": {
+      "default": 0.0,
+      "title": "Twist",
+      "type": "number"
+     }
+    },
+    "required": [
+     "pivot",
+     "axis"
+    ],
+    "title": "PartJoint",
+    "type": "object"
+   },
+   "PartKit": {
+    "additionalProperties": false,
+    "description": "A breed's kit in the workbench: its parts and rigs, the default variant per kind, the allowed poses, and where\nit stands against its last commit.",
+    "properties": {
+     "breed_id": {
+      "title": "Breed Id",
+      "type": "string"
+     },
+     "breed_label": {
+      "title": "Breed Label",
+      "type": "string"
+     },
+     "committed_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Committed At"
+     },
+     "committed_by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Committed By"
+     },
+     "default_pose": {
+      "title": "Default Pose",
+      "type": "string"
+     },
+     "defaults": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "propertyNames": {
+       "enum": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+       ]
+      },
+      "title": "Defaults",
+      "type": "object"
+     },
+     "dirty": {
+      "description": "Changed since the last commit.",
+      "title": "Dirty",
+      "type": "boolean"
+     },
+     "notes": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     },
+     "parts": {
+      "items": {
+       "$ref": "#/components/schemas/Part"
+      },
+      "title": "Parts",
+      "type": "array"
+     },
+     "poses": {
+      "items": {
+       "$ref": "#/components/schemas/Pose"
+      },
+      "title": "Poses",
+      "type": "array"
+     },
+     "problems": {
+      "description": "What stops a commit.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Problems",
+      "type": "array"
+     },
+     "species": {
+      "enum": [
+       "dog",
+       "cat"
+      ],
+      "title": "Species",
+      "type": "string"
+     },
+     "symmetry": {
+      "title": "Symmetry",
+      "type": "boolean"
+     },
+     "version": {
+      "description": "The last committed kit version (0: never committed).",
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "species",
+     "breed_id",
+     "breed_label",
+     "parts",
+     "defaults",
+     "poses",
+     "default_pose",
+     "symmetry",
+     "version",
+     "dirty",
+     "problems"
+    ],
+    "title": "PartKit",
+    "type": "object"
+   },
+   "PartKitList": {
+    "additionalProperties": false,
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/PartKitSummary"
+      },
+      "title": "Items",
+      "type": "array"
+     }
+    },
+    "required": [
+     "items"
+    ],
+    "title": "PartKitList",
+    "type": "object"
+   },
+   "PartKitSetup": {
+    "additionalProperties": false,
+    "description": "The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry.",
+    "properties": {
+     "default_pose": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Pose"
+     },
+     "defaults": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "string"
+        },
+        "propertyNames": {
+         "enum": [
+          "head",
+          "torso",
+          "front_leg",
+          "hind_leg",
+          "tail"
+         ]
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Defaults"
+     },
+     "poses": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/Pose"
+        },
+        "minItems": 1,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Poses"
+     },
+     "symmetry": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Symmetry"
+     }
+    },
+    "title": "PartKitSetup",
+    "type": "object"
+   },
+   "PartKitSummary": {
+    "additionalProperties": false,
+    "properties": {
+     "breed_id": {
+      "title": "Breed Id",
+      "type": "string"
+     },
+     "breed_label": {
+      "title": "Breed Label",
+      "type": "string"
+     },
+     "dirty": {
+      "title": "Dirty",
+      "type": "boolean"
+     },
+     "kinds": {
+      "items": {
+       "enum": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+       ],
+       "type": "string"
+      },
+      "title": "Kinds",
+      "type": "array"
+     },
+     "parts": {
+      "title": "Parts",
+      "type": "integer"
+     },
+     "problems": {
+      "title": "Problems",
+      "type": "integer"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "breed_id",
+     "breed_label",
+     "kinds",
+     "parts",
+     "version",
+     "dirty",
+     "problems"
+    ],
+    "title": "PartKitSummary",
+    "type": "object"
+   },
+   "PartRigPatch": {
+    "additionalProperties": false,
+    "description": "A workbench edit to one part: any of its label, joint, torso attachments (some slots) and head limits.",
+    "properties": {
+     "attachments": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "$ref": "#/components/schemas/PartAttachment"
+        },
+        "propertyNames": {
+         "enum": [
+          "head",
+          "front_left",
+          "front_right",
+          "hind_left",
+          "hind_right",
+          "tail"
+         ]
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attachments"
+     },
+     "joint": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PartJoint"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "label": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "limits": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/HeadLimits"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "title": "PartRigPatch",
+    "type": "object"
+   },
+   "PartUploadResult": {
+    "additionalProperties": false,
+    "properties": {
+     "breeds": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Breeds",
+      "type": "array"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/Part"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "skipped": {
+      "description": "Files not taken, with why.",
+      "items": {
+       "type": "string"
+      },
+      "title": "Skipped",
+      "type": "array"
+     }
+    },
+    "required": [
+     "items",
+     "breeds",
+     "skipped"
+    ],
+    "title": "PartUploadResult",
+    "type": "object"
+   },
    "PatternCoverage": {
     "additionalProperties": false,
     "properties": {
@@ -4129,6 +4742,64 @@
      "dog",
      "cat"
     ]
+   },
+   "Pose": {
+    "additionalProperties": false,
+    "properties": {
+     "head": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "default": {},
+      "propertyNames": {
+       "enum": [
+        "yaw",
+        "pitch",
+        "roll"
+       ]
+      },
+      "title": "Head",
+      "type": "object"
+     },
+     "label": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+     },
+     "legs": {
+      "additionalProperties": {
+       "enum": [
+        0,
+        1,
+        2
+       ],
+       "type": "integer"
+      },
+      "default": {},
+      "propertyNames": {
+       "enum": [
+        "front_left",
+        "front_right",
+        "hind_left",
+        "hind_right"
+       ]
+      },
+      "title": "Legs",
+      "type": "object"
+     },
+     "pose_id": {
+      "pattern": "^[a-z0-9_]{1,40}$",
+      "title": "Pose Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "pose_id",
+     "label"
+    ],
+    "title": "Pose",
+    "type": "object"
    },
    "Price": {
     "additionalProperties": false,
@@ -5027,6 +5698,26 @@
     "title": "ReviewRequest",
     "type": "object"
    },
+   "RigGuess": {
+    "additionalProperties": false,
+    "description": "How the first guess found a joint or attachment, and how sure it is (0..1).",
+    "properties": {
+     "confidence": {
+      "title": "Confidence",
+      "type": "number"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     }
+    },
+    "required": [
+     "method",
+     "confidence"
+    ],
+    "title": "RigGuess",
+    "type": "object"
+   },
    "Session": {
     "additionalProperties": false,
     "description": "An anonymous kiosk session (no accounts); wiped on idle.",
@@ -5500,7 +6191,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.10.0"
+  "version": "3.11.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -9911,6 +10602,915 @@
      }
     },
     "summary": "Submit Manual",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}": {
+   "get": {
+    "operationId": "studioPartKits",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKitList"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Part Kits",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/upload": {
+   "post": {
+    "description": "Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once.",
+    "operationId": "studioUploadParts",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "description": "Overrides the breed in the file names.",
+      "in": "query",
+      "name": "breed_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "pattern": "^[a-z0-9_]{1,48}$",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Overrides the breed in the file names.",
+       "title": "Breed Id"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_studioUploadParts"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartUploadResult"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "413": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Request Entity Too Large"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Upload Parts",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/{breed_id}": {
+   "get": {
+    "operationId": "studioPartKit",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Part Kit",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/{breed_id}/commit": {
+   "post": {
+    "description": "Freeze the kit as its next version; 409 with what stops it.",
+    "operationId": "studioCommitPartKit",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Commit Part Kit",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}": {
+   "delete": {
+    "operationId": "studioDeletePart",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "part_id",
+      "required": true,
+      "schema": {
+       "title": "Part Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Delete Part",
+    "tags": [
+     "studio"
+    ]
+   },
+   "patch": {
+    "description": "A workbench edit: a part's joint, the torso's attachments, the head's limits or a label.",
+    "operationId": "studioEditPartRig",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "part_id",
+      "required": true,
+      "schema": {
+       "title": "Part Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PartRigPatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Edit Part Rig",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}/guess": {
+   "post": {
+    "description": "Back to the first guess for this part (forgets its workbench edits).",
+    "operationId": "studioReguessPart",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "part_id",
+      "required": true,
+      "schema": {
+       "title": "Part Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Reguess Part",
+    "tags": [
+     "studio"
+    ]
+   }
+  },
+  "/api/v1/studio/parts/{species}/{breed_id}/setup": {
+   "put": {
+    "description": "The default variant per kind, the allowed poses (the default one), and symmetry.",
+    "operationId": "studioPartKitSetup",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "species",
+      "required": true,
+      "schema": {
+       "enum": [
+        "dog",
+        "cat"
+       ],
+       "title": "Species",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "breed_id",
+      "required": true,
+      "schema": {
+       "title": "Breed Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "authorization",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Authorization"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PartKitSetup"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PartKit"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "401": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unauthorized"
+     },
+     "403": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Forbidden"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorBody"
+        }
+       }
+      },
+      "description": "Unprocessable Entity"
+     }
+    },
+    "summary": "Part Kit Setup",
     "tags": [
      "studio"
     ]

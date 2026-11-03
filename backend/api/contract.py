@@ -92,6 +92,8 @@ class ApiImpl(Protocol):
     async def manual_task(self, task_id: str, base: str) -> m.ManualTask: ...
     async def submit_manual(self, task_id: str, filename: str, data: bytes, user: m.StaffUser, base: str,
                             slot: str | None = None) -> m.ManualTask: ...
+    # the part library (decision 127): the shared PartLibrary service
+    parts: Any
     # studio library (M8): batches, review, editors, publish, releases
     async def create_batch(self, body: m.BatchCreate, user: m.StaffUser) -> m.Batch: ...
     async def list_batches(self) -> m.BatchList: ...
@@ -438,6 +440,56 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
             await ws.close(code=4404, reason=str(e.detail)[:100])
         except (WebSocketDisconnect, asyncio.CancelledError, RuntimeError):
             pass
+
+    # ------------------------------------------------------------------ the part library (decision 127)
+    PL = impl.parts
+    KIT = "/parts/{species}/{breed_id}"
+
+    @studio.get("/parts/{species}", response_model=m.PartKitList, operation_id="studioPartKits", responses=AUTH)
+    async def part_kits(species: m.Species, _: m.StaffUser = operator) -> m.PartKitList:
+        return await asyncio.to_thread(PL.kits, species)
+
+    @studio.post("/parts/{species}/upload", response_model=m.PartUploadResult, status_code=201, operation_id="studioUploadParts",
+                 responses={**AUTH, 413: {"model": m.ErrorBody}, 422: {"model": m.ErrorBody}})
+    async def upload_parts(species: m.Species, files: list[UploadFile] = File(...),
+                           breed_id: str | None = Query(None, pattern=r"^[a-z0-9_]{1,48}$", description="Overrides the breed in the file names."),
+                           user: m.StaffUser = curator) -> m.PartUploadResult:
+        """Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once."""
+        got = []
+        for f in files:
+            data = await f.read()
+            if len(data) > MANUAL_MAX_BYTES:
+                raise ApiError(413, f"{f.filename} is larger than {MANUAL_MAX_BYTES // 2**20} MB")
+            got.append((f.filename or "", data))
+        return await asyncio.to_thread(PL.upload, species, got, user.username, breed_id)
+
+    @studio.get(KIT, response_model=m.PartKit, operation_id="studioPartKit", responses={**AUTH, 404: {"model": m.ErrorBody}})
+    async def part_kit(species: m.Species, breed_id: str, _: m.StaffUser = operator) -> m.PartKit:
+        return await asyncio.to_thread(PL.kit, species, breed_id)
+
+    @studio.patch(KIT + "/parts/{part_id}", response_model=m.PartKit, operation_id="studioEditPartRig", responses={**ERR, **AUTH})
+    async def edit_part_rig(species: m.Species, breed_id: str, part_id: str, patch: m.PartRigPatch, _: m.StaffUser = curator) -> m.PartKit:
+        """A workbench edit: a part's joint, the torso's attachments, the head's limits or a label."""
+        return await asyncio.to_thread(PL.edit, species, breed_id, part_id, patch)
+
+    @studio.post(KIT + "/parts/{part_id}/guess", response_model=m.PartKit, operation_id="studioReguessPart", responses={**ERR, **AUTH})
+    async def reguess_part(species: m.Species, breed_id: str, part_id: str, _: m.StaffUser = curator) -> m.PartKit:
+        """Back to the first guess for this part (forgets its workbench edits)."""
+        return await asyncio.to_thread(PL.reguess, species, breed_id, part_id)
+
+    @studio.delete(KIT + "/parts/{part_id}", response_model=m.PartKit, operation_id="studioDeletePart", responses={**ERR, **AUTH})
+    async def delete_part(species: m.Species, breed_id: str, part_id: str, _: m.StaffUser = curator) -> m.PartKit:
+        return await asyncio.to_thread(PL.delete, species, breed_id, part_id)
+
+    @studio.put(KIT + "/setup", response_model=m.PartKit, operation_id="studioPartKitSetup", responses={**ERR, **AUTH})
+    async def part_kit_setup(species: m.Species, breed_id: str, body: m.PartKitSetup, _: m.StaffUser = curator) -> m.PartKit:
+        """The default variant per kind, the allowed poses (the default one), and symmetry."""
+        return await asyncio.to_thread(PL.setup, species, breed_id, body)
+
+    @studio.post(KIT + "/commit", response_model=m.PartKit, operation_id="studioCommitPartKit", responses={**ERR, **AUTH})
+    async def commit_part_kit(species: m.Species, breed_id: str, user: m.StaffUser = curator) -> m.PartKit:
+        """Freeze the kit as its next version; 409 with what stops it."""
+        return await asyncio.to_thread(PL.commit, species, breed_id, user.username)
 
     # ------------------------------------------------------------------ customer accounts (decision 126)
     acc = APIRouter(prefix=ACCOUNT, tags=["account"])

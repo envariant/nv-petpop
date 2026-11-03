@@ -4,7 +4,7 @@ the kiosk library mode (releases, compositions, Stage-F-only exports) and moves 
 adds Studio's curation: batches, review, the parts and pattern editors, publish and releases; 3.9.0 adds payment for
 an order (decision 125: HitPay, PayNow and cards); 3.10.0 adds customer accounts (email and phone codes, Sign in
 with Apple and Google), the contact an order needs, the account's orders and devices, and an itemised quote
-(decision 126)."""
+(decision 126); 3.11.0 adds the Studio part library: breeds as kits of parts rigged at joints (decision 127)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -12,7 +12,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.10.0"
+API_VERSION = "3.11.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -764,6 +764,117 @@ class ReleaseInfo(_M):
 
 class ReleaseList(_M):
     items: list[ReleaseInfo]
+
+
+# --------------------------------------------------------------------------- part kits (decision 127, API 3.11.0)
+
+PartKind = Literal["head", "torso", "front_leg", "hind_leg", "tail"]
+Slot = Literal["head", "front_left", "front_right", "hind_left", "hind_right", "tail"]
+Vec3 = Annotated[list[float], Field(min_length=3, max_length=3)]
+
+
+class PartJoint(_M):
+    """Where a part meets the torso: its pivot, the axis from the joint into the part, and its rest twist (degrees)."""
+    pivot: Vec3
+    axis: Vec3
+    twist: float = 0.0
+
+
+class PartAttachment(_M):
+    """A torso slot: the position, the axis out of the torso, and the twist (degrees)."""
+    position: Vec3
+    axis: Vec3
+    twist: float = 0.0
+
+
+class HeadLimits(_M):
+    yaw: Annotated[list[float], Field(min_length=2, max_length=2)] = [-35.0, 35.0]
+    pitch: Annotated[list[float], Field(min_length=2, max_length=2)] = [-25.0, 25.0]
+    roll: Annotated[list[float], Field(min_length=2, max_length=2)] = [-20.0, 20.0]
+
+
+class RigGuess(_M):
+    """How the first guess found a joint or attachment, and how sure it is (0..1)."""
+    method: str
+    confidence: float
+
+
+class Part(_M):
+    part_id: str
+    kind: PartKind
+    variant: str
+    label: str
+    mesh_url: str
+    tris: int
+    sha256: str
+    joint: PartJoint | None = Field(None, description="Every kind but the torso.")
+    attachments: dict[Slot, PartAttachment] | None = Field(None, description="The torso's six slots.")
+    limits: HeadLimits | None = Field(None, description="The head's yaw, pitch and roll limits.")
+    guess: dict[str, RigGuess] = Field(description="The first guess per joint ('joint', or a slot for the torso).")
+    edited: bool = Field(description="The rig was changed in the workbench since the first guess.")
+    mirrored: bool = Field(description="Supplied as a right leg; kept as its left mirror image.")
+
+
+class Pose(_M):
+    pose_id: str = Field(pattern=r"^[a-z0-9_]{1,40}$")
+    label: str = Field(min_length=1, max_length=60)
+    legs: dict[Literal["front_left", "front_right", "hind_left", "hind_right"], Literal[0, 1, 2]] = {}
+    head: dict[Literal["yaw", "pitch", "roll"], float] = {}
+
+
+class PartKit(_M):
+    """A breed's kit in the workbench: its parts and rigs, the default variant per kind, the allowed poses, and where
+    it stands against its last commit."""
+    species: Species
+    breed_id: str
+    breed_label: str
+    parts: list[Part]
+    defaults: dict[PartKind, str]
+    poses: list[Pose]
+    default_pose: str
+    symmetry: bool
+    version: int = Field(description="The last committed kit version (0: never committed).")
+    committed_at: datetime | None = None
+    committed_by: str | None = None
+    dirty: bool = Field(description="Changed since the last commit.")
+    problems: list[str] = Field(description="What stops a commit.")
+    notes: list[str] = []
+
+
+class PartKitSummary(_M):
+    breed_id: str
+    breed_label: str
+    kinds: list[PartKind]
+    parts: int
+    version: int
+    dirty: bool
+    problems: int
+
+
+class PartKitList(_M):
+    items: list[PartKitSummary]
+
+
+class PartUploadResult(_M):
+    items: list[Part]
+    breeds: list[str]
+    skipped: list[str] = Field(description="Files not taken, with why.")
+
+
+class PartRigPatch(_M):
+    """A workbench edit to one part: any of its label, joint, torso attachments (some slots) and head limits."""
+    label: str | None = Field(None, max_length=60)
+    joint: PartJoint | None = None
+    attachments: dict[Slot, PartAttachment] | None = None
+    limits: HeadLimits | None = None
+
+
+class PartKitSetup(_M):
+    """The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry."""
+    defaults: dict[PartKind, str] | None = None
+    poses: list[Pose] | None = Field(None, min_length=1)
+    default_pose: str | None = None
+    symmetry: bool | None = None
 
 
 class ErrorBody(_M):

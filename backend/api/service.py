@@ -36,6 +36,7 @@ from . import payments as pay
 from .accounts import Accounts
 from .pricing import quote
 from .messaging import Messenger
+from .part_library import PartLibrary
 from .notify import Notifier
 
 TERMINAL = {"done", "failed", "fulfilled"}
@@ -67,6 +68,7 @@ class BackendApi:
         self.messenger = Messenger()
         self.accounts = Accounts(s, self.db, self.messenger)
         self.notifier = Notifier(self.db, self.messenger, s.public_url)
+        self.parts = PartLibrary(self.db, self.store, self.secret)
         self.library.payments_on = self.payments is not None
 
     # ------------------------------------------------------------------ helpers

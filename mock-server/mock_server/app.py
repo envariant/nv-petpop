@@ -149,6 +149,9 @@ class MockApi:
         self.library = MockLibrary(self.secret)
         self.accounts = mock_accounts(self.secret)
         self.studio = MockStudio(self.secret)
+        from backend.api.part_library import PartLibrary
+
+        self.parts = PartLibrary(self.studio.db, self.studio.store, self.secret)  # decision 127: the same service
         self.manual = MockManual(self.secret, self.studio.store)
 
     # ----------------------------------------------------------------- helpers

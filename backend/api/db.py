@@ -291,6 +291,45 @@ class NotificationRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class PartRow(Base):
+    """One part of a breed's kit (decision 127): its mesh in the store, and its rig (a joint for every kind but the
+    torso; six attachments for the torso; limits for the head). `auto` keeps the first guess; `edited` is set once
+    someone changes the rig in the workbench, so a re-upload's guess no longer overwrites it."""
+    __tablename__ = "parts"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    species: Mapped[str] = mapped_column(String(8), index=True)
+    breed_id: Mapped[str] = mapped_column(String(48), index=True)
+    kind: Mapped[str] = mapped_column(String(12))
+    variant: Mapped[str] = mapped_column(String(40))
+    label: Mapped[str] = mapped_column(String(60))
+    mesh_key: Mapped[str] = mapped_column(String(240))
+    sha256: Mapped[str] = mapped_column(String(64))
+    tris: Mapped[int] = mapped_column(Integer)
+    rig: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)  # {"joint": ...} or {"attachments": ...}; "limits"
+    auto: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)  # the first guess, with method and confidence
+    edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    mirrored: Mapped[bool] = mapped_column(Boolean, default=False)  # a right leg, kept as its left mirror image
+    uploaded_by: Mapped[str] = mapped_column(String(48), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class KitRow(Base):
+    """A breed's kit settings (defaults, poses, symmetry) and its committed versions (decision 127)."""
+    __tablename__ = "part_kits"
+    species: Mapped[str] = mapped_column(String(8), primary_key=True)
+    breed_id: Mapped[str] = mapped_column(String(48), primary_key=True)
+    defaults: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
+    poses: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    default_pose: Mapped[str] = mapped_column(String(40), default="standing")
+    symmetry: Mapped[bool] = mapped_column(Boolean, default=True)
+    version: Mapped[int] = mapped_column(Integer, default=0)  # the last committed version (0: never)
+    committed_key: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    committed_by: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    committed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    dirty: Mapped[bool] = mapped_column(Boolean, default=True)  # changed since the last commit
+
+
 class PaymentRow(Base):
     """A payment for an order (decision 125): one row per attempt; the latest is the order's payment."""
     __tablename__ = "payments"

@@ -884,6 +884,141 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/studio/parts/{species}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Part Kits */
+        get: operations["studioPartKits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Parts
+         * @description Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once.
+         */
+        post: operations["studioUploadParts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/{breed_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Part Kit */
+        get: operations["studioPartKit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/{breed_id}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commit Part Kit
+         * @description Freeze the kit as its next version; 409 with what stops it.
+         */
+        post: operations["studioCommitPartKit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Part */
+        delete: operations["studioDeletePart"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit Part Rig
+         * @description A workbench edit: a part's joint, the torso's attachments, the head's limits or a label.
+         */
+        patch: operations["studioEditPartRig"];
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/{breed_id}/parts/{part_id}/guess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reguess Part
+         * @description Back to the first guess for this part (forgets its workbench edits).
+         */
+        post: operations["studioReguessPart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/studio/parts/{species}/{breed_id}/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Part Kit Setup
+         * @description The default variant per kind, the allowed poses (the default one), and symmetry.
+         */
+        put: operations["studioPartKitSetup"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/studio/profiles": {
         parameters: {
             query?: never;
@@ -1238,6 +1373,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_studioUploadParts */
+        Body_studioUploadParts: {
+            /** Files */
+            files: string[];
+        };
         /** Breed */
         Breed: {
             /** Id */
@@ -1584,6 +1724,33 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HeadLimits */
+        HeadLimits: {
+            /**
+             * Pitch
+             * @default [
+             *       -25,
+             *       25
+             *     ]
+             */
+            pitch: number[];
+            /**
+             * Roll
+             * @default [
+             *       -20,
+             *       20
+             *     ]
+             */
+            roll: number[];
+            /**
+             * Yaw
+             * @default [
+             *       -35,
+             *       35
+             *     ]
+             */
+            yaw: number[];
         };
         /** Health */
         Health: {
@@ -2293,6 +2460,200 @@ export interface components {
             /** Personality */
             personality: string[];
         };
+        /** Part */
+        Part: {
+            /**
+             * Attachments
+             * @description The torso's six slots.
+             */
+            attachments?: {
+                [key: string]: components["schemas"]["PartAttachment"];
+            } | null;
+            /**
+             * Edited
+             * @description The rig was changed in the workbench since the first guess.
+             */
+            edited: boolean;
+            /**
+             * Guess
+             * @description The first guess per joint ('joint', or a slot for the torso).
+             */
+            guess: {
+                [key: string]: components["schemas"]["RigGuess"];
+            };
+            /** @description Every kind but the torso. */
+            joint?: components["schemas"]["PartJoint"] | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "head" | "torso" | "front_leg" | "hind_leg" | "tail";
+            /** Label */
+            label: string;
+            /** @description The head's yaw, pitch and roll limits. */
+            limits?: components["schemas"]["HeadLimits"] | null;
+            /** Mesh Url */
+            mesh_url: string;
+            /**
+             * Mirrored
+             * @description Supplied as a right leg; kept as its left mirror image.
+             */
+            mirrored: boolean;
+            /** Part Id */
+            part_id: string;
+            /** Sha256 */
+            sha256: string;
+            /** Tris */
+            tris: number;
+            /** Variant */
+            variant: string;
+        };
+        /**
+         * PartAttachment
+         * @description A torso slot: the position, the axis out of the torso, and the twist (degrees).
+         */
+        PartAttachment: {
+            /** Axis */
+            axis: number[];
+            /** Position */
+            position: number[];
+            /**
+             * Twist
+             * @default 0
+             */
+            twist: number;
+        };
+        /**
+         * PartJoint
+         * @description Where a part meets the torso: its pivot, the axis from the joint into the part, and its rest twist (degrees).
+         */
+        PartJoint: {
+            /** Axis */
+            axis: number[];
+            /** Pivot */
+            pivot: number[];
+            /**
+             * Twist
+             * @default 0
+             */
+            twist: number;
+        };
+        /**
+         * PartKit
+         * @description A breed's kit in the workbench: its parts and rigs, the default variant per kind, the allowed poses, and where
+         *     it stands against its last commit.
+         */
+        PartKit: {
+            /** Breed Id */
+            breed_id: string;
+            /** Breed Label */
+            breed_label: string;
+            /** Committed At */
+            committed_at?: string | null;
+            /** Committed By */
+            committed_by?: string | null;
+            /** Default Pose */
+            default_pose: string;
+            /** Defaults */
+            defaults: {
+                [key: string]: string;
+            };
+            /**
+             * Dirty
+             * @description Changed since the last commit.
+             */
+            dirty: boolean;
+            /**
+             * Notes
+             * @default []
+             */
+            notes: string[];
+            /** Parts */
+            parts: components["schemas"]["Part"][];
+            /** Poses */
+            poses: components["schemas"]["Pose"][];
+            /**
+             * Problems
+             * @description What stops a commit.
+             */
+            problems: string[];
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "dog" | "cat";
+            /** Symmetry */
+            symmetry: boolean;
+            /**
+             * Version
+             * @description The last committed kit version (0: never committed).
+             */
+            version: number;
+        };
+        /** PartKitList */
+        PartKitList: {
+            /** Items */
+            items: components["schemas"]["PartKitSummary"][];
+        };
+        /**
+         * PartKitSetup
+         * @description The breed-level settings: the default variant per kind, the allowed poses and the default one, and symmetry.
+         */
+        PartKitSetup: {
+            /** Default Pose */
+            default_pose?: string | null;
+            /** Defaults */
+            defaults?: {
+                [key: string]: string;
+            } | null;
+            /** Poses */
+            poses?: components["schemas"]["Pose"][] | null;
+            /** Symmetry */
+            symmetry?: boolean | null;
+        };
+        /** PartKitSummary */
+        PartKitSummary: {
+            /** Breed Id */
+            breed_id: string;
+            /** Breed Label */
+            breed_label: string;
+            /** Dirty */
+            dirty: boolean;
+            /** Kinds */
+            kinds: ("head" | "torso" | "front_leg" | "hind_leg" | "tail")[];
+            /** Parts */
+            parts: number;
+            /** Problems */
+            problems: number;
+            /** Version */
+            version: number;
+        };
+        /**
+         * PartRigPatch
+         * @description A workbench edit to one part: any of its label, joint, torso attachments (some slots) and head limits.
+         */
+        PartRigPatch: {
+            /** Attachments */
+            attachments?: {
+                [key: string]: components["schemas"]["PartAttachment"];
+            } | null;
+            joint?: components["schemas"]["PartJoint"] | null;
+            /** Label */
+            label?: string | null;
+            limits?: components["schemas"]["HeadLimits"] | null;
+        };
+        /** PartUploadResult */
+        PartUploadResult: {
+            /** Breeds */
+            breeds: string[];
+            /** Items */
+            items: components["schemas"]["Part"][];
+            /**
+             * Skipped
+             * @description Files not taken, with why.
+             */
+            skipped: string[];
+        };
         /** PatternCoverage */
         PatternCoverage: {
             /** Default */
@@ -2473,6 +2834,27 @@ export interface components {
         PetSpec_palette_name: "black" | "white" | "cream" | "gold" | "red" | "tan" | "fawn" | "chocolate" | "grey" | "blue_grey" | "ginger" | "silver";
         /** @enum {unknown} */
         PetSpec_species: "dog" | "cat";
+        /** Pose */
+        Pose: {
+            /**
+             * Head
+             * @default {}
+             */
+            head: {
+                [key: string]: number;
+            };
+            /** Label */
+            label: string;
+            /**
+             * Legs
+             * @default {}
+             */
+            legs: {
+                [key: string]: 0 | 1 | 2;
+            };
+            /** Pose Id */
+            pose_id: string;
+        };
         /** Price */
         Price: {
             /**
@@ -2760,6 +3142,16 @@ export interface components {
         ReviewRequest: {
             /** Decisions */
             decisions: components["schemas"]["ReviewDecision"][];
+        };
+        /**
+         * RigGuess
+         * @description How the first guess found a joint or attachment, and how sure it is (0..1).
+         */
+        RigGuess: {
+            /** Confidence */
+            confidence: number;
+            /** Method */
+            method: string;
         };
         /**
          * Session
@@ -5894,6 +6286,546 @@ export interface operations {
             };
             /** @description Request Entity Too Large */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioPartKits: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKitList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioUploadParts: {
+        parameters: {
+            query?: {
+                /** @description Overrides the breed in the file names. */
+                breed_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_studioUploadParts"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartUploadResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioPartKit: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    studioCommitPartKit: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioDeletePart: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+                part_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioEditPartRig: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+                part_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartRigPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioReguessPart: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+                part_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    studioPartKitSetup: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                species: "dog" | "cat";
+                breed_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartKitSetup"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartKit"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

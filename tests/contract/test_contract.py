@@ -457,7 +457,11 @@ def test_every_documented_path_is_exercised():
                  f"{S}/batches/{{batch_id}}/review", f"{S}/library/{{species}}", f"{S}/library/{{species}}/{{kind}}/{{item_id}}",
                  f"{S}/library/{{species}}/{{kind}}/{{item_id}}/publish", f"{S}/library/{{species}}/{{kind}}/{{item_id}}/unpublish",
                  f"{S}/releases", f"{S}/manual", f"{S}/manual/{{task_id}}", f"{S}/manual/{{task_id}}/result",
-                 f"{S}/profiles"}
+                 f"{S}/profiles",
+                 # the part library (decision 127): tests/contract/test_parts.py
+                 f"{S}/parts/{{species}}", f"{S}/parts/{{species}}/upload", f"{S}/parts/{{species}}/{{breed_id}}",
+                 f"{S}/parts/{{species}}/{{breed_id}}/parts/{{part_id}}", f"{S}/parts/{{species}}/{{breed_id}}/parts/{{part_id}}/guess",
+                 f"{S}/parts/{{species}}/{{breed_id}}/setup", f"{S}/parts/{{species}}/{{breed_id}}/commit"}
     assert set(doc()["paths"]) == exercised
 
 
