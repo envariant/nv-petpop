@@ -13,7 +13,7 @@ const ORIGIN = `http://127.0.0.1:${WEB_PORT}`;
 const inMode = (mode: 'kiosk' | 'app') => ({ cookies: [], origins: [{ origin: ORIGIN, localStorage: [{ name: 'pp-mode', value: mode }] }] });
 
 export default defineConfig({
-  testDir: 'tests', // e2e/ (gates 1 and 2) and gate7/ (gate 7)
+  testDir: 'tests', // e2e/ (gates 1 and 2), gate7/ (gate 7) and gate9/ (gate 9)
   timeout: 90_000,
   expect: { timeout: 15_000 },
   workers: 1,
@@ -28,9 +28,9 @@ export default defineConfig({
   // One kiosk (portrait touchscreen) and three app sizes: a phone, a tablet in landscape and a desktop.
   projects: [
     { name: 'kiosk', use: { ...devices['Pixel 7'], viewport: { width: 540, height: 960 }, isMobile: false, hasTouch: true, storageState: inMode('kiosk') } },
-    { name: 'phone', testIgnore: /gate7/, use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, isMobile: false, hasTouch: true, storageState: inMode('app') } },
-    { name: 'tablet', testIgnore: /gate7/, use: { viewport: { width: 1180, height: 820 }, hasTouch: true, storageState: inMode('app') } },
-    { name: 'desktop', testIgnore: /gate7/, use: { viewport: { width: 1440, height: 900 }, hasTouch: true, storageState: inMode('app') } },
+    { name: 'phone', testIgnore: /gate[79]/, use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, isMobile: false, hasTouch: true, storageState: inMode('app') } },
+    { name: 'tablet', testIgnore: /gate[79]/, use: { viewport: { width: 1180, height: 820 }, hasTouch: true, storageState: inMode('app') } },
+    { name: 'desktop', testIgnore: /gate[79]/, use: { viewport: { width: 1440, height: 900 }, hasTouch: true, storageState: inMode('app') } },
   ],
   webServer: [
     {

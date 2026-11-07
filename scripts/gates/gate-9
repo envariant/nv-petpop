@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Gate 9 (M9, BRIEF Section 16): the seeded library. Every breed preset covered (a part kit, or a family on a
+# generated mesh) with the masks or pattern layers its markings need; the library walkthrough from attract to a paid
+# order in under 3 minutes, for a whole figure and a figure of parts; and 70 % breed recognisability on library
+# figurines. Coverage waits for the seeded library (releases Studio published into var/releases/inbox, S9) and the
+# recognisability rating is people's judgement (scripts/recognisability.py: sheet, then record); until then each
+# prints SKIPPED, the final manual pass (docs/HANDOFF-M9.md).
+source "$(dirname "$0")/lib.sh"
+echo "gate-9: the seeded library"
+step "coverage report and rating sheet tools on the proxy library" "$PY" -m pytest tests/unit/test_library_coverage.py tests/unit/test_recognisability.py
+for sp in dog cat; do
+  if ls var/releases/inbox/release-"$sp"-*.tar >/dev/null 2>&1; then
+    step "every $sp breed preset covered, with the masks and pattern layers its markings need" "$PY" scripts/library_coverage.py "$sp" --json "var/gate9/coverage-$sp.json"
+  else
+    echo "  [SKIPPED] every $sp breed preset covered (needs the seeded library: a $sp release published from Studio, S9)"
+  fi
+done
+step "library walkthrough, a whole figure: attract to a paid order under 3 min (real backend, kiosk)" bash -c 'cd apps/customer && PP_BACKEND=real npx playwright test --project=kiosk tests/e2e/walkthrough.spec.ts'
+step "library walkthrough, a figure of parts: attract to a paid order under 3 min (real backend, kiosk)" bash -c 'cd apps/customer && PP_BACKEND=real npx playwright test --project=kiosk tests/gate9'
+"$PY" scripts/recognisability.py check >"$LOG_DIR/gate9_recognisability.log" 2>&1
+case $? in
+  0) echo "  [PASS] 70 % breed recognisability on library figurines: $(tail -n 1 "$LOG_DIR/gate9_recognisability.log")" ;;
+  2) echo "  [SKIPPED] 70 % breed recognisability (the final manual pass: scripts/recognisability.py sheet, show it to people, record)" ;;
+  *) echo "  [FAIL] 70 % breed recognisability: $(tail -n 1 "$LOG_DIR/gate9_recognisability.log")"; echo "GATE FAILED"; exit 1 ;;
+esac
+echo "GATE 9 PASSED"

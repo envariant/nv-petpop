@@ -33,9 +33,10 @@ docs/MANUAL-MODE.md). This document is the staff routine; docs/HANDOFF-TRIPO.md 
    muzzle, tail); share only close look-alikes, or to fill gaps while their own figurine is pending.
 6. **Release** (admin): Releases, **Publish a dog release** (or cat). The bundle lands in the kiosk's release inbox
    (`PETPOP_RELEASE_INBOX`, default `var/releases/inbox`) and the kiosk switches to it within 30 s.
-7. **Check coverage**: `python scripts/library_coverage.py dog` (or the bundle path) lists the breeds on a
-   generated mesh, those still only on the proxy template or without a family, the shared meshes, and any marking
-   without a pattern layer. It exits 0 when coverage is complete.
+7. **Check coverage**: `python scripts/library_coverage.py dog` (or the bundle path) lists the breeds covered (as
+   part kits, or on a generated mesh), those still only on the proxy template or with nothing, the shared meshes, any
+   kit whose default texture names a marking none of its parts has a mask for, and (for breeds on whole-figure
+   meshes) any marking without a pattern layer. It exits 0 when coverage is complete; `--json file` keeps the report.
 
 Re-runs: a rejected figurine can be generated again (another seed, or multiview for a tricky silhouette) in the
 next batch; a published family can be edited (name, tags, breeds), which starts its next version, and unpublished.
@@ -49,6 +50,20 @@ wrong on the new meshes.
 
 ## Gate 9
 
-Coverage (`scripts/library_coverage.py` exits 0 for dog and cat), then the kiosk walkthrough from attract to order
-in under 3 minutes (`make gate-7` runs it), and 70 % breed recognisability: show 20 library figurines to people who
-do not know the breed and count the right answers. Record the result in docs/PROGRESS.md (Track B3).
+`make gate-9` (decision 140) checks:
+
+- **Coverage**: `scripts/library_coverage.py` for dog and cat on the releases Studio published (var/releases/inbox).
+  Until there are any, it prints SKIPPED.
+- **The walkthrough from attract to a paid order in under 3 minutes**: a whole figure, and a figure of parts with a
+  shape, a marking, a spot and an extra. Both are timed against the real backend.
+- **70 % breed recognisability**: the final manual pass, in three steps:
+  1. `python scripts/recognisability.py sheet` picks 20 library figurines from the newest releases: every kit in its
+     default design, rendered as the print paints it, and families on generated meshes. It writes
+     `var/gate9/sheet.html`, each figurine with four breed names, one right; the key stays in `var/gate9/key.json`.
+  2. Open the sheet on a phone or tablet and hand it to people who do not know the breeds. Each person ends with
+     "Finish and save my answers", which downloads their answers.
+  3. `python scripts/recognisability.py record answers-*.json` scores them and writes
+     `docs/gate9/recognisability.json`. Commit it.
+
+  Until a result is recorded, the gate prints SKIPPED; below 70 % it fails. Record the result in docs/PROGRESS.md
+  (Track B3).

@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Library coverage for M9 (BRIEF Section 16, docs/HANDOFF-M9.md): which breed presets a release covers with a
-family on a labelled mesh, which breeds share a mesh, which are still only on the proxy template, and which marking
-enumerations have a pattern layer.
+"""Library coverage for M9 (BRIEF Section 16, docs/HANDOFF-M9.md): which breed presets a release covers, with a
+part kit (decisions 127 to 139) or a family on a labelled mesh, which breeds share a mesh, which are still only on
+the proxy template, which marking enumerations have a pattern layer, and which kits lack a mask their breed's
+texture names.
 
     python scripts/library_coverage.py var/releases/inbox/release-dog-2.tar   # a bundle Studio packed
-    python scripts/library_coverage.py dog                                    # the newest bundle for dog
+    python scripts/library_coverage.py dog [--json out.json]                  # the newest bundle for dog
 
-Exit 0 when every breed preset has a family on a generated mesh and every marking has a pattern layer (the
-coverage half of gate 9), else 1.
+Exit 0 when every breed preset is covered (a kit, or a family on a generated mesh), every kit has the masks its
+texture names, and, for breeds on families, every marking has a pattern layer (the coverage half of gate 9), else 1.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -38,7 +40,26 @@ def newest(species: str) -> Path:
     return max(found, key=lambda p: int(p.stem.rsplit("-", 1)[1]))
 
 
+def kit_gaps(manifest: dict) -> dict[str, list[str]]:
+    """Per kit, the pattern and markings its default texture names that no part of it has a mask for."""
+    masks = {(m["uv_layout"], m["name"]) for m in manifest.get("masks") or []}
+    out = {}
+    for kit in manifest.get("kits") or []:
+        layouts = {p.get("uv_layout") for p in kit["parts"]} - {None}
+        t = kit.get("texture") or {}
+        names = [n for n in [t.get("pattern"), *(t.get("markings") or [])] if n and n != "solid"]
+        missing = [n for n in names if not any((lay, n) in masks for lay in layouts)]
+        if missing:
+            out[kit["breed_id"]] = missing
+    return out
+
+
 def report(manifest: dict) -> tuple[list[str], bool]:
+    lines, ok, _ = summary(manifest)
+    return lines, ok
+
+
+def summary(manifest: dict) -> tuple[list[str], bool, dict]:
     species = manifest["species"]
     meshes = {m["id"]: m for m in manifest["meshes"]}
     generated = {mid for mid, m in meshes.items() if m.get("source") == "generated"}
@@ -47,14 +68,16 @@ def report(manifest: dict) -> tuple[list[str], bool]:
         for b in f["breeds"]:
             on.setdefault(b, set()).add(f["mesh_id"])
     breeds = [b for b in all_breeds(species) if b["id"] != "mixed"]
-    real = [b["id"] for b in breeds if on.get(b["id"], set()) & generated]
-    proxy = [b["id"] for b in breeds if b["id"] in on and b["id"] not in real]
-    missing = [b["id"] for b in breeds if b["id"] not in on]
+    kits = {k["breed_id"] for k in manifest.get("kits") or []}
+    real = [b["id"] for b in breeds if on.get(b["id"], set()) & generated and b["id"] not in kits]
+    kit = [b["id"] for b in breeds if b["id"] in kits]
+    proxy = [b["id"] for b in breeds if b["id"] in on and b["id"] not in real and b["id"] not in kits]
+    missing = [b["id"] for b in breeds if b["id"] not in on and b["id"] not in kits]
     layers = {p["id"] for p in manifest["pattern_layers"]}
     need = sorted({*MARKING_LAYERS.values(), *(x for v in PATTERN_LAYERS.values() for x in v)})
     lines = [f"{manifest['release_version']} ({species}, {manifest['segmentation_version']}): {len(meshes)} meshes "
              f"({len(generated)} generated), {len(manifest['families'])} families",
-             f"breeds on a generated mesh: {len(real)}/{len(breeds)}"]
+             f"breeds covered: {len(kit) + len(real)}/{len(breeds)} ({len(kit)} as part kits, {len(real)} on a generated mesh)"]
     if proxy:
         lines.append(f"  only on the proxy template ({len(proxy)}): {', '.join(proxy)}")
     if missing:
@@ -62,17 +85,35 @@ def report(manifest: dict) -> tuple[list[str], bool]:
     shared = [(m["name"], m["breeds"]) for m in meshes.values() if m.get("source") == "generated" and len(m["breeds"]) > 1]
     for name, bs in shared:
         lines.append(f"  shared mesh {name}: {', '.join(bs)}")
-    absent = [p for p in need if p not in layers]
-    lines.append(f"pattern layers for every marking and coat pattern: {'yes' if not absent else 'missing ' + ', '.join(absent)}")
-    return lines, not proxy and not missing and not absent
+    gaps = kit_gaps(manifest)
+    for b, names in sorted(gaps.items()):
+        lines.append(f"  kit {b}: no mask for {', '.join(names)} (named by its default texture)")
+    families_needed = bool(real or proxy)  # pattern layers paint whole-figure meshes only; kits paint from masks
+    absent = [p for p in need if p not in layers] if families_needed else []
+    lines.append(f"pattern layers for every marking and coat pattern: {'yes' if not absent else 'missing ' + ', '.join(absent)}"
+                 + ("" if families_needed else " (no breed on a whole-figure mesh needs them)"))
+    ok = not proxy and not missing and not absent and not gaps
+    data = {"release_version": manifest["release_version"], "species": species, "breeds": len(breeds), "kits": kit,
+            "generated": real, "proxy_only": proxy, "missing": missing, "kit_mask_gaps": gaps, "pattern_layers_missing": absent,
+            "complete": ok}
+    return lines, ok, data
 
 
 def main() -> int:
-    arg = sys.argv[1] if len(sys.argv) > 1 else "dog"
+    args = sys.argv[1:]
+    out = None
+    if "--json" in args:
+        i = args.index("--json")
+        out = Path(args[i + 1])
+        del args[i:i + 2]
+    arg = args[0] if args else "dog"
     path = Path(arg) if arg.endswith(".tar") else newest(arg)
     manifest, _ = release.read(path.read_bytes())
-    lines, ok = report(manifest)
+    lines, ok, data = summary(manifest)
     print("\n".join(lines))
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps({**data, "bundle": str(path)}, indent=1) + "\n")
     return 0 if ok else 1
 
 

@@ -392,3 +392,16 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    on screen); the export places them as for any composition, and they are priced as before. Bespoke starts from a
    composition 3.0 too: its texture's colours, pattern and the markings a PetSpec names, its eyes and extras. Legs and
    tails keep only their stretch; the torso's socket offsets are the only offsets (Nishant, 2026-11-07).
+140. **Gate 9: what runs now and what waits for people (2026-11-07).** `make gate-9` checks three things:
+   - **Coverage** of the releases Studio published (var/releases/inbox), not the proxy fixtures. A breed counts as
+     covered by a part kit or by a family on a generated mesh. A kit needs a mask for each marking its default
+     texture names. Pattern layers are required only while some breed is still on a whole-figure mesh.
+   - **The walkthrough from attract to a paid order** against the real backend, within the brief's 3 minutes, for a
+     whole figure and for a figure of parts.
+   - **Recognisability**, which is people's judgement (the final manual pass Nishant asked for). The gate reads a
+     recorded result. `scripts/recognisability.py` makes the rating sheet: a self-contained page with each figurine
+     rendered as the print paints it and four breed names, the key kept apart. It also scores the answers people
+     download from it.
+
+   Coverage and recognisability print SKIPPED until the seeded library and a recorded result exist, as the GenAI
+   gates do on the mock profile.

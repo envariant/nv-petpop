@@ -76,7 +76,9 @@ Order of work in this session: A1 (refactor), B1 (M7), B2 (M8), C1 (S3, when the
 
 - [x] `docs/HANDOFF-M9.md`: how Nishant seeds the library through Studio on `tripo` or `tripo-manual` (2026-11-01)
 - [ ] Every breed preset covered by a family on a labelled mesh; a pattern layer per marking enumeration
-- [ ] Gate 9: library walkthrough attract to order under 3 min; 70 % breed recognisability
+- [x] Gate 9 tooling (decision 140): `make gate-9`, the coverage report for kits and meshes, timed walkthroughs (a whole
+  figure and a figure of parts, attract to paid order), the recognisability sheet, scorer and check
+- [ ] Gate 9: coverage complete on the seeded releases; 70 % breed recognisability (the final manual pass, Nishant)
 
 ## Track C: GenAI host (Section 13)
 
