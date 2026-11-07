@@ -4,6 +4,7 @@ pose once the sitting hind leg is there, every figure standing on the floor."""
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -126,3 +127,75 @@ def test_a_breed_entry_with_torso_presets(tmp_path, monkeypatch):
     plain = next(f for f in r["figures"] if f["preset"] == "default" and f["pose"] == kit["default_pose"])
     assert stocky["size_mm"][0] > plain["size_mm"][0] * 1.1  # wider: the torso and the legs set further out
     check_figures(r)
+
+
+def box_obj(ext, scale: float, at, mtl: str | None = None) -> bytes:
+    """A box of quads, as a modeller exports it: at its own scale and origin, UVs on, its MTL named."""
+    hx, hy, hz = (np.asarray(ext) / 2 * scale).tolist()
+    lines = [f"mtllib {mtl}"] if mtl else []
+    lines += [f"v {at[0] + sx * hx} {at[1] + sy * hy} {at[2] + sz * hz}" for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
+    lines += ["vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1"] + (["usemtl skin"] if mtl else [])
+    for face in [(1, 2, 4, 3), (5, 7, 8, 6), (1, 5, 6, 2), (3, 4, 8, 7), (1, 3, 7, 5), (2, 6, 8, 4)]:
+        lines.append("f " + " ".join(f"{i}/{k + 1}" for k, i in enumerate(face)))
+    return ("\n".join(lines) + "\n").encode()
+
+
+def test_obj_parts_keep_their_quads_for_blender(tmp_path):
+    """Decision 138: parts exported as OBJs (quads, an MTL, a texture), facing -Z: triangulated and fitted for Studio
+    and the app, the original kept beside the GLB with the matrix that fits it, so Blender composes the quads."""
+    import io  # noqa: PLC0415
+    import zipfile  # noqa: PLC0415
+
+    from PIL import Image  # noqa: PLC0415
+
+    rng = np.random.default_rng(11)
+    d = tmp_path / "in"
+    d.mkdir()
+    for (name, ext), scale in zip(PEBBLES.items(), [1.0, 0.5, 2.0, 300.0, 1.0, 0.1]):
+        if name in ("torso", "tail"):
+            (d / f"corgi_pembroke__{name}.obj").write_bytes(box_obj(ext, scale, rng.normal(0, scale, 3),
+                                                                     "skin.mtl" if name == "torso" else None))
+        else:
+            pebble(d / f"corgi_pembroke__{name}.glb", ext, scale, rng)
+    (d / "skin.mtl").write_text("newmtl skin\nKd 1 1 1\nmap_Kd skin.png\n")
+    Image.fromarray((rng.random((8, 8, 3)) * 255).astype("uint8")).save(d / "skin.png")
+    files = [p for p in sorted(d.iterdir()) if p.suffix in (".glb", ".obj")]
+    r = D.draft(files, tmp_path / "draft", front="+z", engine="trimesh")
+    assert not r["problems"], r["problems"]
+    assert any("6 quads" in n for n in r["notes"]) and not any("skin" in n for n in r["notes"]), r["notes"]
+    kit = json.loads(Path(r["kit"]).read_text())
+    by = {p["kind"]: p for p in kit["parts"]}
+    assert "source" not in by["head"] and by["torso"]["source"]["format"] == "obj"
+    store = tmp_path / "draft" / "store"
+    with zipfile.ZipFile(store / by["torso"]["source"]["file"]) as z:
+        assert sorted(z.namelist()) == ["corgi_pembroke__torso.obj", "skin.mtl", "skin.png"]
+        raw = trimesh.load(io.BytesIO(z.read("corgi_pembroke__torso.obj")), file_type="obj", process=False)
+    glb = trimesh.load(store / by["torso"]["mesh"]["file"], force="mesh", process=False)
+    assert glb.visual.material.baseColorTexture is not None  # the texture came through the MTL
+    M = np.asarray(by["torso"]["source"]["matrix"])
+    assert (raw.vertices @ M[:3, :3].T + M[:3, 3]).min(axis=0) == pytest.approx(glb.vertices.min(axis=0), abs=1e-3)
+    check_figures(r)
+
+
+@pytest.mark.skipif(not Path(os.environ.get("PETPOP_BPY_PYTHON", "/opt/bpy/bin/python")).exists(), reason="no bpy")
+def test_blender_composes_obj_parts_from_their_quads(tmp_path):
+    from compose_parts import compose  # noqa: PLC0415
+
+    rng = np.random.default_rng(13)
+    d = tmp_path / "in"
+    d.mkdir()
+    for (name, ext), scale in zip(PEBBLES.items(), [1.0, 0.5, 2.0, 300.0, 1.0, 0.1]):
+        if name in ("torso", "fore_leg"):
+            (d / f"corgi_pembroke__{name}.obj").write_bytes(box_obj(ext, scale, rng.normal(0, scale, 3)))
+        else:
+            pebble(d / f"corgi_pembroke__{name}.glb", ext, scale, rng)
+    # exports facing -Z: the same turn for the GLB and, through the source matrix, for the OBJ original
+    r = D.draft(sorted(d.iterdir()), tmp_path / "draft", front="-z", engine="trimesh")
+    kit = json.loads(Path(r["kit"]).read_text())
+    store = tmp_path / "draft" / "store"
+    tm = compose(kit, store, tmp_path / "t", engine="trimesh")
+    bp = compose(kit, store, tmp_path / "b", engine="bpy")
+    assert bp["result"]["quads"] == 6 * 3  # the torso's and both front legs' quads, as authored
+    a = trimesh.load(tm["outputs"]["glb"], force="mesh")
+    b = trimesh.load(bp["outputs"]["glb"], force="mesh")
+    assert b.bounds == pytest.approx(a.bounds, abs=0.05)  # the same figure as the triangulated parts make

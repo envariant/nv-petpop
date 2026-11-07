@@ -231,6 +231,7 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   - [x] P6b compositions of kits (composition 3.0, API 3.17.0): variants, torso shape, pose, texture
   - [x] P6c the customer app assembles parts and paints them per part (Shape and Markings tabs for kit breeds)
   - [x] P6d the print export composes kits (decision 135; gate 7 runs one end to end)
+- [x] P5e parts as OBJs with their MTL and textures, quads kept for Blender's composition (API 3.19.0, decision 138)
 - [ ] Nishant: the shared library (`shared__<kind>__<variant>.glb` per part type) and the breeds' heads (GLBs per
   docs/PARTS.md), each breed's head texture template and masks, and the shared layouts of the torso, legs and tail
 

@@ -42,7 +42,7 @@ DEFAULT_HEAD_LIMITS = {"yaw": [-35.0, 35.0], "pitch": [-25.0, 25.0], "roll": [-2
 SHARED = "shared"  # the breed id of the shared library: torsos, legs and tails every breed draws on (decision 130)
 SITTING = "sitting_fold"  # the breed database's sitting hind leg (part_types.hind_leg_sitting)
 NAME = re.compile(r"^(?P<breed>[a-z0-9_]+)__(?P<kind>head|torso|front_leg|fore_leg|hind_leg_sitting|hind_leg|tail)"
-                  r"(?:__(?P<variant>[a-z0-9_]{1,40}))?\.glb$")
+                  r"(?:__(?P<variant>[a-z0-9_]{1,40}))?\.(?:glb|obj)$")
 
 
 def uv_layout(species: str, breed_id: str, kind: str) -> str:
@@ -63,7 +63,7 @@ def parse_mask_name(name: str) -> tuple[str, str, str] | None:
 
 
 def parse_name(name: str) -> tuple[str, str, str] | None:
-    """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb, breed `shared` for the shared library. The breed
+    """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb (or .obj), breed `shared` for the shared library. The breed
     database's names work too: fore_leg is the front leg, hind_leg_sitting a hind leg variant (sitting_fold unless
     the name gives one)."""
     mt = NAME.match(name.lower())
@@ -513,13 +513,14 @@ def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, po
         raise ValueError(f"torso {torso['variant']} has no preset {preset_id}")
     ts = preset.get("stretch")
     entries = [{"slot": "torso", "kind": "torso", "variant": torso["variant"], "file": torso["mesh"]["file"],
-                "matrix": np.diag([*(ts or [1.0, 1.0, 1.0]), 1.0]).tolist(), "mirrored": False}]
+                "matrix": np.diag([*(ts or [1.0, 1.0, 1.0]), 1.0]).tolist(), "mirrored": False,
+                **({"source": torso["source"]} if torso.get("source") else {})}]
     for slot in SLOTS:
         kind = SLOT_KIND[slot]
         part = by[(kind, variants[kind])]
         M = placement_matrix(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose, part.get("stretch"), ts,
                              (preset.get("sockets") or {}).get(slot))
         entries.append({"slot": slot, "kind": kind, "variant": part["variant"], "file": part["mesh"]["file"],
-                        "matrix": M.tolist(), "mirrored": slot in MIRRORED})
+                        "matrix": M.tolist(), "mirrored": slot in MIRRORED, **({"source": part["source"]} if part.get("source") else {})})
     return {"species": kit["species"], "breed_id": kit["breed_id"], "kit_version": kit["version"], "variants": variants,
             "preset_id": preset["preset_id"], "pose_id": pid, "pose": pose, "parts": entries}

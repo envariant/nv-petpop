@@ -297,6 +297,37 @@
                 }
               }
             }
+          },
+          "source": {
+            "type": "object",
+            "required": [
+              "file",
+              "format",
+              "matrix"
+            ],
+            "additionalProperties": false,
+            "description": "An OBJ upload's original (decision 138): the OBJ, MTL and textures zipped, quads and all, and the 4x4 (row-major, glTF frame) that makes `mesh` from it. Studio keeps it for Blender; releases leave it out.",
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "format": {
+                "const": "obj"
+              },
+              "matrix": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       }

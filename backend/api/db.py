@@ -309,6 +309,10 @@ class PartRow(Base):
     auto: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)  # the first guess, with method and confidence
     edited: Mapped[bool] = mapped_column(Boolean, default=False)
     mirrored: Mapped[bool] = mapped_column(Boolean, default=False)  # a right leg, kept as its left mirror image
+    # an OBJ upload (decision 138): the original OBJ, MTL and textures, zipped (quads and all, for Blender), and the 4x4
+    # (row-major, glTF frame) the upload applied to make the GLB, so a composition can apply it to the original too
+    source_key: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    source_matrix: Mapped[list[list[float]] | None] = mapped_column(JSON, nullable=True)
     uploaded_by: Mapped[str] = mapped_column(String(48), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
@@ -380,7 +384,7 @@ ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", 
                  ("compositions", "collected_at", "TIMESTAMP"), ("compositions", "account_id", "VARCHAR(40)"),
                  ("compositions", "contact_email", "VARCHAR(254)"), ("compositions", "contact_phone", "VARCHAR(24)"),
                  ("part_kits", "allowed", "JSON"), ("part_kits", "stretch", "JSON"), ("part_kits", "texture", "JSON"),
-                 ("part_kits", "presets", "JSON")]
+                 ("part_kits", "presets", "JSON"), ("parts", "source_key", "VARCHAR(240)"), ("parts", "source_matrix", "JSON")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

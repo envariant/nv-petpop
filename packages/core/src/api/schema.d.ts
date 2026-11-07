@@ -933,7 +933,9 @@ export interface paths {
         /**
          * Upload Parts
          * @description Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG
-         *     masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133).
+         *     masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133). A part may come as an OBJ
+         *     with the MTL and textures it names in the same upload, quads and n-gons welcome: triangulated for Studio and the
+         *     app, the original kept for Blender (decision 138).
          */
         post: operations["studioUploadParts"];
         delete?: never;
@@ -2598,6 +2600,11 @@ export interface components {
              * @default false
              */
             shared: boolean;
+            /**
+             * Source Url
+             * @description Uploaded as an OBJ (decision 138): the original, its MTL and textures, zipped. Blender composes from it, quads as authored; mesh_url is its triangulated GLB.
+             */
+            source_url?: string | null;
             /**
              * Stretch
              * @description Per-axis scale of the part on this breed (decision 130).

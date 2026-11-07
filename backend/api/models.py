@@ -11,7 +11,8 @@ adds torso presets, the customers' shape choices, each a stretch and socket offs
 third colour to a breed's default texture, edited in the workbench; 3.16.0 adds marking and pattern masks on texture
 templates, uploaded with the parts and carried by releases with the kits (decision 133); 3.17.0 adds composition 3.0,
 a figure of part kits (decision 134); 3.18.0 prices options and extras as quote lines from config/pricing.json and adds
-POST /kiosk/quote (decision 137)."""
+POST /kiosk/quote (decision 137); 3.19.0 takes parts as OBJs with their MTL and textures, the original kept for
+Blender, quads and all (decision 138)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -19,7 +20,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.18.0"
+API_VERSION = "3.19.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -844,6 +845,8 @@ class Part(_M):
     stretch: Vec3 = Field([1.0, 1.0, 1.0], description="Per-axis scale of the part on this breed (decision 130).")
     stretch_edited: bool = Field(False, description="The stretch was set in the workbench (otherwise it is the size guess).")
     presets: list[TorsoPreset] = Field([], description="A torso's presets on this breed, the default first, each stretch filled in.")
+    source_url: str | None = Field(None, description="Uploaded as an OBJ (decision 138): the original, its MTL and textures, "
+                                   "zipped. Blender composes from it, quads as authored; mesh_url is its triangulated GLB.")
 
 
 class Pose(_M):

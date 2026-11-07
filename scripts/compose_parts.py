@@ -6,7 +6,8 @@ the right legs mirrored, joined, optionally fused into one watertight surface, t
 
 --kit       a committed kit (Studio, Parts, Commit; the store's kits/<species>/<breed>/kit-<n>.json)
 --files     where the part GLBs are: a folder (matched by the kit's file names or <breed>__<kind>[__<variant>].glb),
-            or the artefact store root (var/artefacts) holding the kit's keys
+            or the artefact store root (var/artefacts) holding the kit's keys. A part uploaded as an OBJ has its
+            original beside it (<key>.obj.zip): Blender composes from that, quads as authored (decision 138)
 --modify    a Python file with modify(obj, job): runs in Blender on the joined figure, the last authoring step
 Writes <out>/<breed>__<pose>.glb (and .stl), stood on the floor (y = 0), and <out>/<breed>__<pose>.plan.json (what went where). Blender's bpy
 (PETPOP_BPY_PYTHON) does the work when it is there; a trimesh stand-in otherwise (no voxel fuse, no --modify).
@@ -39,6 +40,17 @@ def resolve(entry: dict, kit: dict, files: Path) -> Path:
     for c in sorted(files.glob(f"*{stem}*.glb")):
         return c.resolve()
     raise FileNotFoundError(f"no GLB for {entry['kind']} {entry['variant']} ({key}) under {files}")
+
+
+def resolve_source(entry: dict, files: Path, glb: Path) -> Path | None:
+    """The zipped original of a part uploaded as an OBJ (decision 138), when it is there: Blender reads it, quads kept."""
+    src = entry.get("source")
+    if not src:
+        return None
+    for c in (files / src["file"], files / Path(src["file"]).name, glb.with_name(glb.name.removesuffix(".glb") + ".obj.zip")):
+        if c.is_file():
+            return c.resolve()
+    return None
 
 
 def compose_trimesh(plan: dict, paths: list[Path], out_glb: Path, out_stl: Path | None, fuse: bool) -> dict:
@@ -84,10 +96,15 @@ def compose(kit: dict, files: Path, out: Path, variants: dict | None = None, pos
     if modify and not use_bpy:
         raise SystemExit("--modify runs in Blender: set PETPOP_BPY_PYTHON to a Python with bpy")
     if use_bpy:
-        job = {"parts": [{**e, "path": str(p)} for e, p in zip(plan["parts"], paths)], "out_glb": str(out_glb),
+        parts = []
+        for e, p in zip(plan["parts"], paths):
+            src = resolve_source(e, files, p)
+            part = {k: v for k, v in e.items() if k != "source"}
+            parts.append({**part, "path": str(p), **({"source": str(src), "source_matrix": e["source"]["matrix"]} if src else {})})
+        job = {"parts": parts, "out_glb": str(out_glb),
                "out_stl": str(out_stl) if out_stl else None, "fuse": fuse, "voxel_mm": 0.35, "modify": str(modify.resolve()) if modify else None}
         result = blender.run(python, ["compose_parts"], job, timeout=600)
-        result = {k: result[k] for k in ("vertices", "faces", "engine", "floor_mm") if k in result}
+        result = {k: result[k] for k in ("vertices", "faces", "quads", "engine", "floor_mm") if k in result}
     else:
         result = compose_trimesh(plan, paths, out_glb, out_stl, fuse)
     for e in plan["parts"]:  # the plan as written: every matrix includes the move onto the floor

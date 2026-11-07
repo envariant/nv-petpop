@@ -25,7 +25,7 @@ async function open(breedId: string) {
 
 <template>
   <Page test-id="parts" wide>
-    <PTitle sub="Each breed is a kit of five parts rigged at joints. Upload labelled GLBs, then open a breed to place its joints and poses, and commit it.">Parts</PTitle>
+    <PTitle sub="Each breed is a kit of five parts rigged at joints. Upload labelled GLBs or OBJs, then open a breed to place its joints and poses, and commit it.">Parts</PTitle>
     <Notice :error="ps.error" :notice="ps.notice" prefix="parts" />
     <div class="mb-6 flex flex-wrap items-center gap-3">
       <button v-for="sp in (['dog', 'cat'] as const)" :key="sp" :data-testid="`parts-species-${sp}`"
@@ -36,11 +36,11 @@ async function open(breedId: string) {
         Scale to size guess
       </label>
       <label class="press hit cursor-pointer rounded-tile bg-accent px-5 py-2.5 font-display text-lg font-semibold text-white shadow-soft">
-        {{ ps.busy ? 'Uploading…' : 'Upload GLBs' }}
-        <input ref="input" type="file" accept=".glb,.png" multiple class="hidden" data-testid="parts-upload" @change="upload" />
+        {{ ps.busy ? 'Uploading…' : 'Upload parts' }}
+        <input ref="input" type="file" accept=".glb,.obj,.mtl,.png,.jpg,.jpeg" multiple class="hidden" data-testid="parts-upload" @change="upload" />
       </label>
     </div>
-    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code>, kind one of head, torso, front_leg (or fore_leg), hind_leg, hind_leg_sitting, tail; breed <code>shared</code> for the shared library of torsos, legs and tails every breed draws on, a head per breed; +Y up, the pet facing +Z. Each part is fitted to its size guess unless you turn that off. Marking and pattern masks: <code>&lt;template&gt;__&lt;name&gt;.png</code>, e.g. <code>dog-torso-1__white_chest.png</code> (docs/PARTS.md).</p>
+    <p class="mb-4 text-sm text-muted md:text-base">Name files <code>&lt;breed&gt;__&lt;kind&gt;[__&lt;variant&gt;].glb</code> (or <code>.obj</code> with its <code>.mtl</code> and textures in the same upload, quads welcome: Blender composes from the original), kind one of head, torso, front_leg (or fore_leg), hind_leg, hind_leg_sitting, tail; breed <code>shared</code> for the shared library of torsos, legs and tails every breed draws on, a head per breed; +Y up, the pet facing +Z. Each part is fitted to its size guess unless you turn that off. Marking and pattern masks: <code>&lt;template&gt;__&lt;name&gt;.png</code>, e.g. <code>dog-torso-1__white_chest.png</code> (docs/PARTS.md).</p>
     <p v-if="!ps.kits.length" class="text-base text-muted" data-testid="parts-empty">No kits yet.</p>
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3" data-testid="parts-kits">
       <div v-for="k in ps.kits" :key="k.breed_id" class="flex flex-col gap-2 rounded-tile bg-card p-4 shadow-soft" :data-testid="`kit-${k.breed_id}`">

@@ -463,7 +463,9 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
                                                "exported one at a time are not in proportion. Off for parts split from one figure."),
                            user: m.StaffUser = curator) -> m.PartUploadResult:
         """Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG
-        masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133)."""
+        masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133). A part may come as an OBJ
+        with the MTL and textures it names in the same upload, quads and n-gons welcome: triangulated for Studio and the
+        app, the original kept for Blender (decision 138)."""
         got = []
         for f in files:
             data = await f.read()

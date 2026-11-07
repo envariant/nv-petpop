@@ -368,3 +368,13 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    left out. `POST /kiosk/quote` prices a design as it stands without saving it (API 3.18.0), so the customer app
    shows the price on the Design screen (tap for the lines) as extras come and go; the Order screen and the payment
    use the order's own quote. Both servers and the app's standalone mode price from the same file.
+138. **Parts as OBJs, quads kept for Blender (2026-11-07).** A part may be uploaded (Studio, the draft script) as an
+   OBJ with the MTL files it names and the textures they name, all in the same upload; quads and n-gons are welcome.
+   Studio, the app and the CPU print path need triangles, so the OBJ becomes a textured, triangulated GLB as before
+   (fitted to its size guess, rigged on it). The original is kept beside it, zipped with its MTL and textures
+   (`<key>.obj.zip`), with the matrix that fits it (the draft's front turn, then the size fit): the kit records it as
+   the part's `source` (kit schema; API 3.19.0 adds `source_url` to a part), and `scripts/compose_parts.py` in Blender
+   composes from the original, its quads as authored, moved by that matrix and then its placement (faces turned when
+   the two mirror it). References in the OBJ and MTL are taken by file name alone (one folder). Releases leave the
+   originals out: the app and the CPU print never read them. An MTL or JPEG that no OBJ in the upload names is
+   skipped with a note; a missing one is noted and left out.

@@ -86,6 +86,10 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
         skipped.push(`${f.name}: masks need the backend (standalone mode keeps parts only)`);
         continue;
       }
+      if (/\.(obj|mtl|jpe?g)$/.test(f.name.toLowerCase())) {
+        skipped.push(`${f.name}: OBJs need the backend (standalone mode takes GLBs only)`);
+        continue;
+      }
       const m = NAME.exec(f.name.toLowerCase());
       if (!m) {
         skipped.push(`${f.name}: expected <breed>__<kind>[__<variant>].glb`);

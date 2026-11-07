@@ -336,3 +336,37 @@ def test_masks_and_a_release_with_kits(client):
         assert r.status_code == 422 and why in r.text, (bad, r.text)
     r = client.post(f"{K}/compositions/{cid}/bespoke", json={})
     assert r.status_code == 422 and "part-kit" in r.text, r.text
+
+
+def test_an_obj_part_with_its_mtl_and_texture(client):
+    """Decision 138: a part as an OBJ, quads and all, with the MTL and texture it names: a textured, triangulated GLB
+    for Studio and the app, and the original zipped for Blender. An MTL nothing names is left out."""
+    import io  # noqa: PLC0415
+    import zipfile  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+    from PIL import Image  # noqa: PLC0415
+
+    cur = staff(client, "curator")
+    v = [f"v {x * 20} {y * 15 + 20} {z * 40}" for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)]
+    f = ["f " + " ".join(f"{i}/{k + 1}" for k, i in enumerate(q)) for q in [(1, 2, 4, 3), (5, 7, 8, 6), (1, 5, 6, 2),
+                                                                           (3, 4, 8, 7), (1, 3, 7, 5), (2, 6, 8, 4)]]
+    obj = "\n".join(["mtllib coat.mtl", *v, "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "usemtl coat", *f]) + "\n"
+    png = io.BytesIO()
+    Image.fromarray(np.full((4, 4, 3), 200, np.uint8)).save(png, "PNG")
+    files = [("files", ("corgi_pembroke__torso.obj", obj.encode(), "model/obj")),
+             ("files", ("coat.mtl", b"newmtl coat\nKd 1 1 1\nmap_Kd textures\\coat.png\n", "text/plain")),
+             ("files", ("coat.png", png.getvalue(), "image/png")),
+             ("files", ("stray.mtl", b"newmtl x\n", "text/plain"))]
+    r = client.post(f"{S}/parts/dog/upload", files=files, headers=cur)
+    up = check(f"{S}/parts/{{species}}/upload", "post", r)
+    assert [p["kind"] for p in up["items"]] == ["torso"]
+    assert up["skipped"] == ["stray.mtl: no OBJ in this upload names it"]
+    assert any("6 quads" in n for n in up["notes"])
+    part = up["items"][0]
+    glb = trimesh.load(io.BytesIO(client.get(part["mesh_url"]).content), file_type="glb", force="mesh")
+    assert len(glb.faces) == 12 and glb.visual.material.baseColorTexture is not None
+    with zipfile.ZipFile(io.BytesIO(client.get(part["source_url"]).content)) as z:
+        assert sorted(z.namelist()) == ["coat.mtl", "coat.png", "corgi_pembroke__torso.obj"]
+    kit = client.get(f"{S}/parts/dog/corgi_pembroke", headers=cur).json()
+    assert kit["parts"][0]["source_url"] and not any(p["kind"] == "torso" for p in kit.get("masks", {}))

@@ -79,6 +79,10 @@ For both:
   and variant is lower case (`default` when absent). Example: `corgi_pembroke__torso__stocky.glb`. The breed
   database's names work too: `fore_leg` is the front leg, `hind_leg_sitting` the hind leg's `sitting` variant.
   `fixtures/parts/<species>/mixed__*.glb` are proxy kits cut from the templates (`scripts/make_proxy_parts.py`).
+- OBJ (decision 138): `<breed_id>__<kind>[__<variant>].obj` instead of `.glb`, uploaded together with the `.mtl` it
+  names and the textures (`.png`, `.jpg`) the MTL names, quads and n-gons as authored. Studio and the app use a
+  triangulated, textured GLB made from it; Blender composes from the original (section 3), so the quads reach your
+  `--modify` edits and the final mesh. Same frame (+Y up, facing +Z, or the draft's `--front`).
 
 ## 1b. Marking and pattern masks (decision 133)
 
@@ -156,7 +160,9 @@ python scripts/compose_parts.py --kit kit-3.json --files ~/kits/corgi --out out/
 ```
 
 `--preset stocky` composes a torso shape other than the default. `--files` is the store root (Studio's keys) or a
-folder of your own GLBs named as in section 1. Blender's `bpy`
+folder of your own GLBs named as in section 1. A part uploaded as an OBJ has its original beside its GLB
+(`<key>.obj.zip`, the kit's `source`): Blender composes from it, quads as authored, and reports how many the figure
+kept (`result.quads` in the plan). Blender's `bpy`
 (`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
 `--modify`).
 

@@ -56,6 +56,78 @@ def _aware(d):
     return d.replace(tzinfo=UTC) if d and d.tzinfo is None else d
 
 
+def obj_groups(files: list[tuple[str, bytes]]) -> tuple[dict[str, dict[str, Any]], set[str]]:
+    """Per .obj in an upload (by lower-case name): the MTL files it names and the textures they name, found among the
+    upload's files (decision 138). Returns ({obj: {"extra": {name: bytes}, "missing": [names]}}, names taken)."""
+    import posixpath  # noqa: PLC0415
+    import re  # noqa: PLC0415
+
+    by = {n.lower(): (n, d) for n, d in files}
+    base = {posixpath.basename(n.replace("\\", "/")).lower(): k for k, (n, _) in by.items()}
+    groups: dict[str, dict[str, Any]] = {}
+    used: set[str] = set()
+
+    def find(ref: str):
+        key = base.get(posixpath.basename(ref.strip().replace("\\", "/")).lower())
+        return (key, by[key]) if key else (None, None)
+
+    def flat(m: re.Match) -> str:  # the upload is one folder: every reference by its file name alone
+        return m.group(1) + posixpath.basename(m.group(2).replace("\\", "/"))
+
+    mtllib = re.compile(r"^(\s*mtllib\s+)(.+?)\s*$", re.M)
+    texmap = re.compile(r"^(\s*(?:map_\w+|bump|disp|norm)\s+(?:-\S+\s+\S+\s+)*)(\S+)\s*$", re.M)
+    for low, (_, data) in by.items():
+        if not low.endswith(".obj"):
+            continue
+        text = data.decode("utf-8", "replace")
+        g: dict[str, Any] = {"extra": {}, "missing": [], "obj": mtllib.sub(flat, text).encode()}
+        for m in mtllib.finditer(text):
+            key, found = find(m.group(2))
+            if not found:
+                g["missing"].append(m.group(2))
+                continue
+            used.add(key)
+            mtl = found[1].decode("utf-8", "replace")
+            g["extra"][posixpath.basename(found[0])] = texmap.sub(flat, mtl).encode()
+            for t in texmap.finditer(mtl):
+                tkey, tfound = find(t.group(2))
+                if tfound:
+                    used.add(tkey)
+                    g["extra"][posixpath.basename(tfound[0])] = tfound[1]
+                else:
+                    g["missing"].append(t.group(2))
+        groups[low] = g
+    return groups, used
+
+
+def obj_to_glb(name: str, data: bytes, group: dict[str, Any]) -> tuple[bytes, bytes, list[str]]:
+    """An OBJ (with its MTL and textures) as a GLB, triangulated and textured, for Studio, the app and the print; and
+    the original zipped, quads and all, for Blender (decision 138). Returns (glb, source zip, notes)."""
+    import zipfile  # noqa: PLC0415
+
+    import trimesh  # noqa: PLC0415
+
+    data = group.get("obj", data)  # its MTL named by file name alone, as the textures are in its MTL
+    text = data.decode("utf-8", "replace")
+    quads = sum(1 for line in text.splitlines() if line.startswith("f ") and len(line.split()) > 4)
+    try:
+        loaded = trimesh.load(io.BytesIO(data), file_type="obj", resolver=trimesh.resolvers.ZipResolver(group["extra"]),
+                              process=False, maintain_order=True)
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(422, f"not a readable OBJ: {exc}") from exc
+    scene = loaded if isinstance(loaded, trimesh.Scene) else trimesh.Scene([loaded])
+    if not scene.geometry:
+        raise ApiError(422, "the OBJ has no mesh")
+    glb = scene.export(file_type="glb")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for n, d in [(name.rsplit("/", 1)[-1], data), *group["extra"].items()]:
+            z.writestr(zipfile.ZipInfo(n, date_time=(1980, 1, 1, 0, 0, 0)), d)
+    notes = [f"an OBJ: {quads} quads (and n-gons) kept for Blender, triangulated for Studio" if quads else "an OBJ, all triangles"]
+    notes += [f"{m} is named but not in this upload: left out" for m in group["missing"]]
+    return glb, buf.getvalue(), notes
+
+
 def read_glb(data: bytes) -> tuple[np.ndarray, np.ndarray]:
     import trimesh  # noqa: PLC0415
 
@@ -188,7 +260,8 @@ class PartLibrary:
                       tris=r.tris, sha256=r.sha256, joint=rig.get("joint"), attachments=rig.get("attachments"),
                       limits=rig.get("limits"), guess=guess, edited=r.edited, mirrored=r.mirrored,
                       shared=r.breed_id == P.SHARED, stretch=stretch, stretch_edited=set_,
-                      presets=self._presets(kit, r) if kit else [])
+                      presets=self._presets(kit, r) if kit else [],
+                      source_url=signed_file_url(self.secret, r.source_key) if r.source_key else None)
 
     def _kit_doc(self, kit: KitRow, avail: list[PartRow]) -> dict[str, Any]:
         """The kit as data/schema/part_kit.schema.json has it (before commit fields): the allowed parts only."""
@@ -202,6 +275,8 @@ class PartLibrary:
                                  "uv_layout": P.uv_layout(kit.species, kit.breed_id, r.kind),
                                  "shared": r.breed_id == P.SHARED, "stretch": self._stretch(kit, r)[0]}
             rig = r.rig or {}
+            if r.source_key:
+                p["source"] = {"file": r.source_key, "format": "obj", "matrix": r.source_matrix or np.eye(4).tolist()}
             if r.kind == "torso":
                 p["attachments"] = rig.get("attachments")
                 p["presets"] = self._presets(kit, r)
@@ -256,16 +331,25 @@ class PartLibrary:
 
     # ------------------------------------------------------------------ upload and the first guess
     def upload(self, species: str, files: list[tuple[str, bytes]], user: str, breed_id: str | None = None,
-               scale: bool = True) -> m.PartUploadResult:
+               scale: bool = True, pre: np.ndarray | None = None) -> m.PartUploadResult:
         """`scale` (the default) fits each part to its size guess (decision 128: the breed's, or for the shared library
-        the median of the breeds using that variant); off for parts already in proportion (split from one figure)."""
+        the median of the breeds using that variant); off for parts already in proportion (split from one figure).
+        Parts come as GLBs or as OBJs with the MTL and textures they name, in the same upload (decision 138). `pre` is
+        a 4x4 applied to every part first (the draft script turns exports that face another way)."""
         taken: list[PartRow] = []
         skipped: list[str] = []
         done: list[str] = []
         breeds: set[str] = set()
+        groups, used = obj_groups(files)
         with self.db() as db:
             for name, data in files:
-                if name.lower().endswith(".png"):  # a marking or pattern mask on a texture template (decision 133)
+                low = name.lower()
+                if low in used:  # an OBJ's material or texture, taken with it
+                    continue
+                if low.endswith((".mtl", ".jpg", ".jpeg")):
+                    skipped.append(f"{name}: no OBJ in this upload names it")
+                    continue
+                if low.endswith(".png"):  # a marking or pattern mask on a texture template (decision 133)
                     note = self._put_mask(db, species, name, data, user)
                     (done if note.startswith("mask") else skipped).append(f"{name}: {note}")
                     continue
@@ -278,16 +362,27 @@ class PartLibrary:
                 if breed == P.SHARED and kind == "head":
                     skipped.append(f"{name}: a head belongs to its breed, not the shared library")
                     continue
+                source = None
+                if low.endswith(".obj"):
+                    try:
+                        data, source, what = obj_to_glb(name, data, groups[low])
+                    except ApiError as exc:
+                        skipped.append(f"{name}: {exc.detail}")
+                        continue
+                    done += [f"{name}: {w}" for w in what]
                 try:
                     v, f = read_glb(data)
                 except ApiError as exc:
                     skipped.append(f"{name}: {exc.detail}")
                     continue
-                matrix, mirrored, what = S.normalise(species, breed, kind, variant, v, scale)
+                first = np.eye(4) if pre is None else np.asarray(pre, float)
+                vp = v @ first[:3, :3].T + first[:3, 3]
+                matrix, mirrored, what = S.normalise(species, breed, kind, variant, vp, scale)
                 done += [f"{name}: {w}" for w in what]
+                total = (matrix if matrix is not None else np.eye(4)) @ first
                 glb = data
-                if matrix is not None:
-                    glb = S.transform_glb(data, matrix)
+                if not np.allclose(total, np.eye(4)):
+                    glb = S.transform_glb(data, total)
                     v, f = read_glb(glb)
                 sha = hashlib.sha256(glb).hexdigest()
                 key = f"parts/{species}/{breed}/{kind}__{variant}__{sha[:12]}.glb"
@@ -301,6 +396,11 @@ class PartLibrary:
                                   created_at=utcnow())
                     db.add(row)
                 row.mesh_key, row.sha256, row.tris, row.mirrored = key, sha, int(len(f)), mirrored
+                row.source_key = row.source_matrix = None
+                if source is not None:
+                    row.source_key = key.removesuffix(".glb") + ".obj.zip"
+                    self.store.put(row.source_key, source)
+                    row.source_matrix = [[float(x) for x in r] for r in total]
                 row.auto = {**(row.auto or {}), "in_place": not scale}  # split from one figure, or exported on its own
                 row.uploaded_by, row.updated_at = user, utcnow()
                 kit = self._kit_row(db, species, breed)

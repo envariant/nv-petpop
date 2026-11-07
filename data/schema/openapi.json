@@ -3915,6 +3915,18 @@
       "title": "Shared",
       "type": "boolean"
      },
+     "source_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Uploaded as an OBJ (decision 138): the original, its MTL and textures, zipped. Blender composes from it, quads as authored; mesh_url is its triangulated GLB.",
+      "title": "Source Url"
+     },
      "stretch": {
       "default": [
        1.0,
@@ -6810,7 +6822,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.18.0"
+  "version": "3.19.0"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -11372,7 +11384,7 @@
   },
   "/api/v1/studio/parts/{species}/upload": {
    "post": {
-    "description": "Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG\nmasks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133).",
+    "description": "Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG\nmasks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133). A part may come as an OBJ\nwith the MTL and textures it names in the same upload, quads and n-gons welcome: triangulated for Studio and the\napp, the original kept for Blender (decision 138).",
     "operationId": "studioUploadParts",
     "parameters": [
      {

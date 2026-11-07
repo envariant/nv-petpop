@@ -37,6 +37,7 @@ def kit_files(kits: list[dict[str, Any]], masks: list[dict[str, Any]], read: Cal
     for k in kits:
         doc = json.loads(json.dumps(k["doc"]))
         for p in doc["parts"]:
+            p.pop("source", None)  # an OBJ part's original is for Blender in the studio, not for kiosks
             data = read(p["mesh"]["file"])
             sha = hashlib.sha256(data).hexdigest()
             path = f"parts/{sha[:24]}.glb"
