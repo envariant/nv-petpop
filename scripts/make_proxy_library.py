@@ -10,6 +10,11 @@ says so. Shells are the accessory library on its sockets; pattern layers are the
 petpop_library.patterns, rasterised in the mesh's UVs. Studio replaces this with curated parts in M8; the kiosk cannot tell the
 difference because both arrive as signed release bundles.
 
+The dog release also carries a part kit (release 3.0, decision 133) for one breed (KIT_BREED), built by Studio's own
+part library from the proxy parts (fixtures/parts/dog), each given side-projection UVs, with masks drawn in those UVs
+(white socks, chest and blaze), a texture, and a second torso shape; so the customer app and its tests have a figure
+of parts to design.
+
     python scripts/make_proxy_library.py [dog|cat ...]
 """
 from __future__ import annotations
@@ -34,6 +39,9 @@ from petpop_library.patterns import CHANNELS, PATTERNS, build_masks  # noqa: E40
 OUT = ROOT / "fixtures" / "library"
 ATLAS = 1024
 CREATED_AT = "2026-10-29T00:00:00Z"  # fixed, so rebuilding gives byte-identical bundles
+KIT_BREED = "labrador"
+KIT_TEXTURE = {"base": {"name": "yellow", "hex": "#E2B76E"}, "secondary": {"name": "white", "hex": "#F4EFE6"}, "tertiary": None,
+               "pattern": "solid", "markings": ["white_chest"]}
 SHELLS = [("collar", "Collar", "neck", "#DD3333"), ("bandana", "Bandana", "neck", "#3366CC"), ("bow", "Bow", "head", "#E04A8A"),
           ("hat", "Party hat", "head", "#F2C230"), ("glasses", "Glasses", "face", "#1E1B1A")]
 REGION_SLOTS = {"ears": ["ears.shape", "ears.size"], "tail": ["tail.type", "tail.length"], "muzzle": ["head.muzzle_length", "head.brachycephalic"],
@@ -144,9 +152,17 @@ def build(species: str) -> Path:
                                "coverage": {"min": p.coverage[0], "max": p.coverage[1], "default": p.coverage[2]},
                                "tags": [f"marking:{p.id}"], "version": 1, "thumbnail": f"thumbs/pattern_{p.id}.png"})
 
+    kits, kit_masks = [], []
+    if species == "dog":
+        from petpop_library.packer import kit_files  # noqa: PLC0415
+
+        store, kit_doc, mask_rows = proxy_kit()
+        kits, kit_masks, kfiles = kit_files([{"label": "Labrador Retriever", "doc": kit_doc}], mask_rows, store.get)
+        files.update(kfiles)
     m = content.manifest(species, 1, mesh.schema_version, "make_proxy_library.py", CREATED_AT, [entry], families,
                          region_deltas, shell_parts, pattern_layers,
-                         notes="Proxy library on the proxy template mesh (no GenAI). Replaced by Studio releases (M8).")
+                         notes="Proxy library on the proxy template mesh (no GenAI). Replaced by Studio releases (M8).",
+                         kits=kits, masks=kit_masks)
     bundle = release.pack(m, files, key=release.DEV_RELEASE_KEY.encode())
     OUT.mkdir(parents=True, exist_ok=True)
     out = OUT / f"release-{species}-1.tar"
@@ -154,6 +170,67 @@ def build(species: str) -> Path:
     print(f"{out.relative_to(ROOT)}: {len(families)} families, {len(region_deltas)} region deltas, {len(shell_parts)} shells, "
           f"{len(pattern_layers)} patterns, {len(bundle) / 1e6:.1f} MB")
     return out
+
+
+def side_uv(v: np.ndarray) -> np.ndarray:
+    """UVs by projection from the side (glTF frame): u from back to front, v from bottom to top of the part."""
+    lo, hi = v.min(0), v.max(0)
+    span = np.maximum(hi - lo, 1e-6)
+    return np.stack([(v[:, 2] - lo[2]) / span[2], (v[:, 1] - lo[1]) / span[1]], axis=1)
+
+
+def mask_png(fn) -> bytes:
+    """A 256 px mask from fn(u, v) -> bool over the template's UV square (image rows top down: row 0 is v = 1)."""
+    import io  # noqa: PLC0415
+
+    from PIL import Image  # noqa: PLC0415
+
+    n = 256
+    u, v = np.meshgrid((np.arange(n) + 0.5) / n, 1 - (np.arange(n) + 0.5) / n)
+    buf = io.BytesIO()
+    Image.fromarray(np.where(fn(u, v), 255, 0).astype(np.uint8), "L").save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def proxy_kit():
+    """The fixture kit, made the way Studio makes one: the proxy parts uploaded (in place, so not rescaled), masks,
+    a texture and a second torso shape set, then committed. Returns (store, committed kit document, mask rows)."""
+    import json  # noqa: PLC0415
+    import tempfile  # noqa: PLC0415
+
+    import trimesh  # noqa: PLC0415
+
+    from backend.api import models as m  # noqa: PLC0415
+    from backend.api.db import session_factory  # noqa: PLC0415
+    from backend.api.part_library import PartLibrary  # noqa: PLC0415
+    from backend.api.store import LocalStore  # noqa: PLC0415
+
+    tmp = Path(tempfile.mkdtemp(prefix="pp-kit-"))
+    lib = PartLibrary(session_factory(f"sqlite:///{tmp / 'kit.db'}"), LocalStore(tmp / "store"), "fixture")
+    files = []
+    for p in sorted((ROOT / "fixtures" / "parts" / "dog").glob("mixed__*.glb")):
+        mesh = trimesh.load(p, force="mesh", process=False)
+        mesh.visual = trimesh.visual.TextureVisuals(uv=side_uv(np.asarray(mesh.vertices)))
+        files.append((p.name.replace("mixed__", f"{KIT_BREED}__"), mesh.export(file_type="glb")))
+    head = f"dog-{KIT_BREED}-head-1"
+    files += [(f"dog-front_leg-1__white_socks.png", mask_png(lambda u, v: v < 0.35)),
+              (f"dog-hind_leg-1__white_socks.png", mask_png(lambda u, v: v < 0.3)),
+              (f"dog-torso-1__white_chest.png", mask_png(lambda u, v: (u > 0.72) & (v < 0.55))),
+              (f"{head}__white_blaze.png", mask_png(lambda u, v: (u > 0.62) & (v > 0.35) & (v < 0.85))),
+              (f"{head}__nose.png", mask_png(lambda u, v: (u > 0.94) & (v > 0.35) & (v < 0.6)))]
+    lib.upload("dog", files, "fixture", scale=False)
+    kit = lib.kit("dog", KIT_BREED)
+    torso = next(p for p in kit.parts if p.kind == "torso" and p.variant == kit.defaults["torso"])
+    stocky = m.TorsoPreset(preset_id="stocky", label="Stocky", stretch=[1.18, 1.0, 0.92], sockets={})
+    lib.setup("dog", KIT_BREED, m.PartKitSetup(texture=m.BreedTexture(**KIT_TEXTURE),
+                                                  presets={f"torso/{torso.variant}": [m.TorsoPreset(preset_id="default", label="Standard"), stocky]}))
+    lib.commit("dog", KIT_BREED, "make_proxy_library.py")
+    doc = lib.committed("dog", KIT_BREED)
+    doc["committed_at"] = CREATED_AT  # fixed, so rebuilding gives byte-identical bundles
+    for p in doc["parts"]:
+        p["part_id"] = f"{p['kind']}_{p['variant']}"
+    _, masks = lib.release_items("dog")
+    return lib.store, json.loads(json.dumps(doc)), masks
 
 
 if __name__ == "__main__":

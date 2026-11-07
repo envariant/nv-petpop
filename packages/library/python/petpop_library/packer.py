@@ -28,6 +28,29 @@ FOLDERS = {"delta": "deltas", "mesh": "shells", "thumbnail": "thumbs"}
 EXT = {"delta": "f16", "mesh": "glb", "thumbnail": "png"}
 
 
+def kit_files(kits: list[dict[str, Any]], masks: list[dict[str, Any]], read: Callable[[str], bytes]):
+    """Release entries and files for kits ([{"label", "doc"}], part files as source keys) and masks ([{"uv_layout",
+    "name", "key"}]), decision 133: parts laid out by content (parts/<sha256>.glb, a shared part once), masks as
+    masks/<uv_layout>/<name>.png. Returns (kit entries sorted by breed, mask entries, files)."""
+    files: dict[str, bytes] = {}
+    kit_entries = []
+    for k in kits:
+        doc = json.loads(json.dumps(k["doc"]))
+        for p in doc["parts"]:
+            data = read(p["mesh"]["file"])
+            sha = hashlib.sha256(data).hexdigest()
+            path = f"parts/{sha[:24]}.glb"
+            files[path] = data
+            p["mesh"] = {**p["mesh"], "file": path, "sha256": sha}
+        kit_entries.append({**doc, "label": k["label"]})
+    mask_entries = []
+    for mk in masks:
+        path = f"masks/{mk['uv_layout']}/{mk['name']}.png"
+        files[path] = read(mk["key"])
+        mask_entries.append({"uv_layout": mk["uv_layout"], "name": mk["name"], "file": path})
+    return sorted(kit_entries, key=lambda k: k["breed_id"]), mask_entries, files
+
+
 def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read: Callable[[str], bytes],
          mesh_of: Callable[[str], tuple[BaseMesh, dict[str, Any]]], created_by: str, notes: str = "",
          created_at: str | None = None, key: bytes | None = None, kits: list[dict[str, Any]] | None = None,
@@ -64,25 +87,12 @@ def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read
                                        meta.get("source_job"), texture=meta.get("texture"))
         meshes.append(entry)
         files.update(mfiles)
-    kit_entries = []
-    for k in kits or []:
-        doc = json.loads(json.dumps(k["doc"]))
-        for p in doc["parts"]:
-            data = read(p["mesh"]["file"])
-            sha = hashlib.sha256(data).hexdigest()
-            path = f"parts/{sha[:24]}.glb"
-            files[path] = data
-            p["mesh"] = {**p["mesh"], "file": path, "sha256": sha}
-        kit_entries.append({**doc, "label": k["label"]})
-    mask_entries = []
-    for mk in masks or []:
-        path = f"masks/{mk['uv_layout']}/{mk['name']}.png"
-        files[path] = read(mk["key"])
-        mask_entries.append({"uv_layout": mk["uv_layout"], "name": mk["name"], "file": path})
+    kit_entries, mask_entries, kfiles = kit_files(kits or [], masks or [], read)
+    files.update(kfiles)
     m = release_manifest(species, number, schema(species)["schema_version"], created_by,
                          created_at or datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"), meshes,
                          out["families"], out["region_deltas"], out["shell_parts"], out["pattern_layers"], notes=notes,
-                         kits=sorted(kit_entries, key=lambda k: k["breed_id"]), masks=mask_entries)
+                         kits=kit_entries, masks=mask_entries)
     bundle = release.pack(m, files, key=key)
     manifest, _ = release.read(bundle, key=key)  # the packed manifest carries the file list and hashes
     return bundle, manifest
