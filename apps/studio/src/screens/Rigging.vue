@@ -129,6 +129,7 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
         <Chip :selected="ps.view === 'part'" test-id="view-part" @click="ps.view = 'part'">Part</Chip>
         <Chip :selected="ps.gizmo === 'translate'" test-id="gizmo-move" @click="ps.gizmo = 'translate'">Move</Chip>
         <Chip :selected="ps.gizmo === 'rotate'" test-id="gizmo-rotate" @click="ps.gizmo = 'rotate'">Rotate</Chip>
+        <Chip :selected="ps.clay" test-id="view-clay" @click="ps.clay = !ps.clay">Clay</Chip>
       </div>
     </div>
     <div class="no-scrollbar min-h-0 overflow-y-auto px-4 pb-8 pt-4 lg:w-[30rem] lg:shrink-0">

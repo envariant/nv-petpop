@@ -19,7 +19,10 @@ const failed = ref(!webglAvailable());
 let stage: FigureStage | null = null;
 let tc: TransformControls | null = null;
 const root = new THREE.Group();
-const meshes = new Map<string, THREE.BufferGeometry>(); // part_id -> geometry
+// a part as its GLB has it: every mesh, with its own materials (textures); shared by every instance on screen
+type Model = { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[] }[];
+const models = new Map<string, Promise<Model | null>>(); // part_id + sha -> model
+const tints = new WeakMap<THREE.Material, THREE.Material>();
 const markers = new Map<string, THREE.Group>(); // "slot:<slot>" | "part:<id>" -> marker
 const clay = new THREE.MeshStandardMaterial({ color: '#d8cfc6', roughness: 0.8 });
 const picked = new THREE.MeshStandardMaterial({ color: '#ffb27a', roughness: 0.6 });
@@ -27,23 +30,51 @@ const Y = new THREE.Vector3(0, 1, 0);
 let fitted = false;
 let dragging = false;
 
-async function geometry(p: Part): Promise<THREE.BufferGeometry | null> {
-  if (meshes.has(p.part_id)) return meshes.get(p.part_id)!;
-  try {
-    const obj = await loadGlb(p.mesh_url);
-    let g: THREE.BufferGeometry | null = null;
-    obj.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!g && m.isMesh) g = (m.geometry as THREE.BufferGeometry).clone().applyMatrix4(m.matrixWorld);
-    });
-    if (g) {
-      (g as THREE.BufferGeometry).computeVertexNormals();
-      meshes.set(p.part_id, g);
-    }
-    return g;
-  } catch {
-    return null;
+function model(p: Part): Promise<Model | null> {
+  const key = `${p.part_id}:${p.sha256}`;
+  if (!models.has(key)) {
+    models.set(key, loadGlb(p.mesh_url).then((obj) => {
+      obj.updateMatrixWorld(true);
+      const out: Model = [];
+      obj.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (!m.isMesh) return;
+        const g = (m.geometry as THREE.BufferGeometry).clone().applyMatrix4(m.matrixWorld);
+        if (!g.getAttribute('normal')) g.computeVertexNormals();
+        out.push({ geometry: g, material: m.material });
+      });
+      return out.length ? out : null;
+    }).catch(() => null));
   }
+  return models.get(key)!;
+}
+
+/** The selected part keeps its texture, lit with a warm glow. */
+function tint(m: THREE.Material): THREE.Material {
+  let t = tints.get(m);
+  if (!t) {
+    t = m.clone();
+    if ((t as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
+      (t as THREE.MeshStandardMaterial).emissive = new THREE.Color('#ff7a2a');
+      (t as THREE.MeshStandardMaterial).emissiveIntensity = 0.35;
+    } else t = picked;
+    tints.set(m, t);
+  }
+  return t;
+}
+
+/** One instance of a part on screen: its own materials, or clay, the selected one glowing. */
+function instance(md: Model, selected: boolean, pick?: string): THREE.Group {
+  const g = new THREE.Group();
+  for (const { geometry, material } of md) {
+    const own = Array.isArray(material) ? material : [material];
+    const mats = ps.clay ? own.map(() => (selected ? picked : clay)) : own.map((x) => (selected ? tint(x) : x));
+    const mesh = new THREE.Mesh(geometry, Array.isArray(material) ? mats : mats[0]);
+    if (pick) mesh.userData.pick = pick;
+    g.add(mesh);
+  }
+  if (pick) g.userData.pick = pick;
+  return g;
 }
 
 function marker(key: string, colour: string): THREE.Group {
@@ -76,8 +107,8 @@ async function rebuild() {
   const torso = ps.torso;
   if (ps.view === 'part' && ps.selectedPart) {
     const p = ps.selectedPart;
-    const g = await geometry(p);
-    if (g) root.add(new THREE.Mesh(g, picked));
+    const md = await model(p);
+    if (md) root.add(instance(md, false));
     if (p.joint) {
       const m = marker(`part:${p.part_id}`, '#e0457b');
       place(m, p.joint.pivot, p.joint.axis);
@@ -85,9 +116,9 @@ async function rebuild() {
       root.add(m);
     }
   } else if (torso) {
-    const tg = await geometry(torso);
-    if (tg) {
-      const tm = new THREE.Mesh(tg, clay);
+    const tmd = await model(torso);
+    if (tmd) {
+      const tm = instance(tmd, false);
       const ts = ps.torsoStretch;
       tm.scale.set(ts?.[0] ?? 1, ts?.[1] ?? 1, ts?.[2] ?? 1);
       root.add(tm);
@@ -96,13 +127,12 @@ async function rebuild() {
       const att = torso.attachments?.[slot];
       const part = ps.partOf(SLOT_KIND[slot]);
       if (att && part?.joint) {
-        const g = await geometry(part);
-        if (g) {
-          const mesh = new THREE.Mesh(g, ps.target.type === 'slot' && ps.target.slot === slot ? picked : clay);
-          mesh.matrixAutoUpdate = false;
-          mesh.matrix.copy(placement(part.joint, att, slot, ps.pose, part.stretch, ps.torsoStretch, ps.preset?.sockets?.[slot]));
-          mesh.userData.pick = `slot:${slot}`;
-          root.add(mesh);
+        const md = await model(part);
+        if (md) {
+          const inst = instance(md, ps.target.type === 'slot' && ps.target.slot === slot, `slot:${slot}`);
+          inst.matrixAutoUpdate = false;
+          inst.matrix.copy(placement(part.joint, att, slot, ps.pose, part.stretch, ps.torsoStretch, ps.preset?.sockets?.[slot]));
+          root.add(inst);
         }
       }
       if (att) {
@@ -207,7 +237,7 @@ async function save() {
 }
 
 // Rebuild on anything the figure depends on; while dragging, only move what the drag moves.
-watch(() => [ps.kit, ps.view, ps.target, ps.preview, ps.poseId, ps.presetId], () => !dragging && void rebuild(), { deep: true });
+watch(() => [ps.kit, ps.view, ps.target, ps.preview, ps.poseId, ps.presetId, ps.clay], () => !dragging && void rebuild(), { deep: true });
 watch(() => [ps.torso?.attachments, ps.kit?.parts.map((p) => p.joint), ps.preset?.sockets], () => dragging && void rebuild(), { deep: true });
 watch(() => ps.gizmo, () => tc?.setMode(ps.gizmo));
 onBeforeUnmount(() => {
@@ -228,7 +258,7 @@ onBeforeUnmount(() => {
   }
   stage?.dispose();
   stage = null;
-  meshes.forEach((g) => g.dispose());
+  models.forEach((p) => void p.then((md) => md?.forEach(({ geometry }) => geometry.dispose())));
 });
 </script>
 

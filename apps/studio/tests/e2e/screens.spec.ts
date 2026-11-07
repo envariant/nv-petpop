@@ -326,6 +326,11 @@ test('15 shared library: shared torsos, legs and tails, a breed head, stretched 
   await expect(page.locator('[data-screen=rigging]')).toBeVisible();
   // the corgi's own part types from the shared library, its short legs, its sitting pose and its colours
   await expect(page.getByTestId('variant-front_leg-paw')).toContainText('⧉');
+  // parts show their own textures; clay on demand
+  await page.getByTestId('view-clay').tap();
+  await expect(page.getByTestId('view-clay')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('view-clay').tap();
+  await expect(page.getByTestId('view-clay')).toHaveAttribute('aria-pressed', 'false');
   expect(Number(await page.getByTestId('stretch-front_leg-1').inputValue())).toBeLessThan(0.8);
   await expect(page.getByTestId('pose-sitting')).toBeVisible();
   await expect(page.getByTestId('pose-default-sitting')).toHaveAttribute('aria-pressed', 'true');

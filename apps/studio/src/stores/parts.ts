@@ -23,6 +23,7 @@ export const useParts = defineStore('parts', () => {
   const target = ref<Target>({ type: 'slot', slot: 'front_left' });
   const view = ref<View>('assembled');
   const gizmo = ref<'translate' | 'rotate'>('translate');
+  const clay = ref(false); // show parts in plain clay instead of their own textures
   const preview = ref<Partial<Record<Kind, string>>>({}); // the variant shown per kind (defaults otherwise)
   const poseId = ref<string | null>(null); // the pose previewed
   const scale = ref(true); // fit uploads to the breed's size guess (parts exported one at a time are not in proportion)
@@ -228,7 +229,7 @@ export const useParts = defineStore('parts', () => {
     }
   }
   return {
-    species, kits, kit, target, view, gizmo, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
+    species, kits, kit, target, view, gizmo, clay, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
     variantOf, partOf, allowed, setAllowed, setStretch, setTexture,
     presetId, presets, preset, torsoStretch, offsetMode, addPreset, removePreset, renamePreset, setPresetStretch, setOffset, saveOffsets, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
   };
