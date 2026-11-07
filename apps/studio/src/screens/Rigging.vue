@@ -16,6 +16,7 @@ import { useSession } from '../stores/session';
 import Notice from '../components/Notice.vue';
 import RigView from '../components/RigView.vue';
 import TextureEditor from '../components/TextureEditor.vue';
+import LazyInput from '../components/LazyInput.vue';
 const ps = useParts();
 const s = useSession();
 const KINDS: Kind[] = ['head', 'torso', 'front_leg', 'hind_leg', 'tail'];
@@ -160,22 +161,22 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
         <p class="mb-1 text-xs text-muted">This breed's move of the torso's socket, preset “{{ ps.preset?.label }}”: mm along x, y, z, then degrees about x, y, z.</p>
         <div class="grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-1 text-sm">
           <span>Move</span>
-          <input v-for="i in [0, 1, 2]" :key="`t${i}`" type="number" step="0.5" :value="offset.translate[i]" :data-testid="`rig-offset-t-${i}`"
-            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setOffsetNumber('translate', i, ($event.target as HTMLInputElement).value)" />
+          <LazyInput v-for="i in [0, 1, 2]" :key="`t${i}`" type="number" step="0.5" :value="offset.translate[i]" :data-testid="`rig-offset-t-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @commit="(v) => setOffsetNumber('translate', i, v)" />
           <span>Turn °</span>
-          <input v-for="i in [0, 1, 2]" :key="`r${i}`" type="number" step="1" :value="Number(offset.rotate[i]).toFixed(1)" :data-testid="`rig-offset-r-${i}`"
-            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setOffsetNumber('rotate', i, ($event.target as HTMLInputElement).value)" />
+          <LazyInput v-for="i in [0, 1, 2]" :key="`r${i}`" type="number" step="1" :value="Number(offset.rotate[i]).toFixed(1)" :data-testid="`rig-offset-r-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @commit="(v) => setOffsetNumber('rotate', i, v)" />
         </div>
       </PSection>
 
       <PSection v-if="sel && !(offset && ps.target.type === 'slot')" title="Selected joint" test-id="rig-selected">
         <div class="grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-1 text-sm">
           <span>{{ ps.target.type === 'slot' ? 'Position' : 'Pivot' }}</span>
-          <input v-for="i in [0, 1, 2]" :key="`p${i}`" type="number" step="0.5" :value="sel.point[i]" :data-testid="`rig-point-${i}`"
-            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setNumber('point', i, ($event.target as HTMLInputElement).value)" />
+          <LazyInput v-for="i in [0, 1, 2]" :key="`p${i}`" type="number" step="0.5" :value="sel.point[i]" :data-testid="`rig-point-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @commit="(v) => setNumber('point', i, v)" />
           <span>Axis</span>
-          <input v-for="i in [0, 1, 2]" :key="`a${i}`" type="number" step="0.05" :value="Number(sel.axis[i]).toFixed(3)" :data-testid="`rig-axis-${i}`"
-            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setNumber('axis', i, ($event.target as HTMLInputElement).value)" />
+          <LazyInput v-for="i in [0, 1, 2]" :key="`a${i}`" type="number" step="0.05" :value="Number(sel.axis[i]).toFixed(3)" :data-testid="`rig-axis-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @commit="(v) => setNumber('axis', i, v)" />
           <span>Twist °</span>
           <input type="range" min="0" max="359" :value="sel.twist" class="col-span-2" data-testid="rig-twist" @change="setNumber('twist', 0, ($event.target as HTMLInputElement).value)" />
           <span>{{ Math.round(sel.twist) }}</span>
@@ -205,9 +206,9 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
               offered
             </label>
             <span class="text-muted">stretch</span>
-            <input v-for="i in [0, 1, 2]" :key="i" type="number" step="0.05" min="0.05" :value="Number(stretchOf(kind)[i] ?? 1).toFixed(2)"
+            <LazyInput v-for="i in [0, 1, 2]" :key="i" type="number" step="0.05" min="0.05" :value="Number(stretchOf(kind)[i] ?? 1).toFixed(2)"
               :data-testid="`stretch-${kind}-${i}`" :title="['side to side', 'up', 'front to back'][i]"
-              class="w-16 rounded-lg border-2 border-line bg-paper px-1 py-0.5" @change="setStretchAxis(kind, i, ($event.target as HTMLInputElement).value)" />
+              class="w-16 rounded-lg border-2 border-line bg-paper px-1 py-0.5" @commit="(v) => setStretchAxis(kind, i, v)" />
             <button v-if="canReset(kind)" class="underline" :data-testid="`stretch-reset-${kind}`" @click="resetStretch(kind)">
               {{ kind === 'torso' && ps.preset?.preset_id !== 'default' ? 'as standard' : 'size guess' }}
             </button>
@@ -218,8 +219,8 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
               @click="ps.presetId = p.preset_id">{{ p.label }}</Chip>
             <button class="underline" data-testid="preset-add" @click="ps.addPreset()">add</button>
             <template v-if="ps.preset && ps.preset.preset_id !== 'default'">
-              <input :value="ps.preset.label" class="w-28 rounded-lg border-2 border-line bg-paper px-1 py-0.5" data-testid="preset-label"
-                @change="ps.renamePreset(ps.preset!.preset_id, ($event.target as HTMLInputElement).value)" />
+              <LazyInput :key="ps.preset.preset_id" :value="ps.preset.label" class="w-28 rounded-lg border-2 border-line bg-paper px-1 py-0.5" data-testid="preset-label"
+                @commit="(v) => ps.renamePreset(ps.preset!.preset_id, v)" />
               <button class="underline" data-testid="preset-remove" @click="ps.removePreset(ps.preset!.preset_id)">remove</button>
             </template>
           </div>
@@ -233,16 +234,16 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
       <PSection v-if="head" title="Head limits (degrees)" test-id="rig-limits">
         <div v-for="ax in (['yaw', 'pitch', 'roll'] as const)" :key="ax" class="mb-1 grid grid-cols-[4rem_1fr_1fr] items-center gap-2 text-sm">
           <span>{{ ax }}</span>
-          <input v-for="i in ([0, 1] as const)" :key="i" type="number" step="5" :value="limits[ax][i]" :data-testid="`limit-${ax}-${i}`"
-            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setLimit(ax, i, ($event.target as HTMLInputElement).value)" />
+          <LazyInput v-for="i in ([0, 1] as const)" :key="i" type="number" step="5" :value="limits[ax][i]" :data-testid="`limit-${ax}-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @commit="(v) => setLimit(ax, i, v)" />
         </div>
       </PSection>
 
       <PSection title="Poses" test-id="rig-poses">
         <div v-for="p in poses" :key="p.pose_id" class="mb-3 rounded-tile bg-card p-3 shadow-soft" :data-testid="`pose-${p.pose_id}`">
           <div class="mb-2 flex items-center gap-2">
-            <input :value="p.label" class="min-w-0 flex-1 rounded-lg border-2 border-line bg-paper px-2 py-1 text-base" :data-testid="`pose-label-${p.pose_id}`"
-              @change="savePoses(poses.map((x) => (x.pose_id === p.pose_id ? { ...x, label: ($event.target as HTMLInputElement).value } : x)))" />
+            <LazyInput :value="p.label" class="min-w-0 flex-1 rounded-lg border-2 border-line bg-paper px-2 py-1 text-base" :data-testid="`pose-label-${p.pose_id}`"
+              @commit="(v) => savePoses(poses.map((x) => (x.pose_id === p.pose_id ? { ...x, label: v } : x)))" />
             <Chip :selected="(ps.poseId ?? ps.kit.default_pose) === p.pose_id" :test-id="`pose-preview-${p.pose_id}`" @click="ps.poseId = p.pose_id">Preview</Chip>
             <Chip :selected="ps.kit.default_pose === p.pose_id" :test-id="`pose-default-${p.pose_id}`" @click="savePoses(poses, p.pose_id)">Default</Chip>
             <button v-if="poses.length > 1" class="text-sm underline" :data-testid="`pose-remove-${p.pose_id}`" @click="removePose(p.pose_id)">Remove</button>

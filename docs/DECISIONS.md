@@ -315,3 +315,7 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    r169's TransformControls.dispose() throws (it calls traverse, gone from the controls); the workbench now detaches
    and frees the gizmo itself. And a kit whose texture had an unnamed colour failed its schema check on commit; colour
    names may be null.
+   And two races the gates caught on the tablet run: torso-shape edits made quickly (a rename, then a stretch) could
+   undo each other, so shape edits now apply locally at once and are saved one at a time with the latest list; and a
+   save's answer landing while a field was being typed reset the field, so the workbench's typed fields keep what is
+   typed until it is committed (Enter or leaving the field).

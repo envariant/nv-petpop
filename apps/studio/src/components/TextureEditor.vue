@@ -7,6 +7,7 @@ import { computed, ref, watch } from 'vue';
 import type { PartKit } from '@petpop/core';
 import { Chip, PButton, PRow } from '@petpop/ui-vue';
 import { useParts } from '../stores/parts';
+import LazyInput from './LazyInput.vue';
 import { MARKINGS, PATTERNS, slug, words } from '../texture';
 
 type Texture = NonNullable<PartKit['texture']>;
@@ -82,8 +83,8 @@ const shown = (which: Which) => which === 'base' || !!t.value?.[which];
           <span class="w-20 text-muted">{{ title }}</span>
           <input type="color" :value="t[which]!.hex" class="h-8 w-10 cursor-pointer rounded border-2 border-line bg-paper" :data-testid="`texture-${which}-hex`"
             @input="pickColour(which, ($event.target as HTMLInputElement).value)" @change="pickColour(which, ($event.target as HTMLInputElement).value)" />
-          <input :value="t[which]!.name ?? ''" placeholder="name (e.g. red)" class="w-32 min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" :data-testid="`texture-${which}-name`"
-            @change="setColour(which, 'name', ($event.target as HTMLInputElement).value)" />
+          <LazyInput :value="t[which]!.name ?? ''" placeholder="name (e.g. red)" class="w-32 min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" :data-testid="`texture-${which}-name`"
+            @commit="(v) => setColour(which, 'name', v)" />
           <span class="font-mono text-xs text-muted">{{ t[which]!.hex }}</span>
           <button v-if="which !== 'base'" class="underline" :data-testid="`texture-${which}-remove`" @click="dropColour(which)">remove</button>
         </template>

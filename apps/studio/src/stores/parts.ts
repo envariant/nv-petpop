@@ -76,10 +76,27 @@ export const useParts = defineStore('parts', () => {
    *  preset is not the default; otherwise to the torso's own sockets. */
   const offsetMode = computed(() => !!torso.value && !!preset.value && kit.value?.breed_id !== 'shared'
     && (preset.value.preset_id !== 'default' || !!torso.value.shared));
+  // Preset edits apply to the kit here at once and are sent one save at a time, the latest list each time, so quick
+  // edits (a rename, then a stretch) never undo each other; the server's answer is taken once nothing is waiting.
+  let presetsSaving = false;
+  let presetsDirty = false;
   async function savePresets(next: Preset[]) {
     const t = torso.value;
     if (!t) return;
-    await setup({ presets: { [`torso/${t.variant}`]: next } as never });
+    t.presets = next;
+    presetsDirty = true;
+    if (presetsSaving) return;
+    presetsSaving = true;
+    try {
+      while (presetsDirty && kit.value) {
+        presetsDirty = false;
+        const body = { presets: { [`torso/${t.variant}`]: JSON.parse(JSON.stringify(t.presets)) } } as never;
+        const r = await run(() => StudioApi.partKitSetup(species.value, kit.value!.breed_id, body));
+        if (r && !presetsDirty) kit.value = r;
+      }
+    } finally {
+      presetsSaving = false;
+    }
   }
   async function addPreset() {
     const now = presets.value;
@@ -87,13 +104,13 @@ export const useParts = defineStore('parts', () => {
     while (now.some((p) => p.preset_id === `preset_${n}`)) n++;
     const base = preset.value;
     const added: Preset = { preset_id: `preset_${n}`, label: `Preset ${n}`, stretch: base?.stretch ? [...base.stretch] : null, sockets: JSON.parse(JSON.stringify(base?.sockets ?? {})) };
-    await savePresets([...now, added]);
     presetId.value = added.preset_id;
+    await savePresets([...now, added]);
   }
   async function removePreset(id: string) {
     if (id === 'default') return;
-    await savePresets(presets.value.filter((p) => p.preset_id !== id));
     presetId.value = 'default';
+    await savePresets(presets.value.filter((p) => p.preset_id !== id));
   }
   async function renamePreset(id: string, label: string) {
     if (label.trim()) await savePresets(presets.value.map((p) => (p.preset_id === id ? { ...p, label: label.trim() } : p)));
