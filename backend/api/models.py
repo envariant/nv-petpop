@@ -9,7 +9,8 @@ notes to a part upload (mirrored, scaled to the breed's size guess, decision 128
 torsos, legs and tails, each breed's allowed variants, per-breed stretches and default texture (decision 130); 3.14.0
 adds torso presets, the customers' shape choices, each a stretch and socket offsets (decision 131); 3.15.0 adds a
 third colour to a breed's default texture, edited in the workbench; 3.16.0 adds marking and pattern masks on texture
-templates, uploaded with the parts and carried by releases with the kits (decision 133)."""
+templates, uploaded with the parts and carried by releases with the kits (decision 133); 3.17.0 adds composition 3.0,
+a figure of part kits (decision 134)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -17,7 +18,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.16.0"
+API_VERSION = "3.17.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]

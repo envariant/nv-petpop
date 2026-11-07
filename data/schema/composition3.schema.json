@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petpop.local/schema/composition3.schema.json",
+  "title": "PetPop composition 3.0: a figure of part kits (decision 134)",
+  "description": "The kiosk's order record for a breed with a part kit in the release (release 3.0): the breed's kit, a variant per kind, the torso's shape (preset), a pose and a texture. The only input to its print export. Variants a pose swaps in (sitting folds the hind legs) override the composition's for those kinds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "composition_version",
+    "species",
+    "release_version",
+    "breed_id",
+    "kit_version",
+    "variants",
+    "preset_id",
+    "pose_id",
+    "texture"
+  ],
+  "$defs": {
+    "hex": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "colour": {
+      "type": "object",
+      "required": [
+        "hex"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "hex": {
+          "$ref": "#/$defs/hex"
+        }
+      }
+    }
+  },
+  "properties": {
+    "composition_version": {
+      "const": "3.0"
+    },
+    "species": {
+      "enum": [
+        "dog",
+        "cat"
+      ]
+    },
+    "release_version": {
+      "type": "string",
+      "pattern": "^release-(dog|cat)-[0-9]+$",
+      "description": "The library release the kit is in."
+    },
+    "breed_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,48}$"
+    },
+    "kit_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The breed's kit version in that release."
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "head",
+        "torso",
+        "front_leg",
+        "hind_leg",
+        "tail"
+      ],
+      "properties": {
+        "head": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        },
+        "torso": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        },
+        "front_leg": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        },
+        "hind_leg": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        },
+        "tail": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        }
+      }
+    },
+    "preset_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,40}$",
+      "description": "The torso variant's shape."
+    },
+    "pose_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,40}$"
+    },
+    "texture": {
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/colour"
+        },
+        "secondary": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/colour"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tertiary": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/colour"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pattern": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 60
+        },
+        "markings": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$"
+          }
+        }
+      }
+    },
+    "pet_name": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "eye_colour": {
+      "$ref": "#/$defs/hex"
+    },
+    "nose_colour": {
+      "$ref": "#/$defs/hex"
+    }
+  }
+}

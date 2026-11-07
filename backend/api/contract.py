@@ -653,7 +653,10 @@ def contract_openapi(app: FastAPI) -> dict[str, Any]:
     doc = swap(doc)
     comps = doc.setdefault("components", {}).setdefault("schemas", {})
     comps.update(_petspec_components())
-    comps.update(_schema_components("Composition", "composition.schema.json"))
+    comps.update(_schema_components("Composition2", "composition.schema.json"))
+    comps.update(_schema_components("Composition3", "composition3.schema.json"))  # a figure of part kits (decision 134)
+    comps["Composition"] = {"title": "Composition", "description": "The order record: 2.0 on a whole-figure mesh, 3.0 of part kits.",
+                            "oneOf": [{"$ref": "#/components/schemas/Composition2"}, {"$ref": "#/components/schemas/Composition3"}]}
     comps.update(_schema_components("ReleaseManifest", "release.schema.json"))
     comps["ProgressEvent"] = swap(m.ProgressEvent.model_json_schema(ref_template="#/components/schemas/{model}"))
     doc["paths"][f"{STUDIO}/jobs/{{job_id}}/events"] = {

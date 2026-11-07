@@ -1483,26 +1483,31 @@ export interface components {
         };
         /**
          * Composition
+         * @description The order record: 2.0 on a whole-figure mesh, 3.0 of part kits.
+         */
+        Composition: components["schemas"]["Composition2"] | components["schemas"]["Composition3"];
+        /**
+         * Composition
          * @description What a customer assembled in library mode (BRIEF Section 16): the order record and the only input to a library export. Contract 2 (Section 17): Kiosk to fulfilment, and the seed of a bespoke job. Geometry is the family's mesh (decision 116) plus the family delta plus one part variant of that mesh per region, plus shell parts on sockets; colour is the base colour, then pattern layers in order (signed-distance masks thresholded at their coverage), then stamps, then eyes and nose.
          */
-        Composition: {
-            base_colour: components["schemas"]["Composition_hex"];
+        Composition2: {
+            base_colour: components["schemas"]["Composition2_hex"];
             /** @description The breed the customer started from (informational). */
             breed_id?: string;
             /** @constant */
             composition_version: "2.0";
-            eye_colour: components["schemas"]["Composition_hex"];
+            eye_colour: components["schemas"]["Composition2_hex"];
             family_id: string;
             /** @description Pattern layers, composited in this order over the base colour. */
             layers: {
-                colour: components["schemas"]["Composition_hex"];
+                colour: components["schemas"]["Composition2_hex"];
                 /** @description The mask threshold: the layer covers texels whose mask value is below coverage. */
                 coverage: number;
                 pattern_id: string;
             }[];
             /** @description The mesh the family and every part are built on; stamps are positions on this mesh. */
             mesh_id: string;
-            nose_colour: components["schemas"]["Composition_hex"];
+            nose_colour: components["schemas"]["Composition2_hex"];
             /** @description One region-delta part id per region; a region left out keeps the family's shape. */
             parts: {
                 ears?: string;
@@ -1515,18 +1520,59 @@ export interface components {
             /** @description The library release the ids refer to. */
             release_version: string;
             shells: {
-                colour: components["schemas"]["Composition_hex"];
+                colour: components["schemas"]["Composition2_hex"];
                 part_id: string;
             }[];
             /** @enum {unknown} */
             species: "dog" | "cat";
             /** @description Spots, patches and brush dabs, painted after the layers in this order. Positions are on the undeformed mesh (mm, the mesh the composition names), so a stamp stays put when parts change and lands correctly across UV seams. Symmetry writes the mirrored stamp explicitly. */
             stamps: {
-                colour: components["schemas"]["Composition_hex"];
+                colour: components["schemas"]["Composition2_hex"];
                 p: number[];
                 r: number;
             }[];
         };
+        Composition2_hex: string;
+        /**
+         * PetPop composition 3.0: a figure of part kits (decision 134)
+         * @description The kiosk's order record for a breed with a part kit in the release (release 3.0): the breed's kit, a variant per kind, the torso's shape (preset), a pose and a texture. The only input to its print export. Variants a pose swaps in (sitting folds the hind legs) override the composition's for those kinds.
+         */
+        Composition3: {
+            breed_id: string;
+            /** @constant */
+            composition_version: "3.0";
+            eye_colour?: components["schemas"]["Composition3_hex"];
+            /** @description The breed's kit version in that release. */
+            kit_version: number;
+            nose_colour?: components["schemas"]["Composition3_hex"];
+            pet_name?: string;
+            pose_id: string;
+            /** @description The torso variant's shape. */
+            preset_id: string;
+            /** @description The library release the kit is in. */
+            release_version: string;
+            /** @enum {unknown} */
+            species: "dog" | "cat";
+            texture: {
+                base: components["schemas"]["Composition3_colour"];
+                markings?: string[];
+                pattern?: string | null;
+                secondary?: components["schemas"]["Composition3_colour"] | null;
+                tertiary?: components["schemas"]["Composition3_colour"] | null;
+            };
+            variants: {
+                front_leg: string;
+                head: string;
+                hind_leg: string;
+                tail: string;
+                torso: string;
+            };
+        };
+        Composition3_colour: {
+            hex: components["schemas"]["Composition3_hex"];
+            name?: string | null;
+        };
+        Composition3_hex: string;
         /** CompositionCreate */
         CompositionCreate: {
             composition: components["schemas"]["Composition"];
@@ -1590,7 +1636,6 @@ export interface components {
              */
             ticket?: string | null;
         };
-        Composition_hex: string;
         /**
          * Device
          * @description A device that receives push notifications for this account (Firebase Cloud Messaging token).

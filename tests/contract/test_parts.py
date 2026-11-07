@@ -319,3 +319,20 @@ def test_masks_and_a_release_with_kits(client):
     part = k["parts"][0]["mesh"]["file"]
     got = client.get(f"{rel['files_url']}{part}")
     assert got.status_code == 200 and got.content == files[part]
+    # composition 3.0 (decision 134): the whippet's kit, its defaults; refused when it names what the kit lacks
+    from petpop_library.composition import sample_kit  # noqa: PLC0415
+
+    from .test_contract import new_session  # noqa: PLC0415
+
+    comp = sample_kit(rel["manifest"], "whippet")
+    sid = new_session(client)
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": comp})
+    assert r.status_code == 201, r.text
+    cid = r.json()["composition_id"]
+    for bad, why in [({"kit_version": 9}, "kit_version"), ({"variants": {**comp["variants"], "tail": "nope"}}, "variants.tail"),
+                     ({"preset_id": "nope"}, "preset_id"), ({"pose_id": "nope"}, "pose_id"), ({"breed_id": "pug"}, "no part kit"),
+                     ({"texture": {"base": {"hex": "red"}}}, "texture")]:
+        r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": {**comp, **bad}})
+        assert r.status_code == 422 and why in r.text, (bad, r.text)
+    r = client.post(f"{K}/compositions/{cid}/bespoke", json={})
+    assert r.status_code == 422 and "part-kit" in r.text, r.text

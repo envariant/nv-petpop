@@ -28,8 +28,10 @@ def spec_errors(spec: dict[str, Any]) -> list[str]:
 
 
 def composition_errors(composition: dict[str, Any]) -> list[str]:
-    """Errors against data/schema/composition.schema.json (BRIEF Section 16: the order record)."""
-    return [f"{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in validator("composition.schema.json").iter_errors(composition)]
+    """Errors against data/schema/composition.schema.json (BRIEF Section 16: the order record), or, for a figure of
+    part kits (composition_version 3.0, decision 134), data/schema/composition3.schema.json."""
+    name = "composition3.schema.json" if composition.get("composition_version") == "3.0" else "composition.schema.json"
+    return [f"{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in validator(name).iter_errors(composition)]
 
 
 def manifest_errors(manifest: dict[str, Any]) -> list[str]:

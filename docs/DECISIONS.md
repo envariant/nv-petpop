@@ -330,3 +330,11 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    a pattern layer. Releases keep their whole-figure content, so breeds without a kit work as before; 2.0 bundles stay
    valid. API 3.16.0 (`PartKit.masks`). The rest of the switch follows: compositions of kits, the customer app
    assembling parts, and the print export composing them.
+134. **Composition 3.0: a figure of part kits (P6b, 2026-11-07).** For a breed with a part kit in the release, the
+   order record names the breed, its kit version in that release, a variant per kind, the torso's shape (preset), a
+   pose and the texture (colours A to C, pattern, markings), with the pet's name and eye and nose colours
+   (`data/schema/composition3.schema.json`; the OpenAPI `Composition` is 2.0 or 3.0). The kiosk checks it against the
+   kit: the version, each variant offered on the breed, a shape of the chosen torso, a pose the breed allows. A pose
+   that swaps a variant in (sitting: the hind legs) overrides the composition's for that kind. Figures of part kits
+   start without the whole-figure designer's paint stamps and extras (shells), and a bespoke job cannot start from
+   one yet; they can come later. API 3.17.0.

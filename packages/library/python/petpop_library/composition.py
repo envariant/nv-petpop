@@ -1,7 +1,8 @@
 """Compositions (BRIEF Section 16, contract 2): the kiosk's order record and the only input to a library export.
 
 A composition names one release; every id in it must exist there, in the right region. Shared by the backend and
-the mock server so both refuse the same compositions.
+the mock server so both refuse the same compositions. Composition 3.0 (decision 134) is a figure of part kits: the
+breed's kit in the release, a variant per kind it allows, the torso's shape, a pose and a texture.
 """
 from __future__ import annotations
 
@@ -21,6 +22,8 @@ def check_ids(manifest: dict[str, Any], body: dict[str, Any]) -> list[str]:
     errs = []
     if body["release_version"] != manifest["release_version"]:
         errs.append(f"release_version: this kiosk serves {manifest['release_version']}")
+    if body.get("composition_version") == "3.0":
+        return errs + check_kit(manifest, body)
     mesh_id = body["mesh_id"]
     if mesh_id not in {m["id"] for m in manifest["meshes"]}:
         errs.append(f"mesh_id: unknown {mesh_id}")
@@ -40,6 +43,48 @@ def check_ids(manifest: dict[str, Any], body: dict[str, Any]) -> list[str]:
     patterns = {p["id"] for p in manifest["pattern_layers"]}
     errs += [f"layers: unknown {layer['pattern_id']}" for layer in body["layers"] if layer["pattern_id"] not in patterns]
     return errs
+
+
+def kit_of(manifest: dict[str, Any], breed_id: str) -> dict[str, Any] | None:
+    return next((k for k in manifest.get("kits") or [] if k["breed_id"] == breed_id), None)
+
+
+def check_kit(manifest: dict[str, Any], body: dict[str, Any]) -> list[str]:
+    """A composition 3.0 against the breed's kit in the release: its version, an allowed variant per kind, a shape of
+    the chosen torso, a pose the breed allows."""
+    kit = kit_of(manifest, body["breed_id"])
+    if not kit:
+        return [f"breed_id: no part kit for {body['breed_id']} in {manifest['release_version']}"]
+    errs = []
+    if body["kit_version"] != kit["version"]:
+        errs.append(f"kit_version: {manifest['release_version']} has kit version {kit['version']} for {body['breed_id']}")
+    allowed = kit.get("allowed") or {k: [p["variant"] for p in kit["parts"] if p["kind"] == k] for k in kit["defaults"]}
+    pose = next((p for p in kit["poses"] if p["pose_id"] == body["pose_id"]), None)
+    if pose is None:
+        errs.append(f"pose_id: {body['breed_id']} has no pose {body['pose_id']}")
+    swapped = (pose or {}).get("variants") or {}
+    for kind, v in body["variants"].items():
+        if kind not in swapped and v not in (allowed.get(kind) or []):
+            errs.append(f"variants.{kind}: {v} is not offered on {body['breed_id']}")
+    torso = next((p for p in kit["parts"] if p["kind"] == "torso" and p["variant"] == body["variants"]["torso"]), None)
+    if torso and body["preset_id"] not in {x["preset_id"] for x in torso.get("presets") or [{"preset_id": "default"}]}:
+        errs.append(f"preset_id: torso {torso['variant']} has no shape {body['preset_id']}")
+    return errs
+
+
+def sample_kit(manifest: dict[str, Any], breed_id: str | None = None, pet_name: str = "Biscuit") -> dict[str, Any]:
+    """A valid composition 3.0 for tests and gates: the breed's (or the first) kit with its defaults, default shape and
+    pose, its default texture."""
+    kit = kit_of(manifest, breed_id) if breed_id else (manifest.get("kits") or [None])[0]
+    if not kit:
+        raise ValueError("the release has no part kit")
+    texture = kit.get("texture") or {"base": {"name": None, "hex": "#C8763A"}, "markings": []}
+    return {"composition_version": "3.0", "species": manifest["species"], "release_version": manifest["release_version"],
+            "breed_id": kit["breed_id"], "kit_version": kit["version"], "variants": dict(kit["defaults"]),
+            "preset_id": "default", "pose_id": kit["default_pose"], "pet_name": pet_name,
+            "texture": {"base": texture["base"], "secondary": texture.get("secondary"), "tertiary": texture.get("tertiary"),
+                        "pattern": texture.get("pattern"), "markings": list(texture.get("markings") or [])},
+            "eye_colour": "#3B2412", "nose_colour": "#1E1B1A"}
 
 
 def sample(manifest: dict[str, Any], *, layers: int = 3, stamps: int = 0, pet_name: str = "Biscuit", seed: int = 0,
