@@ -319,3 +319,14 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    undo each other, so shape edits now apply locally at once and are saved one at a time with the latest list; and a
    save's answer landing while a field was being typed reset the field, so the workbench's typed fields keep what is
    typed until it is committed (Enter or leaving the field).
+133. **The switch to part kits begins: releases carry kits and masks (P6a, 2026-11-07).** Markings and patterns on
+   part kits are masks on texture templates: greyscale PNGs in a template's UVs (`<uv_layout>__<name>.png`, uploaded
+   with the parts, kept greyscale, 64 to 4096 pixels), named as the breed texture names its pattern and markings. The
+   base colour (A) covers every part; the pattern's and markings' masks paint colour B; a mask named `<name>_c` paints
+   colour C (tricolour). Release 3.0 adds `kits` (each breed's latest committed kit-3 document plus its label, part
+   files packed by content as `parts/<sha256>.glb` so a shared part is packed once) and `masks` (the masks on the
+   templates those kits use, `masks/<uv_layout>/<name>.png`); each kit is checked against the kit schema and its
+   files against the bundle. A release may now carry kits and no whole-figure family; one with families still needs
+   a pattern layer. Releases keep their whole-figure content, so breeds without a kit work as before; 2.0 bundles stay
+   valid. API 3.16.0 (`PartKit.masks`). The rest of the switch follows: compositions of kits, the customer app
+   assembling parts, and the print export composing them.

@@ -226,8 +226,11 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
 - [x] P5c the per-breed parts file (`data/breeds/dog_breed_parts.json`), torso presets (shapes) with socket offsets,
   breed head variants, kit-3 (API 3.14.0, decision 131)
 - [x] P5d the breed's default texture edited in the workbench: three colours, pattern, markings (API 3.15.0, decision 132)
-- [ ] P6 the switch: releases carry kits, compositions choose variants, a torso shape (preset) and a pose, the customer app assembles parts,
-  markings per part (head masks per breed, decision 129), the print export composes kits
+- [ ] P6 the switch (decision 133 on):
+  - [x] P6a releases carry kits and masks (release 3.0, API 3.16.0); masks uploaded with the parts
+  - [ ] P6b compositions of kits (composition 3.0): variants, torso shape, pose, texture
+  - [ ] P6c the customer app assembles parts and paints them per part (Shape and Markings tabs for kit breeds)
+  - [ ] P6d the print export composes kits
 - [ ] Nishant: the shared library (`shared__<kind>__<variant>.glb` per part type) and the breeds' heads (GLBs per
   docs/PARTS.md), each breed's head texture template and masks, and the shared layouts of the torso, legs and tail
 

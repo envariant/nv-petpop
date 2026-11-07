@@ -912,7 +912,8 @@ export interface paths {
         put?: never;
         /**
          * Upload Parts
-         * @description Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once.
+         * @description Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG
+         *     masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133).
          */
         post: operations["studioUploadParts"];
         delete?: never;
@@ -2617,6 +2618,14 @@ export interface components {
              */
             dirty: boolean;
             /**
+             * Masks
+             * @description Per texture template this kit's parts use, the masks uploaded for it.
+             * @default {}
+             */
+            masks: {
+                [key: string]: string[];
+            };
+            /**
              * Notes
              * @default []
              */
@@ -3099,6 +3108,19 @@ export interface components {
                 path: string;
                 sha256: string;
             }[];
+            /** @description Each breed's committed part kit (data/schema/part_kit.schema.json, checked on its own), its part mesh files as release paths, plus the breed's label. */
+            kits?: {
+                breed_id: string;
+                /** @enum {unknown} */
+                kit_version: "kit-3";
+                label: string;
+            }[];
+            /** @description Marking and pattern masks on texture templates: greyscale PNGs in the template's UVs, white where the marking is. */
+            masks?: {
+                file: string;
+                name: string;
+                uv_layout: string;
+            }[];
             meshes: components["schemas"]["ReleaseManifest_mesh"][];
             notes?: string;
             number: number;
@@ -3132,8 +3154,11 @@ export interface components {
                 thumbnail: string;
                 version: number;
             }[];
-            /** @constant */
-            release_schema: "2.0";
+            /**
+             * @description 3.0 (decision 133) adds kits and masks.
+             * @enum {unknown}
+             */
+            release_schema: "2.0" | "3.0";
             release_version: string;
             /** @description The segmentation schema (data/segmentation/) every mesh is labelled to; a kiosk refuses a release for another schema. */
             segmentation_version: string;

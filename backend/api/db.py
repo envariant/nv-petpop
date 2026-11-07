@@ -314,6 +314,20 @@ class PartRow(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class MaskRow(Base):
+    """A marking or pattern mask on a texture template (decision 133): a greyscale PNG in the template's UVs, white
+    where the marking is. Heads have a template per breed, the other kinds one each (decision 129)."""
+    __tablename__ = "part_masks"
+    species: Mapped[str] = mapped_column(String(8), primary_key=True)
+    uv_layout: Mapped[str] = mapped_column(String(80), primary_key=True)
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    key: Mapped[str] = mapped_column(String(240))
+    sha256: Mapped[str] = mapped_column(String(64))
+    size: Mapped[int] = mapped_column(Integer)  # pixels per side
+    uploaded_by: Mapped[str] = mapped_column(String(48), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class KitRow(Base):
     """A breed's kit settings (defaults, poses, symmetry) and its committed versions (decision 127)."""
     __tablename__ = "part_kits"

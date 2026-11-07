@@ -82,6 +82,10 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
     const skipped: string[] = [];
     const breeds = new Set<string>();
     for (const f of form.getAll('files') as File[]) {
+      if (f.name.toLowerCase().endsWith('.png')) {
+        skipped.push(`${f.name}: masks need the backend (standalone mode keeps parts only)`);
+        continue;
+      }
       const m = NAME.exec(f.name.toLowerCase());
       if (!m) {
         skipped.push(`${f.name}: expected <breed>__<kind>[__<variant>].glb`);

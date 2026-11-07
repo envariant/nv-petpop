@@ -37,7 +37,7 @@ from petpop_library import parts as P
 
 from . import models as m
 from .contract import ApiError, signed_file_url
-from .db import KitRow, PartRow, utcnow
+from .db import KitRow, MaskRow, PartRow, utcnow
 
 ZERO_HEAD = {"yaw": 0, "pitch": 0, "roll": 0}
 DEFAULT_POSE = {"pose_id": "standing", "label": "Standing", "legs": {s: 0 for s in P.LEG_SLOTS}, "head": ZERO_HEAD}
@@ -234,7 +234,8 @@ class PartLibrary:
                              poses=doc["poses"], default_pose=kit.default_pose, symmetry=kit.symmetry, allowed=doc["allowed"],
                              texture=kit.texture, version=kit.version, committed_at=_aware(kit.committed_at),
                              committed_by=kit.committed_by, dirty=kit.dirty and not shared,
-                             problems=[] if shared else P.kit_problems(doc), notes=([SHARED_NOTE] if shared else []) + (notes or []))
+                             problems=[] if shared else P.kit_problems(doc), notes=([SHARED_NOTE] if shared else []) + (notes or []),
+                             masks=self._masks(db, species, {P.uv_layout(species, breed_id, r.kind) for r in avail}))
 
     def kits(self, species: str) -> m.PartKitList:
         with self.db() as db:
@@ -264,6 +265,10 @@ class PartLibrary:
         breeds: set[str] = set()
         with self.db() as db:
             for name, data in files:
+                if name.lower().endswith(".png"):  # a marking or pattern mask on a texture template (decision 133)
+                    note = self._put_mask(db, species, name, data, user)
+                    (done if note.startswith("mask") else skipped).append(f"{name}: {note}")
+                    continue
                 parsed = P.parse_name(name)
                 if not parsed:
                     skipped.append(f"{name}: expected <breed>__<kind>[__<variant>].glb (breed 'shared' for the shared library)")
@@ -313,6 +318,61 @@ class PartLibrary:
             items = [self._part(db.get(PartRow, i), self._kit_row(db, species, db.get(PartRow, i).breed_id)) for i in ids]
             db.rollback()
         return m.PartUploadResult(items=items, breeds=sorted(breeds), skipped=skipped, notes=done + notes)
+
+    # ------------------------------------------------------------------ masks (decision 133)
+    def _put_mask(self, db, species: str, name: str, data: bytes, user: str) -> str:
+        """Store <uv_layout>__<name>.png as a greyscale mask; a note saying what happened (starting "mask" when taken)."""
+        from PIL import Image  # noqa: PLC0415
+
+        parsed = P.parse_mask_name(name)
+        if not parsed:
+            return "expected <uv_layout>__<name>.png, e.g. dog-torso-1__white_chest.png or dog-<breed>-head-1__white_blaze.png"
+        sp, layout, mask = parsed
+        if sp != species:
+            return f"a {sp} template, not {species}"
+        try:
+            img = Image.open(io.BytesIO(data))
+            img.load()
+        except Exception as exc:  # noqa: BLE001
+            return f"not a readable PNG: {exc}"
+        if min(img.size) < 64 or max(img.size) > 4096:
+            return f"{img.size[0]}x{img.size[1]} pixels: masks are 64 to 4096 pixels a side"
+        if img.mode in ("RGBA", "LA"):  # transparent where there is no marking
+            img = Image.composite(img.convert("L"), Image.new("L", img.size, 0), img.getchannel("A"))
+        buf = io.BytesIO()
+        img.convert("L").save(buf, format="PNG", optimize=True)
+        png = buf.getvalue()
+        key = f"masks/{species}/{layout}/{mask}.png"
+        self.store.put(key, png)
+        row = db.get(MaskRow, (species, layout, mask)) or MaskRow(species=species, uv_layout=layout, name=mask)
+        row.key, row.sha256, row.size, row.uploaded_by, row.updated_at = key, hashlib.sha256(png).hexdigest(), max(img.size), user, utcnow()
+        db.add(row)
+        db.execute(update(KitRow).where(KitRow.species == species).values(dirty=True))  # a release carries masks with kits
+        return f"mask {mask} on {layout}"
+
+    def _masks(self, db, species: str, layouts: set[str]) -> dict[str, list[str]]:
+        rows = db.scalars(select(MaskRow).where(MaskRow.species == species, MaskRow.uv_layout.in_(sorted(layouts)))).all()
+        out: dict[str, list[str]] = {}
+        for r in sorted(rows, key=lambda r: (r.uv_layout, r.name)):
+            out.setdefault(r.uv_layout, []).append(r.name)
+        return out
+
+    def release_items(self, species: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        """What a release carries (decision 133): every breed's latest committed kit, labelled, its part files as store
+        keys; and every mask on the texture templates those kits' parts use, as store keys."""
+        kits: list[dict[str, Any]] = []
+        layouts: set[str] = set()
+        with self.db() as db:
+            rows = db.scalars(select(KitRow).where(KitRow.species == species, KitRow.committed_key.is_not(None),
+                                                   KitRow.breed_id != P.SHARED).order_by(KitRow.breed_id)).all()
+            for k in rows:
+                doc = json.loads(self.store.get(k.committed_key))
+                kits.append({"label": self._breed_label(species, k.breed_id), "doc": doc})
+                layouts |= {p["uv_layout"] for p in doc["parts"] if p.get("uv_layout")}
+            masks = [{"uv_layout": r.uv_layout, "name": r.name, "key": r.key}
+                     for r in db.scalars(select(MaskRow).where(MaskRow.species == species, MaskRow.uv_layout.in_(sorted(layouts))))
+                     .all()]
+        return kits, sorted(masks, key=lambda x: (x["uv_layout"], x["name"]))
 
     def _guess(self, species: str, breed_id: str, only: str | None = None, force: bool = False) -> list[str]:
         """Run the first guess for a breed's own parts (the shared library's, for `shared`) and apply it to every part

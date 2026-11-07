@@ -569,7 +569,8 @@ class MockApi:
         return await asyncio.to_thread(self.studio.ready().unpublish, species, kind, item_id)
 
     async def create_release(self, body: m.ReleaseCreate, user: m.StaffUser) -> m.ReleaseInfo:
-        info = await asyncio.to_thread(self.studio.ready().create_release, body.species, user)
+        kits, masks = await asyncio.to_thread(self.parts.release_items, body.species)
+        info = await asyncio.to_thread(self.studio.ready().create_release, body.species, user, kits, masks)
         self.library.add_bundle(self.studio.latest_bundle(info))  # the mock kiosk switches to it, like a real one
         return info
 

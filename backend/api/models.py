@@ -8,7 +8,8 @@ with Apple and Google), the contact an order needs, the account's orders and dev
 notes to a part upload (mirrored, scaled to the breed's size guess, decision 128); 3.13.0 adds the shared library of
 torsos, legs and tails, each breed's allowed variants, per-breed stretches and default texture (decision 130); 3.14.0
 adds torso presets, the customers' shape choices, each a stretch and socket offsets (decision 131); 3.15.0 adds a
-third colour to a breed's default texture, edited in the workbench."""
+third colour to a breed's default texture, edited in the workbench; 3.16.0 adds marking and pattern masks on texture
+templates, uploaded with the parts and carried by releases with the kits (decision 133)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -16,7 +17,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.15.0"
+API_VERSION = "3.16.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -879,6 +880,7 @@ class PartKit(_M):
     dirty: bool = Field(description="Changed since the last commit.")
     problems: list[str] = Field(description="What stops a commit.")
     notes: list[str] = []
+    masks: dict[str, list[str]] = Field({}, description="Per texture template this kit's parts use, the masks uploaded for it.")
 
 
 class PartKitSummary(_M):

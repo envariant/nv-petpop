@@ -13,6 +13,7 @@ from .oas import check
 
 ROOT = Path(__file__).resolve().parents[2]
 S = "/api/v1/studio"
+K = "/api/v1/kiosk"
 
 
 def staff(client, who: str) -> dict:
@@ -264,3 +265,57 @@ def test_a_breeds_default_texture_is_edited(client):
     assert client.put(f"{S}/parts/dog/basenji/setup", json={"texture": bad}, headers=cur).status_code == 422
     r = client.post(f"{S}/parts/dog/basenji/commit", headers=cur)
     assert r.status_code == 200, r.text  # the committed kit-3 document carries it (schema-checked)
+
+
+def test_masks_and_a_release_with_kits(client):
+    """Decision 133: masks on texture templates are uploaded with the parts; a release carries every breed's committed
+    kit, its part files (each once), and the masks its parts' templates have; the kiosk serves them."""
+    import io  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+    from PIL import Image  # noqa: PLC0415
+
+    from petpop_library import release  # noqa: PLC0415
+
+    cur, adm = staff(client, "curator"), staff(client, "admin")
+
+    def png(size=128, mode="L"):
+        buf = io.BytesIO()
+        Image.new(mode, (size, size), 255 if mode == "L" else (255, 255, 255, 255)).save(buf, format="PNG")
+        return buf.getvalue()
+
+    parts = [("files", (f"whippet__{n}.glb", trimesh.creation.icosphere(subdivisions=1).apply_scale(np.array(e) / 2).export(file_type="glb"),
+                        "model/gltf-binary")) for n, e in [("torso", (0.8, 1, 1.4)), ("head", (1, 1, 1)), ("fore_leg", (0.4, 1, 0.4)),
+                                                          ("hind_leg", (0.5, 1, 1)), ("tail", (0.2, 0.2, 1))]]
+    masks = [("files", ("dog-whippet-head-1__white_blaze.png", png(), "image/png")),
+             ("files", ("dog-torso-1__white_chest.png", png(256, "RGBA"), "image/png")),
+             ("files", ("dog-front_leg-1__white_socks.png", png(), "image/png")),
+             ("files", ("dog-torso-1__tiny.png", png(16), "image/png")),
+             ("files", ("cat-torso-1__white_chest.png", png(), "image/png")),
+             ("files", ("whippet_chest.png", png(), "image/png"))]
+    up = client.post(f"{S}/parts/dog/upload", files=parts + masks, headers=cur).json()
+    assert sum(n.split(": ", 1)[1].startswith("mask ") for n in up["notes"]) == 3
+    assert any("64 to 4096" in s for s in up["skipped"]) and any("a cat template" in s for s in up["skipped"])
+    assert any("expected <uv_layout>__<name>.png" in s for s in up["skipped"])
+    kit = client.get(f"{S}/parts/dog/whippet", headers=cur).json()
+    assert kit["masks"] == {"dog-whippet-head-1": ["white_blaze"], "dog-torso-1": ["white_chest"], "dog-front_leg-1": ["white_socks"]}
+    assert client.post(f"{S}/parts/dog/whippet/commit", headers=cur).json()["version"] == 1
+
+    r = client.post(f"{S}/releases", headers=adm, json={"species": "dog"})
+    assert r.status_code == 201, r.text
+    info = r.json()
+    assert info["counts"]["kits"] >= 1 and info["counts"]["masks"] >= 3
+    manifest, files = release.read(client.get(info["url"]).content)
+    assert manifest["release_schema"] == "3.0" and release.release_errors(manifest) == []
+    k = next(x for x in manifest["kits"] if x["breed_id"] == "whippet")
+    assert k["label"] == "Whippet" and k["kit_version"] == "kit-3" and k["version"] == 1
+    assert all(p["mesh"]["file"].startswith("parts/") and p["mesh"]["file"] in files for p in k["parts"])
+    assert {(mk["uv_layout"], mk["name"]) for mk in manifest["masks"]} >= {("dog-whippet-head-1", "white_blaze"), ("dog-torso-1", "white_chest")}
+    chest = next(mk for mk in manifest["masks"] if mk["name"] == "white_chest")
+    assert Image.open(io.BytesIO(files[chest["file"]])).mode == "L"  # stored greyscale, whatever was uploaded
+
+    rel = client.get(f"{K}/library/dog").json()  # the kiosk switches to it
+    assert rel["release_version"] == info["release_version"] and any(x["breed_id"] == "whippet" for x in rel["manifest"]["kits"])
+    part = k["parts"][0]["mesh"]["file"]
+    got = client.get(f"{rel['files_url']}{part}")
+    assert got.status_code == 200 and got.content == files[part]

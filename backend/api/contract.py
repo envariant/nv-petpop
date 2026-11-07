@@ -456,7 +456,8 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
                            scale: bool = Query(True, description="Fit each part to its breed's size guess (decision 128): parts "
                                                "exported one at a time are not in proportion. Off for parts split from one figure."),
                            user: m.StaffUser = curator) -> m.PartUploadResult:
-        """Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once."""
+        """Labelled GLBs, <breed>__<kind>[__<variant>].glb (docs/PARTS.md); each breed's joints are guessed at once. PNG
+        masks on texture templates, <uv_layout>__<name>.png, are taken too (decision 133)."""
         got = []
         for f in files:
             data = await f.read()

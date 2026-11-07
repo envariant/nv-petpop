@@ -51,6 +51,17 @@ def uv_layout(species: str, breed_id: str, kind: str) -> str:
     return f"{species}-{breed_id}-head-1" if kind == "head" else f"{species}-{kind}-1"
 
 
+MASK_NAME = re.compile(r"^(?P<layout>(?P<species>[a-z]+)-(?:[a-z0-9_]+-head|torso|front_leg|hind_leg|tail)-[0-9]+)__"
+                       r"(?P<name>[a-z0-9_]{1,40})\.png$")
+
+
+def parse_mask_name(name: str) -> tuple[str, str, str] | None:
+    """(species, uv_layout, mask name) from <uv_layout>__<name>.png, e.g. dog-corgi_pembroke-head-1__white_blaze.png or
+    dog-torso-1__white_chest.png (decision 133)."""
+    mt = MASK_NAME.match(name.lower())
+    return (mt["species"], mt["layout"], mt["name"]) if mt else None
+
+
 def parse_name(name: str) -> tuple[str, str, str] | None:
     """(breed, kind, variant) from <breed>__<kind>[__<variant>].glb, breed `shared` for the shared library. The breed
     database's names work too: fore_leg is the front leg, hind_leg_sitting a hind leg variant (sitting_fold unless

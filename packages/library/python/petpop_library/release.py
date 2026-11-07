@@ -47,7 +47,16 @@ def release_errors(manifest: dict[str, Any]) -> list[str]:
     from jsonschema import Draft202012Validator
 
     v = Draft202012Validator(load_schema("release.schema.json"))
-    return [f"{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in v.iter_errors(manifest)]
+    errs = [f"{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in v.iter_errors(manifest)]
+    kv = Draft202012Validator(load_schema("part_kit.schema.json"))  # each kit as Studio committed it (decision 133)
+    files = {f["path"] for f in manifest.get("files", [])}
+    for i, kit in enumerate(manifest.get("kits") or []):
+        doc = {k: v for k, v in kit.items() if k != "label"}
+        errs += [f"kits/{i}/{'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in kv.iter_errors(doc)]
+        errs += [f"kits/{i}: {p['mesh']['file']} is not in the release" for p in kit.get("parts", [])
+                 if files and p.get("mesh", {}).get("file") not in files]
+    errs += [f"masks: {mk['file']} is not in the release" for mk in manifest.get("masks") or [] if files and mk["file"] not in files]
+    return errs
 
 
 def pack(manifest: dict[str, Any], files: dict[str, bytes], key: bytes | None = None) -> bytes:
@@ -121,6 +130,13 @@ class Release:
         from . import figure
 
         return figure.load(self.file(self.item("meshes", mesh_id)["package"]))
+
+    def kit(self, breed_id: str) -> dict[str, Any] | None:
+        """The breed's part kit in this release (release 3.0, decision 133), or None."""
+        return next((k for k in self.manifest.get("kits") or [] if k["breed_id"] == breed_id), None)
+
+    def mask_file(self, uv_layout: str, name: str) -> str | None:
+        return next((mk["file"] for mk in self.manifest.get("masks") or [] if mk["uv_layout"] == uv_layout and mk["name"] == name), None)
 
     def item(self, kind: str, item_id: str) -> dict[str, Any]:
         for it in self.manifest[kind]:

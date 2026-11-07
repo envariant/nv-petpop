@@ -588,7 +588,8 @@ class BackendApi:
         return await asyncio.to_thread(self.studio.unpublish, species, kind, item_id)
 
     async def create_release(self, body: m.ReleaseCreate, user: m.StaffUser) -> m.ReleaseInfo:
-        info = await asyncio.to_thread(self.studio.create_release, body.species, user)
+        kits, masks = await asyncio.to_thread(self.parts.release_items, body.species)
+        info = await asyncio.to_thread(self.studio.create_release, body.species, user, kits, masks)
         await asyncio.to_thread(self.library.load_releases)  # a kiosk on this box switches now, not at the next poll
         return info
 

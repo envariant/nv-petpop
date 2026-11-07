@@ -100,18 +100,20 @@ def mesh_entry(mesh: BaseMesh, name: str, breeds: list[str], version: int = 1, s
 
 def manifest(species: str, number: int, segmentation_version: str, created_by: str, created_at: str,
              meshes: list[dict[str, Any]], families: list[dict[str, Any]], region_deltas: list[dict[str, Any]],
-             shell_parts: list[dict[str, Any]], pattern_layers: list[dict[str, Any]], notes: str = "") -> dict[str, Any]:
-    """A release 2.0 manifest (decision 118). Each mesh lists the breeds of every family built on it, so breeds that
-    share a mesh say so."""
+             shell_parts: list[dict[str, Any]], pattern_layers: list[dict[str, Any]], notes: str = "",
+             kits: list[dict[str, Any]] | None = None, masks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """A release 3.0 manifest (decisions 118, 133). Each mesh lists the breeds of every family built on it, so breeds
+    that share a mesh say so. `kits`: each breed's committed part kit (kit-3, its part files as release paths, plus
+    its label); `masks`: the marking and pattern masks on the texture templates those parts use."""
     breeds: dict[str, set[str]] = {}
     for f in families:
         breeds.setdefault(f["mesh_id"], set()).update(f["breeds"])
     meshes = [{**m, "breeds": sorted(set(m["breeds"]) | breeds.get(m["id"], set()))} for m in meshes]
     return {
-        "release_schema": "2.0", "release_version": f"release-{species}-{number}", "species": species, "number": number,
+        "release_schema": "3.0", "release_version": f"release-{species}-{number}", "species": species, "number": number,
         "segmentation_version": segmentation_version, "meshes": meshes, "notes": notes, "created_at": created_at,
         "created_by": created_by, "families": families, "region_deltas": region_deltas, "shell_parts": shell_parts,
-        "pattern_layers": pattern_layers, "files": [],
+        "pattern_layers": pattern_layers, "kits": kits or [], "masks": masks or [], "files": [],
     }
 
 

@@ -496,18 +496,22 @@ class StudioLibrary:
         return content.mesh_thumbnail(np.asarray(mesh.vertices), np.asarray(mesh.faces), row.default_colour)
 
     # ------------------------------------------------------------------ releases (Contract 1)
-    def create_release(self, species: str, user: m.StaffUser) -> m.ReleaseInfo:
+    def create_release(self, species: str, user: m.StaffUser, kits: list[dict[str, Any]] | None = None,
+                       masks: list[dict[str, Any]] | None = None) -> m.ReleaseInfo:
+        """Pack the published library and, from the part library (decision 133), every breed's committed kit and the
+        masks its parts' templates have, into the species' next release."""
         with self.db() as db:
             latest: dict[str, list] = {}
             for kind, Row in ROWS.items():
                 rows = db.scalars(select(Row).where(Row.species == species, Row.status == "published").order_by(Row.id)).all()
                 latest[kind] = rows
             number = (db.scalar(select(func.max(LibraryReleaseRow.number)).where(LibraryReleaseRow.species == species)) or 0) + 1
-        items, problems = release_entries(latest)
+        items, problems = release_entries(latest, has_kits=bool(kits))
         if problems:
             raise ApiError(409, {"release": problems})
         bundle, manifest = pack(species, number, items, self.store.get, lambda mid: get_mesh(self.store, species, mid),
-                                created_by=f"studio:{user.username}", notes=f"Published by {user.username} in PetPop Studio.")
+                                created_by=f"studio:{user.username}", notes=f"Published by {user.username} in PetPop Studio.",
+                                kits=kits, masks=masks)
         version = manifest["release_version"]
         key = f"releases/{species}/{version}.tar"
         self.store.put(key, bundle)
@@ -519,7 +523,7 @@ class StudioLibrary:
             tmp.replace(inbox / f"{version}.tar")  # the kiosk never sees a half-written bundle
         import hashlib
 
-        counts = {k: len(manifest[k]) for k in MANIFEST_KIND.values()}
+        counts = {k: len(manifest[k]) for k in [*MANIFEST_KIND.values(), "kits", "masks"]}
         with self.db() as db:
             db.add(LibraryReleaseRow(id=version, species=species, number=number, created_by=user.username, created_at=utcnow(),
                                      object_key=key, counts=counts, sha256=hashlib.sha256(bundle).hexdigest(), bytes=len(bundle)))
@@ -537,16 +541,17 @@ class StudioLibrary:
             return m.ReleaseList(items=[self._release(r) for r in rows])
 
 
-def release_entries(latest: dict[str, list]) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-    """Manifest entries (with source keys) for the published rows; problems that block a release."""
+def release_entries(latest: dict[str, list], has_kits: bool = False) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
+    """Manifest entries (with source keys) for the published rows; problems that block a release. A release with
+    part kits (decision 133) needs no whole-figure family; one with families needs a pattern layer."""
     problems = []
     # Part variants are optional (a generated mesh has none, decision 119) and only ever belong to their own mesh.
     regions = {(row.mesh_id, row.region): [] for row in latest["region"]}
     for row in latest["region"]:
         regions[(row.mesh_id, row.region)].append(row.id)
-    if not latest["family"]:
-        problems.append("no published family")
-    if not latest["pattern"]:
+    if not latest["family"] and not has_kits:
+        problems.append("no published family and no committed part kit")
+    if latest["family"] and not latest["pattern"]:
         problems.append("no published pattern layer")
     items: dict[str, list[dict[str, Any]]] = {}
     items["families"] = [{"id": r.id, "name": r.name, "mesh_id": r.mesh_id, "delta": r.files.get("delta"), "breeds": r.breeds, "tags": r.tags,

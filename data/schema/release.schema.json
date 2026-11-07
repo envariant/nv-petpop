@@ -22,7 +22,11 @@
   ],
   "properties": {
     "release_schema": {
-      "const": "2.0"
+      "enum": [
+        "2.0",
+        "3.0"
+      ],
+      "description": "3.0 (decision 133) adds kits and masks."
     },
     "release_version": {
       "type": "string",
@@ -347,6 +351,62 @@
           "sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "kits": {
+      "type": "array",
+      "description": "Each breed's committed part kit (data/schema/part_kit.schema.json, checked on its own), its part mesh files as release paths, plus the breed's label.",
+      "items": {
+        "type": "object",
+        "required": [
+          "kit_version",
+          "species",
+          "breed_id",
+          "label",
+          "version",
+          "parts",
+          "defaults",
+          "poses",
+          "default_pose"
+        ],
+        "properties": {
+          "breed_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kit_version": {
+            "enum": [
+              "kit-3"
+            ]
+          }
+        }
+      }
+    },
+    "masks": {
+      "type": "array",
+      "description": "Marking and pattern masks on texture templates: greyscale PNGs in the template's UVs, white where the marking is.",
+      "items": {
+        "type": "object",
+        "required": [
+          "uv_layout",
+          "name",
+          "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "uv_layout": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$"
+          },
+          "file": {
+            "type": "string"
           }
         }
       }

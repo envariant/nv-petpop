@@ -80,6 +80,19 @@ For both:
   database's names work too: `fore_leg` is the front leg, `hind_leg_sitting` the hind leg's `sitting` variant.
   `fixtures/parts/<species>/mixed__*.glb` are proxy kits cut from the templates (`scripts/make_proxy_parts.py`).
 
+## 1b. Marking and pattern masks (decision 133)
+
+A mask is a greyscale PNG in a texture template's UVs, white where a marking (or a pattern) is, black elsewhere.
+Name it `<template>__<name>.png` and upload it with the parts (Studio, Parts): `dog-torso-1__white_chest.png`,
+`dog-front_leg-1__white_socks.png`, `dog-corgi_pembroke-head-1__white_blaze.png` (a head's template is its breed's,
+decision 129). The name is the marking's or the pattern's as the breed's texture names it (`white_blaze`,
+`saddle_with_white_chest`, ...). Transparent pixels count as black; 64 to 4096 pixels a side; Studio keeps it greyscale.
+A breed's kit lists the masks its parts' templates have. Colours: the base (colour A) everywhere, the texture's pattern
+and markings in colour B; a mask named `<name>_c` (e.g. `tricolour_c`) paints colour C.
+
+A release carries every breed's latest committed kit, its part files (once each, shared parts too) and the masks on
+the templates its parts use (release 3.0).
+
 ## 1a. The draft (a script, before Studio)
 
     make draft-parts FILES=~/exports/corgi OUT=var/drafts/corgi_pembroke [ARGS="--shared ~/exports/shared --front -x --fuse"]

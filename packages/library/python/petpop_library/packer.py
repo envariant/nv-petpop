@@ -9,6 +9,8 @@ manifest.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
@@ -28,10 +30,14 @@ EXT = {"delta": "f16", "mesh": "glb", "thumbnail": "png"}
 
 def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read: Callable[[str], bytes],
          mesh_of: Callable[[str], tuple[BaseMesh, dict[str, Any]]], created_by: str, notes: str = "",
-         created_at: str | None = None, key: bytes | None = None) -> tuple[bytes, dict[str, Any]]:
+         created_at: str | None = None, key: bytes | None = None, kits: list[dict[str, Any]] | None = None,
+         masks: list[dict[str, Any]] | None = None) -> tuple[bytes, dict[str, Any]]:
     """items: kind -> manifest entries whose file fields hold *source* keys for `read`; mesh_of(mesh_id) gives each
     mesh the families and part variants name, with its metadata (name, breeds, version, source_job, texture
-    bytes, or `prebuilt`: its (entry, files) from content.mesh_entry). Returns (bundle, manifest)."""
+    bytes, or `prebuilt`: its (entry, files) from content.mesh_entry). kits: [{"label", "doc"}] committed kit
+    documents whose part files are source keys; masks: [{"uv_layout", "name", "key"}] (decision 133). Part files are
+    laid out by content (parts/<sha256>.glb), so a part shared by several breeds is packed once.
+    Returns (bundle, manifest)."""
     files: dict[str, bytes] = {}
     out: dict[str, list[dict[str, Any]]] = {}
     for kind in KINDS:
@@ -58,9 +64,25 @@ def pack(species: str, number: int, items: dict[str, list[dict[str, Any]]], read
                                        meta.get("source_job"), texture=meta.get("texture"))
         meshes.append(entry)
         files.update(mfiles)
+    kit_entries = []
+    for k in kits or []:
+        doc = json.loads(json.dumps(k["doc"]))
+        for p in doc["parts"]:
+            data = read(p["mesh"]["file"])
+            sha = hashlib.sha256(data).hexdigest()
+            path = f"parts/{sha[:24]}.glb"
+            files[path] = data
+            p["mesh"] = {**p["mesh"], "file": path, "sha256": sha}
+        kit_entries.append({**doc, "label": k["label"]})
+    mask_entries = []
+    for mk in masks or []:
+        path = f"masks/{mk['uv_layout']}/{mk['name']}.png"
+        files[path] = read(mk["key"])
+        mask_entries.append({"uv_layout": mk["uv_layout"], "name": mk["name"], "file": path})
     m = release_manifest(species, number, schema(species)["schema_version"], created_by,
                          created_at or datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"), meshes,
-                         out["families"], out["region_deltas"], out["shell_parts"], out["pattern_layers"], notes=notes)
+                         out["families"], out["region_deltas"], out["shell_parts"], out["pattern_layers"], notes=notes,
+                         kits=sorted(kit_entries, key=lambda k: k["breed_id"]), masks=mask_entries)
     bundle = release.pack(m, files, key=key)
     manifest, _ = release.read(bundle, key=key)  # the packed manifest carries the file list and hashes
     return bundle, manifest
