@@ -240,3 +240,27 @@ def test_torso_presets(client):
     assert next(p for p in kit["parts"] if p["kind"] == "torso")["presets"][0]["stretch"] == [1.1, 1.1, 1.1]
     kit = client.post(f"{S}/parts/dog/beagle/commit", headers=cur).json()
     assert kit["version"] == 1, kit
+
+
+def test_a_breeds_default_texture_is_edited(client):
+    """The workbench edits a breed's default texture: up to three colours, the pattern, the markings (API 3.15.0)."""
+    import numpy as np  # noqa: PLC0415
+
+    cur = staff(client, "curator")
+    files = [("files", (f"basenji__{n}.glb", trimesh.creation.icosphere(subdivisions=1).apply_scale(np.array(e) / 2).export(file_type="glb"),
+                        "model/gltf-binary")) for n, e in [("torso", (0.8, 1, 1.4)), ("head", (1, 1, 1)), ("fore_leg", (0.4, 1, 0.4)),
+                                                          ("hind_leg", (0.5, 1, 1)), ("tail", (0.2, 0.2, 1))]]
+    client.post(f"{S}/parts/dog/upload", files=files, headers=cur)
+    kit = client.get(f"{S}/parts/dog/basenji", headers=cur).json()
+    assert kit["texture"]["base"]["hex"].startswith("#")  # seeded from the per-breed parts file
+    texture = {"base": {"name": "chestnut", "hex": "#954535"}, "secondary": {"name": "white", "hex": "#FFFFFF"},
+               "tertiary": {"name": None, "hex": "#111111"}, "pattern": "tricolour", "markings": ["white_blaze", "white_tail_tip"]}
+    r = client.put(f"{S}/parts/dog/basenji/setup", json={"texture": texture}, headers=cur)
+    kit = check(f"{S}/parts/{{species}}/{{breed_id}}/setup", "put", r)
+    assert kit["texture"] == texture and kit["dirty"]
+    bad = {**texture, "base": {"hex": "red"}}
+    assert client.put(f"{S}/parts/dog/basenji/setup", json={"texture": bad}, headers=cur).status_code == 422
+    bad = {**texture, "markings": ["White Blaze"]}
+    assert client.put(f"{S}/parts/dog/basenji/setup", json={"texture": bad}, headers=cur).status_code == 422
+    r = client.post(f"{S}/parts/dog/basenji/commit", headers=cur)
+    assert r.status_code == 200, r.text  # the committed kit-3 document carries it (schema-checked)

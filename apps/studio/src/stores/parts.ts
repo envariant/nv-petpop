@@ -62,6 +62,11 @@ export const useParts = defineStore('parts', () => {
     await setup({ stretch: { [`${part.kind}/${part.variant}`]: s } });
   }
 
+  /** The breed's default texture configuration: colours, pattern, markings (saved as it is changed). */
+  async function setTexture(t: NonNullable<PartKit['texture']>) {
+    await setup({ texture: t });
+  }
+
   // ---- torso presets (decision 131): the customers' shape choices, each a stretch and socket offsets
   const presetId = ref<string>('default'); // the preset previewed
   const presets = computed<Preset[]>(() => torso.value?.presets ?? []);
@@ -207,7 +212,7 @@ export const useParts = defineStore('parts', () => {
   }
   return {
     species, kits, kit, target, view, gizmo, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
-    variantOf, partOf, allowed, setAllowed, setStretch,
+    variantOf, partOf, allowed, setAllowed, setStretch, setTexture,
     presetId, presets, preset, torsoStretch, offsetMode, addPreset, removePreset, renamePreset, setPresetStretch, setOffset, saveOffsets, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
   };
 });

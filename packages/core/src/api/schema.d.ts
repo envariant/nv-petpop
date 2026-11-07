@@ -1427,6 +1427,8 @@ export interface components {
             /** Pattern */
             pattern?: string | null;
             secondary?: components["schemas"]["TextureColour"] | null;
+            /** @description A third colour, for tricolour patterns. */
+            tertiary?: components["schemas"]["TextureColour"] | null;
         };
         /** CodeRequest */
         CodeRequest: {

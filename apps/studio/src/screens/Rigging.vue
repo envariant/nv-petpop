@@ -15,6 +15,7 @@ import { useParts } from '../stores/parts';
 import { useSession } from '../stores/session';
 import Notice from '../components/Notice.vue';
 import RigView from '../components/RigView.vue';
+import TextureEditor from '../components/TextureEditor.vue';
 const ps = useParts();
 const s = useSession();
 const KINDS: Kind[] = ['head', 'torso', 'front_leg', 'hind_leg', 'tail'];
@@ -225,15 +226,8 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
         </div>
       </PSection>
 
-      <PSection v-if="ps.kit.texture" title="Default texture" test-id="rig-texture">
-        <div class="flex flex-wrap items-center gap-3 text-sm">
-          <span class="flex items-center gap-1"><i class="inline-block h-5 w-5 rounded-full border-2 border-line" :style="{ background: ps.kit.texture.base.hex }" />{{ ps.kit.texture.base.name ?? ps.kit.texture.base.hex }}</span>
-          <span v-if="ps.kit.texture.secondary" class="flex items-center gap-1"><i class="inline-block h-5 w-5 rounded-full border-2 border-line" :style="{ background: ps.kit.texture.secondary.hex }" />{{ ps.kit.texture.secondary.name ?? ps.kit.texture.secondary.hex }}</span>
-          <span v-if="ps.kit.texture.pattern" class="text-muted">{{ label(ps.kit.texture.pattern) }}</span>
-        </div>
-        <PRow v-if="ps.kit.texture.markings?.length" class="mt-1">
-          <Chip v-for="mk in ps.kit.texture.markings" :key="mk" :test-id="`marking-${mk}`">{{ label(mk) }}</Chip>
-        </PRow>
+      <PSection v-if="ps.kit.breed_id !== 'shared'" title="Default texture" test-id="rig-texture">
+        <TextureEditor />
       </PSection>
 
       <PSection v-if="head" title="Head limits (degrees)" test-id="rig-limits">

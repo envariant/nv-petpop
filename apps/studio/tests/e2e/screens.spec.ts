@@ -329,8 +329,27 @@ test('15 shared library: shared torsos, legs and tails, a breed head, stretched 
   expect(Number(await page.getByTestId('stretch-front_leg-1').inputValue())).toBeLessThan(0.8);
   await expect(page.getByTestId('pose-sitting')).toBeVisible();
   await expect(page.getByTestId('pose-default-sitting')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByTestId('rig-texture')).toContainText('red');
+  await expect(page.getByTestId('texture-base-hex')).toBeVisible();
   await expect(page.getByTestId('marking-white_blaze')).toBeVisible();
+  // the default texture, edited: colours, pattern, markings; saved as it changes
+  await page.getByTestId('texture-base-name').fill('ginger');
+  await page.getByTestId('texture-base-name').press('Enter');
+  await page.getByTestId('texture-base-hex').fill('#d2691e');
+  await page.getByTestId('texture-pattern').selectOption('tricolour');
+  if (await page.getByTestId('texture-tertiary-add').isVisible()) await page.getByTestId('texture-tertiary-add').tap();
+  await expect(page.getByTestId('texture-tertiary-hex')).toBeVisible();
+  if (await page.getByTestId('marking-white_socks').isVisible()) await page.getByTestId('marking-white_socks').tap();
+  await expect(page.getByTestId('marking-white_socks')).toHaveCount(0);
+  if (await page.getByTestId('marking-add-dark_mask').isVisible()) await page.getByTestId('marking-add-dark_mask').tap();
+  await page.getByTestId('marking-new').fill('White Tail Tip');
+  await page.getByTestId('marking-new').press('Enter');
+  await expect(page.getByTestId('marking-white_tail_tip')).toBeVisible();
+  await page.getByTestId('rig-back').tap();
+  await page.getByTestId('open-kit-corgi_pembroke').tap();
+  await expect(page.getByTestId('texture-base-name')).toHaveValue('ginger');
+  await expect(page.getByTestId('texture-base-hex')).toHaveValue('#d2691e');
+  await expect(page.getByTestId('texture-pattern')).toHaveValue('tricolour');
+  await expect(page.getByTestId('marking-dark_mask')).toBeVisible();
   // a stretch set by hand, then back to the size guess
   await page.getByTestId('stretch-front_leg-1').fill('0.5');
   await page.getByTestId('stretch-front_leg-1').press('Enter');

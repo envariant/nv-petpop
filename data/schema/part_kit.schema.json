@@ -84,7 +84,10 @@
       "additionalProperties": false,
       "properties": {
         "name": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "hex": {
           "type": "string",
@@ -473,7 +476,7 @@
         "null"
       ],
       "additionalProperties": false,
-      "description": "The breed's default texture configuration: colours, pattern and markings (masks).",
+      "description": "The breed's default texture configuration: colours (a third for tricolour patterns), pattern and markings (masks).",
       "properties": {
         "base": {
           "$ref": "#/$defs/colour"
@@ -499,6 +502,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "tertiary": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/colour"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     }

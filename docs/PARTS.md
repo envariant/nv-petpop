@@ -115,7 +115,11 @@ edits (section 3).
    numbers set this breed's **socket offset** for that shape (move and turn), mirrored by symmetry; otherwise they
    edit the torso's own socket. A shared
    part's joints are the same for every breed: edit them from any breed's workbench (or the "Shared parts" kit) and
-   every breed's kit has changes to commit. The breed's **default texture** is shown below.
+   every breed's kit has changes to commit.
+   The breed's **default texture** is edited below it: colour A, and optionally B and C (a swatch and a name each;
+   C is for tricolour patterns), the pattern, and the markings (remove one by tapping it; add one of the database's,
+   or type another: it is stored lower case with underscores, the name its masks are made for). Each change is saved
+   as you make it.
 4. Head limits, and the **poses**: each leg's twist (0, 1 or 2 thirds), the head's angles, and any variant the pose
    swaps in (sitting: the hind leg `sitting_fold`); mark the default.
 5. **Commit**: Studio checks the kit (every kind present with a default, every joint set, poses within limits and

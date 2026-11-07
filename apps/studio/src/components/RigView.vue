@@ -212,7 +212,20 @@ watch(() => [ps.torso?.attachments, ps.kit?.parts.map((p) => p.joint), ps.preset
 watch(() => ps.gizmo, () => tc?.setMode(ps.gizmo));
 onBeforeUnmount(() => {
   stage?.renderer.domElement.removeEventListener('pointerup', pick);
-  tc?.dispose();
+  // TransformControls.dispose() in three r169 calls this.traverse, which the controls (no longer an Object3D) do not
+  // have: it threw, and the screen never left the workbench. Detach, disconnect and free the gizmo's helper instead.
+  if (tc) {
+    tc.detach();
+    tc.disconnect();
+    const helper = tc.getHelper();
+    stage?.scene.remove(helper);
+    helper.traverse((o) => {
+      const m = o as THREE.Mesh;
+      m.geometry?.dispose();
+      (Array.isArray(m.material) ? m.material : m.material ? [m.material] : []).forEach((x) => x.dispose());
+    });
+    tc = null;
+  }
   stage?.dispose();
   stage = null;
   meshes.forEach((g) => g.dispose());

@@ -306,3 +306,12 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    torso's default shape edits its sockets. Heads stay breed-specific, with variants (`<breed>__head__<variant>.glb`).
    Kits are `kit-3` (API 3.14.0: `Part.presets`, `PartKitSetup.presets`); compositions choose a torso variant and a
    preset (`compose_parts.py --preset`); drafts compose every shape.
+132. **The breed's default texture is edited in the workbench (Nishant, 2026-11-07).** Colour A (base), optional B
+   (secondary) and C (tertiary, new in API 3.15.0, for tricolour patterns), each a hex and an optional name; the pattern;
+   the markings (lower-case names with underscores, at most 20, the names per-part masks are made for). The editor
+   offers the breed database's patterns and markings (a unit test keeps the list complete) and takes others typed.
+   Edits go to a working copy and are saved one at a time with the latest copy, so quick edits never undo each other;
+   a colour picker saves once it settles. Found on the way: leaving the rigging workbench never worked, since three
+   r169's TransformControls.dispose() throws (it calls traverse, gone from the controls); the workbench now detaches
+   and frees the gizmo itself. And a kit whose texture had an unnamed colour failed its schema check on commit; colour
+   names may be null.
