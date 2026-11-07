@@ -11,10 +11,11 @@ guesses exactly what an upload to Studio would:
   3. size    every part fitted to its size guess (the breed's; for a shared part the median of the breeds using that
              variant), centred, textures kept; --keep-scale for parts already in proportion
   4. rig     the first guess at every joint and socket, each leg slid to stand on the floor
-  5. breed   the variants it allows and its defaults (its part types in the breed database), each shared part
-             stretched to its proportions, its poses (sitting, once the sitting hind leg is there)
-  6. compose the figure in every pose, and once per other allowed variant
-Writes <out>/<breed>.draft-kit.json (a kit-2 document, version 0, its problems listed), <out>/<breed>__draft*.glb (+ .stl,
+  5. breed   its entry in the per-breed parts file (data/breeds/<species>_breed_parts.json): the variants it allows and
+             its defaults, each shared part stretched to its proportions, its torso presets (shapes), its poses
+             (sitting, once the sitting hind leg is there)
+  6. compose the figure in every pose, once per other allowed variant, and once per other torso preset
+Writes <out>/<breed>.draft-kit.json (a kit-3 document, version 0, its problems listed), <out>/<breed>__draft*.glb (+ .stl,
 .plan.json) and the fitted parts under <out>/store/parts/. Final authoring starts there: upload the same exports to
 Studio (Parts), rig and commit, then compose the committed kit with your own edits (make compose-parts ... ARGS="--modify ...").
 """
@@ -38,14 +39,20 @@ from petpop_library import parts as P  # noqa: E402
 FRONT = {"+z": 0.0, "-z": 180.0, "+x": -90.0, "-x": 90.0}  # degrees about +Y that bring that axis to +Z
 
 
-def figures(kit: dict) -> list[tuple[str, str, dict]]:
-    """(name, pose, variants): each pose with the defaults, then each other allowed variant on its own."""
-    out = [("draft" if p["pose_id"] == kit["default_pose"] else f"draft__{p['pose_id']}", p["pose_id"], {}) for p in kit["poses"]]
+def figures(kit: dict) -> list[tuple[str, str, dict, str | None]]:
+    """(name, pose, variants, torso preset): each pose with the defaults, then each other allowed variant on its own,
+    then each other preset (shape) of each allowed torso."""
+    out: list[tuple[str, str, dict, str | None]] = [
+        ("draft" if p["pose_id"] == kit["default_pose"] else f"draft__{p['pose_id']}", p["pose_id"], {}, None) for p in kit["poses"]]
     swapped = {(k, v) for p in kit["poses"] for k, v in (p.get("variants") or {}).items()}
     for kind, variants in kit.get("allowed", {}).items():
         for v in variants:
             if v != kit["defaults"][kind] and (kind, v) not in swapped:
-                out.append((f"draft__{kind}-{v}", kit["default_pose"], {kind: v}))
+                out.append((f"draft__{kind}-{v}", kit["default_pose"], {kind: v}, None))
+    for p in kit["parts"]:
+        if p["kind"] == "torso":
+            for x in (p.get("presets") or [])[1:]:
+                out.append((f"draft__torso-{p['variant']}-{x['preset_id']}", kit["default_pose"], {"torso": p["variant"]}, x["preset_id"]))
     return out
 
 
@@ -88,10 +95,11 @@ def draft(files: list[Path], out: Path, species: str = "dog", breed: str | None 
     if not kit["problems"]:
         import trimesh  # noqa: PLC0415
 
-        for name, pose, variants in figures(kit):
-            r = compose(kit, out / "store", out, variants, pose, fuse, None, engine, name=f"{breed}__{name}")
+        for name, pose, variants, preset in figures(kit):
+            r = compose(kit, out / "store", out, variants, pose, fuse, None, engine, name=f"{breed}__{name}", preset_id=preset)
             ext = trimesh.load(r["outputs"]["glb"], force="mesh").extents
-            made.append({"glb": r["outputs"]["glb"], "pose": pose, "variants": r["variants"], "size_mm": [round(float(x), 1) for x in ext]})
+            made.append({"glb": r["outputs"]["glb"], "pose": pose, "variants": r["variants"], "preset": r["preset_id"],
+                         "size_mm": [round(float(x), 1) for x in ext]})
     return {"breed_id": breed, "kit": str(out / f"{breed}.draft-kit.json"), "figures": made, "notes": notes, "problems": kit["problems"]}
 
 
@@ -115,7 +123,7 @@ def main() -> None:
         print("  problem: " + p)
     for f in r["figures"]:
         w, h, d = f["size_mm"]
-        print(f"{f['glb']}: {h:.0f} mm tall, {d:.0f} mm nose to tail, {w:.0f} mm wide  ({f['pose']}) {f['variants']}")
+        print(f"{f['glb']}: {h:.0f} mm tall, {d:.0f} mm nose to tail, {w:.0f} mm wide  ({f['pose']}, shape {f['preset']}) {f['variants']}")
     print(f"draft kit: {r['kit']}")
 
 

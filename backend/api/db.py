@@ -333,6 +333,7 @@ class KitRow(Base):
     allowed: Mapped[dict[str, list[str]] | None] = mapped_column(JSON, nullable=True)
     stretch: Mapped[dict[str, list[float]] | None] = mapped_column(JSON, nullable=True)
     texture: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    presets: Mapped[dict[str, list[dict[str, Any]]] | None] = mapped_column(JSON, nullable=True)  # decision 131: "torso/<variant>"
 
 
 class PaymentRow(Base):
@@ -364,7 +365,8 @@ ADDED_COLUMNS = [("jobs", "genai_profile", "VARCHAR(40)"), ("curation_batches", 
                  ("jobs", "origin", "VARCHAR(8)"), ("jobs", "synced_at", "TIMESTAMP"), ("jobs", "remote_result_url", "VARCHAR(400)"),
                  ("compositions", "collected_at", "TIMESTAMP"), ("compositions", "account_id", "VARCHAR(40)"),
                  ("compositions", "contact_email", "VARCHAR(254)"), ("compositions", "contact_phone", "VARCHAR(24)"),
-                 ("part_kits", "allowed", "JSON"), ("part_kits", "stretch", "JSON"), ("part_kits", "texture", "JSON")]
+                 ("part_kits", "allowed", "JSON"), ("part_kits", "stretch", "JSON"), ("part_kits", "texture", "JSON"),
+                 ("part_kits", "presets", "JSON")]
 
 
 def _add_missing_columns(eng: Engine) -> None:

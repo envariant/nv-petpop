@@ -1,4 +1,4 @@
-# Part kits: authoring, rigging and composing breeds from parts (decisions 127 to 130)
+# Part kits: authoring, rigging and composing breeds from parts (decisions 127 to 131)
 
 A breed is a **kit** of five parts, put together at joints:
 
@@ -23,6 +23,28 @@ brings its own **head**, with its own texture template (decision 129). A breed's
   size; any other keeps its own shape at the breed's scale.
 - has a **default texture**: its colours, pattern and markings (`preset.colour` in the breed database).
 - may still have parts of its own (`<breed>__torso.glb`, ...), which win over the shared ones of the same variant.
+- has **torso presets** per torso variant (decision 131): the customers' shape choices. The first is the default
+  (the variant's stretch, no offsets); others ("Stocky", "Long", ...) each have their own stretch and **socket
+  offsets**, a move (mm) and a turn (degrees about x, then y, then z) of any torso socket for this breed. Customers
+  choose a torso variant and one of its presets.
+- has its own **head variants** (`<breed>__head.glb`, `<breed>__head__<variant>.glb`); the default is the curator's
+  choice in the workbench. Head variants are not a customer choice.
+
+**Which parts each breed uses** lives in the per-breed parts file, `data/breeds/dog_breed_parts.json`, not in the
+breed database (which describes bodies). Per breed and kind: the variants it offers and its default; per variant its
+stretch (null: the size guess); per torso variant its presets; the sitting variant; the default texture. Studio
+starts each breed's kit from its entry, and the workbench takes it from there. `make breed-parts` adds entries for new
+breeds in the database (from their part types) and never touches existing ones, so the file is yours to edit:
+
+```json
+"corgi_pembroke": {"parts": {
+  "torso": {"default": "long_low", "offer": {"long_low": {"presets": [
+    {"preset_id": "default", "label": "Standard", "stretch": null, "sockets": {}},
+    {"preset_id": "stocky", "label": "Stocky", "stretch": [1.2, 1.0, 0.9],
+     "sockets": {"hind_left": {"translate": [1, 0, -2], "rotate": [0, 0, 8]}, "hind_right": {"translate": [-1, 0, -2], "rotate": [0, 0, -8]}}}]}}},
+  "front_leg": {"default": "paw", "offer": {"paw": {"stretch": null}}}, ...},
+ "sitting": "sitting_fold", "texture": {...}}
+```
 
 **Poses** are named sets of joint settings (each leg's twist, the head's angles) and may swap variants in: the
 breed database sits every breed, so once `sitting_fold` is in the library a breed gets a **sitting** pose (the hind
@@ -87,7 +109,11 @@ edits (section 3).
    drag it; switch the gizmo to rotate to turn its axis, and set the twist. **Symmetry** (on by default) mirrors an edit
    to a left slot onto the right one and keeps the head and tail slots on the centre line.
 3. **Variants**: per kind, preview one (⧉ marks the shared library), make it the default, offer it to customers on
-   this breed, and set its **stretch** (side to side, up, front to back; "size guess" puts the guess back). A shared
+   this breed, and set its **stretch** (side to side, up, front to back; "size guess" puts the guess back). For the
+   torso, its **shapes** (presets): preview one, add one (a copy of the one shown), rename or remove it; the stretch
+   shown is the preset's. Select a torso socket: with a shared torso, or any shape but the default, the gizmo and the
+   numbers set this breed's **socket offset** for that shape (move and turn), mirrored by symmetry; otherwise they
+   edit the torso's own socket. A shared
    part's joints are the same for every breed: edit them from any breed's workbench (or the "Shared parts" kit) and
    every breed's kit has changes to commit. The breed's **default texture** is shown below.
 4. Head limits, and the **poses**: each leg's twist (0, 1 or 2 thirds), the head's angles, and any variant the pose
@@ -112,7 +138,8 @@ make compose-parts KIT=var/artefacts/kits/dog/corgi_pembroke/kit-3.json FILES=va
 python scripts/compose_parts.py --kit kit-3.json --files ~/kits/corgi --out out/ --variants torso=stocky --pose sitting --modify my_edits.py
 ```
 
-`--files` is the store root (Studio's keys) or a folder of your own GLBs named as in section 1. Blender's `bpy`
+`--preset stocky` composes a torso shape other than the default. `--files` is the store root (Studio's keys) or a
+folder of your own GLBs named as in section 1. Blender's `bpy`
 (`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
 `--modify`).
 
@@ -125,4 +152,7 @@ and its frame onto the attachment's frame; the pose then turns it about the atta
 the head by yaw about ref, pitch about axis x ref, roll about the axis). A right leg uses the mirrored part, joint and
 twist, so a symmetric pose has the same index on both sides. A stretch `s` scales the part's mesh, pivot and axis
 (the axis as a direction drawn on the mesh: `s * axis`, renormalised) before it is placed, and the torso's stretch its
-attachments likewise; the workbench shows the stretched figure and saves edits in the parts' own coordinates.
+attachments likewise; the workbench shows the stretched figure and saves edits in the parts' own coordinates. A
+preset's socket offset then acts on the stretched socket: the position moves by `translate`, and the socket's whole
+frame turns by `R = Rz Ry Rx` (`rotate`, degrees; three.js Euler order 'ZYX') about it, which turns its axis and
+sets its twist. The mirror slot's offset is the mirror image: `translate` x negated, `rotate` y and z negated.

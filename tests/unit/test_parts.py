@@ -2,6 +2,7 @@
 the proxy parts (fixtures/parts, cut from the labelled templates), and what stops a kit from being committed."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -148,3 +149,49 @@ def test_heads_have_their_breeds_own_texture_template():
     for bad in ("dog-head-1", "dog-corgi-paw-1"):
         with pytest.raises(jsonschema.ValidationError):
             jsonschema.validate(bad, prop)
+
+
+def test_socket_offsets():
+    """Decision 131: an offset moves a socket and turns its whole frame; it inverts, and mirrors with its slot."""
+    rng = np.random.default_rng(0)
+    for _ in range(100):
+        a = P.Joint(rng.normal(size=3), P.unit(rng.normal(size=3)), float(rng.uniform(0, 360)))
+        off = {"translate": rng.normal(size=3).tolist(), "rotate": rng.uniform(-80, 80, 3).tolist()}
+        b = P.offset_socket(a, off)
+        assert np.allclose(b.point, a.point + off["translate"]) and np.allclose(b.frame(), P.euler(off["rotate"]) @ a.frame())
+        back = P.offset_between(a, b)
+        assert np.allclose(back["translate"], off["translate"]) and np.allclose(P.euler(back["rotate"]), P.euler(off["rotate"]))
+        m1, m2 = P.offset_socket(a.mirrored(), P.mirror_offset(off)), b.mirrored()
+        assert np.allclose(m1.point, m2.point) and np.allclose(m1.frame(), m2.frame())
+    assert P.offset_socket(a, None) is a
+
+
+def test_compose_with_a_torso_preset():
+    """A preset stretches the torso and moves its sockets: the parts follow."""
+    kit = json.loads((ROOT / "fixtures/parts/golden.json").read_text())
+    parts = [{**p, "part_id": p["kind"] + p["variant"], "label": p["variant"], "mesh": {"file": p["file"], "sha256": "", "tris": p["tris"]}}
+             for p in kit["parts"]]
+    torso = next(p for p in parts if p["kind"] == "torso" and p["variant"] == "default")
+    torso["presets"] = [{"preset_id": "default", "label": "Standard", "stretch": [1, 1, 1], "sockets": {}},
+                        {"preset_id": "stocky", "label": "Stocky", "stretch": [1.2, 1.0, 0.9],
+                         "sockets": {"front_left": {"translate": [0, 0, 3], "rotate": [0, 0, 10]},
+                                     "front_right": P.mirror_offset({"translate": [0, 0, 3], "rotate": [0, 0, 10]})}}]
+    doc = {"species": "dog", "breed_id": "mixed", "version": 1, "parts": parts, "poses": [{"pose_id": "standing", "label": "S"}],
+           "defaults": {k: "default" for k in P.KINDS}, "default_pose": "standing"}
+    assert not [x for x in P.kit_problems(doc) if "preset" in x]
+    plain, stocky = P.compose_plan(doc), P.compose_plan(doc, preset_id="stocky")
+    assert plain["preset_id"] == "default" and stocky["preset_id"] == "stocky"
+    by = lambda plan: {e["slot"]: np.asarray(e["matrix"]) for e in plan["parts"]}  # noqa: E731
+    a, b = by(plain), by(stocky)
+    assert np.allclose(np.diag(b["torso"])[:3], [1.2, 1.0, 0.9])
+    att = P.Joint.of(torso["attachments"]["front_left"])
+    moved = P.offset_socket(att.stretched([1.2, 1.0, 0.9]), torso["presets"][1]["sockets"]["front_left"])
+    pivot = np.asarray(next(p for p in parts if p["kind"] == "front_leg" and p["variant"] == "default")["joint"]["pivot"])
+    assert np.allclose(b["front_left"][:3, :3] @ pivot + b["front_left"][:3, 3], moved.point)  # the leg's pivot is on the moved socket
+    # symmetric offsets keep the figure symmetric
+    l, r = b["front_left"][:3, 3], b["front_right"][:3, 3]
+    assert np.allclose([l[0], l[1], l[2]], [-r[0], r[1], r[2]], atol=1e-6)
+    with pytest.raises(ValueError, match="no preset"):
+        P.compose_plan(doc, preset_id="nope")
+    torso["presets"][0]["preset_id"] = "first"
+    assert any("first preset must be the default" in x for x in P.kit_problems(doc))

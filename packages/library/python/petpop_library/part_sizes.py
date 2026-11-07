@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import re
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +27,7 @@ import numpy as np
 
 from petpop_core.paths import BREEDS_DIR
 
-from .parts import SHARED, SITTING
+from .parts import SHARED, SITTING  # noqa: F401  (SITTING: the database's sitting hind leg)
 
 FIGURE_MM = 90.0
 LENGTH_MM = 120.0  # placeholder, like the mandrel's numbers: the longest a figure may be, nose to tail
@@ -251,36 +250,6 @@ def stretch_guess(species: str, breed_id: str, kind: str, variant: str, extents)
             return [1.0, 1.0, 1.0]
         s = np.full(3, float(np.prod(np.asarray(mine["size_mm"]) / np.asarray(base[0])) ** (1 / 3)))
     return [round(float(x), 3) for x in np.clip(s, *STRETCH_RANGE)]
-
-
-@lru_cache
-def breed_entry(species: str, breed_id: str) -> dict[str, Any] | None:
-    """The breed's entry in the breed database (data/breeds/<species>_pebbles_simple.json), or None."""
-    p = BREEDS_DIR / f"{species}_pebbles_simple.json"
-    if not p.is_file():
-        return None
-    return next((b for b in json.loads(p.read_text())["breeds"] if b["id"] == breed_id), None)
-
-
-def recipe(species: str, breed_id: str) -> dict[str, Any]:
-    """What a breed's kit starts with (decision 130): its default variant per kind and the shared variants it allows
-    (its part types: the sitting hind leg too), and its default texture configuration (colours, pattern, markings)."""
-    b = breed_entry(species, breed_id) if breed_id != SHARED else None
-    if not b:
-        return {"defaults": {}, "allowed": {}, "sitting": None, "texture": None}
-    types, colour = b.get("part_types", {}), (b.get("preset") or {}).get("colour") or {}
-    defaults = {"torso": types.get("torso"), "front_leg": types.get("fore_leg"), "hind_leg": types.get("hind_leg"),
-                "tail": types.get("tail")}
-    defaults = {k: v for k, v in defaults.items() if v}
-    sitting = types.get("hind_leg_sitting")
-    allowed = {k: [v] for k, v in defaults.items()}
-    if sitting:
-        allowed.setdefault("hind_leg", []).append(sitting)
-    texture = None
-    if colour.get("base"):
-        texture = {"base": colour["base"], "secondary": colour.get("secondary"), "pattern": colour.get("pattern"),
-                   "markings": list(colour.get("markings") or [])}
-    return {"defaults": defaults, "allowed": allowed, "sitting": sitting, "texture": texture}
 
 
 def fit(v: np.ndarray, size_mm: list[float]) -> tuple[np.ndarray, float, list[str]]:

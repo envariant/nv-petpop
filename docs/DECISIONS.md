@@ -290,3 +290,19 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    the breeds using each variant. Composition stands the figure on the floor, since a breed's stretch moves its feet.
    The draft script now runs Studio's own part library on a throwaway database, so a draft guesses exactly what an
    upload would.
+131. **A per-breed parts file; torso presets with socket offsets; breed head variants (Nishant, 2026-11-07).** The breed
+   database stays a description of bodies; which parts each breed uses is defined separately, in
+   `data/breeds/<species>_breed_parts.json` (`petpop_library.breed_parts`): per breed and kind the variants it offers and
+   its default, per variant its stretch (null: the size guess), per torso variant its presets, the sitting variant and
+   the default texture. Studio seeds each breed's kit from it (it no longer reads the breed database for that);
+   `scripts/make_breed_parts.py` seeds new breeds from the database's part types and never overwrites an entry. Each
+   torso variant on a breed has **named presets**, the customers' shape choices (Nishant's choice among ranges, presets
+   or both): the first is the default (the variant's own stretch); each other has its own stretch and **socket
+   offsets**, per slot a translation (mm, figure frame, on the stretched torso) and a rotation of the socket's frame
+   (Euler degrees, Rz Ry Rx, about the socket), so a breed can move and turn where its head, legs and tail attach
+   without its own torso. Offsets mirror with their slots (x of the translation, y and z of the rotation negated) and
+   are in `petpop_library.parts` and its TypeScript twin alike (golden-tested). In the workbench, socket edits on a
+   shared torso, or on any preset but the default, set the breed's offset for the shape previewed; the breed's own
+   torso's default shape edits its sockets. Heads stay breed-specific, with variants (`<breed>__head__<variant>.glb`).
+   Kits are `kit-3` (API 3.14.0: `Part.presets`, `PartKitSetup.presets`); compositions choose a torso variant and a
+   preset (`compose_parts.py --preset`); drafts compose every shape.

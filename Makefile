@@ -8,7 +8,7 @@ STUDIO := apps/studio
 export PYTHONPATH := $(CURDIR):$(CURDIR)/mock-server:$(CURDIR)/packages/core/python:$(CURDIR)/packages/library/python
 
 .PHONY: help setup dev stop mock api worker kiosk studio test test-py test-web openapi client proxies fixtures tiles \
-        regress up down smoke-stack workflows models compose-parts draft-parts part-sizes gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
+        regress up down smoke-stack workflows models compose-parts draft-parts part-sizes breed-parts gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8 clean
 
 help:
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -94,6 +94,9 @@ draft-parts: ## draft a breed from parts exported one at a time: FILES=dir OUT=d
 
 part-sizes: ## regenerate the guessed part sizes from the breed database (data/breeds/dog_part_sizes.json)
 	$(PY) scripts/guess_part_sizes.py
+
+breed-parts: ## add new breeds to the per-breed parts file (data/breeds/dog_breed_parts.json); existing entries are kept
+	$(PY) scripts/make_breed_parts.py
 
 gate-0 gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 gate-8: ## run acceptance gate N
 	scripts/gates/$@

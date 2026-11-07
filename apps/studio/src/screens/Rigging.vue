@@ -4,7 +4,9 @@
 // symmetry mirrors a left slot onto the right one. Poses: each leg's twist in thirds and the head's angles within its
 // limits. Commit freezes the kit as its next version. Decision 130: the torso, legs and tail may come from the shared
 // library; per variant, whether customers may choose it on this breed and its stretch (first the size guess); each
-// pose may swap variants in (sitting folds the hind legs); the breed's default texture.
+// pose may swap variants in (sitting folds the hind legs); the breed's default texture. Decision 131: each torso
+// variant has named presets, the customers' shape choices; the preset previewed sets the torso's stretch and, for a
+// shared torso or any preset but the default, the selected socket's offset (move and turn) on this breed.
 import { computed } from 'vue';
 import type { Pose } from '@petpop/core';
 import { LEG_SLOTS, SLOTS, SLOT_KIND, headProblems, type Kind, type Slot } from '@petpop/scene';
@@ -76,13 +78,35 @@ function setLimit(axis: 'yaw' | 'pitch' | 'roll', i: 0 | 1, raw: string) {
 }
 // variants: offered to customers, stretched to this breed
 const previewed = (kind: Kind) => ps.partOf(kind);
+const stretchOf = (kind: Kind) => (kind === 'torso' ? ps.preset?.stretch : previewed(kind)?.stretch) ?? [1, 1, 1];
 function setStretchAxis(kind: Kind, i: number, raw: string) {
   const p = previewed(kind);
   const v = Number(raw);
   if (!p || !Number.isFinite(v) || v <= 0) return;
-  const next = [...(p.stretch ?? [1, 1, 1])] as [number, number, number];
+  const next = [...stretchOf(kind)] as [number, number, number];
   next[i] = v;
-  void ps.setStretch(p, next);
+  if (kind === 'torso') void ps.setPresetStretch(next);
+  else void ps.setStretch(p, next);
+}
+const canReset = (kind: Kind) => (kind === 'torso' && ps.preset?.preset_id !== 'default' ? true : !!previewed(kind)?.stretch_edited);
+function resetStretch(kind: Kind) {
+  if (kind === 'torso') void ps.setPresetStretch(null);
+  else if (previewed(kind)) void ps.setStretch(previewed(kind)!, null);
+}
+
+// the selected socket's offset on this breed (decision 131)
+const offset = computed(() => {
+  if (ps.target.type !== 'slot' || !ps.offsetMode) return null;
+  const o = ps.preset?.sockets?.[ps.target.slot];
+  return { translate: o?.translate ?? [0, 0, 0], rotate: o?.rotate ?? [0, 0, 0] };
+});
+function setOffsetNumber(which: 'translate' | 'rotate', i: number, raw: string) {
+  const v = Number(raw);
+  if (!Number.isFinite(v) || !offset.value || ps.target.type !== 'slot') return;
+  const next = { translate: [...offset.value.translate], rotate: [...offset.value.rotate] };
+  next[which][i] = v;
+  ps.setOffset(ps.target.slot, next);
+  void ps.saveOffsets();
 }
 const multi = computed(() => KINDS.filter((k) => (ps.kit?.allowed?.[k] ?? []).length > 1));
 function setPoseVariant(p: Pose, kind: Kind, v: string) {
@@ -131,7 +155,19 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
         </div>
       </PSection>
 
-      <PSection v-if="sel" title="Selected joint" test-id="rig-selected">
+      <PSection v-if="offset && ps.target.type === 'slot'" :title="`Socket offset · ${label(ps.target.slot)}`" test-id="rig-offset">
+        <p class="mb-1 text-xs text-muted">This breed's move of the torso's socket, preset “{{ ps.preset?.label }}”: mm along x, y, z, then degrees about x, y, z.</p>
+        <div class="grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-1 text-sm">
+          <span>Move</span>
+          <input v-for="i in [0, 1, 2]" :key="`t${i}`" type="number" step="0.5" :value="offset.translate[i]" :data-testid="`rig-offset-t-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setOffsetNumber('translate', i, ($event.target as HTMLInputElement).value)" />
+          <span>Turn °</span>
+          <input v-for="i in [0, 1, 2]" :key="`r${i}`" type="number" step="1" :value="Number(offset.rotate[i]).toFixed(1)" :data-testid="`rig-offset-r-${i}`"
+            class="min-w-0 rounded-lg border-2 border-line bg-paper px-2 py-1" @change="setOffsetNumber('rotate', i, ($event.target as HTMLInputElement).value)" />
+        </div>
+      </PSection>
+
+      <PSection v-if="sel && !(offset && ps.target.type === 'slot')" title="Selected joint" test-id="rig-selected">
         <div class="grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-1 text-sm">
           <span>{{ ps.target.type === 'slot' ? 'Position' : 'Pivot' }}</span>
           <input v-for="i in [0, 1, 2]" :key="`p${i}`" type="number" step="0.5" :value="sel.point[i]" :data-testid="`rig-point-${i}`"
@@ -168,10 +204,23 @@ const conf = (c?: number) => (c == null ? '' : c >= 0.8 ? 'bg-accent/20' : c >= 
               offered
             </label>
             <span class="text-muted">stretch</span>
-            <input v-for="i in [0, 1, 2]" :key="i" type="number" step="0.05" min="0.05" :value="Number(previewed(kind)!.stretch?.[i] ?? 1).toFixed(2)"
+            <input v-for="i in [0, 1, 2]" :key="i" type="number" step="0.05" min="0.05" :value="Number(stretchOf(kind)[i] ?? 1).toFixed(2)"
               :data-testid="`stretch-${kind}-${i}`" :title="['side to side', 'up', 'front to back'][i]"
               class="w-16 rounded-lg border-2 border-line bg-paper px-1 py-0.5" @change="setStretchAxis(kind, i, ($event.target as HTMLInputElement).value)" />
-            <button v-if="previewed(kind)!.stretch_edited" class="underline" :data-testid="`stretch-reset-${kind}`" @click="ps.setStretch(previewed(kind)!, null)">size guess</button>
+            <button v-if="canReset(kind)" class="underline" :data-testid="`stretch-reset-${kind}`" @click="resetStretch(kind)">
+              {{ kind === 'torso' && ps.preset?.preset_id !== 'default' ? 'as standard' : 'size guess' }}
+            </button>
+          </div>
+          <div v-if="kind === 'torso' && ps.torso" class="ml-24 mt-1 flex flex-wrap items-center gap-2 text-sm" data-testid="torso-presets">
+            <span class="text-muted">shapes</span>
+            <Chip v-for="p in ps.presets" :key="p.preset_id" :selected="ps.preset?.preset_id === p.preset_id" :test-id="`preset-${p.preset_id}`"
+              @click="ps.presetId = p.preset_id">{{ p.label }}</Chip>
+            <button class="underline" data-testid="preset-add" @click="ps.addPreset()">add</button>
+            <template v-if="ps.preset && ps.preset.preset_id !== 'default'">
+              <input :value="ps.preset.label" class="w-28 rounded-lg border-2 border-line bg-paper px-1 py-0.5" data-testid="preset-label"
+                @change="ps.renamePreset(ps.preset!.preset_id, ($event.target as HTMLInputElement).value)" />
+              <button class="underline" data-testid="preset-remove" @click="ps.removePreset(ps.preset!.preset_id)">remove</button>
+            </template>
           </div>
         </div>
       </PSection>

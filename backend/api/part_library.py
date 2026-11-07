@@ -10,6 +10,11 @@ shared part per axis to its proportions (first the size guess, petpop_library.pa
 configuration. A shared part's rig is the same for every breed, so editing it from any breed's workbench edits it for
 all.
 
+Decision 131: what a breed's kit starts with comes from the per-breed parts file (petpop_library.breed_parts,
+data/breeds/<species>_breed_parts.json), not the breed database. Each torso variant on a breed has named presets, the
+customers' shape choices: the default (the variant's stretch, no offsets) and others, each a stretch and offsets that
+move and turn the torso's sockets for this breed. A breed's head variants are its own.
+
 The same service backs the backend and the mock server (each on its own database and store), so both behave alike.
 """
 from __future__ import annotations
@@ -26,6 +31,7 @@ from sqlalchemy import select, update
 
 from petpop_core.breeds import all_breeds
 from petpop_core.schemas import load_schema
+from petpop_library import breed_parts as B
 from petpop_library import part_sizes as S
 from petpop_library import parts as P
 
@@ -97,17 +103,17 @@ class PartLibrary:
     def _kit_row(self, db, species: str, breed_id: str) -> KitRow:
         row = db.get(KitRow, (species, breed_id))
         if not row:
-            rec = S.recipe(species, breed_id)
+            rec = B.recipe(species, breed_id)
             row = KitRow(species=species, breed_id=breed_id, defaults={}, poses=[DEFAULT_POSE],
                          default_pose="standing", symmetry=True, version=0, dirty=True, allowed=rec["allowed"],
-                         stretch={}, texture=rec["texture"])
+                         stretch=rec["stretch"], texture=rec["texture"], presets=rec["presets"])
             db.add(row)
         return row
 
     def _refresh(self, kit: KitRow, avail: list[PartRow]) -> None:
         """The breed database sits every breed: once its sitting hind leg is in the library, a kit whose poses were
         never changed gets the sitting pose, as the default."""
-        sitting = S.recipe(kit.species, kit.breed_id)["sitting"]
+        sitting = B.recipe(kit.species, kit.breed_id)["sitting"]
         if sitting and (kit.poses or [DEFAULT_POSE]) == [DEFAULT_POSE] and any(
                 r.kind == "hind_leg" and r.variant == sitting for r in avail):
             kit.poses = [DEFAULT_POSE, sitting_pose(sitting)]
@@ -123,7 +129,7 @@ class PartLibrary:
     def _defaults(self, kit: KitRow, avail: list[PartRow]) -> dict[str, str]:
         """Per kind: the default set in the workbench; else the breed's own part ("default" first); else its part type
         in the breed database, from the shared library; else the first variant it allows."""
-        recipe = S.recipe(kit.species, kit.breed_id)["defaults"]
+        recipe = B.recipe(kit.species, kit.breed_id)["defaults"]
         out = {}
         for kind in P.KINDS:
             variants = [r.variant for r in avail if r.kind == kind]
@@ -159,6 +165,21 @@ class PartLibrary:
             return S.stretch_guess(kit.species, kit.breed_id, r.kind, r.variant, np.ptp(v, axis=0)), False
         return [1.0, 1.0, 1.0], False
 
+    def _presets(self, kit: KitRow, r: PartRow) -> list[dict[str, Any]]:
+        """A torso's presets on this breed (decision 131), the default first, each stretch filled in: the default's is
+        the variant's own (set, or the size guess); another's is its own, or the default's when it has none."""
+        if r.kind != "torso":
+            return []
+        stored = (kit.presets or {}).get(f"torso/{r.variant}") or []
+        base = self._stretch(kit, r)[0]
+        first = next((x for x in stored if x.get("preset_id") == "default"), B.default_preset())
+        out = [{"preset_id": "default", "label": first.get("label") or "Standard", "stretch": base, "sockets": first.get("sockets") or {}}]
+        for x in stored:
+            if x.get("preset_id") != "default":
+                out.append({"preset_id": x["preset_id"], "label": x.get("label") or x["preset_id"],
+                            "stretch": [float(v) for v in x["stretch"]] if x.get("stretch") else base, "sockets": x.get("sockets") or {}})
+        return out
+
     def _part(self, r: PartRow, kit: KitRow | None = None) -> m.Part:
         rig = r.rig or {}
         guess = {k: m.RigGuess(method=g["method"], confidence=g["confidence"]) for k, g in (r.auto.get("guess") or {}).items()}
@@ -166,7 +187,8 @@ class PartLibrary:
         return m.Part(part_id=r.id, kind=r.kind, variant=r.variant, label=r.label, mesh_url=signed_file_url(self.secret, r.mesh_key),
                       tris=r.tris, sha256=r.sha256, joint=rig.get("joint"), attachments=rig.get("attachments"),
                       limits=rig.get("limits"), guess=guess, edited=r.edited, mirrored=r.mirrored,
-                      shared=r.breed_id == P.SHARED, stretch=stretch, stretch_edited=set_)
+                      shared=r.breed_id == P.SHARED, stretch=stretch, stretch_edited=set_,
+                      presets=self._presets(kit, r) if kit else [])
 
     def _kit_doc(self, kit: KitRow, avail: list[PartRow]) -> dict[str, Any]:
         """The kit as data/schema/part_kit.schema.json has it (before commit fields): the allowed parts only."""
@@ -182,12 +204,13 @@ class PartLibrary:
             rig = r.rig or {}
             if r.kind == "torso":
                 p["attachments"] = rig.get("attachments")
+                p["presets"] = self._presets(kit, r)
             else:
                 p["joint"] = rig.get("joint")
             if r.kind == "head":
                 p["limits"] = rig.get("limits") or P.DEFAULT_HEAD_LIMITS
             parts.append(p)
-        return {"kit_version": "kit-2", "species": kit.species, "breed_id": kit.breed_id, "version": kit.version + 1,
+        return {"kit_version": "kit-3", "species": kit.species, "breed_id": kit.breed_id, "version": kit.version + 1,
                 "parts": parts, "defaults": self._defaults(kit, avail), "allowed": {k: v for k, v in allowed.items() if v},
                 "texture": kit.texture, "poses": kit.poses or [DEFAULT_POSE], "default_pose": kit.default_pose}
 
@@ -435,6 +458,20 @@ class PartLibrary:
                 kit.stretch = stretch
             if body.texture is not None:
                 kit.texture = body.texture.model_dump()
+            if body.presets is not None:
+                presets = dict(kit.presets or {})
+                for key, items in body.presets.items():
+                    need("torso", key.split("/", 1)[1])
+                    ids = [x.preset_id for x in items]
+                    if len(set(ids)) != len(ids):
+                        raise ApiError(422, "preset ids must be unique")
+                    if any(x.stretch and any(v <= 0 for v in x.stretch) for x in items):
+                        raise ApiError(422, "a stretch must be positive")
+                    rows = [x.model_dump() for x in items]
+                    default = next((x for x in rows if x["preset_id"] == "default"), B.default_preset())
+                    default["stretch"] = None  # the default's stretch is the variant's own: set it with `stretch`
+                    presets[key] = [default] + [x for x in rows if x["preset_id"] != "default"]
+                kit.presets = presets
             if body.poses is not None:
                 ids = [p.pose_id for p in body.poses]
                 if len(set(ids)) != len(ids):

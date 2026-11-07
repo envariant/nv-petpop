@@ -1,0 +1,6824 @@
+{
+ "version": "breed-parts-1",
+ "species": "dog",
+ "breeds": {
+  "corgi_pembroke": {
+   "label": "Pembroke Welsh Corgi",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "saddle_with_white_chest",
+    "markings": [
+     "white_blaze",
+     "white_socks",
+     "white_chest"
+    ]
+   }
+  },
+  "corgi_cardigan": {
+   "label": "Cardigan Welsh Corgi",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "merle",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "labrador": {
+   "label": "Labrador Retriever",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "otter",
+     "offer": {
+      "otter": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "golden_retriever": {
+   "label": "Golden Retriever",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "german_shepherd": {
+   "label": "German Shepherd",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "saddle_with_white_chest",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "french_bulldog": {
+   "label": "French Bulldog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "bulldog": {
+   "label": "English Bulldog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "pattern": "bicolour",
+    "markings": []
+   }
+  },
+  "poodle_standard": {
+   "label": "Standard Poodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "poodle_toy": {
+   "label": "Toy Poodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "beagle": {
+   "label": "Beagle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight_up",
+     "offer": {
+      "straight_up": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "tricolour",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "dachshund": {
+   "label": "Dachshund",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "pug": {
+   "label": "Pug",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "curl_tight",
+     "offer": {
+      "curl_tight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "shih_tzu": {
+   "label": "Shih Tzu",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze"
+    ]
+   }
+  },
+  "yorkshire_terrier": {
+   "label": "Yorkshire Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "saddle_with_white_chest",
+    "markings": []
+   }
+  },
+  "chihuahua": {
+   "label": "Chihuahua",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "sickle",
+     "offer": {
+      "sickle": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "pomeranian": {
+   "label": "Pomeranian",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "ginger",
+     "hex": "#E08A3C"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "husky": {
+   "label": "Siberian Husky",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "malamute": {
+   "label": "Alaskan Malamute",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "dark_mask"
+    ]
+   }
+  },
+  "samoyed": {
+   "label": "Samoyed",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "shiba_inu": {
+   "label": "Shiba Inu",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "curl_tight",
+     "offer": {
+      "curl_tight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "akita": {
+   "label": "Akita",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "curl_tight",
+     "offer": {
+      "curl_tight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "border_collie": {
+   "label": "Border Collie",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "australian_shepherd": {
+   "label": "Australian Shepherd",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "merle",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "sheltie": {
+   "label": "Shetland Sheepdog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "sable",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "rough_collie": {
+   "label": "Rough Collie",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "sable",
+    "markings": [
+     "white_chest",
+     "white_blaze"
+    ]
+   }
+  },
+  "boxer": {
+   "label": "Boxer",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "dark_mask"
+    ]
+   }
+  },
+  "rottweiler": {
+   "label": "Rottweiler",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "points"
+    ]
+   }
+  },
+  "doberman": {
+   "label": "Dobermann",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "points"
+    ]
+   }
+  },
+  "great_dane": {
+   "label": "Great Dane",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "spotted",
+    "markings": []
+   }
+  },
+  "dalmatian": {
+   "label": "Dalmatian",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "spotted",
+    "markings": []
+   }
+  },
+  "cocker_spaniel": {
+   "label": "English Cocker Spaniel",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "cavalier": {
+   "label": "Cavalier King Charles Spaniel",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "springer_spaniel": {
+   "label": "English Springer Spaniel",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "chocolate",
+     "hex": "#5C3A21"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "bichon_frise": {
+   "label": "Bichon Frise",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "maltese": {
+   "label": "Maltese",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "havanese": {
+   "label": "Havanese",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "schnauzer_mini": {
+   "label": "Miniature Schnauzer",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "silver",
+     "hex": "#C9CCD1"
+    },
+    "pattern": "bicolour",
+    "markings": []
+   }
+  },
+  "west_highland": {
+   "label": "West Highland White Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "scottish_terrier": {
+   "label": "Scottish Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "jack_russell": {
+   "label": "Jack Russell Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "bicolour",
+    "markings": []
+   }
+  },
+  "staffy": {
+   "label": "Staffordshire Bull Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "pitbull": {
+   "label": "American Pit Bull Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "bull_terrier": {
+   "label": "Bull Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "basset_hound": {
+   "label": "Basset Hound",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "tricolour",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "bloodhound": {
+   "label": "Bloodhound",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "greyhound": {
+   "label": "Greyhound",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "long_thin",
+     "offer": {
+      "long_thin": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "whippet": {
+   "label": "Whippet",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "long_thin",
+     "offer": {
+      "long_thin": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "italian_greyhound": {
+   "label": "Italian Greyhound",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "long_thin",
+     "offer": {
+      "long_thin": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "bernese": {
+   "label": "Bernese Mountain Dog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "tricolour",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "saint_bernard": {
+   "label": "Saint Bernard",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "dark_mask"
+    ]
+   }
+  },
+  "newfoundland": {
+   "label": "Newfoundland",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "cane_corso": {
+   "label": "Cane Corso",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "boston_terrier": {
+   "label": "Boston Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "tuxedo",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "pekingese": {
+   "label": "Pekingese",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "lhasa_apso": {
+   "label": "Lhasa Apso",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "papillon": {
+   "label": "Papillon",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze"
+    ]
+   }
+  },
+  "weimaraner": {
+   "label": "Weimaraner",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "silver",
+     "hex": "#C9CCD1"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "vizsla": {
+   "label": "Vizsla",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "bernedoodle": {
+   "label": "Bernedoodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "tricolour",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "labradoodle": {
+   "label": "Labradoodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "cockapoo": {
+   "label": "Cockapoo",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "german_shorthaired_pointer": {
+   "label": "German Shorthaired Pointer",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "chocolate",
+     "hex": "#5C3A21"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "miniature_american_shepherd": {
+   "label": "Miniature American Shepherd",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "merle",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "brittany": {
+   "label": "Brittany",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "ginger",
+     "hex": "#E08A3C"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze"
+    ]
+   }
+  },
+  "belgian_malinois": {
+   "label": "Belgian Malinois",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "cocker_spaniel_american": {
+   "label": "American Cocker Spaniel",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "mastiff": {
+   "label": "Mastiff",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "rhodesian_ridgeback": {
+   "label": "Rhodesian Ridgeback",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "portuguese_water_dog": {
+   "label": "Portuguese Water Dog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "australian_cattle_dog": {
+   "label": "Australian Cattle Dog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "merle",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "giant_schnauzer": {
+   "label": "Giant Schnauzer",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "miniature_pinscher": {
+   "label": "Miniature Pinscher",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "points"
+    ]
+   }
+  },
+  "cairn_terrier": {
+   "label": "Cairn Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "chinese_crested": {
+   "label": "Chinese Crested",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "shar_pei": {
+   "label": "Chinese Shar-Pei",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "curl_tight",
+     "offer": {
+      "curl_tight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "chow_chow": {
+   "label": "Chow Chow",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "coton_de_tulear": {
+   "label": "Coton de Tulear",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "brussels_griffon": {
+   "label": "Brussels Griffon",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "keeshond": {
+   "label": "Keeshond",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "silver",
+     "hex": "#C9CCD1"
+    },
+    "pattern": "sable",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "old_english_sheepdog": {
+   "label": "Old English Sheepdog",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "border_terrier": {
+   "label": "Border Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "soft_coated_wheaten": {
+   "label": "Soft Coated Wheaten Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "airedale": {
+   "label": "Airedale Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "saddle_with_white_chest",
+    "markings": []
+   }
+  },
+  "great_pyrenees": {
+   "label": "Great Pyrenees",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "basenji": {
+   "label": "Basenji",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "curl_tight",
+     "offer": {
+      "curl_tight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "japanese_spitz": {
+   "label": "Japanese Spitz",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "poodle_miniature": {
+   "label": "Miniature Poodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "chocolate",
+     "hex": "#5C3A21"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "silky_terrier": {
+   "label": "Silky Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "blue_grey",
+     "hex": "#6F7F8F"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "saddle_with_white_chest",
+    "markings": []
+   }
+  },
+  "wire_fox_terrier": {
+   "label": "Wire Fox Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "secondary": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "pattern": "tricolour",
+    "markings": []
+   }
+  },
+  "japanese_chin": {
+   "label": "Japanese Chin",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_blaze",
+     "white_chest"
+    ]
+   }
+  },
+  "tibetan_spaniel": {
+   "label": "Tibetan Spaniel",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "norfolk_terrier": {
+   "label": "Norfolk Terrier",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "schipperke": {
+   "label": "Schipperke",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "compact",
+     "offer": {
+      "compact": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "singapore_special": {
+   "label": "Singapore Special",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "peg",
+     "offer": {
+      "peg": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "hock",
+     "offer": {
+      "hock": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "sickle",
+     "offer": {
+      "sickle": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "solid",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "goldendoodle": {
+   "label": "Goldendoodle",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "cavapoo": {
+   "label": "Cavapoo",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "maltipoo": {
+   "label": "Maltipoo",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "cream",
+     "hex": "#EAD9B8"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "shihpoo": {
+   "label": "Shih-poo",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "fluffy_round",
+     "offer": {
+      "fluffy_round": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "brush",
+     "offer": {
+      "brush": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "gold",
+     "hex": "#D9A441"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "dachshund_longhaired": {
+   "label": "Dachshund (Longhaired)",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "dachshund_wirehaired": {
+   "label": "Dachshund (Wirehaired)",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "long_low",
+     "offer": {
+      "long_low": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "grey",
+     "hex": "#8A8A8A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "chihuahua_longcoat": {
+   "label": "Chihuahua (Long Coat)",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "chesapeake_bay_retriever": {
+   "label": "Chesapeake Bay Retriever",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "chocolate",
+     "hex": "#5C3A21"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "german_wirehaired_pointer": {
+   "label": "German Wirehaired Pointer",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "boot",
+     "offer": {
+      "boot": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "chocolate",
+     "hex": "#5C3A21"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "bicolour",
+    "markings": [
+     "white_chest"
+    ]
+   }
+  },
+  "nova_scotia_toller": {
+   "label": "Nova Scotia Duck Tolling Retriever",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": {
+     "name": "white",
+     "hex": "#F4EFE6"
+    },
+    "pattern": "solid",
+    "markings": [
+     "white_blaze",
+     "white_chest",
+     "white_socks"
+    ]
+   }
+  },
+  "irish_setter": {
+   "label": "Irish Setter",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "deep_lean",
+     "offer": {
+      "deep_lean": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "feathered",
+     "offer": {
+      "feathered": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "feathered_haunch",
+     "offer": {
+      "feathered_haunch": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "plume",
+     "offer": {
+      "plume": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "red",
+     "hex": "#C8763A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  },
+  "bullmastiff": {
+   "label": "Bullmastiff",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "broad_heavy",
+     "offer": {
+      "broad_heavy": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "straight",
+     "offer": {
+      "straight": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "fawn",
+     "hex": "#D2B48C"
+    },
+    "secondary": {
+     "name": "black",
+     "hex": "#1E1B1A"
+    },
+    "pattern": "solid",
+    "markings": [
+     "dark_mask"
+    ]
+   }
+  },
+  "mixed": {
+   "label": "Mixed / not sure",
+   "parts": {
+    "head": {
+     "default": "default",
+     "offer": {}
+    },
+    "torso": {
+     "default": "standard",
+     "offer": {
+      "standard": {
+       "presets": [
+        {
+         "preset_id": "default",
+         "label": "Standard",
+         "stretch": null,
+         "sockets": {}
+        }
+       ]
+      }
+     }
+    },
+    "front_leg": {
+     "default": "paw",
+     "offer": {
+      "paw": {
+       "stretch": null
+      }
+     }
+    },
+    "hind_leg": {
+     "default": "bean",
+     "offer": {
+      "bean": {
+       "stretch": null
+      },
+      "sitting_fold": {
+       "stretch": null
+      }
+     }
+    },
+    "tail": {
+     "default": "bob",
+     "offer": {
+      "bob": {
+       "stretch": null
+      }
+     }
+    }
+   },
+   "sitting": "sitting_fold",
+   "texture": {
+    "base": {
+     "name": "tan",
+     "hex": "#B88A5A"
+    },
+    "secondary": null,
+    "pattern": "solid",
+    "markings": []
+   }
+  }
+ },
+ "note": "Which parts each breed uses (decision 131, docs/PARTS.md). Per kind: 'offer' (variants customers may choose; the shared library's or the breed's own), 'default'. Per offered variant: 'stretch' [x, y, z] (null: the size guess). Per torso variant: 'presets', the shape choices, the first 'default'; each a 'stretch' (null: the variant's) and 'sockets': per slot {'translate': [x, y, z] mm, 'rotate': [x, y, z] degrees}. 'sitting': the hind leg variant the sitting pose swaps in. Studio seeds a breed's kit from its entry; scripts/make_breed_parts.py only adds breeds."
+}

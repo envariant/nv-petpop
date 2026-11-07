@@ -122,6 +122,55 @@ def _r(v, nd: int = 3) -> list[float]:
     return [round(float(x), nd) for x in v]
 
 
+# --------------------------------------------------------------------------- socket offsets (decision 131)
+def euler(deg) -> np.ndarray:
+    """Rotation by Euler angles in degrees, [x, y, z], applied about X, then Y, then Z (fixed axes): Rz @ Ry @ Rx
+    (three.js order 'ZYX')."""
+    x, y, z = (float(a) for a in deg)
+    return rot([0, 0, 1], z) @ rot([0, 1, 0], y) @ rot([1, 0, 0], x)
+
+
+def euler_of(R: np.ndarray) -> list[float]:
+    """The [x, y, z] degrees with euler(...) == R."""
+    y = math.asin(max(-1.0, min(1.0, -float(R[2, 0]))))
+    if abs(float(R[2, 0])) < 0.9999999:
+        x, z = math.atan2(float(R[2, 1]), float(R[2, 2])), math.atan2(float(R[1, 0]), float(R[0, 0]))
+    else:  # gimbal lock: put it all in z
+        x, z = 0.0, math.atan2(-float(R[0, 1]), float(R[1, 1]))
+    return [math.degrees(x), math.degrees(y), math.degrees(z)]
+
+
+def twist_for(axis, ref) -> float:
+    """The twist that gives a joint with this axis the reference direction `ref` (degrees)."""
+    f = Joint(np.zeros(3), unit(axis), 0.0).frame()
+    a, r0 = f[:, 0], f[:, 1]
+    r = unit(np.asarray(ref, float) - (np.asarray(ref, float) @ a) * a)
+    return math.degrees(math.atan2(float(np.cross(r0, r) @ a), float(r0 @ r))) % 360.0
+
+
+def offset_socket(attach: Joint, offset: dict[str, Any] | None) -> Joint:
+    """A torso socket moved by a breed's offset (decision 131): `translate` (mm, figure frame) and `rotate` (Euler
+    degrees, see euler) turning the socket's whole frame (axis and twist) about its own position."""
+    if not offset:
+        return attach
+    R = euler(offset.get("rotate") or [0, 0, 0])
+    f = attach.frame()
+    a = R @ f[:, 0]
+    return Joint(attach.point + np.asarray(offset.get("translate") or [0, 0, 0], float), a, twist_for(a, R @ f[:, 1]))
+
+
+def offset_between(base: Joint, moved: Joint) -> dict[str, list[float]]:
+    """The offset that takes socket `base` to `moved` (the inverse of offset_socket)."""
+    R = moved.frame() @ base.frame().T
+    return {"translate": [float(x) for x in moved.point - base.point], "rotate": euler_of(R)}
+
+
+def mirror_offset(offset: dict[str, Any]) -> dict[str, list[float]]:
+    """An offset for the mirror slot: the translation and the rotation mirrored in X."""
+    t, r = offset.get("translate") or [0, 0, 0], offset.get("rotate") or [0, 0, 0]
+    return {"translate": [-float(t[0]), float(t[1]), float(t[2])], "rotate": [float(r[0]), -float(r[1]), -float(r[2])]}
+
+
 def mirror_vertices(v: np.ndarray, faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """The mirror image of a mesh in X, with the winding flipped so normals still point out."""
     return v * np.array([-1.0, 1.0, 1.0]), faces[:, ::-1].copy()
@@ -143,11 +192,12 @@ def pose_rotation(slot: str, attach: Joint, pose: dict[str, Any] | None) -> np.n
 
 
 def placement(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None = None, stretch=None,
-              torso_stretch=None) -> tuple[np.ndarray, np.ndarray]:
+              torso_stretch=None, socket_offset=None) -> tuple[np.ndarray, np.ndarray]:
     """(R, t) taking the part's (stretched, mirrored) coordinates to figure coordinates: x' = R (x - pivot) + position,
     as R x + t. `stretch` and `torso_stretch` scale the part and the torso per axis (a breed's proportions on shared
-    parts, decision 130); `placement_matrix` folds them and the mirror into one 4x4."""
-    part, attach = part.stretched(stretch), attach.stretched(torso_stretch)
+    parts, decision 130); `socket_offset` then moves and turns the slot's socket on the stretched torso (a torso
+    preset's, decision 131); `placement_matrix` folds the stretch and the mirror into one 4x4."""
+    part, attach = part.stretched(stretch), offset_socket(attach.stretched(torso_stretch), socket_offset)
     if slot in MIRRORED:
         part = part.mirrored()
     R = pose_rotation(slot, attach, pose) @ attach.frame() @ part.frame().T
@@ -156,10 +206,11 @@ def placement(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None
 
 
 def placement_matrix(part: Joint, attach: Joint, slot: str, pose: dict[str, Any] | None = None, stretch=None,
-                     torso_stretch=None) -> np.ndarray:
+                     torso_stretch=None, socket_offset=None) -> np.ndarray:
     """The 4x4 taking a part's own (authored, left-leg) coordinates to the figure: stretched, mirrored for the right
-    legs, its pivot onto the slot's attachment (on the stretched torso), then the pose's turn."""
-    R, t = placement(part, attach, slot, pose, stretch, torso_stretch)
+    legs, its pivot onto the slot's attachment (on the stretched torso, moved by the preset's offset), then the pose's
+    turn."""
+    R, t = placement(part, attach, slot, pose, stretch, torso_stretch, socket_offset)
     M = np.eye(4)
     M[:3, :3] = R @ (MIRROR if slot in MIRRORED else np.eye(3)) @ np.diag(np.ones(3) if stretch is None else np.asarray(stretch, float))
     M[:3, 3] = t
@@ -379,6 +430,18 @@ def kit_problems(kit: dict[str, Any]) -> list[str]:
     for p in parts:
         if any(float(x) <= 0 for x in p.get("stretch") or [1, 1, 1]):
             problems.append(f"{p['kind']} {p['variant']}: a stretch must be positive")
+        presets = p.get("presets") or []
+        ids = [x.get("preset_id") for x in presets]
+        if presets and ids[0] != "default":
+            problems.append(f"torso {p['variant']}: its first preset must be the default")
+        if len(set(ids)) != len(ids):
+            problems.append(f"torso {p['variant']}: preset ids must be unique")
+        for x in presets:
+            if any(float(v) <= 0 for v in x.get("stretch") or [1, 1, 1]):
+                problems.append(f"torso {p['variant']} preset {x.get('preset_id')}: a stretch must be positive")
+            for slot in x.get("sockets") or {}:
+                if slot not in SLOTS:
+                    problems.append(f"torso {p['variant']} preset {x.get('preset_id')}: no slot {slot}")
     for p in parts:
         try:
             if p["kind"] == "torso":
@@ -407,11 +470,18 @@ def kit_problems(kit: dict[str, Any]) -> list[str]:
 
 
 # --------------------------------------------------------------------------- composing a figure from a kit
-def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, pose_id: str | None = None) -> dict[str, Any]:
-    """Which mesh goes where for a committed kit, the chosen variants and a pose (the kit's default otherwise): one entry
-    per instance (the torso, the head, four legs, the tail), each with the 4x4 matrix (row-major, glTF frame) that takes
-    the part's own coordinates to the figure, its stretch and the right legs' mirror included. Variants: the kit's
-    defaults, then the pose's own (a sitting pose folds the hind legs), then the caller's."""
+def torso_presets(torso: dict[str, Any]) -> list[dict[str, Any]]:
+    """A torso's presets (decision 131), the default first; a kit without them has one: its stretch, no offsets."""
+    return torso.get("presets") or [{"preset_id": "default", "label": "Standard", "stretch": torso.get("stretch"), "sockets": {}}]
+
+
+def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, pose_id: str | None = None,
+                 preset_id: str | None = None) -> dict[str, Any]:
+    """Which mesh goes where for a committed kit, the chosen variants, a pose (the kit's default otherwise) and a torso
+    preset (the customer's shape choice, decision 131; the default otherwise): one entry per instance (the torso, the
+    head, four legs, the tail), each with the 4x4 matrix (row-major, glTF frame) that takes the part's own coordinates
+    to the figure, its stretch and the right legs' mirror included. Variants: the kit's defaults, then the pose's own
+    (a sitting pose folds the hind legs), then the caller's."""
     pid = pose_id or kit["default_pose"]
     pose = next((p for p in kit["poses"] if p["pose_id"] == pid), None)
     if pose is None:
@@ -426,14 +496,19 @@ def compose_plan(kit: dict[str, Any], variants: dict[str, str] | None = None, po
     problems = clamp_head(pose, head.get("limits") or DEFAULT_HEAD_LIMITS)
     if problems:
         raise ValueError("; ".join(problems))
-    ts = torso.get("stretch")
+    presets = torso_presets(torso)
+    preset = next((x for x in presets if x["preset_id"] == (preset_id or "default")), None)
+    if preset is None:
+        raise ValueError(f"torso {torso['variant']} has no preset {preset_id}")
+    ts = preset.get("stretch")
     entries = [{"slot": "torso", "kind": "torso", "variant": torso["variant"], "file": torso["mesh"]["file"],
                 "matrix": np.diag([*(ts or [1.0, 1.0, 1.0]), 1.0]).tolist(), "mirrored": False}]
     for slot in SLOTS:
         kind = SLOT_KIND[slot]
         part = by[(kind, variants[kind])]
-        M = placement_matrix(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose, part.get("stretch"), ts)
+        M = placement_matrix(Joint.of(part["joint"]), Joint.of(torso["attachments"][slot]), slot, pose, part.get("stretch"), ts,
+                             (preset.get("sockets") or {}).get(slot))
         entries.append({"slot": slot, "kind": kind, "variant": part["variant"], "file": part["mesh"]["file"],
                         "matrix": M.tolist(), "mirrored": slot in MIRRORED})
     return {"species": kit["species"], "breed_id": kit["breed_id"], "kit_version": kit["version"], "variants": variants,
-            "pose_id": pid, "pose": pose, "parts": entries}
+            "preset_id": preset["preset_id"], "pose_id": pid, "pose": pose, "parts": entries}

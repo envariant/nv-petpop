@@ -50,6 +50,48 @@ export function unstretch(point: Vec3, axis: Vec3, s?: Vec3 | null): { point: nu
   return { point: [point[0] / s[0], point[1] / s[1], point[2] / s[2]], axis: [a.x, a.y, a.z] };
 }
 
+// ---- socket offsets (decision 131): a torso preset moves and turns a socket on this breed
+export interface SocketOffset { translate?: Vec3; rotate?: Vec3 }
+
+/** Euler degrees [x, y, z], about X, then Y, then Z (fixed axes): Rz Ry Rx, three.js order 'ZYX'. */
+export function eulerMatrix(deg: Vec3): THREE.Matrix4 {
+  return new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(deg[0] * DEG, deg[1] * DEG, deg[2] * DEG, 'ZYX'));
+}
+
+/** The twist that gives a joint with this axis the reference direction `ref` (degrees, 0..360). */
+export function twistFor(axis: Vec3, ref: Vec3): number {
+  const a = new THREE.Vector3(), r0 = new THREE.Vector3(), c = new THREE.Vector3();
+  frame(axis, 0).extractBasis(a, r0, c);
+  const r = v3(ref).addScaledVector(a, -v3(ref).dot(a)).normalize();
+  const deg = Math.atan2(new THREE.Vector3().crossVectors(r0, r).dot(a), r0.dot(r)) / DEG;
+  return ((deg % 360) + 360) % 360;
+}
+
+/** A socket moved by an offset: translated, then its whole frame (axis and twist) turned about its position. */
+export function offsetSocket(att: AttachmentData, off?: SocketOffset | null): AttachmentData {
+  if (!off) return att;
+  const R = eulerMatrix(off.rotate ?? [0, 0, 0]);
+  const a = new THREE.Vector3(), r = new THREE.Vector3(), c = new THREE.Vector3();
+  frame(att.axis, att.twist ?? 0).extractBasis(a, r, c);
+  a.applyMatrix4(R);
+  r.applyMatrix4(R);
+  const t = off.translate ?? [0, 0, 0];
+  return { position: [att.position[0] + t[0], att.position[1] + t[1], att.position[2] + t[2]], axis: [a.x, a.y, a.z], twist: twistFor([a.x, a.y, a.z], [r.x, r.y, r.z]) };
+}
+
+/** The offset taking socket `base` to `moved` (the inverse of offsetSocket). */
+export function offsetBetween(base: AttachmentData, moved: AttachmentData): { translate: number[]; rotate: number[] } {
+  const R = frame(moved.axis, moved.twist ?? 0).multiply(frame(base.axis, base.twist ?? 0).transpose());
+  const e = new THREE.Euler().setFromRotationMatrix(R, 'ZYX');
+  return { translate: [0, 1, 2].map((i) => moved.position[i] - base.position[i]), rotate: [e.x / DEG, e.y / DEG, e.z / DEG] };
+}
+
+/** The offset for the mirror slot: translation and rotation mirrored in X. */
+export function mirrorOffset(off: SocketOffset): { translate: number[]; rotate: number[] } {
+  const t = off.translate ?? [0, 0, 0], r = off.rotate ?? [0, 0, 0];
+  return { translate: [-t[0], t[1], t[2]], rotate: [r[0], -r[1], -r[2]] };
+}
+
 export function mirrorJoint(j: JointData): JointData {
   return { pivot: [-j.pivot[0], j.pivot[1], j.pivot[2]], axis: [-j.axis[0], j.axis[1], j.axis[2]], twist: -(j.twist ?? 0) };
 }
@@ -74,13 +116,13 @@ export function poseRotation(slot: Slot, attach: AttachmentData, pose?: PoseData
 }
 
 /** The matrix taking a part's own (authored, left-leg) coordinates to the figure: stretched (the part by `stretch`,
- *  its slot on the torso by `torsoStretch`), mirrored for the right legs, its pivot onto the slot's attachment, its
+ *  its slot on the torso by `torsoStretch`, then moved by a torso preset's `socketOffset`), mirrored for the right legs, its pivot onto the slot's attachment, its
  *  frame onto the attachment's, then the pose's turn. */
 export function placement(part: JointData, attach: AttachmentData, slot: Slot, pose?: PoseData | null, stretch?: Vec3 | null,
-  torsoStretch?: Vec3 | null): THREE.Matrix4 {
+  torsoStretch?: Vec3 | null, socketOffset?: SocketOffset | null): THREE.Matrix4 {
   const mirrored = MIRRORED.has(slot);
   const sp = stretchJoint(part, 'pivot', stretch);
-  const at = stretchJoint(attach, 'position', torsoStretch);
+  const at = offsetSocket(stretchJoint(attach, 'position', torsoStretch), socketOffset);
   const j = mirrored ? mirrorJoint(sp) : sp;
   const R = poseRotation(slot, at, pose)
     .multiply(frame(at.axis, at.twist ?? 0))

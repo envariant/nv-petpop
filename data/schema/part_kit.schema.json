@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://petpop.local/schema/part_kit.schema.json",
-  "title": "PetPop part kit (decisions 127, 130)",
-  "description": "One breed's committed parts and their rigs: what a release carries and what the Blender composition script consumes. Frame: glTF, millimetres, +Y up, +Z the pet's front, +X the pet's own left. Legs are authored as the pet's left; the right legs are their mirror in X. kit-2 (decision 130): the torso, legs and tail come from the species' shared library, stretched per axis to the breed's proportions; the head is the breed's own; the breed allows some shared variants per kind and has a default texture configuration.",
+  "title": "PetPop part kit (decisions 127, 130, 131)",
+  "description": "One breed's committed parts and their rigs: what a release carries and what the Blender composition script consumes. Frame: glTF, millimetres, +Y up, +Z the pet's front, +X the pet's own left. Legs are authored as the pet's left; the right legs are their mirror in X. kit-2 (decision 130): the torso, legs and tail come from the species' shared library, stretched per axis to the breed's proportions; the head is the breed's own; the breed allows some shared variants per kind and has a default texture configuration. kit-3 (decision 131): each torso variant carries its presets on this breed, the customers' shape choices: the first 'default', each a stretch and socket offsets (per slot a translation in mm and a turn of the socket's frame, Euler degrees about x, then y, then z).",
   "type": "object",
   "required": [
     "kit_version",
@@ -91,13 +91,26 @@
           "pattern": "^#[0-9A-Fa-f]{6}$"
         }
       }
+    },
+    "offset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "translate": {
+          "$ref": "#/$defs/vec3"
+        },
+        "rotate": {
+          "$ref": "#/$defs/vec3"
+        }
+      }
     }
   },
   "properties": {
     "kit_version": {
       "enum": [
         "kit-1",
-        "kit-2"
+        "kit-2",
+        "kit-3"
       ]
     },
     "species": {
@@ -231,6 +244,56 @@
           "stretch": {
             "$ref": "#/$defs/vec3",
             "description": "Per-axis scale of the part's mesh (and its joint or attachments) on this breed, applied before placing it. Default [1, 1, 1]."
+          },
+          "presets": {
+            "type": "array",
+            "minItems": 1,
+            "description": "A torso's presets on this breed, the default first.",
+            "items": {
+              "type": "object",
+              "required": [
+                "preset_id",
+                "label",
+                "stretch"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "preset_id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_]{1,40}$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "stretch": {
+                  "$ref": "#/$defs/vec3"
+                },
+                "sockets": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "head": {
+                      "$ref": "#/$defs/offset"
+                    },
+                    "front_left": {
+                      "$ref": "#/$defs/offset"
+                    },
+                    "front_right": {
+                      "$ref": "#/$defs/offset"
+                    },
+                    "hind_left": {
+                      "$ref": "#/$defs/offset"
+                    },
+                    "hind_right": {
+                      "$ref": "#/$defs/offset"
+                    },
+                    "tail": {
+                      "$ref": "#/$defs/offset"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

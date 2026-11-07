@@ -207,3 +207,36 @@ def test_the_shared_library(client):
     assert pug["dirty"]
     assert next(p for p in pug["parts"] if p["part_id"] == paw["part_id"])["joint"]["twist"] == 20
     assert client.delete(f"{S}/parts/dog/corgi_pembroke/parts/{paw['part_id']}", headers=cur).status_code == 404  # from the library's page
+
+
+def test_torso_presets(client):
+    """Decision 131: a torso variant on a breed has named presets, the customers' shape choices: each a stretch and
+    socket offsets. The default's stretch is the variant's own; the committed kit carries every preset."""
+    import json  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+
+    cur = staff(client, "curator")
+    files = [("files", (f"beagle__{n}.glb", trimesh.creation.icosphere(subdivisions=1).apply_scale(np.array(e) / 2).export(file_type="glb"),
+                        "model/gltf-binary")) for n, e in [("torso", (0.8, 1, 1.4)), ("head", (1, 1, 1)), ("fore_leg", (0.4, 1, 0.4)),
+                                                          ("hind_leg", (0.5, 1, 1)), ("tail", (0.2, 0.2, 1))]]
+    assert client.post(f"{S}/parts/dog/upload", files=files, headers=cur).status_code == 201
+    kit = client.get(f"{S}/parts/dog/beagle", headers=cur).json()
+    torso = next(p for p in kit["parts"] if p["kind"] == "torso")
+    assert [x["preset_id"] for x in torso["presets"]] == ["default"] and torso["presets"][0]["stretch"] == torso["stretch"]
+    presets = [{"preset_id": "default", "label": "Standard", "sockets": {"tail": {"translate": [0, 2, 0]}}},
+               {"preset_id": "stocky", "label": "Stocky", "stretch": [1.2, 1.0, 0.9],
+                "sockets": {"hind_left": {"translate": [1, 0, -2], "rotate": [0, 0, 8]}, "hind_right": {"translate": [-1, 0, -2], "rotate": [0, 0, -8]}}}]
+    r = client.put(f"{S}/parts/dog/beagle/setup", json={"presets": {f"torso/{torso['variant']}": presets}}, headers=cur)
+    kit = check(f"{S}/parts/{{species}}/{{breed_id}}/setup", "put", r)
+    got = next(p for p in kit["parts"] if p["kind"] == "torso")["presets"]
+    assert [x["preset_id"] for x in got] == ["default", "stocky"] and got[1]["stretch"] == [1.2, 1.0, 0.9]
+    assert got[0]["sockets"]["tail"]["translate"] == [0, 2, 0] and got[1]["sockets"]["hind_left"]["rotate"] == [0, 0, 8]
+    bad = {f"torso/{torso['variant']}": [presets[1], presets[1]]}
+    assert client.put(f"{S}/parts/dog/beagle/setup", json={"presets": bad}, headers=cur).status_code == 422
+    assert client.put(f"{S}/parts/dog/beagle/setup", json={"presets": {"torso/nope": presets}}, headers=cur).status_code == 422
+    # the default's stretch follows the variant's
+    kit = client.put(f"{S}/parts/dog/beagle/setup", json={"stretch": {f"torso/{torso['variant']}": [1.1, 1.1, 1.1]}}, headers=cur).json()
+    assert next(p for p in kit["parts"] if p["kind"] == "torso")["presets"][0]["stretch"] == [1.1, 1.1, 1.1]
+    kit = client.post(f"{S}/parts/dog/beagle/commit", headers=cur).json()
+    assert kit["version"] == 1, kit

@@ -1,7 +1,7 @@
 """Compose figures from a committed part kit (decision 127, docs/PARTS.md section 3): every part on its slot in a pose,
 the right legs mirrored, joined, optionally fused into one watertight surface, then your own final edits.
 
-    python scripts/compose_parts.py --kit kit-3.json --files ~/kits/corgi --out out/ [--variants torso=stocky]
+    python scripts/compose_parts.py --kit kit-3.json --files ~/kits/corgi --out out/ [--variants torso=long_low] [--preset stocky]
         [--pose standing | --all-poses] [--fuse] [--modify my_edits.py] [--engine auto|bpy|trimesh]
 
 --kit       a committed kit (Studio, Parts, Commit; the store's kits/<species>/<breed>/kit-<n>.json)
@@ -68,11 +68,12 @@ def compose_trimesh(plan: dict, paths: list[Path], out_glb: Path, out_stl: Path 
 
 
 def compose(kit: dict, files: Path, out: Path, variants: dict | None = None, pose_id: str | None = None, fuse: bool = False,
-            modify: Path | None = None, engine: str = "auto", stl: bool = True, name: str | None = None) -> dict:
-    plan = P.compose_plan(kit, variants, pose_id)
+            modify: Path | None = None, engine: str = "auto", stl: bool = True, name: str | None = None,
+            preset_id: str | None = None) -> dict:
+    plan = P.compose_plan(kit, variants, pose_id, preset_id)
     paths = [resolve(e, kit, files) for e in plan["parts"]]
     out.mkdir(parents=True, exist_ok=True)
-    stem = name or f"{kit['breed_id']}__{plan['pose_id']}"
+    stem = name or f"{kit['breed_id']}__{plan['pose_id']}" + ("" if plan["preset_id"] == "default" else f"__{plan['preset_id']}")
     out_glb, out_stl = out / f"{stem}.glb", (out / f"{stem}.stl" if stl else None)
     python = os.environ.get("PETPOP_BPY_PYTHON", "/opt/bpy/bin/python")
     from backend.worker import blender  # noqa: PLC0415
@@ -103,6 +104,7 @@ def main() -> None:
     ap.add_argument("--files", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--variants", nargs="*", default=[], help="kind=variant ...")
+    ap.add_argument("--preset", help="the torso preset, the shape (decision 131); the default otherwise")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--pose")
     g.add_argument("--all-poses", action="store_true")
@@ -114,7 +116,7 @@ def main() -> None:
     variants = dict(v.split("=", 1) for v in a.variants)
     poses = [p["pose_id"] for p in kit["poses"]] if a.all_poses else [a.pose]
     for pose in poses:
-        r = compose(kit, a.files, a.out, variants, pose, a.fuse, a.modify, a.engine)
+        r = compose(kit, a.files, a.out, variants, pose, a.fuse, a.modify, a.engine, preset_id=a.preset)
         print(f"{r['breed_id']} {r['pose_id']}: {r['result']} -> {r['outputs']['glb']}")
 
 

@@ -80,10 +80,13 @@ def test_stretch_and_recipe():
     boot = S.stretch_guess("dog", "corgi_pembroke", "front_leg", "boot", S.target("dog", S.SHARED, "front_leg", "boot")[0])
     assert boot[0] == boot[1] == boot[2]  # not a corgi's own variant: uniform
     assert S.stretch_guess("dog", "no_such_breed", "torso", "standard", [1, 1, 1]) == [1.0, 1.0, 1.0]
-    r = S.recipe("dog", "corgi_pembroke")
+    from petpop_library import breed_parts as B  # noqa: PLC0415
+
+    r = B.recipe("dog", "corgi_pembroke")  # decision 131: from the per-breed parts file, seeded from the database
     assert r["defaults"]["torso"] == "long_low" and r["allowed"]["hind_leg"] == ["bean", "sitting_fold"]
+    assert r["presets"]["torso/long_low"][0]["preset_id"] == "default" and r["sitting"] == "sitting_fold"
     assert r["texture"]["base"]["hex"] == "#C8763A" and "white_blaze" in r["texture"]["markings"]
-    assert S.recipe("dog", S.SHARED)["defaults"] == {}
+    assert B.recipe("dog", S.SHARED)["defaults"] == {}
 
 
 def test_fit_scales_every_part_to_its_guess():

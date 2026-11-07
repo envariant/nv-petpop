@@ -6,7 +6,8 @@ an order (decision 125: HitPay, PayNow and cards); 3.10.0 adds customer accounts
 with Apple and Google), the contact an order needs, the account's orders and devices, and an itemised quote
 (decision 126); 3.11.0 adds the Studio part library: breeds as kits of parts rigged at joints (decision 127); 3.12.0 adds
 notes to a part upload (mirrored, scaled to the breed's size guess, decision 128); 3.13.0 adds the shared library of
-torsos, legs and tails, each breed's allowed variants, per-breed stretches and default texture (decision 130)."""
+torsos, legs and tails, each breed's allowed variants, per-breed stretches and default texture (decision 130); 3.14.0
+adds torso presets, the customers' shape choices, each a stretch and socket offsets (decision 131)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -14,7 +15,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.13.0"
+API_VERSION = "3.14.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]
@@ -801,6 +802,21 @@ class RigGuess(_M):
     confidence: float
 
 
+class SocketOffset(_M):
+    """A breed's move of a torso socket (decision 131): translation in mm, then a turn of the socket's frame about its
+    position, Euler degrees about x, then y, then z (fixed axes)."""
+    translate: Vec3 = [0.0, 0.0, 0.0]
+    rotate: Vec3 = [0.0, 0.0, 0.0]
+
+
+class TorsoPreset(_M):
+    """A named shape for a torso variant on a breed (decision 131): what customers choose. The first is 'default'."""
+    preset_id: str = Field(pattern=r"^[a-z0-9_]{1,40}$")
+    label: str = Field(min_length=1, max_length=60)
+    stretch: Vec3 | None = Field(None, description="Per-axis stretch; null: the torso variant's own (the default preset's).")
+    sockets: dict[Slot, SocketOffset] = {}
+
+
 class Part(_M):
     part_id: str
     kind: PartKind
@@ -818,6 +834,7 @@ class Part(_M):
     shared: bool = Field(False, description="From the species' shared library (decision 130): its rig is the same for every breed.")
     stretch: Vec3 = Field([1.0, 1.0, 1.0], description="Per-axis scale of the part on this breed (decision 130).")
     stretch_edited: bool = Field(False, description="The stretch was set in the workbench (otherwise it is the size guess).")
+    presets: list[TorsoPreset] = Field([], description="A torso's presets on this breed, the default first, each stretch filled in.")
 
 
 class Pose(_M):
@@ -903,6 +920,8 @@ class PartKitSetup(_M):
     stretch: dict[Annotated[str, Field(pattern=r"^(head|torso|front_leg|hind_leg|tail)/[a-z0-9_]{1,40}$")], Vec3 | None] | None = Field(
         None, description="'<kind>/<variant>' to a per-axis stretch; null puts the size guess back.")
     texture: BreedTexture | None = None
+    presets: dict[Annotated[str, Field(pattern=r"^torso/[a-z0-9_]{1,40}$")], list[TorsoPreset]] | None = Field(
+        None, description="'torso/<variant>' to its presets, replacing them (the default's stretch is the part's: see stretch).")
 
 
 class ErrorBody(_M):

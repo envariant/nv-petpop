@@ -2516,6 +2516,12 @@ export interface components {
             mirrored: boolean;
             /** Part Id */
             part_id: string;
+            /**
+             * Presets
+             * @description A torso's presets on this breed, the default first, each stretch filled in.
+             * @default []
+             */
+            presets: components["schemas"]["TorsoPreset"][];
             /** Sha256 */
             sha256: string;
             /**
@@ -2663,6 +2669,13 @@ export interface components {
             } | null;
             /** Poses */
             poses?: components["schemas"]["Pose"][] | null;
+            /**
+             * Presets
+             * @description 'torso/<variant>' to its presets, replacing them (the default's stretch is the part's: see stretch).
+             */
+            presets?: {
+                [key: string]: components["schemas"]["TorsoPreset"][];
+            } | null;
             /**
              * Stretch
              * @description '<kind>/<variant>' to a per-axis stretch; null puts the size guess back.
@@ -3259,6 +3272,31 @@ export interface components {
              */
             kiosk_id: string;
         };
+        /**
+         * SocketOffset
+         * @description A breed's move of a torso socket (decision 131): translation in mm, then a turn of the socket's frame about its
+         *     position, Euler degrees about x, then y, then z (fixed axes).
+         */
+        SocketOffset: {
+            /**
+             * Rotate
+             * @default [
+             *       0,
+             *       0,
+             *       0
+             *     ]
+             */
+            rotate: number[];
+            /**
+             * Translate
+             * @default [
+             *       0,
+             *       0,
+             *       0
+             *     ]
+             */
+            translate: number[];
+        };
         /** StaffJob */
         StaffJob: {
             /**
@@ -3381,6 +3419,28 @@ export interface components {
             hex: string;
             /** Name */
             name?: string | null;
+        };
+        /**
+         * TorsoPreset
+         * @description A named shape for a torso variant on a breed (decision 131): what customers choose. The first is 'default'.
+         */
+        TorsoPreset: {
+            /** Label */
+            label: string;
+            /** Preset Id */
+            preset_id: string;
+            /**
+             * Sockets
+             * @default {}
+             */
+            sockets: {
+                [key: string]: components["schemas"]["SocketOffset"];
+            };
+            /**
+             * Stretch
+             * @description Per-axis stretch; null: the torso variant's own (the default preset's).
+             */
+            stretch?: number[] | null;
         };
         /** TweakRequest */
         TweakRequest: {

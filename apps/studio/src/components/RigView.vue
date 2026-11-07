@@ -4,10 +4,12 @@
 // its pivot. Drag a marker with the gizmo (move, or rotate to turn the axis); the edit is shown live and saved when
 // the drag ends. Click a marker or a part to select it. Decision 130: the assembled figure shows each part stretched to
 // this breed; a socket dragged on the stretched torso is saved in the torso's own (shared, unstretched) coordinates.
+// Decision 131: the torso shows the previewed preset (its stretch and socket offsets); where sockets are this breed's
+// offsets (a shared torso, or a preset other than the default) a drag sets the offset instead.
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { FigureStage, SLOTS, SLOT_KIND, loadGlb, placement, stretchJoint, unstretch, webglAvailable, type Slot } from '@petpop/scene';
+import { FigureStage, SLOTS, SLOT_KIND, frame, loadGlb, offsetBetween, offsetSocket, placement, stretchJoint, twistFor, unstretch, webglAvailable, type Slot } from '@petpop/scene';
 import type { Part } from '@petpop/core';
 import { useParts } from '../stores/parts';
 
@@ -86,7 +88,8 @@ async function rebuild() {
     const tg = await geometry(torso);
     if (tg) {
       const tm = new THREE.Mesh(tg, clay);
-      tm.scale.set(torso.stretch?.[0] ?? 1, torso.stretch?.[1] ?? 1, torso.stretch?.[2] ?? 1);
+      const ts = ps.torsoStretch;
+      tm.scale.set(ts?.[0] ?? 1, ts?.[1] ?? 1, ts?.[2] ?? 1);
       root.add(tm);
     }
     for (const slot of SLOTS as Slot[]) {
@@ -97,14 +100,14 @@ async function rebuild() {
         if (g) {
           const mesh = new THREE.Mesh(g, ps.target.type === 'slot' && ps.target.slot === slot ? picked : clay);
           mesh.matrixAutoUpdate = false;
-          mesh.matrix.copy(placement(part.joint, att, slot, ps.pose, part.stretch, torso.stretch));
+          mesh.matrix.copy(placement(part.joint, att, slot, ps.pose, part.stretch, ps.torsoStretch, ps.preset?.sockets?.[slot]));
           mesh.userData.pick = `slot:${slot}`;
           root.add(mesh);
         }
       }
       if (att) {
         const m = marker(`slot:${slot}`, slot.endsWith('right') ? '#7a5cff' : '#ff8a3d');
-        const shown = stretchJoint(att, 'position', torso.stretch);
+        const shown = offsetSocket(stretchJoint(att, 'position', ps.torsoStretch), ps.preset?.sockets?.[slot]);
         place(m, shown.position, shown.axis);
         markers.set(m.name, m);
         root.add(m);
@@ -126,6 +129,9 @@ function attachGizmo() {
   tc.setMode(ps.gizmo);
 }
 
+const r3 = (x: number) => Math.round(x * 1000) / 1000;
+const frameOf = (axis: number[], twist: number) => frame(axis, twist);
+
 function readMarker(m: THREE.Group) {
   const axis = Y.clone().applyQuaternion(m.quaternion).normalize();
   return { point: [m.position.x, m.position.y, m.position.z].map((x) => Math.round(x * 1000) / 1000), axis: [axis.x, axis.y, axis.z].map((x) => Math.round(x * 1e5) / 1e5) };
@@ -138,7 +144,24 @@ function onDrag() {
   if (m.name.startsWith('slot:')) {
     const slot = m.name.slice(5) as Slot;
     const old = ps.torso?.attachments?.[slot];
-    const own = unstretch(point, axis, ps.torso?.stretch);
+    if (old && ps.offsetMode) {
+      // this breed's offset: the socket as stretched, to where it was dragged; the axis turned the shortest way, so
+      // the twist follows it
+      const base = stretchJoint(old, 'position', ps.torsoStretch);
+      const now = offsetSocket(base, ps.preset?.sockets?.[slot]);
+      const turn = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(...(now.axis as [number, number, number])).normalize(),
+        new THREE.Vector3(...(axis as [number, number, number])).normalize());
+      const f = new THREE.Vector3(), ref = new THREE.Vector3(), c = new THREE.Vector3();
+      const fr = new THREE.Matrix4();
+      fr.copy(frameOf(now.axis, now.twist ?? 0));
+      fr.extractBasis(f, ref, c);
+      ref.applyQuaternion(turn);
+      const moved = { position: point, axis, twist: twistFor(axis, [ref.x, ref.y, ref.z]) };
+      const off = offsetBetween(base, moved);
+      ps.setOffset(slot, { translate: off.translate.map(r3), rotate: off.rotate.map(r3) });
+      return;
+    }
+    const own = unstretch(point, axis, ps.torsoStretch);
     ps.setAttachment(slot, { position: own.point, axis: own.axis, twist: old?.twist ?? 0 });
   } else {
     const id = m.name.slice(5);
@@ -178,13 +201,14 @@ onMounted(() => {
 async function save() {
   const m = tc?.object as THREE.Group | undefined;
   if (!m) return;
-  if (m.name.startsWith('slot:')) await ps.saveTorso();
+  if (m.name.startsWith('slot:') && ps.offsetMode) await ps.saveOffsets();
+  else if (m.name.startsWith('slot:')) await ps.saveTorso();
   else await ps.saveJoint(m.name.slice(5));
 }
 
 // Rebuild on anything the figure depends on; while dragging, only move what the drag moves.
-watch(() => [ps.kit, ps.view, ps.target, ps.preview, ps.poseId], () => !dragging && void rebuild(), { deep: true });
-watch(() => [ps.torso?.attachments, ps.kit?.parts.map((p) => p.joint)], () => dragging && void rebuild(), { deep: true });
+watch(() => [ps.kit, ps.view, ps.target, ps.preview, ps.poseId, ps.presetId], () => !dragging && void rebuild(), { deep: true });
+watch(() => [ps.torso?.attachments, ps.kit?.parts.map((p) => p.joint), ps.preset?.sockets], () => dragging && void rebuild(), { deep: true });
 watch(() => ps.gizmo, () => tc?.setMode(ps.gizmo));
 onBeforeUnmount(() => {
   stage?.renderer.domElement.removeEventListener('pointerup', pick);

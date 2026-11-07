@@ -223,7 +223,9 @@ Parked since decision 108 (Nishant moved generation to Tripo); kept so the Mac c
   guessed from shape with the legs on the floor, and the draft figure script (`scripts/draft_parts.py`, decision 128)
 - [x] P5b the shared library of torsos, legs and tails with a head per breed: allowed variants, per-breed stretches,
   default textures, poses that swap variants, kit-2 (API 3.13.0, decision 130)
-- [ ] P6 the switch: releases carry kits, compositions choose variants and a pose, the customer app assembles parts,
+- [x] P5c the per-breed parts file (`data/breeds/dog_breed_parts.json`), torso presets (shapes) with socket offsets,
+  breed head variants, kit-3 (API 3.14.0, decision 131)
+- [ ] P6 the switch: releases carry kits, compositions choose variants, a torso shape (preset) and a pose, the customer app assembles parts,
   markings per part (head masks per breed, decision 129), the print export composes kits
 - [ ] Nishant: the shared library (`shared__<kind>__<variant>.glb` per part type) and the breeds' heads (GLBs per
   docs/PARTS.md), each breed's head texture template and masks, and the shared layouts of the torso, legs and tail

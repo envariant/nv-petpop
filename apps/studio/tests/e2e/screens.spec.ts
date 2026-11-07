@@ -337,6 +337,23 @@ test('15 shared library: shared torsos, legs and tails, a breed head, stretched 
   await expect(page.getByTestId('stretch-reset-front_leg')).toBeVisible();
   await page.getByTestId('stretch-reset-front_leg').tap();
   await expect(page.getByTestId('stretch-reset-front_leg')).toBeHidden();
+  // a shape preset for customers (decision 131): its own stretch, and a socket moved for this breed (symmetry mirrors it)
+  await page.getByTestId('preset-add').tap();
+  await expect(page.getByTestId('preset-label')).toBeVisible();
+  await page.getByTestId('preset-label').fill('Stocky');
+  await page.getByTestId('preset-label').press('Enter');
+  await expect(page.getByTestId('torso-presets')).toContainText('Stocky');
+  await page.getByTestId('stretch-torso-0').fill('1.3');
+  await page.getByTestId('stretch-torso-0').press('Enter');
+  await expect(page.getByTestId('stretch-torso-0')).toHaveValue('1.30');
+  await page.getByTestId('joint-slot-front_left').tap();
+  await expect(page.getByTestId('rig-offset')).toBeVisible();
+  await page.getByTestId('rig-offset-t-2').fill('3');
+  await page.getByTestId('rig-offset-t-2').press('Enter');
+  await page.getByTestId('joint-slot-front_right').tap();
+  await expect(page.getByTestId('rig-offset-t-2')).toHaveValue('3');
+  await page.getByTestId('preset-default').tap();
+  await expect(page.getByTestId('stretch-torso-0')).not.toHaveValue('1.30');
   await page.waitForTimeout(800);
   await page.screenshot({ path: `test-results/shared-${test.info().project.name}.png` });
   await expect(page.getByTestId('rig-problems')).toHaveCount(0);

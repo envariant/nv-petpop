@@ -56,7 +56,7 @@ def test_a_breed_of_its_own_parts(tmp_path):
     assert r["breed_id"] == "corgi_pembroke" and not r["problems"]
     assert sum("scaled" in n for n in r["notes"]) == 6
     kit = json.loads(Path(r["kit"]).read_text())
-    assert kit["version"] == 0 and kit["kit_version"] == "kit-2" and kit["default_pose"] == "sitting"
+    assert kit["version"] == 0 and kit["kit_version"] == "kit-3" and kit["default_pose"] == "sitting"
     assert [p["pose_id"] for p in kit["poses"]] == ["standing", "sitting"] and kit["poses"][1]["variants"] == {"hind_leg": "sitting_fold"}
     assert kit["texture"]["base"]["hex"] == "#C8763A"  # the breed's default texture, from the breed database
     by = {(p["kind"], p["variant"]): p for p in kit["parts"]}
@@ -93,4 +93,36 @@ def test_a_breed_on_the_shared_library(tmp_path):
     stretched = paw.extents * np.asarray(by[("front_leg", "paw")]["stretch"])
     assert stretched == pytest.approx(S.target("dog", "corgi_pembroke", "front_leg", "paw")[0], rel=0.01)  # the corgi's box
     assert [p["pose_id"] for p in kit["poses"]] == ["standing", "sitting"]
+    check_figures(r)
+
+
+def test_a_breed_entry_with_torso_presets(tmp_path, monkeypatch):
+    """A breed's entry in the per-breed parts file (decision 131) with a second torso preset: drafted as its own figure,
+    the torso stretched and the legs on its moved sockets."""
+    from petpop_library import breed_parts as B  # noqa: PLC0415
+
+    table = json.loads(B.path("dog").read_text())
+    entry = table["breeds"]["corgi_pembroke"]
+    entry["parts"]["torso"]["offer"]["default"] = {"presets": [B.default_preset(), {
+        "preset_id": "stocky", "label": "Stocky", "stretch": [1.3, 1.0, 0.9],
+        "sockets": {"front_left": {"translate": [2, 0, 0]}, "front_right": {"translate": [-2, 0, 0]}}}]}
+    alt = tmp_path / "parts.json"
+    alt.write_text(json.dumps(table))
+    monkeypatch.setattr(B, "path", lambda species: alt)
+    B.clear()
+    try:
+        rng = np.random.default_rng(5)
+        d = tmp_path / "in"
+        d.mkdir()
+        for (name, ext), scale in zip(PEBBLES.items(), [1.0, 0.5, 2.0, 300.0, 1.0, 0.1]):
+            pebble(d / f"corgi_pembroke__{name}.glb", ext, scale, rng)
+        r = D.draft(sorted(d.glob("*.glb")), tmp_path / "draft", engine="trimesh")
+    finally:
+        B.clear()
+    kit = json.loads(Path(r["kit"]).read_text())
+    torso = next(p for p in kit["parts"] if p["kind"] == "torso")
+    assert [x["preset_id"] for x in torso["presets"]] == ["default", "stocky"]
+    stocky = next(f for f in r["figures"] if f["preset"] == "stocky")
+    plain = next(f for f in r["figures"] if f["preset"] == "default" and f["pose"] == kit["default_pose"])
+    assert stocky["size_mm"][0] > plain["size_mm"][0] * 1.1  # wider: the torso and the legs set further out
     check_figures(r)

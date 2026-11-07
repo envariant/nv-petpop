@@ -22,6 +22,8 @@ POSES = [{}, {"legs": {"front_left": 1, "front_right": 1, "hind_left": 2, "hind_
          {"head": {"yaw": 25, "pitch": -10, "roll": 8}}]
 # a breed's proportions on shared parts (decision 130): none, then the part and the torso stretched
 STRETCHES = [(None, None), ([1.2, 0.7, 1.1], [0.9, 1.15, 1.3])]
+# a torso preset's socket offset (decision 131), with the second stretch
+OFFSET = {"translate": [1.5, -2.0, 3.0], "rotate": [12.0, -20.0, 7.0]}
 
 
 def main() -> None:
@@ -50,7 +52,7 @@ def main() -> None:
     placements = []
     by = {(p["kind"], p["variant"]): p for p in parts}
     torso = by[("torso", "default")]
-    for stretch, torso_stretch in STRETCHES:
+    for stretch, torso_stretch, offset in [*(s + (None,) for s in STRETCHES), (*STRETCHES[1], OFFSET)]:
         for pose in POSES:
             for slot in P.SLOTS:
                 part = by[(P.SLOT_KIND[slot], "default")]
@@ -58,8 +60,10 @@ def main() -> None:
                 ja = P.Joint.of(torso["attachments"][slot])
                 # with a twist on the joint too, so the frames' twist is exercised
                 jp.twist = 15.0
-                M = P.placement_matrix(jp, ja, slot, pose, stretch, torso_stretch)
+                off = (P.mirror_offset(offset) if slot.endswith("right") else offset) if offset else None
+                M = P.placement_matrix(jp, ja, slot, pose, stretch, torso_stretch, off)
                 placements.append({"slot": slot, "pose": pose, "joint_twist": 15.0, "stretch": stretch, "torso_stretch": torso_stretch,
+                                   "offset": off,
                                    "matrix": [round(float(x), 6) for x in M.T.ravel()]})
     out = {"species": "dog", "breed_id": "mixed", "parts": parts, "placements": placements}
     (ROOT / "fixtures" / "parts" / "golden.json").write_text(json.dumps(out, indent=1) + "\n")

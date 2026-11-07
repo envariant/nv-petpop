@@ -3706,6 +3706,15 @@
       "title": "Part Id",
       "type": "string"
      },
+     "presets": {
+      "default": [],
+      "description": "A torso's presets on this breed, the default first, each stretch filled in.",
+      "items": {
+       "$ref": "#/components/schemas/TorsoPreset"
+      },
+      "title": "Presets",
+      "type": "array"
+     },
      "sha256": {
       "title": "Sha256",
       "type": "string"
@@ -4083,6 +4092,26 @@
        }
       ],
       "title": "Poses"
+     },
+     "presets": {
+      "anyOf": [
+       {
+        "patternProperties": {
+         "^torso/[a-z0-9_]{1,40}$": {
+          "items": {
+           "$ref": "#/components/schemas/TorsoPreset"
+          },
+          "type": "array"
+         }
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "'torso/<variant>' to its presets, replacing them (the default's stretch is the part's: see stretch).",
+      "title": "Presets"
      },
      "stretch": {
       "anyOf": [
@@ -5971,6 +6000,42 @@
     "title": "SessionCreate",
     "type": "object"
    },
+   "SocketOffset": {
+    "additionalProperties": false,
+    "description": "A breed's move of a torso socket (decision 131): translation in mm, then a turn of the socket's frame about its\nposition, Euler degrees about x, then y, then z (fixed axes).",
+    "properties": {
+     "rotate": {
+      "default": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Rotate",
+      "type": "array"
+     },
+     "translate": {
+      "default": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Translate",
+      "type": "array"
+     }
+    },
+    "title": "SocketOffset",
+    "type": "object"
+   },
    "StaffJob": {
     "additionalProperties": false,
     "properties": {
@@ -6353,6 +6418,64 @@
     "title": "TextureColour",
     "type": "object"
    },
+   "TorsoPreset": {
+    "additionalProperties": false,
+    "description": "A named shape for a torso variant on a breed (decision 131): what customers choose. The first is 'default'.",
+    "properties": {
+     "label": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+     },
+     "preset_id": {
+      "pattern": "^[a-z0-9_]{1,40}$",
+      "title": "Preset Id",
+      "type": "string"
+     },
+     "sockets": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/SocketOffset"
+      },
+      "default": {},
+      "propertyNames": {
+       "enum": [
+        "head",
+        "front_left",
+        "front_right",
+        "hind_left",
+        "hind_right",
+        "tail"
+       ]
+      },
+      "title": "Sockets",
+      "type": "object"
+     },
+     "stretch": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Per-axis stretch; null: the torso variant's own (the default preset's).",
+      "title": "Stretch"
+     }
+    },
+    "required": [
+     "preset_id",
+     "label"
+    ],
+    "title": "TorsoPreset",
+    "type": "object"
+   },
    "TweakRequest": {
     "additionalProperties": false,
     "properties": {
@@ -6411,7 +6534,7 @@
  "info": {
   "description": "PetPop API (BRIEF Sections 9 and 17): /kiosk for the customer kiosk, /studio for staff. Source of truth: data/schema/openapi.json.",
   "title": "PetPop API",
-  "version": "3.13.0"
+  "version": "3.14.0"
  },
  "openapi": "3.1.0",
  "paths": {

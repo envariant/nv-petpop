@@ -4,7 +4,9 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { ApiFailure, StudioApi } from '@petpop/core';
 import type { Part, PartKit, PartKitSummary, Pose, Species } from '@petpop/core';
-import { PAIRS, mirrorAttachment, type AttachmentData, type JointData, type Kind, type Slot } from '@petpop/scene';
+import { PAIRS, mirrorAttachment, mirrorOffset, type AttachmentData, type JointData, type Kind, type Slot, type SocketOffset } from '@petpop/scene';
+
+export type Preset = NonNullable<Part['presets']>[number];
 
 type Vec3 = [number, number, number];
 
@@ -59,6 +61,60 @@ export const useParts = defineStore('parts', () => {
   async function setStretch(part: Part, s: Vec3 | null) {
     await setup({ stretch: { [`${part.kind}/${part.variant}`]: s } });
   }
+
+  // ---- torso presets (decision 131): the customers' shape choices, each a stretch and socket offsets
+  const presetId = ref<string>('default'); // the preset previewed
+  const presets = computed<Preset[]>(() => torso.value?.presets ?? []);
+  const preset = computed<Preset | null>(() => presets.value.find((p) => p.preset_id === presetId.value) ?? presets.value[0] ?? null);
+  const torsoStretch = computed(() => preset.value?.stretch ?? torso.value?.stretch ?? null);
+  /** Socket edits go to this breed's preset offsets when the torso is shared (its sockets are every breed's) or the
+   *  preset is not the default; otherwise to the torso's own sockets. */
+  const offsetMode = computed(() => !!torso.value && !!preset.value && kit.value?.breed_id !== 'shared'
+    && (preset.value.preset_id !== 'default' || !!torso.value.shared));
+  async function savePresets(next: Preset[]) {
+    const t = torso.value;
+    if (!t) return;
+    await setup({ presets: { [`torso/${t.variant}`]: next } as never });
+  }
+  async function addPreset() {
+    const now = presets.value;
+    let n = now.length;
+    while (now.some((p) => p.preset_id === `preset_${n}`)) n++;
+    const base = preset.value;
+    const added: Preset = { preset_id: `preset_${n}`, label: `Preset ${n}`, stretch: base?.stretch ? [...base.stretch] : null, sockets: JSON.parse(JSON.stringify(base?.sockets ?? {})) };
+    await savePresets([...now, added]);
+    presetId.value = added.preset_id;
+  }
+  async function removePreset(id: string) {
+    if (id === 'default') return;
+    await savePresets(presets.value.filter((p) => p.preset_id !== id));
+    presetId.value = 'default';
+  }
+  async function renamePreset(id: string, label: string) {
+    if (label.trim()) await savePresets(presets.value.map((p) => (p.preset_id === id ? { ...p, label: label.trim() } : p)));
+  }
+  /** The previewed preset's stretch: the default's is the torso variant's own. */
+  async function setPresetStretch(s: Vec3 | null) {
+    const t = torso.value, p = preset.value;
+    if (!t || !p) return;
+    if (p.preset_id === 'default') await setStretch(t, s);
+    else await savePresets(presets.value.map((x) => (x.preset_id === p.preset_id ? { ...x, stretch: s } : x)));
+  }
+  /** Live, unsaved: a socket's offset in the previewed preset, mirrored to its pair and kept on the centre line for
+   *  the head and tail by symmetry. saveOffsets() sends it. */
+  function setOffset(slot: Slot, off: { translate: number[]; rotate: number[] }) {
+    const p = preset.value;
+    if (!p) return;
+    const sym = kit.value?.symmetry ?? true;
+    const fixed = sym && (slot === 'head' || slot === 'tail') ? { translate: [0, off.translate[1], off.translate[2]], rotate: [off.rotate[0], 0, 0] } : off;
+    const sockets = { ...(p.sockets ?? {}), [slot]: fixed } as Record<string, SocketOffset>;
+    const pair = PAIRS[slot];
+    if (sym && pair) sockets[pair] = mirrorOffset(fixed);
+    p.sockets = sockets as never;
+  }
+  async function saveOffsets() {
+    await savePresets(presets.value);
+  }
   function partOf(kind: Kind): Part | null {
     return kit.value?.parts.find((p) => p.kind === kind && p.variant === variantOf(kind)) ?? null;
   }
@@ -89,6 +145,7 @@ export const useParts = defineStore('parts', () => {
       kit.value = r;
       preview.value = {};
       poseId.value = null;
+      presetId.value = 'default';
       target.value = { type: 'slot', slot: 'front_left' };
     }
     return !!r;
@@ -150,6 +207,7 @@ export const useParts = defineStore('parts', () => {
   }
   return {
     species, kits, kit, target, view, gizmo, preview, poseId, scale, busy, error, notice, torso, selectedPart, pose,
-    variantOf, partOf, allowed, setAllowed, setStretch, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
+    variantOf, partOf, allowed, setAllowed, setStretch,
+    presetId, presets, preset, torsoStretch, offsetMode, addPreset, removePreset, renamePreset, setPresetStretch, setOffset, saveOffsets, loadKits, upload, open, select, setAttachment, setJoint, save, saveTorso, saveJoint, reguess, setup, commit,
   };
 });

@@ -36,7 +36,14 @@ function refresh(k: PartKit): PartKit {
     if (vs.length) allowed[kind] = vs; // a breed's own parts are always allowed
   }
   k.allowed = allowed;
-  for (const p of k.parts) Object.assign(p, { shared: false, stretch: p.stretch ?? [1, 1, 1], stretch_edited: p.stretch_edited ?? false });
+  for (const p of k.parts) {
+    Object.assign(p, { shared: false, stretch: p.stretch ?? [1, 1, 1], stretch_edited: p.stretch_edited ?? false });
+    // a torso's presets (decision 131): the default's stretch is the part's own
+    const rest = (p.presets ?? []).filter((x) => x.preset_id !== 'default');
+    const first = (p.presets ?? []).find((x) => x.preset_id === 'default');
+    p.presets = p.kind === 'torso' ? [{ preset_id: 'default', label: first?.label ?? 'Standard', stretch: p.stretch, sockets: first?.sockets ?? {} },
+      ...rest.map((x) => ({ ...x, stretch: x.stretch ?? p.stretch }))] : [];
+  }
   k.problems = problems(k);
   return k;
 }
@@ -53,7 +60,7 @@ kits.set('dog/mixed', refresh({
   parts: G.map((g) => ({
     part_id: `pt_mixed_${g.kind}_${g.variant}`, kind: g.kind, variant: g.variant, label: g.variant === 'default' ? 'Standard' : label(g.variant),
     mesh_url: assetUrl(`parts/dog/${g.file}`), tris: g.tris, sha256: '0'.repeat(64), joint: clone(g.joint ?? null), attachments: clone(g.attachments ?? null),
-    limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false,
+    limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false, presets: [],
   })),
 } as unknown as PartKit));
 
@@ -91,7 +98,7 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
       const g = guessFor(kind, variant);
       const part: Part = { part_id: `pt_${breed}_${kind}_${variant}`, kind, variant, label: variant === 'default' ? 'Standard' : label(variant),
         mesh_url: assetUrl(`parts/dog/${g.file}`), tris: g.tris, sha256: '0'.repeat(64), joint: clone(g.joint ?? null), attachments: clone(g.attachments ?? null),
-        limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false };
+        limits: clone(g.limits ?? null), guess: clone(g.guess), edited: false, mirrored: false, shared: false, stretch: [1, 1, 1], stretch_edited: false, presets: [] };
       kit.parts = [...kit.parts.filter((p) => !(p.kind === kind && p.variant === variant)), part];
       dirty(kit);
       items.push(part);
@@ -137,7 +144,14 @@ export const partHandlers = (userOf: (r: Request) => string | null, unauthorised
     const k = kitOf(params);
     if (!k) return notFound('no kit');
     const body = (await request.json()) as { defaults?: PartKit['defaults']; poses?: Pose[]; default_pose?: string; symmetry?: boolean;
-      stretch?: Record<string, number[] | null>; texture?: PartKit['texture'] };
+      stretch?: Record<string, number[] | null>; texture?: PartKit['texture']; presets?: Record<string, Part['presets']> };
+    for (const [key, list] of Object.entries(body.presets ?? {})) {
+      const p = k.parts.find((x) => x.kind === 'torso' && x.variant === key.split('/')[1]);
+      if (!p) return HttpResponse.json({ detail: `no torso variant ${key}` }, { status: 422 });
+      const ids = (list ?? []).map((x) => x.preset_id);
+      if (new Set(ids).size !== ids.length) return HttpResponse.json({ detail: 'preset ids must be unique' }, { status: 422 });
+      p.presets = list ?? [];
+    }
     for (const [key, s] of Object.entries(body.stretch ?? {})) {
       const [kind, variant] = key.split('/');
       const p = k.parts.find((x) => x.kind === kind && x.variant === variant);
