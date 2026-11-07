@@ -52,7 +52,7 @@ test('4 design: the library assembler swaps parts live on the kiosk GPU', async 
   await expect(page.getByTestId('shared-mesh')).toContainText('Same figure shape as');
 });
 
-test('4b design: a breed with a part kit is a figure of parts: shape, markings, ordered and printed', async ({ page }) => {
+test('4b design: a breed with a part kit is a figure of parts: shape, markings, paint, extras, ordered and printed', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('attract').tap();
   await page.getByTestId('species-dog').tap();
@@ -62,9 +62,8 @@ test('4b design: a breed with a part kit is a figure of parts: shape, markings, 
   } else await page.getByTestId('breed-search-input').fill('labrador');
   await page.getByTestId('breed-labrador').tap();
   await expect(page.getByText('Design your Labrador Retriever')).toBeVisible();
-  // a figure of parts (decision 136): Shape and Markings only, the parts placed and painted
-  await expect(page.getByTestId('tab-paint')).toHaveCount(0);
-  await expect(page.getByTestId('tab-extras')).toHaveCount(0);
+  // a figure of parts (decision 136): the parts placed and painted, every tab offered (decision 139)
+  await expect(page.getByTestId('tab-paint')).toBeVisible();
   const view = page.getByTestId('design-preview');
   await expect(view).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
   await expect(view.locator('canvas')).toBeVisible();
@@ -82,6 +81,24 @@ test('4b design: a breed with a part kit is a figure of parts: shape, markings, 
   await expect(page.getByTestId('kit-marking-white_socks')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-testid^="kit-coat-"]').nth(2).tap();
   await expect(page.getByTestId('kit-nose')).toBeVisible();
+  // spots on the part they land on (mirrored), undone and painted again; a collar on its socket (decision 139)
+  await page.getByTestId('tab-paint').tap();
+  await page.getByTestId('tool-spot-l').tap();
+  const canvas = view.locator('canvas');
+  const box = (await canvas.boundingBox())!;
+  await canvas.tap({ position: { x: box.width * 0.5, y: box.height * 0.5 } });
+  await expect(page.getByTestId('stamp-count')).toContainText(/^[12]\//);
+  await page.getByTestId('undo').tap();
+  await expect(page.getByTestId('stamp-count')).toContainText(/^0\//);
+  await canvas.tap({ position: { x: box.width * 0.5, y: box.height * 0.5 } });
+  await expect(page.getByTestId('stamp-count')).toContainText(/^[12]\//);
+  await page.getByTestId('tab-extras').tap();
+  await page.getByTestId('shell-shell_collar').tap();
+  await expect(page.getByTestId('shell-shell_collar')).toHaveAttribute('aria-pressed', 'true');
+  await expect(view).toHaveAttribute('data-extras', 'shell_collar');
+  await page.getByTestId('design-price').tap();
+  await expect(page.getByTestId('design-quote')).toContainText('Collar');
+  await expect(page.getByTestId('design-quote')).toContainText('Hand-painted');
   await page.waitForTimeout(600);
   await page.screenshot({ path: `test-results/kit-design-${test.info().project.name}.png` });
   // ordered like any figurine: named, a contact, paid, printed

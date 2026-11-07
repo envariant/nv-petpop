@@ -334,8 +334,11 @@ def test_masks_and_a_release_with_kits(client):
                      ({"texture": {"base": {"hex": "red"}}}, "texture")]:
         r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": {**comp, **bad}})
         assert r.status_code == 422 and why in r.text, (bad, r.text)
-    r = client.post(f"{K}/compositions/{cid}/bespoke", json={})
-    assert r.status_code == 422 and "part-kit" in r.text, r.text
+    r = client.post(f"{K}/compositions/{cid}/bespoke", json={})  # a bespoke figure can start from it (decision 139)
+    check(f"{K}/compositions/{{composition_id}}/bespoke", "post", r)
+    bad = {**comp, "shells": [{"part_id": "shell_cape", "colour": "#DD3333"}]}
+    r = client.post(f"{K}/compositions", json={"session_id": sid, "composition": bad})
+    assert r.status_code == 422 and "shells: unknown shell_cape" in r.text, r.text
 
 
 def test_an_obj_part_with_its_mtl_and_texture(client):

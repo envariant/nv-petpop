@@ -1,7 +1,7 @@
 // Figures of part kits in the customer app (decisions 133 to 135): the kits a release carries, the composition 3.0
-// a customer builds from one, where each part goes, and how each part is painted. The twin of
-// petpop_library/composition.py (check_kit, sample_kit) and petpop_library/kit_figure.py (variants_for, mask_layers,
-// paint_tile): the screen paints with the print's rules.
+// a customer builds from one, where each part goes, and which masks paint it. The twin of
+// petpop_library/composition.py (check_kit, sample_kit) and petpop_library/kit_figure.py (variants_for, mask_layers);
+// the painting itself is kitPaint.ts.
 import * as THREE from 'three';
 import { SLOTS, SLOT_KIND, placement, type AttachmentData, type JointData, type Kind, type PoseData, type Slot, type SocketOffset, type Vec3 } from './parts';
 
@@ -19,11 +19,15 @@ export interface Kit {
   defaults: Record<Kind, string>; allowed?: Partial<Record<Kind, string[]>>; poses: KitPose[]; default_pose: string; texture?: KitTexture | null;
 }
 export interface KitMask { uv_layout: string; name: string; file: string }
-export interface KitManifest { release_version: string; species: 'dog' | 'cat'; kits?: Kit[]; masks?: KitMask[] }
+export interface KitShellItem { id: string; name: string; socket: string; kind: string; mesh: string; default_colour: string; thumbnail: string }
+export interface KitManifest { release_version: string; species: 'dog' | 'cat'; kits?: Kit[]; masks?: KitMask[]; shell_parts?: KitShellItem[] }
+/** A spot or brush dab on one part, in that part's own frame (mm, before it is stretched and placed), decision 139. */
+export interface KitCompositionStamp { slot: Slot | 'torso'; p: [number, number, number]; r: number; colour: string }
 /** Composition 3.0 (data/schema/composition3.schema.json). */
 export interface KitComposition {
   composition_version: '3.0'; species: 'dog' | 'cat'; release_version: string; breed_id: string; kit_version: number;
   variants: Record<Kind, string>; preset_id: string; pose_id: string; texture: KitTexture; pet_name?: string; eye_colour?: string; nose_colour?: string;
+  shells?: { part_id: string; colour: string }[]; stamps?: KitCompositionStamp[];
 }
 
 export const kitFor = (m: KitManifest, breedId: string): Kit | null => m.kits?.find((k) => k.breed_id === breedId) ?? null;
@@ -38,7 +42,7 @@ export function startingKitComposition(m: KitManifest, kit: Kit): KitComposition
     variants: { ...kit.defaults }, preset_id: 'default', pose_id: kit.default_pose,
     texture: { base: { ...t.base }, secondary: t.secondary ? { ...t.secondary } : null, tertiary: t.tertiary ? { ...t.tertiary } : null,
       pattern: t.pattern ?? null, markings: [...(t.markings ?? [])] },
-    eye_colour: '#3B2412', nose_colour: '#1E1B1A',
+    eye_colour: '#3B2412', nose_colour: '#1E1B1A', shells: [], stamps: [],
   };
 }
 
@@ -95,29 +99,5 @@ export function maskLayers(t: KitTexture, eye?: string, nose?: string): [string,
   }
   if (eye) out.push([EYE, rgb(eye)]);
   if (nose) out.push([NOSE, rgb(nose)]);
-  return out;
-}
-
-/** One part's albedo (size x size RGBA, image rows top down: row 0 is the glTF v = 0 the masks' row 0 is), from its
- *  masks already resized to `size` (one byte per pixel). kit_figure.paint_tile. */
-export function paintTile(size: number, t: KitTexture, masks: Map<string, Uint8Array>, eye?: string, nose?: string): Uint8Array<ArrayBuffer> {
-  const n = size * size;
-  const img = new Float32Array(n * 3);
-  const a = rgb(t.base.hex);
-  for (let i = 0; i < n; i++) img.set(a, i * 3);
-  for (const [name, colour] of maskLayers(t, eye, nose)) {
-    const m = masks.get(name);
-    if (!m) continue;
-    for (let i = 0; i < n; i++) {
-      const w = m[i] / 255;
-      if (!w) continue;
-      for (let k = 0; k < 3; k++) img[i * 3 + k] = img[i * 3 + k] * (1 - w) + colour[k] * w;
-    }
-  }
-  const out = new Uint8Array(new ArrayBuffer(n * 4));
-  for (let i = 0; i < n; i++) {
-    for (let k = 0; k < 3; k++) out[i * 4 + k] = Math.min(255, Math.max(0, Math.round(img[i * 3 + k])));
-    out[i * 4 + 3] = 255;
-  }
   return out;
 }

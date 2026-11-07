@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Gate 7 (M7, BRIEF Section 16): kiosk library mode. Composition to print bundle in under 60 s; stamps cross seams
-# correctly; the coverage slider is smooth with 10 layers active; the print matches the screen; and (Section 17)
+# correctly; the coverage slider is smooth with 10 layers active; the print matches the screen (a figure of parts
+# too: spots, markings and extras, decision 139); and (Section 17)
 # the kiosk completes an order with the GenAI host unreachable. Runs on the mock profile: no GenAI host is needed.
 source "$(dirname "$0")/lib.sh"
 echo "gate-7: kiosk library mode"
@@ -13,5 +14,6 @@ step "composition to print bundle under 60 s per species, GenAI host unreachable
 step "a figure of part kits: released, ordered, each part painted from its masks, printed (CPU and Blender)" "$PY" -m pytest tests/server/test_kit_export.py
 step "browser: coverage slider smooth with 10 layers; baked screen atlas" bash -c 'cd apps/customer && rm -rf test-results/gate7 && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test --project=kiosk tests/gate7'
 step "print matches screen, texel for texel" "$PY" scripts/gate7_print_matches_screen.py apps/customer/test-results/gate7
+step "print matches screen for a figure of parts: every slot's tile, spots and all, byte for byte" "$PY" scripts/gate7_kit_matches_screen.py apps/customer/test-results/gate7/kit
 step "kiosk walkthrough to an ordered figurine, real backend, GenAI host unreachable" bash -c 'cd apps/customer && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test --project=kiosk tests/e2e/walkthrough.spec.ts'
 echo "GATE 7 PASSED"

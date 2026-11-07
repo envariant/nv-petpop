@@ -127,6 +127,15 @@ def dilate_into_padding(img: np.ndarray, covered: np.ndarray, px: int) -> np.nda
         new = have.copy()
         for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0)):
             src_have = np.roll(have, (dy, dx), axis=(0, 1))
+            # no wrapping round the image's edges (np.roll would bring the far edge in), as the kiosk's paddingPairs
+            if dx == 1:
+                src_have[:, 0] = False
+            elif dx == -1:
+                src_have[:, -1] = False
+            elif dy == 1:
+                src_have[0, :] = False
+            else:
+                src_have[-1, :] = False
             take = src_have & ~new
             grown[take] = np.roll(out, (dy, dx), axis=(0, 1))[take]
             new |= take

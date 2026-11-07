@@ -5,7 +5,7 @@ import { MAX_STAMPS, SPOT_MM, useDesign } from '../../stores/design';
 import Swatches from './Swatches.vue';
 import { FUR } from './palettes';
 const d = useDesign();
-const c = computed(() => d.composition!);
+const count = computed(() => d.active?.stamps?.length ?? 0); // a figure of parts too (decision 139)
 const SIZES = { s: 'Small spot', m: 'Spot', l: 'Patch' } as const;
 </script>
 
@@ -20,7 +20,7 @@ const SIZES = { s: 'Small spot', m: 'Spot', l: 'Patch' } as const;
     <Chip :selected="d.symmetry" test-id="symmetry" @click="d.symmetry = !d.symmetry">Mirror both sides</Chip>
     <Chip :selected="d.turning" test-id="turn" @click="d.turning = !d.turning">⟳ Turn figure</Chip>
     <Chip test-id="undo" @click="d.undo()">↶ Undo</Chip>
-    <span class="text-base text-muted md:text-lg" data-testid="stamp-count">{{ c.stamps.length }}/{{ MAX_STAMPS }} dabs</span>
+    <span class="text-base text-muted md:text-lg" data-testid="stamp-count">{{ count }}/{{ MAX_STAMPS }} dabs</span>
   </div>
   <p class="mt-2 text-base text-muted md:text-lg">Tap the figure to add a spot, or drag with the brush.</p>
 </template>

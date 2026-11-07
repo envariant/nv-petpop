@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Design (BRIEF Section 16): the customer assembles the figurine from the library and paints it. Portrait: the
 // preview on top, the tools below; landscape: the preview on the left, the tools in a column on the right. A breed with
-// a part kit in the release is a figure of parts (decision 136): its own Shape and Markings tabs, no Paint or Extras.
+// a part kit in the release is a figure of parts (decision 136): its own Shape and Markings tabs, and Paint and Extras
+// as for any figure (decision 139).
 import { computed, ref, watch } from 'vue';
 import { FigureView, KitFigureView, PButton, PTitle, cx } from '@petpop/ui-vue';
 import { useDesign, type Tab } from '../stores/design';
@@ -20,8 +21,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'paint', label: 'Paint' },
   { id: 'extras', label: 'Extras' },
 ];
-const tabs = computed(() => (d.kitMode ? TABS.filter((t) => t.id === 'shape' || t.id === 'patterns') : TABS));
-const panels = computed(() => (d.kitMode ? { shape: KitShapePanel, patterns: KitMarkingsPanel, paint: KitShapePanel, extras: KitShapePanel }
+const tabs = computed(() => TABS);
+const panels = computed(() => (d.kitMode ? { shape: KitShapePanel, patterns: KitMarkingsPanel, paint: PaintPanel, extras: ExtrasPanel }
   : { shape: ShapePanel, patterns: PatternsPanel, paint: PaintPanel, extras: ExtrasPanel }));
 watch(() => s.breed, (b) => {
   if (b && (!d.active || d.active.breed_id !== b.id || d.active.species !== b.species)) void d.begin(b);
@@ -33,6 +34,10 @@ const painting = computed(() => d.tab === 'paint' && !d.turning);
 const onBake = (bake: () => Uint8Array) => {
   if (import.meta.env.DEV) (window as unknown as { __petpop: unknown }).__petpop = { bake, composition: () => d.composition };
 };
+/** The same for a figure of parts: every slot's tile at a size, as the export paints it (gate 7). */
+const onKitBake = (bake: (size: number) => Promise<Record<string, { key: string; rgba: Uint8Array }>>) => {
+  if (import.meta.env.DEV) (window as unknown as { __petpop: unknown }).__petpop = { bakeTiles: bake, composition: () => d.kitComposition };
+};
 </script>
 
 <template>
@@ -42,7 +47,7 @@ const onBake = (bake: () => Uint8Array) => {
   </div>
   <div v-else class="flex h-full flex-col gap-3 px-4 pb-4 pt-2 md:px-8 landscape:md:flex-row landscape:md:gap-6" data-testid="design">
     <div :class="cx('relative order-2 h-[42%] min-h-[14rem] shrink-0 overflow-hidden rounded-tile bg-card shadow-soft landscape:md:order-1 landscape:md:h-full landscape:md:flex-1', painting && 'ring-highlight')">
-      <KitFigureView v-if="ready && d.kitMode" :manifest="d.kitManifest()" :kit="d.kit!" :composition="d.kitComposition!" :url="d.fileUrl" />
+      <KitFigureView v-if="ready && d.kitMode" :manifest="d.kitManifest()" :kit="d.kit!" :composition="d.kitComposition!" :url="d.fileUrl" :paint="painting" :on-bake="onKitBake" @paint="d.paint" />
       <FigureView v-else-if="ready" :lib="d.lib!" :composition="d.composition!" :paint="painting" :on-bake="onBake" @paint="d.paint" />
       <div v-else class="flex h-full items-center justify-center text-xl text-muted" data-testid="design-loading">Getting the parts ready…</div>
     </div>

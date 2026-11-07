@@ -132,8 +132,6 @@ class MockLibrary:
         return files[path], media_type(path)
 
     def bespoke_spec(self, c: MockComposition) -> dict[str, Any]:
-        if c.body.get("composition_version") == "3.0":
-            raise ApiError(422, "a bespoke figure cannot start from a part-kit composition yet (decision 134)")
         return to_spec(self.release(c.body["species"])[0], c.body, random.randint(1, 2**31 - 1))
 
     def orders(self, account_id: str | None = None, limit: int = 20) -> list[m.KioskOrder]:

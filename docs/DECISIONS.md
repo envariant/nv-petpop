@@ -378,3 +378,17 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    the two mirror it). References in the OBJ and MTL are taken by file name alone (one folder). Releases leave the
    originals out: the app and the CPU print never read them. An MTL or JPEG that no OBJ in the upload names is
    skipped with a note; a missing one is noted and left out.
+139. **A figure of parts is painted, dressed and made bespoke like any figure (2026-11-07).** Composition 3.0 gains
+   `stamps` and `shells` (API 3.20.0). A stamp belongs to one slot and sits in that part's own frame (mm, before
+   stretch and placement), so spots stay put when the pose, the shape or the other parts change, and a part swapped
+   for another variant takes its spots with it. Symmetry writes the mirror explicitly: a leg's spot goes on the other
+   leg at the same place (the right legs are the left ones mirrored), a centre part's at -x. A spot is painted on its
+   own part only, so one over a joint stops at the seam (accepted for the POC). A slot with spots gets its own atlas
+   tile; the others still share their part's. The screen paints exactly what the print does: masks are sampled
+   bilinearly at texel centres in float64 in both (no browser or PIL resampling), and stamps use the atlas rasteriser
+   on each part's own UVs (glTF's v flipped as the export reads it); gate 7 bakes every slot's tile in the browser and
+   compares it byte for byte with the export's (found and fixed on the way: the export's UV padding wrapped round the
+   image's edge). Extras use the whole-figure sockets, from the landmarks the kit figure estimates (a TypeScript twin
+   on screen); the export places them as for any composition, and they are priced as before. Bespoke starts from a
+   composition 3.0 too: its texture's colours, pattern and the markings a PetSpec names, its eyes and extras. Legs and
+   tails keep only their stretch; the torso's socket offsets are the only offsets (Nishant, 2026-11-07).

@@ -69,6 +69,8 @@ def check_kit(manifest: dict[str, Any], body: dict[str, Any]) -> list[str]:
     torso = next((p for p in kit["parts"] if p["kind"] == "torso" and p["variant"] == body["variants"]["torso"]), None)
     if torso and body["preset_id"] not in {x["preset_id"] for x in torso.get("presets") or [{"preset_id": "default"}]}:
         errs.append(f"preset_id: torso {torso['variant']} has no shape {body['preset_id']}")
+    shells = {s["id"] for s in manifest["shell_parts"]}  # extras on a figure of parts (decision 139)
+    errs += [f"shells: unknown {s['part_id']}" for s in body.get("shells") or [] if s["part_id"] not in shells]
     return errs
 
 
@@ -132,15 +134,31 @@ def mesh_co(manifest: dict[str, Any], mesh_id: str, files: dict[str, bytes] | No
 
 def to_spec(manifest: dict[str, Any], body: dict[str, Any], seed: int) -> dict[str, Any]:
     """A composition as a bespoke job's starting PetSpec (BRIEF Section 16: POST /compositions/{id}/bespoke): the
-    breed preset it started from, its colours, eyes and accessories, and the pet name."""
+    breed preset it started from, its colours, eyes and accessories, and the pet name. A composition 3.0 gives its
+    texture's colours, pattern and markings (those a PetSpec names), its eyes and its extras."""
     from petpop_core.breeds import all_breeds
     from petpop_core.spec import default_spec, fill_colour_names
 
     species = body["species"]
     breed = body.get("breed_id") if body.get("breed_id") in {b["id"] for b in all_breeds(species)} else "mixed"
     spec = default_spec(species, breed, seed=seed, pet_name=body.get("pet_name") or None)
-    spec["colour"]["base"] = {"name": "custom", "hex": body["base_colour"].upper()}
-    spec["eyes"]["hex"] = body["eye_colour"].upper()
+    if body.get("composition_version") == "3.0":  # a figure of parts (decision 139): its texture's colours and markings
+        texture = body["texture"]
+        spec["colour"]["base"] = {"name": "custom", "hex": texture["base"]["hex"].upper()}
+        if texture.get("secondary"):
+            spec["colour"]["secondary"] = {"name": "custom", "hex": texture["secondary"]["hex"].upper()}
+        from petpop_core.schemas import load_schema  # noqa: PLC0415
+
+        colour = load_schema("petspec.schema.json")["properties"]["colour"]["properties"]
+        if texture.get("pattern") in colour["pattern"]["enum"]:
+            spec["colour"]["pattern"] = texture["pattern"]
+        known = colour["markings"]["items"]["enum"]
+        spec["colour"]["markings"] = [m for m in dict.fromkeys(texture.get("markings") or []) if m in known][:5]
+        if body.get("eye_colour"):
+            spec["eyes"]["hex"] = body["eye_colour"].upper()
+    else:
+        spec["colour"]["base"] = {"name": "custom", "hex": body["base_colour"].upper()}
+        spec["eyes"]["hex"] = body["eye_colour"].upper()
     kinds = {s["id"]: s["kind"] for s in manifest["shell_parts"]}
-    spec["accessories"] = [{"type": kinds[s["part_id"]], "colour_hex": s["colour"].upper()} for s in body["shells"] if s["part_id"] in kinds]
+    spec["accessories"] = [{"type": kinds[s["part_id"]], "colour_hex": s["colour"].upper()} for s in body.get("shells") or [] if s["part_id"] in kinds]
     return fill_colour_names(spec)

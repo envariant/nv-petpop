@@ -12,7 +12,8 @@ third colour to a breed's default texture, edited in the workbench; 3.16.0 adds 
 templates, uploaded with the parts and carried by releases with the kits (decision 133); 3.17.0 adds composition 3.0,
 a figure of part kits (decision 134); 3.18.0 prices options and extras as quote lines from config/pricing.json and adds
 POST /kiosk/quote (decision 137); 3.19.0 takes parts as OBJs with their MTL and textures, the original kept for
-Blender, quads and all (decision 138)."""
+Blender, quads and all (decision 138); 3.20.0 lets a composition 3.0 carry extras and spots painted on its parts and
+start a bespoke figure (decision 139)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -20,7 +21,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
 
-API_VERSION = "3.19.0"
+API_VERSION = "3.20.0"
 
 # Placeholders swapped for $refs to the JSON-Schema-derived components in contract.contract_openapi().
 PetSpec = Annotated[dict[str, Any], WithJsonSchema({"type": "object", "x-petpop-ref": "PetSpec"})]

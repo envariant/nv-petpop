@@ -22,7 +22,7 @@ export const HANDLED_PATHS = [
   '/api/v1/account/sign-out', '/api/v1/account/me/orders', '/api/v1/account/me/devices',
 ];
 
-const API_VERSION = '3.19.0';
+const API_VERSION = '3.20.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();

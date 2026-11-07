@@ -285,6 +285,4 @@ class KioskLibrary:
         with self.db() as db:
             row = self._row(db, cid)
             body, session_id, species = row.body, row.session_id, row.species
-        if body.get("composition_version") == "3.0":
-            raise ApiError(422, "a bespoke figure cannot start from a part-kit composition yet (decision 134)")
         return session_id, to_spec(self.active(species).manifest, body, random.randint(1, 2**31 - 1)), species

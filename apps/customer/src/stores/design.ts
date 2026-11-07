@@ -7,8 +7,8 @@ import { defineStore } from 'pinia';
 import { computed, markRaw, ref, shallowRef, watch } from 'vue';
 import { ApiFailure, KioskApi, apiUrl } from '@petpop/core';
 import type { Breed, CompositionBody, CompositionStatus, OrderContact, PaymentMethod, Species } from '@petpop/core';
-import { kitFor, loadLibrary, partFor, startingComposition, startingKitComposition, syncStamps, uploadStamps, type Composition, type Kind, type Kit,
-  type KitComposition, type KitManifest, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
+import { kitFor, loadLibrary, mirrorStamp, partFor, startingComposition, startingKitComposition, syncStamps, uploadStamps, type Composition, type Kind, type Kit,
+  type KitComposition, type KitHit, type KitManifest, type KitStamp, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
 export type ShapeRegion = 'family' | Region;
@@ -21,6 +21,7 @@ export const MAX_LAYERS = 10;
 let libSpecies: Species | null = null;
 let release: { manifest: ReleaseManifest; url: (path: string) => string } | null = null;
 let lastDab: [number, number, number] | null = null;
+let lastSlot: string | null = null;
 let breedPreset: unknown = null;
 const libs = new Map<string, Promise<LoadedLibrary>>(); // one per mesh of the active release
 
@@ -160,15 +161,22 @@ export const useDesign = defineStore('design', () => {
   }
   const setCoverage = (pid: string, coverage: number) => edit((c) => ({ ...c, layers: c.layers.map((l) => (l.pattern_id === pid ? { ...l, coverage } : l)) }));
   const setLayerColour = (pid: string, hex: string) => edit((c) => ({ ...c, layers: c.layers.map((l) => (l.pattern_id === pid ? { ...l, colour: hex } : l)) }));
-  function toggleShell(partId: string) {
-    edit((c) => {
-      if (c.shells.some((s) => s.part_id === partId)) return { ...c, shells: c.shells.filter((s) => s.part_id !== partId) };
-      const item = manifest().shell_parts.find((s) => s.id === partId)!;
-      const sameSocket = new Set(manifest().shell_parts.filter((s) => s.socket === item.socket).map((s) => s.id));
-      return { ...c, shells: [...c.shells.filter((s) => !sameSocket.has(s.part_id)), { part_id: partId, colour: item.default_colour }] };
-    });
+  /** The extras, one per socket, on whichever figure is being designed (a figure of parts too, decision 139). */
+  function toggledShells(shells: { part_id: string; colour: string }[], partId: string) {
+    if (shells.some((s) => s.part_id === partId)) return shells.filter((s) => s.part_id !== partId);
+    const item = manifest().shell_parts.find((s) => s.id === partId)!;
+    const sameSocket = new Set(manifest().shell_parts.filter((s) => s.socket === item.socket).map((s) => s.id));
+    return [...shells.filter((s) => !sameSocket.has(s.part_id)), { part_id: partId, colour: item.default_colour }];
   }
-  const setShellColour = (partId: string, hex: string) => edit((c) => ({ ...c, shells: c.shells.map((s) => (s.part_id === partId ? { ...s, colour: hex } : s)) }));
+  function toggleShell(partId: string) {
+    if (kitMode.value) return editKit((c) => ({ ...c, shells: toggledShells(c.shells ?? [], partId) }));
+    edit((c) => ({ ...c, shells: toggledShells(c.shells, partId) }));
+  }
+  function setShellColour(partId: string, hex: string) {
+    const recolour = <T extends { part_id: string; colour: string }>(xs: T[]) => xs.map((s) => (s.part_id === partId ? { ...s, colour: hex } : s));
+    if (kitMode.value) return editKit((c) => ({ ...c, shells: recolour(c.shells ?? []) }));
+    edit((c) => ({ ...c, shells: recolour(c.shells) }));
+  }
   const setEyes = (hex: string) => (kitMode.value ? editKit((c) => ({ ...c, eye_colour: hex })) : edit((c) => ({ ...c, eye_colour: hex })));
   const setNose = (hex: string) => (kitMode.value ? editKit((c) => ({ ...c, nose_colour: hex })) : edit((c) => ({ ...c, nose_colour: hex })));
   const setName = (name: string) => (kitMode.value ? editKit((c) => ({ ...c, pet_name: name.slice(0, 24) })) : edit((c) => ({ ...c, pet_name: name.slice(0, 24) })));
@@ -190,7 +198,31 @@ export const useDesign = defineStore('design', () => {
   const fileUrl = (path: string) => release!.url(path);
   const kitManifest = () => release!.manifest as unknown as KitManifest;
 
-  function paint(hit: PaintHit) {
+  /** A spot or dab on a figure of parts (decision 139): on the part it landed on, in that part's own frame. */
+  function paintKit(hit: KitHit & { dragging: boolean }) {
+    const c = kitComposition.value;
+    const have = c?.stamps ?? [];
+    if (!c || have.length >= MAX_STAMPS) return;
+    const r = tool.value === 'brush' ? BRUSH_MM : SPOT_MM[spot.value];
+    if (tool.value === 'spot' && hit.dragging) return;
+    if (tool.value === 'brush' && hit.dragging && lastDab && lastSlot === hit.slot) {
+      const d = Math.hypot(hit.p[0] - lastDab[0], hit.p[1] - lastDab[1], hit.p[2] - lastDab[2]);
+      if (d < r * 0.6) return;
+    }
+    lastDab = hit.p;
+    lastSlot = hit.slot;
+    const first: KitStamp = { slot: hit.slot, p: hit.p, r, colour: paintColour.value };
+    const add = [first];
+    const leg = hit.slot.startsWith('front_') || hit.slot.startsWith('hind_');
+    if (symmetry.value && (leg || Math.abs(hit.p[0]) > r * 0.5)) add.push(mirrorStamp(first));
+    const stamps = add.slice(0, MAX_STAMPS - have.length);
+    const s = strokes.value;
+    strokes.value = hit.dragging && s.length ? [...s.slice(0, -1), s[s.length - 1] + stamps.length] : [...s, stamps.length];
+    kitComposition.value = { ...c, stamps: [...have, ...stamps] };
+  }
+  function paint(hit: PaintHit | (KitHit & { dragging: boolean })) {
+    if (kitMode.value) return paintKit(hit as KitHit & { dragging: boolean });
+    if (!('p' in hit) || 'slot' in hit) return;
     const l = lib.value;
     const c = composition.value;
     if (!l || !c || c.stamps.length >= MAX_STAMPS) return;
@@ -211,6 +243,14 @@ export const useDesign = defineStore('design', () => {
     composition.value = { ...c, stamps: [...c.stamps, ...stamps] };
   }
   function undo() {
+    const k = kitComposition.value;
+    if (k) {
+      if (!strokes.value.length) return;
+      const have = k.stamps ?? [];
+      kitComposition.value = { ...k, stamps: have.slice(0, have.length - strokes.value[strokes.value.length - 1]) };
+      strokes.value = strokes.value.slice(0, -1);
+      return;
+    }
     const l = lib.value;
     const c = composition.value;
     if (!l || !c || !strokes.value.length) return;
@@ -262,6 +302,7 @@ export const useDesign = defineStore('design', () => {
   }
   function reset() {
     lastDab = null;
+    lastSlot = null;
     if (lib.value) syncStamps(lib.value, []);
     composition.value = null;
     kit.value = null;

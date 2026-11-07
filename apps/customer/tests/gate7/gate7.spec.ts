@@ -3,7 +3,7 @@
 // scripts/gate7_print_matches_screen.py). Run by scripts/gates/gate-7 with playwright.gate7.config.ts.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { toDesign } from '../e2e/helpers';
+import { kiosk, toDesign, typeOnKeyboard } from '../e2e/helpers';
 
 const OUT = 'test-results/gate7';
 
@@ -92,4 +92,43 @@ test('print matches screen: the baked shader atlas for a composition with layers
   writeFileSync(`${OUT}/bake.rgba`, Buffer.from(res.b64, 'base64'));
   writeFileSync(`${OUT}/composition.json`, JSON.stringify(res.composition, null, 1));
   expect(Buffer.from(res.b64, 'base64').length).toBeGreaterThan(0);
+});
+
+test('print matches screen: a figure of parts, every slot\'s tile with markings, spots and an extra', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('attract').tap();
+  await page.getByTestId('species-dog').tap();
+  if (kiosk()) {
+    await page.getByTestId('breed-search').tap();
+    await typeOnKeyboard(page, 'labrador');
+  } else await page.getByTestId('breed-search-input').fill('labrador');
+  await page.getByTestId('breed-labrador').tap();
+  const view = page.getByTestId('design-preview');
+  await expect(view).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await page.getByTestId('tab-patterns').tap();
+  await page.getByTestId('kit-marking-white_socks').tap();
+  await page.getByTestId('tab-paint').tap();
+  await page.getByTestId('tool-spot-l').tap();
+  const canvas = view.locator('canvas');
+  const box = (await canvas.boundingBox())!;
+  for (const [x, y] of [[0.5, 0.45], [0.42, 0.75], [0.5, 0.25]]) await canvas.tap({ position: { x: box.width * x, y: box.height * y } });
+  await expect(page.getByTestId('stamp-count')).not.toContainText(/^0\//);
+  await page.getByTestId('tab-extras').tap();
+  await page.getByTestId('shell-shell_collar').tap();
+  await expect(view).toHaveAttribute('data-extras', 'shell_collar');
+  const res = await page.evaluate(async () => {
+    const p = (window as unknown as { __petpop: { bakeTiles: (size: number) => Promise<Record<string, { key: string; rgba: Uint8Array }>>; composition: () => unknown } }).__petpop;
+    const tiles = await p.bakeTiles(128);
+    const out: Record<string, { key: string; b64: string }> = {};
+    for (const [slot, t] of Object.entries(tiles)) {
+      let s = '';
+      for (let i = 0; i < t.rgba.length; i += 0x8000) s += String.fromCharCode(...t.rgba.subarray(i, i + 0x8000));
+      out[slot] = { key: t.key, b64: btoa(s) };
+    }
+    return { tiles: out, composition: p.composition() };
+  });
+  mkdirSync(`${OUT}/kit`, { recursive: true });
+  writeFileSync(`${OUT}/kit/tiles.json`, JSON.stringify({ size: 128, tiles: res.tiles }));
+  writeFileSync(`${OUT}/kit/composition.json`, JSON.stringify(res.composition, null, 1));
+  expect(Object.keys(res.tiles).length).toBe(7);
 });

@@ -123,7 +123,9 @@ def run_kit_export(ctx: StageContext, job_id: str, composition: dict[str, Any], 
     kit = rel.kit(composition["breed_id"])
     if kit is None or kit["version"] != composition["kit_version"]:
         raise StageFailed("F", f"{rel.version} has no kit version {composition['kit_version']} for {composition['breed_id']}")
-    spec_like = {"species": composition["species"], "seed": 0, "pet_name": composition.get("pet_name", ""), "accessories": []}
+    spec_like = {"species": composition["species"], "seed": 0, "pet_name": composition.get("pet_name", ""),
+                 "accessories": [{"type": rel.item("shell_parts", s["part_id"])["kind"], "colour_hex": s["colour"]}
+                                 for s in composition.get("shells") or []]}  # extras on their sockets (decision 139)
     mb = ManifestBuilder(job_id, spec_like, mode="mock" if ctx.settings.mode == "mock" else "real",
                          base_mesh_version=rel.manifest["segmentation_version"], genai=library_genai(ctx.quality["preset"]))
     mb.data["source"] = {"kind": "composition", "composition_id": composition_id, "release_version": rel.version,

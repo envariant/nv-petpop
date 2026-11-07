@@ -13,3 +13,4 @@ export * from './composed';
 export * from './parts';
 export * from './kit';
 export * from './kitFigure';
+export * from './kitPaint';

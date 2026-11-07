@@ -166,20 +166,23 @@ kept (`result.quads` in the plan). Blender's `bpy`
 (`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
 `--modify`).
 
-## 4. Designing, ordering and printing (decisions 134 to 136)
+## 4. Designing, ordering and printing (decisions 134 to 136, 139)
 
 In the customer app, a breed with a kit in the release is designed as a figure of parts: **Shape** offers the body
 (each torso it offers, in each of its shapes), the front and back legs, tail and head when it offers more than one,
 and the pose; **Markings** the coat (colour A), the markings it has masks for, their colour (B), a third colour (C)
 when the texture has one, and the eyes and nose when the head has masks for them. The figure is assembled and painted
-on screen with the print's rules (`@petpop/scene` kit.ts and kitFigure.ts, checked against Python). Paint stamps and
-extras are for whole-figure breeds only, for now.
+on screen with the print's rules (`@petpop/scene` kit.ts, kitPaint.ts and kitFigure.ts, checked against Python byte
+for byte). **Paint** puts spots and brush dabs on the part they land on, in that part's own frame, mirrored to the
+other leg or across the centre line; **Extras** puts collars, bandanas and hats on the figure's sockets, as for any
+figure (decision 139). A bespoke figure can start from it.
 
 A customer's figure of parts is a composition 3.0 (`data/schema/composition3.schema.json`): the breed's kit in the
-release, a variant per kind, the torso's shape, a pose, the texture. The kiosk's export builds it with
+release, a variant per kind, the torso's shape, a pose, the texture, and its spots and extras. The kiosk's export builds it with
 `petpop_library.kit_figure`: every part placed as `compose_plan` says, stood on the floor, painted in its own UVs
 (colour A, then the pattern's and markings' masks in colour B, `_c` masks in colour C, the head's `eye` and `nose`
-masks in those colours), each distinct part a tile of one albedo atlas (a gutter of repeated edge pixels around it),
+masks in those colours, then the slot's spots), each distinct part (and each slot with spots of its own) a tile of
+one albedo atlas (a gutter of repeated edge pixels around it),
 and joined into one figure mesh grouped by slot. The print half of Stage F takes it like any figure: Blender's voxel
 remesh fuses the parts with the base disc; the CPU fallback closes and fuses each part on its own.
 

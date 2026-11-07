@@ -1557,7 +1557,7 @@ export interface components {
         Composition2_hex: string;
         /**
          * PetPop composition 3.0: a figure of part kits (decision 134)
-         * @description The kiosk's order record for a breed with a part kit in the release (release 3.0): the breed's kit, a variant per kind, the torso's shape (preset), a pose and a texture. The only input to its print export. Variants a pose swaps in (sitting folds the hind legs) override the composition's for those kinds.
+         * @description The kiosk's order record for a breed with a part kit in the release (release 3.0): the breed's kit, a variant per kind, the torso's shape (preset), a pose and a texture, with extras on the figure and spots painted on its parts (decision 139). The only input to its print export. Variants a pose swaps in (sitting folds the hind legs) override the composition's for those kinds.
          */
         Composition3: {
             breed_id: string;
@@ -1573,8 +1573,21 @@ export interface components {
             preset_id: string;
             /** @description The library release the kit is in. */
             release_version: string;
+            /** @description Extras (collar, bandana, hat, ...) on the figure's sockets, as on a whole-figure composition: one per socket. */
+            shells?: {
+                colour: components["schemas"]["Composition3_hex"];
+                part_id: string;
+            }[];
             /** @enum {unknown} */
             species: "dog" | "cat";
+            /** @description Spots and brush dabs, painted after the texture in this order (decision 139). Each belongs to one slot and sits in that part's own frame (mm, the part's mesh before it is stretched and placed), so it stays put when the pose, the shape or other parts change; a slot's part changing to another variant takes its stamps with it. Symmetry writes the mirrored stamp explicitly (a leg's on the other leg at the same place, a centre part's at -x). */
+            stamps?: {
+                colour: components["schemas"]["Composition3_hex"];
+                p: number[];
+                r: number;
+                /** @enum {unknown} */
+                slot: "torso" | "head" | "front_left" | "front_right" | "hind_left" | "hind_right" | "tail";
+            }[];
             texture: {
                 base: components["schemas"]["Composition3_colour"];
                 markings?: string[];

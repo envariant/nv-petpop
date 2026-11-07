@@ -47,6 +47,7 @@ def backend(request, monkeypatch, tmp_path):
     monkeypatch.setenv("PETPOP_VAR", str(tmp_path / "var"))
     monkeypatch.setenv("PETPOP_RELEASE_INBOX", str(tmp_path / "inbox"))
     monkeypatch.setenv("PETPOP_STUDIO_PASSWORD", "kit-test")
+    monkeypatch.setenv("KIOSK_BESPOKE", "1")
     # the CPU fallback (quick, the same painting) and Blender (the kiosk's print path)
     monkeypatch.setenv("PETPOP_BPY_PYTHON", BPY if request.param == "blender" else str(tmp_path / "no-blender"))
     from backend.api.app import create_app
@@ -82,6 +83,13 @@ def test_a_figure_of_part_kits_is_ordered_and_printed(backend):
 
     comp = sample_kit(rel["manifest"], "beagle", pet_name="Kit")
     assert comp["texture"]["markings"] == ["white_chest"] and comp["texture"]["secondary"]["hex"] == B
+    # an extra on its socket and spots on the head and a leg (decision 139)
+    collar = next(x for x in rel["manifest"]["shell_parts"] if x["kind"] == "collar")
+    comp["shells"] = [{"part_id": collar["id"], "colour": "#DD3333"}]
+    comp["stamps"] = [{"slot": "head", "p": [0.0, 0.0, 30.0], "r": 8.0, "colour": "#FFFFFF"},
+                      {"slot": "front_right", "p": [0.0, 0.0, 0.0], "r": 20.0, "colour": "#00FF00"}]
+    q = c.post(f"{K}/quote", json={"composition": comp}).json()
+    assert [i["label"] for i in q["items"]][1:] == ["Collar", "Hand-painted details"], q
     sid = c.post(f"{K}/sessions", json={"kiosk_id": "kit-test"}).json()["session_id"]
     st = c.post(f"{K}/compositions", json={"session_id": sid, "composition": comp})
     assert st.status_code == 201, st.text
@@ -91,6 +99,8 @@ def test_a_figure_of_part_kits_is_ordered_and_printed(backend):
     job_id = acc.json()["job_id"]
     assert worker.run_job(job_id) == "done"
     assert c.get(f"{K}/compositions/{cid}").json()["status"] == "ready"
+    bespoke = c.post(f"{K}/compositions/{cid}/bespoke", json={})  # a bespoke figure can start from it
+    assert bespoke.status_code == 201, bespoke.text
 
     from backend.core.config import settings
     from backend.api.store import LocalStore
@@ -105,6 +115,7 @@ def test_a_figure_of_part_kits_is_ordered_and_printed(backend):
     colours = {tuple(int(x) for x in px) for px in albedo.reshape(-1, 3)[:: 97]}
     rgb = lambda h: tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))  # noqa: E731
     assert rgb(A) in colours and rgb(B) in colours
+    assert (np.abs(albedo.astype(int) - (0, 255, 0)).max(axis=2) <= 2).any()  # the right leg's green spot
     stl = trimesh.load(io.BytesIO(store.get(f"jobs/{job_id}/figure.stl")), file_type="stl")
     assert 40 < stl.extents[2] < 110  # about the mandrel's height, standing on its base
     _ = httpx  # (kept for parity with the other server tests)
@@ -117,7 +128,7 @@ def test_a_figure_of_part_kits_is_ordered_and_printed(backend):
     mesh, co, atlas = kit_figure.build("dog", rel_obj.kit("beagle"), comp, rel_obj.file, rel_obj.mask_file, tile=64)
     h, w, _ = atlas.shape
     corner = mesh.uv.reshape(-1, 3, 2)
-    for group, want in (("body", B), ("head", A), ("leg_FR", A)):
+    for group, want in (("body", B), ("head", A), ("leg_FL", A)):
         faces = mesh.groups[mesh.group_names.index(group)][mesh.tri_verts[:, 0]] > 0.5
         uv = corner[faces].reshape(-1, 2)
         px = atlas[np.clip(((1 - uv[:, 1]) * h).astype(int), 0, h - 1), np.clip((uv[:, 0] * w).astype(int), 0, w - 1)]

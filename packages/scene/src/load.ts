@@ -55,7 +55,9 @@ export async function loadLibrary(manifest: ReleaseManifest, url: (path: string)
             const m = o as THREE.Mesh;
             if (m.isMesh && !geom) geom = m.geometry;
           });
-          return geom ?? new THREE.BufferGeometry();
+          const out = (geom ?? new THREE.BufferGeometry()) as THREE.BufferGeometry;
+          if (out.getAttribute('position') && !out.getAttribute('normal')) out.computeVertexNormals(); // lit black without them
+          return out;
         }));
       }
       return shellCache.get(path)!;
