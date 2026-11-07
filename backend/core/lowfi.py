@@ -126,7 +126,15 @@ def print_mesh(base: BaseMesh, co: np.ndarray, accessories: list | None = None):
 
     cfg = mandrel()
     parts = []
-    if base.source == "generated":  # one generated surface (decision 116), closed if the generator left gaps
+    if base.source == "kit":  # a figure of parts (decision 135): each placed part closed on its own, then fused
+        for g in range(len(base.group_names)):
+            m = base.groups[g][base.tri_verts[:, 0]] > 0.5
+            if m.any():
+                part = trimesh.Trimesh(co, base.tri_verts[m], process=True)
+                part.remove_unreferenced_vertices()
+                part.fix_normals()
+                parts.append(_closed(part))
+    elif base.source == "generated":  # one generated surface (decision 116), closed if the generator left gaps
         whole = trimesh.Trimesh(co, base.tri_verts, process=True)
         whole.fix_normals()
         parts.append(_closed(whole))

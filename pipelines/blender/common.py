@@ -209,6 +209,8 @@ from petpop_library.accessories import accessory_anchors  # noqa: E402  (shared 
 
 
 def add_accessories(accessories: list[dict], co: np.ndarray, landmarks: dict[str, int], shell: np.ndarray) -> list:
+    if not accessories:  # a figure of parts has none, and no schema landmarks to anchor them (decision 135)
+        return []
     anchors = accessory_anchors(co, landmarks, shell)
     out = []
     for a in accessories:

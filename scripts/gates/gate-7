@@ -10,6 +10,7 @@ step "kiosk stamp rasteriser is byte-identical to the export's (@petpop/scene)" 
 step "Contract 1 (release bundle) and Contract 2 (composition)" "$PY" -m pytest tests/contract/test_release.py
 step "kiosk library API and Stage-F-only order: mock server AND real backend" "$PY" -m pytest tests/contract -k "library or order or bespoke or openapi or every"
 step "composition to print bundle under 60 s per species, GenAI host unreachable" "$PY" scripts/gate7_export.py
+step "a figure of part kits: released, ordered, each part painted from its masks, printed (CPU and Blender)" "$PY" -m pytest tests/server/test_kit_export.py
 step "browser: coverage slider smooth with 10 layers; baked screen atlas" bash -c 'cd apps/customer && rm -rf test-results/gate7 && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test --project=kiosk tests/gate7'
 step "print matches screen, texel for texel" "$PY" scripts/gate7_print_matches_screen.py apps/customer/test-results/gate7
 step "kiosk walkthrough to an ordered figurine, real backend, GenAI host unreachable" bash -c 'cd apps/customer && PP_BACKEND=real PP_GENAI_DOWN=1 npx playwright test --project=kiosk tests/e2e/walkthrough.spec.ts'

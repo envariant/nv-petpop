@@ -160,6 +160,16 @@ folder of your own GLBs named as in section 1. Blender's `bpy`
 (`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
 `--modify`).
 
+## 4. Ordering and printing (decisions 134, 135)
+
+A customer's figure of parts is a composition 3.0 (`data/schema/composition3.schema.json`): the breed's kit in the
+release, a variant per kind, the torso's shape, a pose, the texture. The kiosk's export builds it with
+`petpop_library.kit_figure`: every part placed as `compose_plan` says, stood on the floor, painted in its own UVs
+(colour A, then the pattern's and markings' masks in colour B, `_c` masks in colour C, the head's `eye` and `nose`
+masks in those colours), each distinct part a tile of one albedo atlas (a gutter of repeated edge pixels around it),
+and joined into one figure mesh grouped by slot. The print half of Stage F takes it like any figure: Blender's voxel
+remesh fuses the parts with the base disc; the CPU fallback closes and fuses each part on its own.
+
 ## The maths
 
 `packages/library/python/petpop_library/parts.py` (Python) and `packages/scene/src/parts.ts` (the apps) are twins.

@@ -84,6 +84,8 @@ def run_export(ctx: StageContext, job_id: str, composition: dict[str, Any], comp
     t0 = time.perf_counter()
     store = release_store(ctx.settings)
     rel = find_release(store, composition)
+    if composition.get("composition_version") == "3.0":
+        return run_kit_export(ctx, job_id, composition, composition_id, rel, t0)
     spec_like = {"species": composition["species"], "seed": 0, "pet_name": composition.get("pet_name", ""),
                  "accessories": [{"type": rel.item("shell_parts", s["part_id"])["kind"], "colour_hex": s["colour"]}
                                  for s in composition["shells"]]}
@@ -101,6 +103,46 @@ def run_export(ctx: StageContext, job_id: str, composition: dict[str, Any], comp
     ctx.progress("F", 40, "Preparing the print file")
     metrics, _ = finish_export(ctx, mb, spec_like, mesh, coords, albedo_png)
     mb.metric(**metrics, segmentation_valid=True, segmentation_notes="library composition", uv_layout_hash=mesh.uv_hash(),
+              topology_hash=mesh.topology_hash(), mesh_id=mesh.mesh_id, segmentation_version=mesh.schema_version)
+    mb.stage("F", "ok", int((time.perf_counter() - t0) * 1000), 1, "library-export")
+    mb.data["fidelity"] = ctx.state.get("fidelity", "high")
+    mb.finish()
+    errs = mb.errors()
+    if errs:
+        raise StageFailed("F", f"manifest invalid: {errs[:3]}")
+    ctx.put(mb, "manifest.json", "manifest", "F", mb.to_json())
+    return mb
+
+
+def run_kit_export(ctx: StageContext, job_id: str, composition: dict[str, Any], composition_id: str, rel: Release,
+                   t0: float) -> ManifestBuilder:
+    """Stage F for a composition 3.0 (decision 135): the breed's kit from the release, its parts placed, painted per
+    part and joined (petpop_library.kit_figure), then the same print half as any figure."""
+    from petpop_library import kit_figure
+
+    kit = rel.kit(composition["breed_id"])
+    if kit is None or kit["version"] != composition["kit_version"]:
+        raise StageFailed("F", f"{rel.version} has no kit version {composition['kit_version']} for {composition['breed_id']}")
+    spec_like = {"species": composition["species"], "seed": 0, "pet_name": composition.get("pet_name", ""), "accessories": []}
+    mb = ManifestBuilder(job_id, spec_like, mode="mock" if ctx.settings.mode == "mock" else "real",
+                         base_mesh_version=rel.manifest["segmentation_version"], genai=library_genai(ctx.quality["preset"]))
+    mb.data["source"] = {"kind": "composition", "composition_id": composition_id, "release_version": rel.version,
+                         "breed_id": composition["breed_id"], "kit_version": composition["kit_version"]}
+    ctx.progress("F", 10, "Putting your figurine together")
+    tile = max(256, int(ctx.quality["albedo_px"]) // 2)
+    mesh, coords, atlas = kit_figure.build(composition["species"], kit, composition, rel.file, rel.mask_file, tile=tile,
+                                           schema_version=rel.manifest["segmentation_version"])
+    ctx.progress("F", 25, "Painting it")
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.fromarray(atlas, "RGB").save(buf, format="PNG", optimize=True)
+    albedo_png = buf.getvalue()
+    ctx.put(mb, "composition.json", "spec", "F", _json(composition))
+    ctx.put(mb, "albedo.png", "albedo", "F", albedo_png)
+    ctx.progress("F", 40, "Preparing the print file")
+    metrics, _ = finish_export(ctx, mb, spec_like, mesh, coords, albedo_png)
+    mb.metric(**metrics, segmentation_valid=True, segmentation_notes="library composition of part kits", uv_layout_hash=mesh.uv_hash(),
               topology_hash=mesh.topology_hash(), mesh_id=mesh.mesh_id, segmentation_version=mesh.schema_version)
     mb.stage("F", "ok", int((time.perf_counter() - t0) * 1000), 1, "library-export")
     mb.data["fidelity"] = ctx.state.get("fidelity", "high")

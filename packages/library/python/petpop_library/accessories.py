@@ -47,6 +47,8 @@ def library():
 
 def placed(accessories: list[dict], co: np.ndarray, landmarks: dict[str, int], shell: np.ndarray):
     """(vertices, faces) of every accessory placed on this mesh, concatenated."""
+    if not accessories:
+        return np.zeros((0, 3)), np.zeros((0, 3), np.int64)
     anchors = accessory_anchors(co, landmarks, shell)
     lib = library()
     vs, fs, n = [], [], 0

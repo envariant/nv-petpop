@@ -122,6 +122,14 @@
         },
         "release_version": {
           "type": "string"
+        },
+        "breed_id": {
+          "type": "string",
+          "description": "A composition of part kits (decision 135): its breed."
+        },
+        "kit_version": {
+          "type": "integer",
+          "description": "A composition of part kits: the breed's kit version."
         }
       }
     },

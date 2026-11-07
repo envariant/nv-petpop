@@ -338,3 +338,13 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    that swaps a variant in (sitting: the hind legs) overrides the composition's for that kind. Figures of part kits
    start without the whole-figure designer's paint stamps and extras (shells), and a bespoke job cannot start from
    one yet; they can come later. API 3.17.0.
+135. **The print export composes kits (P6d, 2026-11-07).** A composition 3.0's export takes the breed's kit from the
+   release it names and builds one figure mesh (`petpop_library.kit_figure`): the parts placed by `compose_plan` (the
+   pose's own variants win), stood on the floor, turned to the print frame (Z up, -Y front), grouped by slot (body,
+   head, legs, tail, as the segmentation schema names them) with landmarks estimated from the parts. Each distinct
+   part is painted in its own UVs and becomes a tile of one albedo atlas, its UVs moved into the tile inset by a
+   4-pixel gutter of repeated edges (UVs on a tile's edge otherwise sampled the next tile). The print half of Stage F
+   is unchanged; its CPU fallback closes and fuses each part separately (a figure of parts is not one surface), and
+   extras' anchors are computed only when there are extras. The part's own GLB texture is for Studio's preview; the
+   print's colours are the composition's. The manifest's `source` names the breed and kit version. Gate 7 runs a
+   figure of parts from upload to print, on the CPU and in Blender.
