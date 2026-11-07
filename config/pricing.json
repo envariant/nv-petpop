@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "currency": "SGD",
+  "note": "What an order costs (decision 137): the figurine, then a line per priced option and extra. Placeholder prices until Nishant sets them; PETPOP_PRICE_SGD still overrides the figurine. A price of 0.00 adds no line. Extras are priced by kind (a shell part's kind: collar, bandana, ...); '*' prices any kind not listed, so a new kind of extra needs no code. Options: 'stamps' (any hand-painted spot), 'markings_over' (each marking or pattern layer beyond `free`; 10, the most a design has, so a placeholder that never charges for a breed's own look), 'shape' (a torso shape other than the standard one, per shape id or '*'), 'pose' (a pose not in `free`, per pose id or '*').",
+  "figurine": {
+    "label": "Figurine",
+    "price": "39.00"
+  },
+  "extras": {
+    "collar": {
+      "label": "Collar",
+      "price": "4.00"
+    },
+    "bandana": {
+      "label": "Bandana",
+      "price": "5.00"
+    },
+    "bow": {
+      "label": "Bow",
+      "price": "3.00"
+    },
+    "hat": {
+      "label": "Party hat",
+      "price": "5.00"
+    },
+    "glasses": {
+      "label": "Glasses",
+      "price": "4.00"
+    },
+    "*": {
+      "label": null,
+      "price": "4.00"
+    }
+  },
+  "options": [
+    {
+      "id": "stamps",
+      "label": "Hand-painted details",
+      "price": "3.00"
+    },
+    {
+      "id": "markings_over",
+      "label": "Extra markings",
+      "free": 10,
+      "each": "1.00"
+    },
+    {
+      "id": "shape",
+      "label": "Shape: {name}",
+      "prices": {
+        "*": "0.00"
+      }
+    },
+    {
+      "id": "pose",
+      "label": "Pose: {name}",
+      "free": [
+        "standing",
+        "sitting"
+      ],
+      "prices": {
+        "*": "0.00"
+      }
+    }
+  ]
+}

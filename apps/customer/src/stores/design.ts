@@ -4,7 +4,7 @@
 // `kitComposition` (composition 3.0) replace the mesh library and its composition; `active` is whichever is in use.
 // Loaded meshes hold three.js objects, so they stay out of Vue's reactivity (markRaw / shallowRef).
 import { defineStore } from 'pinia';
-import { computed, markRaw, ref, shallowRef } from 'vue';
+import { computed, markRaw, ref, shallowRef, watch } from 'vue';
 import { ApiFailure, KioskApi, apiUrl } from '@petpop/core';
 import type { Breed, CompositionBody, CompositionStatus, OrderContact, PaymentMethod, Species } from '@petpop/core';
 import { kitFor, loadLibrary, partFor, startingComposition, startingKitComposition, syncStamps, uploadStamps, type Composition, type Kind, type Kit,
@@ -50,6 +50,23 @@ export const useDesign = defineStore('design', () => {
   const kitComposition = ref<KitComposition | null>(null);
   const active = computed<Composition | KitComposition | null>(() => kitComposition.value ?? composition.value);
   const kitMode = computed(() => !!kitComposition.value);
+  // the price as the design stands (decision 137), fetched a moment after each change
+  const quote = ref<Awaited<ReturnType<typeof KioskApi.quote>> | null>(null);
+  let quoting: ReturnType<typeof setTimeout> | null = null;
+  let quoteSeq = 0;
+  watch(active, (c) => {
+    if (quoting) clearTimeout(quoting);
+    if (!c) {
+      quote.value = null;
+      return;
+    }
+    const seq = ++quoteSeq;
+    quoting = setTimeout(() => {
+      KioskApi.quote(JSON.parse(JSON.stringify(c)) as CompositionBody)
+        .then((q) => { if (seq === quoteSeq) quote.value = q; })
+        .catch(() => { if (seq === quoteSeq) quote.value = null; });
+    }, 250);
+  }, { deep: true });
   const editKit = (f: (c: KitComposition) => KitComposition) => {
     if (kitComposition.value) kitComposition.value = f(kitComposition.value);
   };
@@ -265,6 +282,6 @@ export const useDesign = defineStore('design', () => {
     lib, loading, libError, composition, strokes, tab, region, tool, spot, paintColour, symmetry, turning, order, orderError,
     manifest, load, begin, setFamily, setPart, setBase, toggleLayer, setCoverage, setLayerColour, toggleShell, setShellColour, setEyes, setNose, setName,
     paint, undo, placeOrder, refreshOrder, reset, payError, pay, simulatePay,
-    kit, kitComposition, active, kitMode, setKitVariant, setTorso, setPose, setKitColour, toggleMarking, fileUrl, kitManifest,
+    kit, kitComposition, active, kitMode, quote, setKitVariant, setTorso, setPose, setKitColour, toggleMarking, fileUrl, kitManifest,
   };
 });

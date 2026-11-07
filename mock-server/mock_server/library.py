@@ -81,6 +81,11 @@ class MockLibrary:
             raise ApiError(404, f"no library release loaded for {species}")
         return self.releases[species]
 
+    def quote(self, body: dict[str, Any]) -> m.Quote:
+        """The price of a composition, its extras named from the release (decision 137)."""
+        man = self.releases.get(body.get("species", ""), (None, None))[0]
+        return quote(body, man)
+
     def versions(self) -> dict[str, str]:
         return {sp: man["release_version"] for sp, (man, _) in sorted(self.releases.items())}
 
@@ -172,7 +177,7 @@ class MockLibrary:
             species=c.body["species"], release_version=c.body["release_version"], created_at=m_utc(c.created), export=export,
             ticket=c.ticket, result_url=f"{base}/r/{make_token(self.secret, c.id)}" if ready and self.payable(c) else None,
             artefacts=artefacts, previews=previews, error=None, composition=c.body,
-            payment=c.payments[-1] if c.payments else None, quote=quote(c.body) if self.payments_on else None,
+            payment=c.payments[-1] if c.payments else None, quote=self.quote(c.body) if self.payments_on else None,
             contact=m.OrderContact(email=mask("email", c.contact_email), phone=mask("phone", c.contact_phone))
             if c.contact_email or c.contact_phone else None, account_id=c.account_id)
 
@@ -199,7 +204,7 @@ class MockLibrary:
         c.payments = [p.model_copy(update={"status": "expired"}) if p.status == "pending" else p for p in c.payments]
         now = datetime.now(UTC)
         pid = "p_" + uuid.uuid4().hex[:12]
-        price = quote(c.body).total
+        price = self.quote(c.body).total
         p = m.Payment(payment_id=pid, composition_id=cid, method=method, status="pending", price=price, provider="fake",
                       qr=f"PETPOP-FAKE-PAYNOW|{pid}|{price.currency}{price.amount}" if method == "paynow" else None,
                       checkout_url=None if method == "paynow" else f"https://localhost/paid?fake_checkout={pid}",

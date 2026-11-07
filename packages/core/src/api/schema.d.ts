@@ -523,6 +523,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kiosk/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quote Composition
+         * @description What a design costs as it stands, line by line (decision 137): nothing is saved.
+         */
+        post: operations["kioskQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kiosk/sessions": {
         parameters: {
             query?: never;
@@ -3079,6 +3099,13 @@ export interface components {
             /** Label */
             label: string;
         };
+        /**
+         * QuoteRequest
+         * @description A design to price as it stands (decision 137); nothing is saved.
+         */
+        QuoteRequest: {
+            composition: components["schemas"]["Composition"];
+        };
         /** ReleaseCreate */
         ReleaseCreate: {
             /**
@@ -5105,6 +5132,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    kioskQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Quote"];
                 };
             };
             /** @description Not Found */

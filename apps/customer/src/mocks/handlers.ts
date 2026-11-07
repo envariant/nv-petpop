@@ -4,6 +4,7 @@
 import { http, HttpResponse } from 'msw';
 import dogs from '@data/breeds/dog.json';
 import cats from '@data/breeds/cat.json';
+import pricing from '@config/pricing.json';
 import fixtureIndex from '@fixtures/pets/index.json';
 import type { Breed, CompositionBody } from '@petpop/core';
 import { assetUrl } from '@petpop/core';
@@ -13,7 +14,7 @@ export const HANDLED_PATHS = [
   '/api/v1/health', '/api/v1/r/{token}', '/api/v1/files/{key}', '/api/v1/kiosk/sessions', '/api/v1/kiosk/breeds', '/api/v1/kiosk/ops',
   '/api/v1/kiosk/ops/orders/{composition_id}/reprint', '/api/v1/kiosk/library/{species}', '/api/v1/kiosk/library/{species}/families',
   '/api/v1/kiosk/library/{species}/parts', '/api/v1/kiosk/library/{species}/patterns', '/api/v1/kiosk/library/{species}/files/{path}',
-  '/api/v1/kiosk/compositions', '/api/v1/kiosk/compositions/{composition_id}', '/api/v1/kiosk/compositions/{composition_id}/export',
+  '/api/v1/kiosk/quote', '/api/v1/kiosk/compositions', '/api/v1/kiosk/compositions/{composition_id}', '/api/v1/kiosk/compositions/{composition_id}/export',
   '/api/v1/kiosk/compositions/{composition_id}/bespoke', '/api/v1/kiosk/compositions/{composition_id}/payment',
   '/api/v1/kiosk/compositions/{composition_id}/payment/simulate', '/api/v1/kiosk/ops/orders/{composition_id}/ready',
   '/api/v1/account/config', '/api/v1/account/code', '/api/v1/account/verify', '/api/v1/account/oauth/{provider}', '/api/v1/account/me',
@@ -21,7 +22,7 @@ export const HANDLED_PATHS = [
   '/api/v1/account/sign-out', '/api/v1/account/me/orders', '/api/v1/account/me/devices',
 ];
 
-const API_VERSION = '3.17.0';
+const API_VERSION = '3.18.0';
 const EXPORT_MS = 3000; // scripted Stage-F export
 const rid = (p: string) => `${p}_${Math.random().toString(16).slice(2, 14)}`;
 const iso = (t: number) => new Date(t).toISOString();
@@ -146,6 +147,33 @@ function kitErrors(m: KitManifest, c: KitComposition): string[] {
   return errs;
 }
 
+/** backend/api/pricing.py on config/pricing.json (decision 137): the figurine, extras by kind, options by rule. */
+function quoteOf(c: Record<string, unknown>) {
+  const P = pricing as unknown as { currency: string; figurine: { label: string; price: string }; extras: Record<string, { label: string | null; price: string }>;
+    options: { id: string; label: string; price?: string; free?: number | string[]; each?: string; prices?: Record<string, string> }[] };
+  const words = (x: string) => x.replace(/_/g, ' ').trim().replace(/^./, (ch) => ch.toUpperCase());
+  const lines: [string, number][] = [[P.figurine.label, Number(P.figurine.price)]];
+  for (const s of (c.shells as { part_id: string }[] | undefined) ?? []) {
+    const kind = s.part_id.replace(/^shell_/, '');
+    const rule = P.extras[kind] ?? P.extras['*'];
+    if (rule) lines.push([rule.label ?? words(kind), Number(rule.price)]);
+  }
+  const kit = c.composition_version === '3.0';
+  for (const o of P.options) {
+    if (o.id === 'stamps' && ((c.stamps as unknown[]) ?? []).length) lines.push([o.label, Number(o.price)]);
+    if (o.id === 'markings_over') {
+      const n = kit ? ((c.texture as { markings?: string[] })?.markings ?? []).length : ((c.layers as unknown[]) ?? []).length;
+      const extra = Math.max(0, n - Number(o.free ?? 0));
+      if (extra) lines.push([`${o.label} (${extra})`, extra * Number(o.each)]);
+    }
+    if (o.id === 'shape' && kit && c.preset_id && c.preset_id !== 'default') lines.push([o.label.replace('{name}', words(String(c.preset_id))), Number(o.prices?.[String(c.preset_id)] ?? o.prices?.['*'] ?? 0)]);
+    if (o.id === 'pose' && kit && !((o.free as string[]) ?? []).includes(String(c.pose_id))) lines.push([o.label.replace('{name}', words(String(c.pose_id))), Number(o.prices?.[String(c.pose_id)] ?? o.prices?.['*'] ?? 0)]);
+  }
+  const kept = [lines[0], ...lines.slice(1).filter(([, a]) => a !== 0)];
+  const total = kept.reduce((t, [, a]) => t + a, 0);
+  return { items: kept.map(([label, a]) => ({ label, amount: a.toFixed(2) })), total: { amount: total.toFixed(2), currency: P.currency } };
+}
+
 export const handlers = [
   http.get('/api/v1/health', () => HttpResponse.json({ status: 'ok', mode: 'mock', api_version: API_VERSION, server: 'mock-server' })),
   http.post('/api/v1/kiosk/sessions', async ({ request }) => {
@@ -207,6 +235,11 @@ export const handlers = [
     return r.ok ? new HttpResponse(await r.arrayBuffer(), { headers: { 'Content-Type': r.headers.get('Content-Type') ?? 'application/octet-stream' } }) : notFound('unknown library file');
   }),
   // ------------------------------------------------------------------ compositions
+  http.post('/api/v1/kiosk/quote', async ({ request }) => {
+    const { composition } = (await request.json()) as { composition: Record<string, unknown> };
+    if (composition?.species !== 'dog' && composition?.species !== 'cat') return HttpResponse.json({ detail: { composition: ['species: must be dog or cat'] } }, { status: 422 });
+    return HttpResponse.json(quoteOf(composition));
+  }),
   http.post('/api/v1/kiosk/compositions', async ({ request }) => {
     const body = (await request.json()) as { session_id: string; composition: CompositionBody };
     if (!sessions.has(body.session_id)) return notFound('unknown session');

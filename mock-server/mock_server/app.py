@@ -311,6 +311,11 @@ class MockApi:
         data, media = self.library.release_file(species, path)
         return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
 
+    async def quote_composition(self, body: m.QuoteRequest) -> m.Quote:
+        if body.composition.get("species") not in ("dog", "cat"):
+            raise ApiError(422, {"composition": ["species: must be dog or cat"]})
+        return self.library.quote(body.composition)
+
     async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
         if body.session_id not in self.sessions:
             raise ApiError(404, "unknown session")

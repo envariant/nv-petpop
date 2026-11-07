@@ -2,7 +2,7 @@
 // only ever talks to its own API. KioskApi is the customer kiosk's surface (anonymous session); StudioApi is the
 // staff app's (bearer token from POST /studio/auth/login). They share only the meta routes.
 import createClient from 'openapi-fetch';
-import type { paths } from './schema';
+import type { components, paths } from './schema';
 import type {
   GenaiProfiles, ManualTask, ManualTaskList,
   Batch, BatchCreate, BatchList, ItemKind, ItemStatus, LibraryItem, LibraryItemList, LibraryItemPatch, ReleaseInfo, ReleaseList,
@@ -65,6 +65,9 @@ export const KioskApi = {
     unwrap(await api.GET('/api/v1/kiosk/library/{species}/parts', { params: { path: { species }, query: { region: region as never } } })),
   libraryPatterns: async (species: Species): Promise<LibraryPatterns> =>
     unwrap(await api.GET('/api/v1/kiosk/library/{species}/patterns', { params: { path: { species } } })),
+  /** What a design costs as it stands, line by line (decision 137); nothing is saved. */
+  quote: async (composition: CompositionBody): Promise<components['schemas']['Quote']> =>
+    unwrap(await api.POST('/api/v1/kiosk/quote', { body: { composition } })),
   createComposition: async (sessionId: string, composition: CompositionBody): Promise<CompositionStatus> =>
     unwrap(await api.POST('/api/v1/kiosk/compositions', { body: { session_id: sessionId, composition } })),
   composition: async (compositionId: string): Promise<CompositionStatus> =>

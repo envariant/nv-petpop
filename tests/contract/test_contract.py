@@ -411,7 +411,8 @@ def test_kiosk_payment_for_an_order(paying_client):
     assert card["status"] == "pending" and card["checkout_url"] and card["qr"] is None
     r = client.post(f"{K}/compositions/{cid}/payment", json={"method": "paynow"})  # switch method: replaces the card one
     paynow = check(f"{K}/compositions/{{composition_id}}/payment", "post", r)
-    assert paynow["method"] == "paynow" and paynow["qr"] and paynow["price"] == {"amount": "39.00", "currency": "SGD"}
+    quoted = client.get(f"{K}/compositions/{cid}").json()["quote"]["total"]  # the figurine and its priced extras (decision 137)
+    assert paynow["method"] == "paynow" and paynow["qr"] and paynow["price"] == quoted
     assert paynow["payment_id"] != card["payment_id"]
     got = check(f"{K}/compositions/{{composition_id}}/payment", "get", client.get(f"{K}/compositions/{cid}/payment"))
     assert got["payment_id"] == paynow["payment_id"] and got["status"] == "pending"
@@ -447,6 +448,7 @@ def test_every_documented_path_is_exercised():
                  f"{K}/compositions/{{composition_id}}", f"{K}/compositions/{{composition_id}}/export",
                  f"{K}/compositions/{{composition_id}}/bespoke", f"{K}/compositions/{{composition_id}}/payment",
                  f"{K}/compositions/{{composition_id}}/payment/simulate", f"{K}/ops/orders/{{composition_id}}/ready",
+                 f"{K}/quote",  # tests/contract/test_pricing.py
                  # customer accounts (decision 126): tests/contract/test_accounts.py
                  *(f"/api/v1/account{p}" for p in ("/config", "/code", "/verify", "/oauth/{provider}", "/me", "/me/contact",
                                                    "/me/contact/{channel}", "/me/providers/{provider}", "/sign-out",

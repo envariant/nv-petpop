@@ -66,6 +66,7 @@ class ApiImpl(Protocol):
     async def library_patterns(self, species: str) -> m.LibraryPatterns: ...
     async def library_file(self, species: str, path: str) -> Response: ...
     async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus: ...
+    async def quote_composition(self, body: m.QuoteRequest) -> m.Quote: ...
     async def get_composition(self, composition_id: str, base: str) -> m.CompositionStatus: ...
     async def export_composition(self, composition_id: str, body: m.OrderRequest, account_token: str | None) -> m.ExportAccepted: ...
     # customer accounts (decision 126): the shared Accounts service, and the account's orders
@@ -239,6 +240,11 @@ def make_routers(impl: ApiImpl) -> list[APIRouter]:
                           404: {"model": m.ErrorBody}})
     async def library_file(species: m.Species, path: str) -> Response:
         return await impl.library_file(species, path)
+
+    @kiosk.post("/quote", response_model=m.Quote, operation_id="kioskQuote", responses=ERR)
+    async def quote_composition(body: m.QuoteRequest) -> m.Quote:
+        """What a design costs as it stands, line by line (decision 137): nothing is saved."""
+        return await impl.quote_composition(body)
 
     @kiosk.post("/compositions", response_model=m.CompositionStatus, status_code=201, operation_id="kioskCreateComposition",
                 responses=ERR)

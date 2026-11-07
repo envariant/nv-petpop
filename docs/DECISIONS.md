@@ -359,3 +359,12 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    loads (no whole-figure mesh needed). The dog fixture release carries a Labrador kit from the proxy parts (projected
    UVs, drawn masks), so the app's tests design, order and pay for one. Found on the way: framing a figure measured
    its parts in world space and fed the stage's own centring back in, pushing it off screen after the first change.
+137. **Variable pricing: options and extras as quote lines (2026-11-07).** What an order costs is read from the
+   composition with a price list, `config/pricing.json` (placeholder prices until Nishant sets them;
+   `PETPOP_PRICE_SGD` still overrides the figurine): the figurine, then each extra by kind (a shell part's kind; `*`
+   prices any kind the list does not name, so a new kind of extra needs no code), then options by rule: hand-painted
+   spots, each marking beyond a free count (10, so it never charges for a breed's own look until set), a torso shape
+   other than the standard one and a pose outside the free list (per id or `*`; 0.00 for now). A line priced 0.00 is
+   left out. `POST /kiosk/quote` prices a design as it stands without saving it (API 3.18.0), so the customer app
+   shows the price on the Design screen (tap for the lines) as extras come and go; the Order screen and the payment
+   use the order's own quote. Both servers and the app's standalone mode price from the same file.

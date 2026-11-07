@@ -2,7 +2,7 @@
 // Design (BRIEF Section 16): the customer assembles the figurine from the library and paints it. Portrait: the
 // preview on top, the tools below; landscape: the preview on the left, the tools in a column on the right. A breed with
 // a part kit in the release is a figure of parts (decision 136): its own Shape and Markings tabs, no Paint or Extras.
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { FigureView, KitFigureView, PButton, PTitle, cx } from '@petpop/ui-vue';
 import { useDesign, type Tab } from '../stores/design';
 import { useSession } from '../stores/session';
@@ -26,6 +26,7 @@ const panels = computed(() => (d.kitMode ? { shape: KitShapePanel, patterns: Kit
 watch(() => s.breed, (b) => {
   if (b && (!d.active || d.active.breed_id !== b.id || d.active.species !== b.species)) void d.begin(b);
 }, { immediate: true });
+const showQuote = ref(false);
 const ready = computed(() => (d.kitMode ? !!(d.kit && d.kitComposition) : !!(d.lib && d.composition)));
 const painting = computed(() => d.tab === 'paint' && !d.turning);
 /** Dev and test builds only: gate 7 bakes the on-screen atlas and compares it with the export's (print = screen). */
@@ -55,7 +56,12 @@ const onBake = (bake: () => Uint8Array) => {
       <div class="no-scrollbar order-4 min-h-0 flex-1 overflow-y-auto" :data-testid="`panel-${d.tab}`">
         <component :is="panels[d.tab]" v-if="ready" />
       </div>
+      <div v-if="showQuote && d.quote" class="order-5 rounded-tile bg-card px-4 py-2 text-base shadow-soft" data-testid="design-quote">
+        <div v-for="(it, i) in d.quote.items" :key="i" class="flex justify-between"><span>{{ it.label }}</span><span>S${{ it.amount }}</span></div>
+      </div>
       <div class="order-5 flex items-center gap-3">
+        <button v-if="d.quote" class="press hit rounded-tile bg-card px-4 py-2 font-display text-lg font-semibold shadow-soft md:text-xl" data-testid="design-price"
+          :aria-expanded="showQuote" @click="showQuote = !showQuote">S${{ d.quote.total.amount }}</button>
         <PButton v-if="s.bespokeEnabled" variant="soft" test-id="make-unique" :disabled="!ready" @click="s.go('bespoke')">Make it unique</PButton>
         <PButton class="flex-1" test-id="to-name" :disabled="!ready" @click="s.go('name')">Next: name it ›</PButton>
       </div>

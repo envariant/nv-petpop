@@ -13,7 +13,8 @@ const o = computed(() => d.order);
 const ready = computed(() => o.value?.status === 'ready');
 const p = computed(() => o.value?.payment ?? null);
 const needsPay = computed(() => !!s.payment && p.value?.status !== 'paid');
-const price = computed(() => s.payment && `S$${s.payment.price.amount}`);
+// what this order costs: its own quote (the figurine and its priced extras, decision 137), else the session's price
+const price = computed(() => (d.order?.quote ? `S$${d.order.quote.total.amount}` : s.payment && `S$${s.payment.price.amount}`));
 const busy = computed(() => (o.value && o.value.status !== 'ready' && o.value.status !== 'failed') || p.value?.status === 'pending');
 let t = 0;
 watch(busy, (b) => {

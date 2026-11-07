@@ -166,7 +166,7 @@ class BackendApi:
                 old.status = "expired"  # replaced: another method, or a fresh QR
             db.commit()
         with self.db() as db:
-            price = quote(db.get(CompositionRow, composition_id).body).total
+            price = self.library.quote(db.get(CompositionRow, composition_id).body).total
         redirect = f"{self.s.public_url.rstrip('/')}/paid" if self.s.public_url else "https://localhost/paid"
         try:
             made = await asyncio.to_thread(self.payments.create, composition_id, body.method, price, redirect)
@@ -281,6 +281,12 @@ class BackendApi:
     async def library_file(self, species: str, path: str) -> Response:
         data, media = await asyncio.to_thread(self.library.file, species, path)
         return Response(data, media_type=media, headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+    async def quote_composition(self, body: m.QuoteRequest) -> m.Quote:
+        comp = body.composition
+        if comp.get("species") not in ("dog", "cat"):
+            raise ApiError(422, {"composition": ["species: must be dog or cat"]})
+        return self.library.quote(comp)
 
     async def create_composition(self, body: m.CompositionCreate, base: str) -> m.CompositionStatus:
         return self.library.create(body, self._public_base(base))

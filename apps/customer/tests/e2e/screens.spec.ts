@@ -141,11 +141,18 @@ test('design tools: tap-to-stamp with symmetry, brush and undo', async ({ page }
 
 test('design tools: accessories on sockets, eye and nose colours', async ({ page }) => {
   await toDesign(page);
+  // the live price (decision 137): extras are priced lines of their own
+  await expect(page.getByTestId('design-price')).toHaveText(/S\$\d+\.\d\d/);
+  const start = Number((await page.getByTestId('design-price').textContent())!.replace('S$', ''));
   await page.getByTestId('tab-extras').tap();
   await page.getByTestId('shell-shell_bandana').tap();
   await expect(page.getByTestId('shell-shell_bandana')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('design-price')).toHaveText(`S$${(start + 5).toFixed(2)}`);
   await page.getByTestId('shell-shell_collar').tap(); // same socket: replaces the bandana
   await expect(page.getByTestId('shell-shell_bandana')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('design-price')).toHaveText(`S$${(start + 4).toFixed(2)}`);
+  await page.getByTestId('design-price').tap();
+  await expect(page.getByTestId('design-quote')).toContainText('Collar');
   await page.getByTestId('eye-blue').tap();
   await expect(page.getByTestId('eye-blue')).toHaveAttribute('aria-pressed', 'true');
 });

@@ -136,6 +136,11 @@ class KioskLibrary:
                 out[sp] = r.version
         return out
 
+    def quote(self, body: dict[str, Any]) -> m.Quote:
+        """The price of a composition, its extras named from the active release (decision 137)."""
+        r = self.releases.active(body.get("species", ""))
+        return quote(body, r.manifest if r else None)
+
     def active(self, species: str) -> rel.Release:
         r = self.releases.active(species)
         if not r:
@@ -214,7 +219,7 @@ class KioskLibrary:
                                    export=export, ticket=row.ticket, result_url=result_url, artefacts=artefacts, previews=previews,
                                    error=job.error if job and job.status == "failed" else None, composition=row.body,
                                    payment=pay.model(payment) if payment else None,
-                                   quote=quote(row.body) if self.payments_on else None,
+                                   quote=self.quote(row.body) if self.payments_on else None,
                                    contact=m.OrderContact(email=mask("email", row.contact_email), phone=mask("phone", row.contact_phone))
                                    if row.contact_email or row.contact_phone else None,
                                    account_id=row.account_id)
