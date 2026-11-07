@@ -28,7 +28,7 @@ brings its own **head**, with its own texture template (decision 129). A breed's
   offsets**, a move (mm) and a turn (degrees about x, then y, then z) of any torso socket for this breed. Customers
   choose a torso variant and one of its presets.
 - has its own **head variants** (`<breed>__head.glb`, `<breed>__head__<variant>.glb`); the default is the curator's
-  choice in the workbench. Head variants are not a customer choice.
+  choice in the workbench, and customers see them in Shape when the breed offers more than one.
 
 **Which parts each breed uses** lives in the per-breed parts file, `data/breeds/dog_breed_parts.json`, not in the
 breed database (which describes bodies). Per breed and kind: the variants it offers and its default; per variant its
@@ -160,7 +160,14 @@ folder of your own GLBs named as in section 1. Blender's `bpy`
 (`PETPOP_BPY_PYTHON`) does the work when it is there; without it a trimesh stand-in composes (no voxel fuse, no
 `--modify`).
 
-## 4. Ordering and printing (decisions 134, 135)
+## 4. Designing, ordering and printing (decisions 134 to 136)
+
+In the customer app, a breed with a kit in the release is designed as a figure of parts: **Shape** offers the body
+(each torso it offers, in each of its shapes), the front and back legs, tail and head when it offers more than one,
+and the pose; **Markings** the coat (colour A), the markings it has masks for, their colour (B), a third colour (C)
+when the texture has one, and the eyes and nose when the head has masks for them. The figure is assembled and painted
+on screen with the print's rules (`@petpop/scene` kit.ts and kitFigure.ts, checked against Python). Paint stamps and
+extras are for whole-figure breeds only, for now.
 
 A customer's figure of parts is a composition 3.0 (`data/schema/composition3.schema.json`): the breed's kit in the
 release, a variant per kind, the torso's shape, a pose, the texture. The kiosk's export builds it with

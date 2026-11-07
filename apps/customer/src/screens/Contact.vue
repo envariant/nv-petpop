@@ -45,7 +45,7 @@ async function signedIn() {
 </script>
 
 <template>
-  <div v-if="d.composition" class="no-scrollbar mx-auto flex h-full max-w-3xl flex-col overflow-y-auto px-4 pb-4 pt-2 md:px-8" data-testid="contact">
+  <div v-if="d.active" class="no-scrollbar mx-auto flex h-full max-w-3xl flex-col overflow-y-auto px-4 pb-4 pt-2 md:px-8" data-testid="contact">
     <PTitle sub="We'll tell you when it is ready to collect.">How should we reach you?</PTitle>
 
     <!-- creating an account: the code step (first, so signing in does not swap it out before the order goes) -->

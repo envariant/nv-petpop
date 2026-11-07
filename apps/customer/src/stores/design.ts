@@ -1,11 +1,14 @@
 // Library-mode design state (Pinia): the loaded release mesh, the composition being built, the paint tools and the
 // undo history, and the order once placed. Local to the device: only the library release and the /kiosk API.
+// A breed with a part kit in the release (decisions 133 to 136) is designed as a figure of parts instead: `kit` and
+// `kitComposition` (composition 3.0) replace the mesh library and its composition; `active` is whichever is in use.
 // Loaded meshes hold three.js objects, so they stay out of Vue's reactivity (markRaw / shallowRef).
 import { defineStore } from 'pinia';
-import { markRaw, ref, shallowRef } from 'vue';
+import { computed, markRaw, ref, shallowRef } from 'vue';
 import { ApiFailure, KioskApi, apiUrl } from '@petpop/core';
 import type { Breed, CompositionBody, CompositionStatus, OrderContact, PaymentMethod, Species } from '@petpop/core';
-import { loadLibrary, partFor, startingComposition, syncStamps, uploadStamps, type Composition, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
+import { kitFor, loadLibrary, partFor, startingComposition, startingKitComposition, syncStamps, uploadStamps, type Composition, type Kind, type Kit,
+  type KitComposition, type KitManifest, type LoadedLibrary, type PaintHit, type Region, type ReleaseManifest } from '@petpop/scene';
 
 export type Tab = 'shape' | 'patterns' | 'paint' | 'extras';
 export type ShapeRegion = 'family' | Region;
@@ -42,6 +45,14 @@ export const useDesign = defineStore('design', () => {
   const turning = ref(false);
   const order = ref<CompositionStatus | null>(null);
   const orderError = ref<string | null>(null);
+  // a figure of part kits (decision 136)
+  const kit = shallowRef<Kit | null>(null);
+  const kitComposition = ref<KitComposition | null>(null);
+  const active = computed<Composition | KitComposition | null>(() => kitComposition.value ?? composition.value);
+  const kitMode = computed(() => !!kitComposition.value);
+  const editKit = (f: (c: KitComposition) => KitComposition) => {
+    if (kitComposition.value) kitComposition.value = f(kitComposition.value);
+  };
 
   const edit = (f: (c: Composition) => Composition) => {
     if (composition.value) composition.value = f(composition.value);
@@ -51,14 +62,16 @@ export const useDesign = defineStore('design', () => {
   }
 
   async function load(species: Species) {
-    if (libSpecies === species && lib.value) return;
+    if (libSpecies === species && release) return;
     loading.value = true;
     libError.value = null;
     try {
       const rel = await KioskApi.libraryRelease(species);
       release = { manifest: rel.manifest as unknown as ReleaseManifest, url: (path) => apiUrl(`${rel.files_url}${path}`) };
       libs.clear();
-      lib.value = await meshLibrary(release.manifest.families[0]?.mesh_id ?? release.manifest.meshes[0].id);
+      // a release of part kits only has no whole-figure mesh to load
+      const first = release.manifest.families[0]?.mesh_id ?? release.manifest.meshes[0]?.id;
+      lib.value = first ? await meshLibrary(first) : null;
       libSpecies = species;
     } catch {
       libError.value = 'The parts library is not available right now.';
@@ -68,7 +81,25 @@ export const useDesign = defineStore('design', () => {
   }
   async function begin(breed: Breed) {
     await load(breed.species);
-    if (!lib.value || !release) return;
+    if (!release) return;
+    const k = kitFor(release.manifest as unknown as KitManifest, breed.id);
+    if (k) {
+      kit.value = markRaw(k);
+      kitComposition.value = startingKitComposition(release.manifest as unknown as KitManifest, k);
+      composition.value = null;
+      breedPreset = breed.preset;
+      strokes.value = [];
+      tab.value = 'shape';
+      order.value = null;
+      orderError.value = null;
+      return;
+    }
+    kit.value = null;
+    kitComposition.value = null;
+    if (!lib.value) {
+      libError.value = 'This breed is not in the library yet.';
+      return;
+    }
     const c = startingComposition(release.manifest, breed);
     const l = await meshLibrary(c.mesh_id);
     syncStamps(l, []);
@@ -121,9 +152,26 @@ export const useDesign = defineStore('design', () => {
     });
   }
   const setShellColour = (partId: string, hex: string) => edit((c) => ({ ...c, shells: c.shells.map((s) => (s.part_id === partId ? { ...s, colour: hex } : s)) }));
-  const setEyes = (hex: string) => edit((c) => ({ ...c, eye_colour: hex }));
-  const setNose = (hex: string) => edit((c) => ({ ...c, nose_colour: hex }));
-  const setName = (name: string) => edit((c) => ({ ...c, pet_name: name.slice(0, 24) }));
+  const setEyes = (hex: string) => (kitMode.value ? editKit((c) => ({ ...c, eye_colour: hex })) : edit((c) => ({ ...c, eye_colour: hex })));
+  const setNose = (hex: string) => (kitMode.value ? editKit((c) => ({ ...c, nose_colour: hex })) : edit((c) => ({ ...c, nose_colour: hex })));
+  const setName = (name: string) => (kitMode.value ? editKit((c) => ({ ...c, pet_name: name.slice(0, 24) })) : edit((c) => ({ ...c, pet_name: name.slice(0, 24) })));
+
+  // ---- a figure of part kits: the parts, the torso's shape, the pose, the colours and markings
+  const setKitVariant = (kind: Kind, variant: string) => editKit((c) => ({ ...c, variants: { ...c.variants, [kind]: variant } }));
+  const setTorso = (variant: string, presetId: string) => editKit((c) => ({ ...c, variants: { ...c.variants, torso: variant }, preset_id: presetId }));
+  const setPose = (poseId: string) => editKit((c) => ({ ...c, pose_id: poseId }));
+  function setKitColour(which: 'base' | 'secondary' | 'tertiary', hex: string, name?: string) {
+    editKit((c) => ({ ...c, texture: { ...c.texture, [which]: { name: name ?? null, hex } } }));
+  }
+  function toggleMarking(name: string) {
+    editKit((c) => {
+      const has = c.texture.markings.includes(name);
+      return { ...c, texture: { ...c.texture, markings: has ? c.texture.markings.filter((m) => m !== name) : [...c.texture.markings, name].slice(0, 20) } };
+    });
+  }
+  /** The release's file URL, for the figure of parts' meshes and masks. */
+  const fileUrl = (path: string) => release!.url(path);
+  const kitManifest = () => release!.manifest as unknown as KitManifest;
 
   function paint(hit: PaintHit) {
     const l = lib.value;
@@ -155,11 +203,11 @@ export const useDesign = defineStore('design', () => {
     strokes.value = strokes.value.slice(0, -1);
   }
   async function placeOrder(sessionId: string | null, contact: OrderContact | null = null) {
-    if (!composition.value) return;
+    if (!active.value) return;
     orderError.value = null;
     try {
       const sid = sessionId ?? (await KioskApi.createSession()).session_id;
-      const created = await KioskApi.createComposition(sid, composition.value as CompositionBody);
+      const created = await KioskApi.createComposition(sid, active.value as unknown as CompositionBody);
       await KioskApi.exportComposition(created.composition_id, contact);
       order.value = await KioskApi.composition(created.composition_id);
     } catch (e) {
@@ -199,6 +247,8 @@ export const useDesign = defineStore('design', () => {
     lastDab = null;
     if (lib.value) syncStamps(lib.value, []);
     composition.value = null;
+    kit.value = null;
+    kitComposition.value = null;
     strokes.value = [];
     tab.value = 'shape';
     region.value = 'family';
@@ -215,5 +265,6 @@ export const useDesign = defineStore('design', () => {
     lib, loading, libError, composition, strokes, tab, region, tool, spot, paintColour, symmetry, turning, order, orderError,
     manifest, load, begin, setFamily, setPart, setBase, toggleLayer, setCoverage, setLayerColour, toggleShell, setShellColour, setEyes, setNose, setName,
     paint, undo, placeOrder, refreshOrder, reset, payError, pay, simulatePay,
+    kit, kitComposition, active, kitMode, setKitVariant, setTorso, setPose, setKitColour, toggleMarking, fileUrl, kitManifest,
   };
 });

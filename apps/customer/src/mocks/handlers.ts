@@ -7,7 +7,7 @@ import cats from '@data/breeds/cat.json';
 import fixtureIndex from '@fixtures/pets/index.json';
 import type { Breed, CompositionBody } from '@petpop/core';
 import { assetUrl } from '@petpop/core';
-import type { ReleaseManifest } from '@petpop/scene';
+import { kitFor, offered, presetsOf, type Kind, type KitComposition, type KitManifest, type ReleaseManifest } from '@petpop/scene';
 
 export const HANDLED_PATHS = [
   '/api/v1/health', '/api/v1/r/{token}', '/api/v1/files/{key}', '/api/v1/kiosk/sessions', '/api/v1/kiosk/breeds', '/api/v1/kiosk/ops',
@@ -110,9 +110,11 @@ function order(c: MockComp) {
 }
 
 /** The same id checks as petpop_library.composition.check_ids, so standalone mode refuses what the API refuses. */
-function compositionErrors(m: ReleaseManifest, c: CompositionBody): string[] {
+function compositionErrors(m: ReleaseManifest, body: CompositionBody): string[] {
   const errs: string[] = [];
-  if (c.release_version !== m.release_version) errs.push(`release_version: this kiosk serves ${m.release_version}`);
+  if (body.release_version !== m.release_version) errs.push(`release_version: this kiosk serves ${m.release_version}`);
+  if (body.composition_version === '3.0') return [...errs, ...kitErrors(m as unknown as KitManifest, body as unknown as KitComposition)];
+  const c = body as Extract<CompositionBody, { composition_version: '2.0' }>;
   if (!m.meshes.some((x) => x.id === c.mesh_id)) errs.push(`mesh_id: unknown ${c.mesh_id}`);
   const fam = m.families.find((f) => f.id === c.family_id);
   if (!fam) errs.push(`family_id: unknown ${c.family_id}`);
@@ -125,6 +127,22 @@ function compositionErrors(m: ReleaseManifest, c: CompositionBody): string[] {
   for (const s of c.shells ?? []) if (!m.shell_parts.some((p) => p.id === s.part_id)) errs.push(`shells: unknown ${s.part_id}`);
   for (const l of c.layers ?? []) if (!m.pattern_layers.some((p) => p.id === l.pattern_id)) errs.push(`layers: unknown ${l.pattern_id}`);
   if ((c.stamps ?? []).length > 400) errs.push('stamps: at most 400');
+  return errs;
+}
+
+/** petpop_library.composition.check_kit: a composition 3.0 against the breed's kit in the release (decision 134). */
+function kitErrors(m: KitManifest, c: KitComposition): string[] {
+  const kit = kitFor(m, c.breed_id);
+  if (!kit) return [`breed_id: no part kit for ${c.breed_id} in ${m.release_version}`];
+  const errs: string[] = [];
+  if (c.kit_version !== kit.version) errs.push(`kit_version: ${m.release_version} has kit version ${kit.version} for ${c.breed_id}`);
+  const pose = kit.poses.find((p) => p.pose_id === c.pose_id);
+  if (!pose) errs.push(`pose_id: ${c.breed_id} has no pose ${c.pose_id}`);
+  for (const [kind, v] of Object.entries(c.variants) as [Kind, string][]) {
+    if (!pose?.variants?.[kind] && !offered(kit, kind).includes(v)) errs.push(`variants.${kind}: ${v} is not offered on ${c.breed_id}`);
+  }
+  const presets = presetsOf(kit, c.variants.torso);
+  if (!(presets.length ? presets : [{ preset_id: 'default' }]).some((x) => x.preset_id === c.preset_id)) errs.push(`preset_id: torso ${c.variants.torso} has no shape ${c.preset_id}`);
   return errs;
 }
 

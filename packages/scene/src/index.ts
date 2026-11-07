@@ -11,3 +11,5 @@ export * from './stage';
 export * from './glb';
 export * from './composed';
 export * from './parts';
+export * from './kit';
+export * from './kitFigure';

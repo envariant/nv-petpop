@@ -52,6 +52,50 @@ test('4 design: the library assembler swaps parts live on the kiosk GPU', async 
   await expect(page.getByTestId('shared-mesh')).toContainText('Same figure shape as');
 });
 
+test('4b design: a breed with a part kit is a figure of parts: shape, markings, ordered and printed', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('attract').tap();
+  await page.getByTestId('species-dog').tap();
+  if (kiosk()) {
+    await page.getByTestId('breed-search').tap();
+    await typeOnKeyboard(page, 'labrador');
+  } else await page.getByTestId('breed-search-input').fill('labrador');
+  await page.getByTestId('breed-labrador').tap();
+  await expect(page.getByText('Design your Labrador Retriever')).toBeVisible();
+  // a figure of parts (decision 136): Shape and Markings only, the parts placed and painted
+  await expect(page.getByTestId('tab-paint')).toHaveCount(0);
+  await expect(page.getByTestId('tab-extras')).toHaveCount(0);
+  const view = page.getByTestId('design-preview');
+  await expect(view).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await expect(view.locator('canvas')).toBeVisible();
+  const before = await view.getAttribute('data-shape');
+  // a torso shape (preset) and another tail re-place the parts
+  await page.getByTestId('kit-body-default-stocky').tap();
+  await expect(page.getByTestId('kit-body-default-stocky')).toHaveAttribute('aria-pressed', 'true');
+  await expect(view).not.toHaveAttribute('data-shape', before!);
+  await page.getByTestId('kit-tail-plume').tap();
+  await expect(page.getByTestId('kit-tail-plume')).toHaveAttribute('aria-pressed', 'true');
+  // markings: socks on, a coat colour, the nose (the head has a nose mask)
+  await page.getByTestId('tab-patterns').tap();
+  await expect(page.getByTestId('kit-marking-white_chest')).toHaveAttribute('aria-pressed', 'true'); // the breed's default texture
+  await page.getByTestId('kit-marking-white_socks').tap();
+  await expect(page.getByTestId('kit-marking-white_socks')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-testid^="kit-coat-"]').nth(2).tap();
+  await expect(page.getByTestId('kit-nose')).toBeVisible();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `test-results/kit-design-${test.info().project.name}.png` });
+  // ordered like any figurine: named, a contact, paid, printed
+  await page.getByTestId('to-name').tap();
+  await enter(page, 'pet-name', 'Goldie');
+  await page.getByTestId('key-done').tap();
+  await checkout(page, 'goldie@example.com');
+  await page.getByTestId('pay-paynow').tap();
+  await page.getByTestId('pay-simulate').tap();
+  await expect(page.getByTestId('order-ticket')).toContainText('PP-');
+  await expect(page.getByTestId('order-qr')).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText('Goldie is on the way!')).toBeVisible();
+});
+
 test('layout: the design preview and its tools share the screen without scrolling the page', async ({ page }) => {
   await toDesign(page);
   const preview = (await page.getByTestId('design-preview').boundingBox())!;

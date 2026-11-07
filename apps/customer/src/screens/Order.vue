@@ -4,7 +4,7 @@
 // and the result QR. With payments off the shop takes payment at the counter.
 import { computed, onBeforeUnmount, watch } from 'vue';
 import { apiUrl } from '@petpop/core';
-import { Chip, FigureView, GlbView, PButton, PTitle, QrCode, isKiosk } from '@petpop/ui-vue';
+import { Chip, FigureView, GlbView, KitFigureView, PButton, PTitle, QrCode, isKiosk } from '@petpop/ui-vue';
 import { useDesign } from '../stores/design';
 import { useSession } from '../stores/session';
 const s = useSession();
@@ -36,6 +36,8 @@ const sub = computed(() => {
   <div v-if="o" class="flex h-full flex-col items-center gap-4 px-4 pb-4 pt-2 text-center md:px-8 landscape:md:flex-row landscape:md:items-stretch landscape:md:text-left" data-testid="order">
     <div class="relative h-[38%] min-h-[12rem] w-full shrink-0 overflow-hidden rounded-tile bg-card shadow-soft landscape:md:h-full landscape:md:flex-1">
       <GlbView v-if="ready && o.previews.glb" :url="apiUrl(o.previews.glb)" :fallback-image="o.previews.thumbnail ? apiUrl(o.previews.thumbnail) : undefined" spin test-id="order-figure" />
+      <KitFigureView v-else-if="d.kitMode && d.kit && d.kitComposition" :manifest="d.kitManifest()" :kit="d.kit" :composition="d.kitComposition"
+        :url="d.fileUrl" spin :interactive="false" test-id="order-preview" />
       <FigureView v-else-if="d.lib && d.composition" :lib="d.lib" :composition="d.composition" spin :interactive="false" test-id="order-preview" />
     </div>
     <div class="no-scrollbar flex w-full min-h-0 flex-1 flex-col items-center gap-4 overflow-y-auto landscape:md:w-[min(42%,30rem)] landscape:md:flex-none landscape:md:items-start landscape:md:justify-center">

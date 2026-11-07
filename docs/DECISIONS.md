@@ -348,3 +348,14 @@ Choices made where BRIEF.md is silent or ambiguous. Newest at the bottom.
    extras' anchors are computed only when there are extras. The part's own GLB texture is for Studio's preview; the
    print's colours are the composition's. The manifest's `source` names the breed and kit version. Gate 7 runs a
    figure of parts from upload to print, on the CPU and in Blender.
+136. **The customer app designs figures of parts (P6c, 2026-11-07).** When the release has a kit for the chosen breed,
+   the design store works on a composition 3.0 instead of a mesh composition: `KitFigure` (`@petpop/scene`) loads the
+   part GLBs, places them with the same `placement` as Studio and the print (stretch, shape offsets, pose, the pose's
+   own variants), stands the figure on the floor and paints each part on the CPU from its template's masks with the
+   print's rules (`paintTile`, unit-tested against `kit_figure.paint_tile`), caching geometry, masks and textures.
+   Shape offers bodies (torso variant x shape), legs, tail and head when more than one is offered (a variant a pose
+   swaps in comes with its pose), and poses; Markings offers the coat, the markings the breed's parts have masks for,
+   their colour, a third colour, eyes and nose. Paint and Extras are hidden for these breeds. A release of kits only
+   loads (no whole-figure mesh needed). The dog fixture release carries a Labrador kit from the proxy parts (projected
+   UVs, drawn masks), so the app's tests design, order and pay for one. Found on the way: framing a figure measured
+   its parts in world space and fed the stage's own centring back in, pushing it off screen after the first change.

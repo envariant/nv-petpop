@@ -15,4 +15,5 @@ export { default as TextEntry } from './TextEntry.vue';
 export { default as QrCode } from './QrCode.vue';
 export { default as GlbView } from './three/GlbView.vue';
 export { default as FigureView } from './three/FigureView.vue';
+export { default as KitFigureView } from './three/KitFigureView.vue';
 export { default as PreviewView } from './three/PreviewView.vue';
